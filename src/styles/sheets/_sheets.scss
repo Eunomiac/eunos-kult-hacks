@@ -1,0 +1,24 @@
+@forward "pc-sheet.scss";
+
+.kult-sheet {
+  background: none !important;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.move-name {
+  font-family: Ktrata;
+  font-weight: bold;
+  font-style: italic;
+  color: var(--K4-bBLUE);
+  text-shadow: none;
+    // 1px 1px 1px var(--K4-bbBLUE),
+    // -1px -1px 1px var(--K4-bbBLUE);
+}
+
+.editor {
+  background-color: rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "k4ltitemsheet.d.ts",
+  "sourceRoot": "",
+  "sources": [
+    "../../../../../systems/k4lt/modules/sheets/k4ltitemsheet.js"
+  ],
+  "names": [],
+  "mappings": "AAAA;IACE,uBAEC;IAED,wBAkDC;CACF"
+}

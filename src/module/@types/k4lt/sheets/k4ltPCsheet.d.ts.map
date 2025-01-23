@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "k4ltPCsheet.d.ts",
+  "sourceRoot": "",
+  "sources": [
+    "../../../../../systems/k4lt/modules/sheets/k4ltPCsheet.js"
+  ],
+  "names": [],
+  "mappings": "AAAA;IACE,gBAAgB;IAChB,0CAOC;IAED,gBAAgB;IAChB,gCAEC;IAED,gBAAgB;IAChB,wBA+EC;IAED,gBAAgB;IAChB,4CAyHC;IAED,8BAkBC;IAED,kCAeC;IAED,6BAUC;IAED,oCAeC;CACF"
+}

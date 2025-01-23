@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "helpers.d.ts",
+  "sourceRoot": "",
+  "sources": [
+    "../../../../../systems/k4lt/modules/system/helpers.js"
+  ],
+  "names": [],
+  "mappings": "AAAA,0DAqEC"
+}

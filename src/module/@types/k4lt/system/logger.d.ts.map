@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "logger.d.ts",
+  "sourceRoot": "",
+  "sources": [
+    "../../../../../systems/k4lt/modules/system/logger.js"
+  ],
+  "names": [],
+  "mappings": "AAKO,uCAEN"
+}

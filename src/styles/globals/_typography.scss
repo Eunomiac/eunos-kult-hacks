@@ -1,0 +1,227 @@
+@use "./functions.scss" as *;
+
+@font-face { // Ktrata Light
+  font-family: "Ktrata";
+  font-weight: 300; /* Light */
+  font-style: normal;
+  src: #{to-url("fonts/Kultrata-Light.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Regular
+  font-family: "Ktrata";
+  font-weight: 400; /* Regular */
+  font-style: normal;
+  src: #{to-url("fonts/Kultrata-Regular.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Medium
+  font-family: "Ktrata";
+  font-weight: 500; /* Medium */
+  font-style: normal;
+  src: #{to-url("fonts/Kultrata-Medium.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Semi-Bold
+  font-family: "Ktrata";
+  font-weight: 600; /* Semi-Bold */
+  font-style: normal;
+  src: #{to-url("fonts/Kultrata-Semibold.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Bold
+  font-family: "Ktrata";
+  font-weight: 700 800; /* Bold and 800 */
+  font-style: normal;
+  src: #{to-url("fonts/Kultrata-Bold.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Black
+  font-family: "Ktrata";
+  font-weight: 900; /* Black */
+  font-style: normal;
+  src: #{to-url("fonts/Kultrata-Black.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Italic Light
+  font-family: "Ktrata";
+  font-weight: 300; /* Light */
+  font-style: italic;
+  src: #{to-url("fonts/Kultrata-LightItalic.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Italic Regular
+  font-family: "Ktrata";
+  font-weight: 400; /* Regular */
+  font-style: italic;
+  src: #{to-url("fonts/Kultrata-RegularItalic.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Italic Medium
+  font-family: "Ktrata";
+  font-weight: 500; /* Medium */
+  font-style: italic;
+  src: #{to-url("fonts/Kultrata-MediumItalic.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Italic Semi-Bold
+  font-family: "Ktrata";
+  font-weight: 600; /* Semi-Bold */
+  font-style: italic;
+  src: #{to-url("fonts/Kultrata-SemiboldItalic.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Italic Bold
+  font-family: "Ktrata";
+  font-weight: 700 800; /* Bold and 800 */
+  font-style: italic;
+  src: #{to-url("fonts/Kultrata-BoldItalic.woff2")} format("woff2");
+}
+
+@font-face { // Ktrata Italic Black
+  font-family: "Ktrata";
+  font-weight: 900; /* Black */
+  font-style: italic;
+  src: #{to-url("fonts/Kultrata-BlackItalic.woff2")} format("woff2");
+}
+
+@font-face { // KtrataHeader Black
+  font-family: "KtrataHeader";
+  font-weight: 900; /* Black */
+  font-style: normal;
+  src: #{to-url("fonts/KultrataTitle-Black.woff2")} format("woff2");
+}
+
+@font-face { // KtrataHeader Bold
+  font-family: "KtrataHeader";
+  font-weight: 100 800; /* All Other Weights */
+  font-style: normal;
+  src: #{to-url("fonts/KultrataTitle-Regular.woff2")} format("woff2");
+}
+
+@font-face { // KtrataSC Light
+  font-family: "KtrataSmallCaps";
+  font-weight: 300; /* Light */
+  font-style: normal;
+  src: #{to-url("fonts/KultrataSC-Light.woff2")} format("woff2");
+}
+
+@font-face { // KtrataSC Regular
+  font-family: "KtrataSmallCaps";
+  font-weight: 400; /* Regular */
+  font-style: normal;
+  src: #{to-url("fonts/KultrataSC-Regular.woff2")} format("woff2");
+}
+
+@font-face { // KtrataSC Medium
+  font-family: "KtrataSmallCaps";
+  font-weight: 500; /* Medium */
+  font-style: normal;
+  src: #{to-url("fonts/KultrataSC-Medium.woff2")} format("woff2");
+}
+
+@font-face { // KtrataSC Semi-Bold
+  font-family: "KtrataSmallCaps";
+  font-weight: 600; /* Semi-Bold */
+  font-style: normal;
+  src: #{to-url("fonts/KultrataSC-Semibold.woff2")} format("woff2");
+}
+
+@font-face { // KtrataSC Bold
+  font-family: "KtrataSmallCaps";
+  font-weight: 700 800; /* Bold and 800 */
+  font-style: normal;
+  src: #{to-url("fonts/KultrataSC-Bold.woff2")} format("woff2");
+}
+
+@font-face { // KtrataSC Black
+  font-family: "KtrataSmallCaps";
+  font-weight: 900; /* Black */
+  font-style: normal;
+  src: #{to-url("fonts/KultrataSC-Black.woff2")} format("woff2");
+}
+
+@font-face {
+	font-family: Infidel;
+	src: #{to-url("fonts/Infidel.woff2")} format("woff2");
+}
+
+@font-face {
+	font-family: Sokol;
+	src: #{to-url("fonts/Sokol.woff2")} format('woff2');
+}
+
+@font-face {
+	font-family: GrandpasScript;
+	src: #{to-url("fonts/GrandpasScript-Regular.woff2")} format('woff2');
+}
+
+@font-face {
+	font-family: Leviathan;
+	src: #{to-url("fonts/Leviathan.woff2")} format('woff2');
+}
+
+@font-face {
+	font-family: ManoNegra;
+	src: #{to-url("fonts/ManoNegra-Regular.woff2")} format('woff2');
+  font-weight: 100 600; /* All Sub-Bold Weights */
+}
+
+@font-face {
+	font-family: ManoNegra;
+	src: #{to-url("fonts/ManoNegra-Bold.woff2")} format('woff2');
+  font-weight: 700 900; /* Bold, Black */
+}
+
+$rem-8: 8px;
+$rem-10: 10px;
+$rem-12: 12px;
+$rem-14: 14px;
+$rem-16: 16px;
+$rem-18: 18px;
+$rem-20: 20px;
+$rem-22: 22px;
+$rem-24: 24px;
+$rem-28: 28px;
+$rem-32: 32px;
+$rem-40: 40px;
+$rem-48: 48px;
+$rem-56: 56px;
+$rem-64: 64px;
+$rem-72: 72px;
+$rem-80: 80px;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semi: 600;
+$font-weight-bold: 700;
+$font-weight-black: 900;
+
+* {
+	/* FOUNDRY OVERRIDES */
+  --font-primary: Ktrata, serif; // "Signika", sans-serif;
+  --font-primary-italics: Ktrata, serif;
+  --font-mono: monospace;
+  --font-size-11: 11px;
+  --font-size-12: 12px;
+  --font-size-13: 13px;
+  --font-size-14: 14px;
+  --font-size-16: 16px;
+  --font-size-18: 18px;
+  --font-size-20: 20px;
+  --font-size-24: 24px;
+  --font-size-28: 28px;
+  --line-height-12: 2px;
+  --line-height-16: 16px;
+  --line-height-20: 20px;
+  --line-height-30: 30px;
+
+	--font-primary-caps: KtrataHeader, serif;
+	--font-icon: "Font Awesome 5 Free";
+	--font-heading-1: Infidel, sans-serif;
+  --font-heading-2: KtrataHeader, serif;
+  --font-primary-smallcaps: KtrataSmallCaps, serif;
+	--font-decorative: Sokol, serif;
+  --font-decorative-alt: Ravenscroft, serif;
+	--font-handwritten: GrandpaScript, serif;
+}

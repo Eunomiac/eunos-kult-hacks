@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "k4ltActor.d.ts",
+  "sourceRoot": "",
+  "sources": [
+    "../../../../../systems/k4lt/modules/sheets/k4ltActor.js"
+  ],
+  "names": [],
+  "mappings": "AAAA;IAEE,gBAAgB;IAChB,iCAEC;IAED,uBAKC;IAED,0CAMC;IAED,4CAGC;IAED;;;;;;;sBA0BC;IAED,qCAoGC;IAED,8BA+BC;IAED,+BAYC;CACF"
+}

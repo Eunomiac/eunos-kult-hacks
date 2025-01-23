@@ -1,0 +1,64 @@
+{
+	"version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Foundry Server",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "C:/FoundryVTT/v12/Foundry Virtual Tabletop/resources/app/main.js",
+        "--port=30000",
+        "--dataPath=D:/Projects/.CODING/FoundryVTT/FoundryV12DistData",
+        "--hotReload"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run 1x Vite Dev Server",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["run", "dev"],
+      "options": {
+        "env": {
+          "NUM_CHROME_PROFILES": "1",
+          "NODE_OPTIONS": "--max-old-space-size=8192",
+          "FOUNDRY_PORT": "30000"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run 2x Vite Dev Server",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["run", "dev"],
+      "options": {
+        "env": {
+          "NUM_CHROME_PROFILES": "2",
+          "NODE_OPTIONS": "--max-old-space-size=8192",
+          "FOUNDRY_PORT": "30000"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Build with Custom Port",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["run", "build"],
+      "options": {
+        "env": {
+          "FOUNDRY_PORT": "30000"
+        }
+      },
+      "problemMatcher": []
+    }
+  ]
+}

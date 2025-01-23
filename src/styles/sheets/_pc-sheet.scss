@@ -1,0 +1,210 @@
+/* Select elements with IDs starting with "EunosPCSheet" */
+[id^="EunosPCSheet"] {
+  .window-header {
+    /* Header Styles */
+  }
+
+  .window-content {
+    overflow-y: scroll;
+    .kult-sheet {
+      padding-bottom: 0;
+      .sheet-header {
+        /* Sheet Header Styles */
+      }
+      .top-section {
+        .ongoing, .forward {
+          border-radius: 25px;
+          background: var(--K4-dRED);
+          padding: 5px;
+
+          select {
+            border: 1px solid white;
+            border-radius: 25px;
+            background: var(--K4-RED);
+          }
+        }
+        .character-name {
+          input {
+            margin: 0;
+          }
+        }
+      }
+      .sheet-topper {
+        height: 250px;
+        .actor-picture {
+          height: 250px;
+        }
+
+        .move-section {
+          .item-list.move-list {
+            height: 250px;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            flex-direction: column;
+            padding: 10px;
+            margin-right: 20px;
+          }
+        }
+      }
+
+      .sheet-tabs {
+        .choice {
+          font-family: var(--font-primary-caps);
+          padding: 5px 10px;
+
+          .condition-count {
+            width: 18px;
+            height: 18px;
+            font-size: 16px;
+            line-height: 10px;
+          }
+        }
+      }
+
+      .sheet-body {
+        #Stats {
+
+        }
+        #Conditions {
+          .stability-conditions {
+          .stability-section {
+            select {
+              margin-bottom: 5px;
+            }
+            .stability-states {
+              font-style: italic;
+              font-size: 14px;
+            }
+            .stability-modifiers {
+              margin-left: 10px;
+              .stability-modifier {
+                text-align: left;
+              }
+            }
+          }
+          .condition-hold {
+            display: flex;
+            margin: 0;
+            justify-content: flex-end;
+            a {
+              margin-left: 5px;
+              margin-right: 5px;
+            }
+
+            .token-condition-spend.disabled {
+              opacity: 0;
+              pointer-events: none;
+            }
+          }
+        }
+        }
+      }
+
+      .item-list {
+        .move-card {
+          position: relative;
+          padding-right: 10px;
+
+          .item-name {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: stretch;
+          }
+
+          .item-control {
+            flex-grow: 0;
+          }
+
+          .move-roll,
+          .move-card-text {
+            white-space: nowrap;
+            flex-grow: 1;
+          }
+
+          .item-delete {
+            position: absolute;
+            left: calc(100% - 20px);
+          }
+
+          .item-edit {
+            position: absolute;
+            left: calc(100% - 40px);
+          }
+
+          .item-show {
+            position: absolute;
+            left: calc(100% - 60px);
+          }
+        }
+
+        &:not(.weapon-list):not(.gear-list) {
+          .move-card .item-show {
+            display: none;
+          }
+        }
+
+        &.disadvantage-list {
+          .move-card {
+            background: var(--K4-ddRED);
+            border-color: var(--K4-bRED);
+
+            .disadvantage-info.item-name {
+              color: var(--K4-bRED);
+            }
+
+            .disadvantage-info .advantage-column {
+              margin-top: 20px;
+              white-space: nowrap;
+            }
+          }
+        }
+
+        &.advantage-list {
+          .move-card {
+            background: var(--K4-ddGOLD);
+            border-color: var(--K4-bGOLD);
+
+            .advantage-info.item-name {
+              color: var(--K4-bGOLD);
+            }
+
+            .advantage-info .advantage-column {
+              margin-top: 20px;
+              white-space: nowrap;
+            }
+          }
+        }
+
+        &.darksecret-list {
+          .move-card {
+            background: rgb(14, 14, 14);
+            border-color: rgb(200, 200, 200);
+
+            .move-info.item-name {
+              color: rgb(200, 200, 200);
+            }
+
+            .item-edit {
+              position: static;
+            }
+          }
+        }
+
+        &.relationship-list {
+          .move-card {
+            background: var(--K4-ddBLUE);
+
+            .move-info.item-name {
+              color: var(--K4-bbBLUE);
+            }
+
+            .item-edit {
+              position: static;
+            }
+          }
+        }
+      }
+
+    }
+  }
+}

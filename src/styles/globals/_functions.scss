@@ -1,0 +1,237 @@
+@use "sass:string";
+
+@function to-url($path, $subFolder: false) {
+	@if ($subFolder) {
+		@return string.unquote(string.insert(string.insert(string.insert(string.insert('url("/assets/',
+			$subFolder,
+			1000),
+			"/",
+			1000),
+			$path,
+			1000),
+		'")',
+		1000));
+	}
+	@return string.unquote(string.insert(string.insert('url("/assets/',
+				$path,
+				1000),
+			'")',
+			1000));
+}
+
+@function build-text-shadow($size, $color: var(--K4-dBLACK), $count: 1, $offsetX: 0, $offsetY: 0) {
+  $shadows: ();
+
+  @for $i from 1 through $count {
+    $shadow: #{$offsetX} #{$offsetY} #{$size} #{$color};
+    $shadows: append($shadows, $shadow, comma);
+  }
+
+  @return $shadows;
+}
+
+@function change-alpha($color, $alpha) {
+  @return rgb(from #{$color} r g b / $alpha);
+}
+
+/// Creates a circular mask effect using SVG and CSS masking.
+///
+/// @param {Length} $area - The dimensions of the entire mask area when applied to an element.
+/// @param {Length} $radius - The radius of the circular mask within the SVG.
+///   If equal to $area/2, the circle will fit exactly in the mask area.
+/// @param {List} $offset [0px 0px] - Optional offset to shift the mask position.
+///   Format: (horizontal vertical)
+/// @param {String} $filter [none] - Optional SVG filter to apply to the mask.
+///   Useful filters include: blur(), opacity(), drop-shadow().
+///   If a gradient base mask is used, brightness() can also create interesting effects.
+///   Example: "blur(5px)" or "opacity(50%) drop-shadow(3px 3px 3px black)"
+/// @param {Boolean} $invert [false] - If true, inverts the mask effect.
+///
+/// @example scss
+///   .element {
+///     @include to-mask(200px, 80px, (10px 20px), "blur(5px)");
+///   }
+///
+/// @example scss - With gradient base mask
+///   .element {
+///     @include to-mask(200px, 80px, (0px 0px), "brightness(150%)", $base-mask: linear-gradient(to right, transparent, white));
+///   }
+@mixin to-mask($area, $radius, $offset: (0px 0px), $filter: none, $invert: false, $base-mask: #fff) {
+  // Set center coordinates for the SVG circle
+  $cx: 50;
+  $cy: 50;
+
+  // Extract offset values and convert to numbers
+  $offset-x: to-number(nth($offset, 1));
+  $offset-y: to-number(nth($offset, 2));
+
+  // Create inline SVG as a data URI for the mask
+  $sheet-mask: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><circle cx="#{$cx}" cy="#{$cy}" r="#{$radius}" fill="black" filter="#{$filter}" /></svg>';
+
+  // Apply inversion if specified
+  @if ($invert) {
+    mask-composite: exclude;
+  }
+
+  // Apply the mask with calculated positioning
+  // The positioning calculation centers the mask and then applies the offset
+  mask: url('#{$sheet-mask}') #{$offset-x - 0.5 * $area} #{$offset-y - 0.5 * $area}/#{$area} #{$area} no-repeat, #{$base-mask};
+}
+
+/// Creates a mask effect on a rectangular element using an image file.
+///
+/// @param {String} $image-url - URL of the image to be used as a mask.
+/// @param {Length} $element-width - Width of the element to be masked.
+/// @param {Length} $element-height - Height of the element to be masked.
+/// @param {Length} $mask-width [100%] - Width of the mask image.
+/// @param {Length} $mask-height [100%] - Height of the mask image.
+/// @param {List} $position [center] - Position of the mask image within the element.
+///   Can be any valid CSS background-position value.
+///   Format: (horizontal vertical) or keywords like 'center', 'top left', etc.
+/// @param {String} $size [cover] - Size of the mask image.
+///   Can be any valid CSS background-size value.
+/// @param {String} $filter [none] - Optional CSS filter to apply to the mask image.
+///   Interesting filters include:
+///   - contrast(): Enhances the edges in the mask image.
+///   - brightness(): Adjusts the overall intensity of the mask.
+///   - invert(): Inverts the mask colors (different from $invert parameter).
+///   - blur(): Softens the edges of the mask.
+///   Example: "contrast(150%) brightness(120%)"
+/// @param {Boolean} $invert [false] - If true, inverts the mask effect.
+///
+/// @example scss
+///   .element {
+///     @include image-mask('/path/to/mask.png', 300px, 200px, $position: (20px 30px), $size: contain);
+///   }
+///
+/// @example scss - With filter
+///   .element {
+///     @include image-mask('/path/to/mask.png', 300px, 200px, $filter: "contrast(150%) brightness(120%)");
+///   }
+@mixin image-mask(
+  $image-url,
+  $element-width,
+  $element-height,
+  $position: center,
+  $size: cover,
+  $filter: none,
+  $invert: false
+) {
+  // Set the element's dimensions
+  width: $element-width;
+  height: $element-height;
+
+  // Construct the mask image URL with optional filter
+  $mask-image: #{to-url($image-url)};
+  @if $filter != none {
+    $mask-image: #{to-url($image-url)} #{$filter};
+  }
+
+  // Apply the mask
+  -webkit-mask-image: $mask-image;
+  mask-image: $mask-image;
+
+  // Set mask size
+  -webkit-mask-size: $size;
+  mask-size: $size;
+
+  // Set mask position
+  -webkit-mask-position: $position;
+  mask-position: $position;
+
+  // Set mask repeat (default to no-repeat)
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  // Apply inversion if specified
+  @if $invert {
+    -webkit-mask-composite: source-out;
+    mask-composite: subtract;
+  }
+}
+
+@mixin neon-glow-animated($name, $color, $text-color: var(--K4-neon-text-color)) {
+  --K4-color-primary-bright: #{$text-color};
+  color: var(--K4-color-primary-bright);
+  text-shadow: 0 0 2px change-alpha(#{$color}, 0.8),
+                  0 0 4px change-alpha(#{$color}, 0.8),
+                  0 0 4.5px change-alpha(#{$color}, 0.8),
+                  0 0 8px change-alpha(#{$color}, 0.8),
+                  0 0 12.5px change-alpha(#{$color}, 0.8),
+                  0 0 16.5px change-alpha(#{$color}, 0.5),
+                  0 0 21px change-alpha(#{$color}, 0.5),
+                  0 0 29px change-alpha(#{$color}, 0.5),
+                  0 0 41.5px change-alpha(#{$color}, 0.5);
+  animation: neonGlow-#{"" + $name} 1.5s infinite alternate cubic-bezier(0.455, 0.030, 0.515, 0.955);
+
+  @keyframes neonGlow-#{"" + $name} {
+    0% {
+      text-shadow: 0 0 2px change-alpha(#{$color}, 0.8),
+                  0 0 4px change-alpha(#{$color}, 0.8),
+                  0 0 4.5px change-alpha(#{$color}, 0.8),
+                  0 0 8px change-alpha(#{$color}, 0.8),
+                  0 0 12.5px change-alpha(#{$color}, 0.8),
+                  0 0 16.5px change-alpha(#{$color}, 0.5),
+                  0 0 21px change-alpha(#{$color}, 0.5),
+                  0 0 29px change-alpha(#{$color}, 0.5),
+                  0 0 41.5px change-alpha(#{$color}, 0.5);
+    }
+    100% {
+      text-shadow: 0 0 0.5px change-alpha(#{$color}, 0.8),
+                  0 0 1.5px change-alpha(#{$color}, 0.8),
+                  0 0 2px change-alpha(#{$color}, 0.8),
+                  0 0 4px change-alpha(#{$color}, 0.8),
+                  0 0 6px change-alpha(#{$color}, 0.8),
+                  0 0 8px change-alpha(#{$color}, 0.8),
+                  0 0 10.5px change-alpha(#{$color}, 0.8),
+                  0 0 16.5px change-alpha(#{$color}, 0.8);
+    }
+  }
+
+  .icon-container {
+    color: var(--K4-color-primary-bright);
+    filter:
+      drop-shadow(0 0 0.5px change-alpha(#{$color}, 0.8))
+      drop-shadow(0 0 1.5px change-alpha(#{$color}, 0.8))
+      drop-shadow(0 0 2px change-alpha(#{$color}, 0.8))
+      drop-shadow(0 0 3px change-alpha(#{$color}, 0.8))
+      drop-shadow(0 0 4px change-alpha(#{$color}, 0.5))
+      drop-shadow(0 0 5px change-alpha(#{$color}, 0.5))
+      drop-shadow(0 0 8px change-alpha(#{$color}, 0.5)) !important;
+  }
+}
+
+
+
+// @mixin neon-glow-animated($name, $color, $text-color: var(--K4-neon-text-color)) {
+//   --K4-color-primary-bright: #{$text-color};
+//   @keyframes neonGlow-#{$name} {
+//     0% {
+//       filter:
+//         drop-shadow(0 0 2px #{rgba($text-color, 0.8)})
+//         drop-shadow(0 0 4px #{rgba($text-color, 0.8)})
+//         drop-shadow(0 0 8px #{rgba($color, 0.8)})
+//         drop-shadow(0 0 12px #{rgba($color, 0.5)})
+//         drop-shadow(0 0 16px #{rgba($color, 0.5)});
+//     }
+//     100% {
+//       filter:
+//         drop-shadow(0 0 1px #{rgba($text-color, 0.8)})
+//         drop-shadow(0 0 2px #{rgba($text-color, 0.8)})
+//         drop-shadow(0 0 4px #{rgba($color, 0.8)})
+//         drop-shadow(0 0 6px #{rgba($color, 0.8)})
+//         drop-shadow(0 0 8px #{rgba($color, 0.8)});
+//     }
+//   }
+//   color: var(--K4-color-primary-bright);
+//   animation: neonGlow-#{$name} 1.5s infinite alternate cubic-bezier(0.455, 0.030, 0.515, 0.955);
+// }
+
+@mixin neon-glow-soft($textColor, $glowColor) {
+  color: $textColor;
+  text-shadow:
+    0 0 2px #000,
+    0 0 10px $glowColor,
+    0 0 5px $glowColor,
+    0 0 25px $glowColor;
+}

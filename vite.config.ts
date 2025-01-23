@@ -5,29 +5,32 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import { checker } from "vite-plugin-checker";
 import esbuild from "esbuild";
 import * as path from "path";
-import { findFoundryHost, findManifestJSON } from "./utils.ts";
+import { findFoundryHost, findManifestJSON } from "./utils";
+import {exec} from "child_process";
 
 export type PackageType = "module" | "system" | "world";
 
 const packageType: PackageType = "module";
 
 // The package name should be the same as the name in the `module.json`/`system.json` file.
-const packageID: string = "abc";
+const packageID: string = "eunos-kult-hacks";
 
 const manifestJSONPath = await findManifestJSON(packageType);
 
 const filesToCopy = [
-  manifestJSONPath,
-  "CHANGELOG.md",
-  "README.md",
-  "CONTRIBUTING.md",
+  manifestJSONPath
+
+
+
 ]; // Feel free to change me.
 
 const devServerPort = 30001;
-const scriptsEntrypoint = "./src/module/index.ts";
+const scriptsEntrypoint = "./src/module/eunos-kult-hacks.ts";
 const stylesEntrypoint = "./src/styles/styles.scss";
+const NUM_CHROME_PROFILES = parseInt(process.env["NUM_CHROME_PROFILES"] ?? "1", 10);
 
 // @ts-expect-error the types are set to invalid values to ensure the user sets them.
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 if (packageType == "REPLACE ME" || packageID == "REPLACE ME") {
   throw new Error(
     `Must set the "packageType" and the "packageID" variables in vite.config.ts`,
@@ -41,6 +44,28 @@ const foundryPackagePath = getFoundryPackagePath(packageType, packageID);
 
 // await symlinkFoundryPackage(packageType, packageID, foundryHostData);
 
+/**
+ * Custom plugin to open one or more Chrome profiles with specific flags when the Vite server starts.
+ */
+function openChromePlugin(): Vite.Plugin {
+  return {
+    name:  "open-chrome",
+    apply: "serve", // Only apply this plugin during development
+    configResolved(chromeConfig) {
+      if (chromeConfig.command === "serve") {
+        for (let i = 0; i < NUM_CHROME_PROFILES; i++) {
+          const command = `start chrome --start-maximized --remote-debugging-port=${String(9222+i)} --auto-open-devtools-for-tabs --user-data-dir="D:/Projects/.CODING/FoundryVTT/ChromeDevProfile_${String(i+1)}" http://localhost:${String(chromeConfig.server.port)}`;
+          exec(command, (error) => {
+            if (error) {
+              console.error(`Failed to open Chrome instance #${String(i+1)}:`, error);
+            }
+          });
+        }
+      }
+    }
+  };
+}
+
 const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
   const buildMode = mode === "production" ? "production" : "development";
   const outDir = "dist";
@@ -49,6 +74,7 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
     checker({ typescript: { buildMode: true } }),
     tsconfigPaths(),
     foundryEntrypointsPlugin(),
+    openChromePlugin(),
   ];
 
   // Handle minification after build to allow for tree-shaking and whitespace minification
@@ -80,9 +106,20 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
         // This file is substituted out with the real entrypoint in the foundryEntrypointsPlugin
         entry: "fake-entrypoint.js",
         formats: ["es"],
-        fileName: "index",
+        fileName: "eunos-kult-hacks",
       },
       target: "es2023",
+      rollupOptions: {
+        output: {
+          assetFileNames: ({ names }): string => {
+            if (names.includes("eunos-kult-hacks.css")) {
+              return "styles.css";
+            }
+
+            return "assets/[name]-[hash][extname]";
+          },
+        },
+      },
     },
     optimizeDeps: {
       entries: [],
@@ -104,7 +141,7 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
 
 function foundryEntrypointsPlugin(): Vite.Plugin {
   const manifestPrefix = "\0virtual:foundry/";
-  const jsFile = `${manifestPrefix}index.js`;
+  const jsFile = `${manifestPrefix}eunos-kult-hacks.js`;
   const stylesFile = `${manifestPrefix}styles.css?url`;
 
   let config: Vite.ResolvedConfig;
@@ -118,7 +155,7 @@ function foundryEntrypointsPlugin(): Vite.Plugin {
         return jsFile;
       }
 
-      if (source === "/index.js") {
+      if (source === "/eunos-kult-hacks.js") {
         return jsFile;
       }
 

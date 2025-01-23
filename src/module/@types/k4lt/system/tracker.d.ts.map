@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "tracker.d.ts",
+  "sourceRoot": "",
+  "sources": [
+    "../../../../../systems/k4lt/modules/system/tracker.js"
+  ],
+  "names": [],
+  "mappings": ""
+}

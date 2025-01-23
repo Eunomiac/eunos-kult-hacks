@@ -1,0 +1,17 @@
+{
+  "id": "eunos-kult-hacks",
+  "title": "Euno's Kult Hacks",
+  "description": "Personal modifications to the existing Foundry VTT system for Kult: Divinity Lost.",
+  "version": "0.0.1",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "authors": [
+    {
+      "name": "Eunomiac"
+    }
+  ],
+  "esmodules": ["eunos-kult-hacks.js"],
+  "styles": ["styles.css"]
+}

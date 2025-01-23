@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "k4ltNPCsheet.d.ts",
+  "sourceRoot": "",
+  "sources": [
+    "../../../../../systems/k4lt/modules/sheets/k4ltNPCsheet.js"
+  ],
+  "names": [],
+  "mappings": "AAAA;IACE,gBAAgB;IAChB,gCAEC;IAED,gBAAgB;IAChB,wBA0BC;CACF"
+}
