@@ -1,3 +1,17 @@
+import EunosItem from "../documents/EunosItem.ts";
+import ActorDataPC from "../data-model/ActorDataPC";
+import ActorDataNPC from "../data-model/ActorDataNPC";
+import ItemDataAbility from "../data-model/ItemDataAbility";
+import ItemDataAdvantage from "../data-model/ItemDataAdvantage";
+import ItemDataDarkSecret from "../data-model/ItemDataDarkSecret";
+import ItemDataDisadvantage from "../data-model/ItemDataDisadvantage";
+import ItemDataFamily from "../data-model/ItemDataFamily";
+import ItemDataGear from "../data-model/ItemDataGear";
+import ItemDataLimitation from "../data-model/ItemDataLimitation";
+import ItemDataMove from "../data-model/ItemDataMove";
+import ItemDataOccupation from "../data-model/ItemDataOccupation";
+import ItemDataRelationship from "../data-model/ItemDataRelationship";
+import ItemDataWeapon from "../data-model/ItemDataWeapon";
 // import K4ActiveEffect from "../documents/K4ActiveEffect.js";
 // import Document = foundry.abstract.Document;
 // import K4PCSheet from "../documents/K4PCSheet.js";
@@ -13,7 +27,28 @@ export {};
 declare global {
 
   interface DocumentClassConfig {
-    Actor: typeof k4ltActor;
+    Actor: typeof EunosActor;
+    Item: typeof EunosItem;
+  }
+
+  interface DataModelConfig {
+    Actor: {
+      pc: ActorDataPC;
+      npc: ActorDataNPC;
+    }
+    Item: {
+      ability: ItemDataAbility;
+      advantage: ItemDataAdvantage;
+      darksecret: ItemDataDarkSecret;
+      disadvantage: ItemDataDisadvantage;
+      family: ItemDataFamily;
+      gear: ItemDataGear;
+      limitation: ItemDataLimitation;
+      move: ItemDataMove;
+      occupation: ItemDataOccupation;
+      relationship: ItemDataRelationship;
+      weapon: ItemDataWeapon;
+    }
   }
 
   // interface FlagConfig {
@@ -40,6 +75,12 @@ declare global {
   //     }
   //   }
   // }
+
+  interface SettingConfig {
+    core: {
+      rollMods: string;
+    }
+  }
 
   // interface SettingConfig {
   //   // Values: {

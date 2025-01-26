@@ -1,6 +1,8 @@
 {{!log 'pc-sheet' this}}
 <form class="{{cssClass}} kult-sheet" autocomplete="off">
   <header class="sheet-header">
+
+
     <div class="flex-container top-section">
       <h1 class="character-name"><input name="name" type="text" value="{{actor.name}}" placeholder="Name" /></h1>
       <div class="ongoing">
@@ -15,11 +17,12 @@
           {{selectOptions modifierValues selected=system.forward valueAttr="value" labelAttr="label"}}
         </select>
       </div>
+
     </div>
   </header>
   <div class="flex-container sheet-topper">
     <img class="actor-picture" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="324" width="200" />
-    <div style="width: 98% !important;">
+    <div class="move-section-container">
 
       <div class="move-section">
         <div class="section-label">Basic Moves</div>
@@ -29,6 +32,27 @@
           {{> "systems/k4lt/templates/partials/move-card.hbs" move}}
           {{/if}}
           {{/each}}
+        </div>
+
+      </div>
+      <div class="modifier-topper flex-row">
+        <div class="modifiers-summary">
+          {{#if system.stabilityModifiers.length}}
+          <div class="stability-modifiers-summary">
+            <label>Stability:</label>
+            {{#each system.stabilityModifiers as |modifier|}}
+            <span class="stability-modifier">{{{modifier}}}</span>
+            {{/each}}
+          </div>
+          {{/if}}
+          {{#if system.woundModifiers.length}}
+          <div class="wound-modifiers-summary">
+            <label>Wounds:</label>
+            {{#each system.woundModifiers as |modifier|}}
+            <span class="wound-modifier">{{{modifier}}}</span>
+            {{/each}}
+          </div>
+          {{/if}}
         </div>
       </div>
     </div>
@@ -327,37 +351,44 @@
             </ul>
           </div>
 
+          <div class="flex-column wounds-section">
+            <div class="section-label" style="margin-bottom: 12px;">{{localize "k4lt.Wounds"}}</div>
 
-          <div class="section-label" style="margin-bottom: 12px;">{{localize "k4lt.Wounds"}}</div>
+            <div class="two-column-wound serious-wounds">
+              <img id="majorwound1" class="wound" src="{{getWoundsImage system.majorwound1.state}}">
+              <input type="text" name="system.majorwound1.value" value="{{system.majorwound1.value}}"
+                placeholder="Serious Wound #1">
+            </div>
 
-          <div class="two-column-wound serious-wounds">
-            <img id="majorwound1" class="wound" src="{{getWoundsImage system.majorwound1.state}}">
-            <input type="text" name="system.majorwound1.value" value="{{system.majorwound1.value}}"
-              placeholder="Serious Wound #1">
-          </div>
+            <div class="two-column-wound serious-wounds">
+              <img id="majorwound2" class="wound" src="{{getWoundsImage system.majorwound2.state}}">
+              <input type="text" name="system.majorwound2.value" value="{{system.majorwound2.value}}"
+                placeholder="Serious Wound #2">
+            </div>
 
-          <div class="two-column-wound serious-wounds">
-            <img id="majorwound2" class="wound" src="{{getWoundsImage system.majorwound2.state}}">
-            <input type="text" name="system.majorwound2.value" value="{{system.majorwound2.value}}"
-              placeholder="Serious Wound #2">
-          </div>
+            <div class="two-column-wound serious-wounds">
+              <img id="majorwound3" class="wound" src="{{getWoundsImage system.majorwound3.state}}">
+              <input type="text" name="system.majorwound3.value" value="{{system.majorwound3.value}}"
+                placeholder="Serious Wound #3">
+            </div>
 
-          <div class="two-column-wound serious-wounds">
-            <img id="majorwound3" class="wound" src="{{getWoundsImage system.majorwound3.state}}">
-            <input type="text" name="system.majorwound3.value" value="{{system.majorwound3.value}}"
-              placeholder="Serious Wound #3">
-          </div>
+            <div class="two-column-wound serious-wounds">
+              <img id="majorwound4" class="wound" src="{{getWoundsImage system.majorwound4.state}}">
+              <input type="text" name="system.majorwound4.value" value="{{system.majorwound4.value}}"
+                placeholder="Serious Wound #4">
+            </div>
 
-          <div class="two-column-wound serious-wounds">
-            <img id="majorwound4" class="wound" src="{{getWoundsImage system.majorwound4.state}}">
-            <input type="text" name="system.majorwound4.value" value="{{system.majorwound4.value}}"
-              placeholder="Serious Wound #4">
-          </div>
+            <div class="two-column-wound critical-wound">
+              <img id="criticalwound" class="wound" src="{{getWoundsImage system.criticalwound.state}}">
+              <input type="text" name="system.criticalwound.value" value="{{system.criticalwound.value}}"
+                placeholder="Critical Wound">
+            </div>
 
-          <div class="two-column-wound critical-wound">
-            <img id="criticalwound" class="wound" src="{{getWoundsImage system.criticalwound.state}}">
-            <input type="text" name="system.criticalwound.value" value="{{system.criticalwound.value}}"
-              placeholder="Critical Wound">
+            <ul class="wound-modifiers">
+              {{#each system.woundModifiers as |modifier|}}
+              <li class="wound-modifier">{{{modifier}}}</li>
+              {{/each}}
+            </ul>
           </div>
         </div>
         <div class="stability-conditions">
@@ -384,14 +415,9 @@
               {{localize "k4lt.Sad"}}
             </div>
             {{#if (eq system.conditionSad.state "checked")}}
-            <div class="condition-question">{{localize "k4lt.WhatIsCausingTheSadness"}}</div>
+            <div class="condition-question">What are you sad about?</div>
             <div class="free-text">
               {{editor system.conditionSad.answer1 target="system.conditionSad.answer1" button=true owner=owner
-              editable=editable}}
-            </div>
-            <div class="condition-question">{{localize "k4lt.HowDoesTheCharacterDealWithIt"}}</div>
-            <div class="free-text">
-              {{editor system.conditionSad.answer2 target="system.conditionSad.answer2" button=true owner=owner
               editable=editable}}
             </div>
             {{/if}}

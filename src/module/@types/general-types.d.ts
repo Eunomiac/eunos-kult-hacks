@@ -128,7 +128,14 @@ declare global {
    * @returns A Collection of K4Actor instances.
    * @throws Error if the Actors collection is not ready.
    */
-  function getActors(): Collection<k4ltActor>;
+  function getActors(): EunosActor[];
+
+  /**
+   * Retrieves the client settings for the game.
+   * @returns The client settings.
+   * @throws Error if the settings are not ready.
+   */
+  function getSettings(): ClientSettings;
 
   /**
    * Retrieves the collection of all K4Item instances in the game.

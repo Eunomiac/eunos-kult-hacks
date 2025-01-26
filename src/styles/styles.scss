@@ -20,6 +20,11 @@
   --K4-bBLUE: rgb(61, 121, 197);
   --K4-bbBLUE: rgb(119, 179, 255);
   --K4-dBLACK: rgb(0, 0, 0);
+
+  body:not(.interface-ready), body:not(.interface-ready) * {
+    opacity: 0 !important;
+    background: black !important;
+  }
 }
 /* #endregion */
 
@@ -29,7 +34,7 @@
 /* If player is not GM: */
 .bottom-section .move-section .item-list.move-list .move-card .item-control,
 .item-list.disadvantage-list .move-card .disadvantage-info .advantage-column {
-  display: none;
+  // display: none;
 }
 /* #endregion */
 

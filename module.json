@@ -13,5 +13,14 @@
     }
   ],
   "esmodules": ["eunos-kult-hacks.js"],
-  "styles": ["styles.css"]
+  "styles": ["styles.css"],
+  "dependencies": [
+    {
+      "name": "socketlib"
+    },
+    {
+      "name": "k4lt",
+      "type": "system"
+    }
+  ]
 }
