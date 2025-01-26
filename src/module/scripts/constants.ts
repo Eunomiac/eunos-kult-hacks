@@ -1,3 +1,17 @@
+export const STABILITY_VALUES = [
+  {value: 10, label: "10 - Composed"},
+  {value: 9, label: "9 - Moderate Stress"},
+  {value: 8, label: "8 - Moderate Stress"},
+  {value: 7, label: "7 - Serious Stress"},
+  {value: 6, label: "6 - Serious Stress"},
+  {value: 5, label: "5 - Serious Stress"},
+  {value: 4, label: "4 - Critical Stress"},
+  {value: 3, label: "3 - Critical Stress"},
+  {value: 2, label: "2 - Critical Stress"},
+  {value: 1, label: "1 - Critical Stress"},
+  {value: 0, label: "0 - Broken: Draw from the KULT Tarot"},
+];
+
 export const STABILITY_STATES = [
   ["irrational", "unhinged", "frantic", "paranoid", "hysterical", "dissociative", "euphoric"],
   ["irrational", "unhinged", "frantic", "paranoid", "hysterical", "dissociative", "euphoric"],

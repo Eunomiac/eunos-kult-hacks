@@ -5,7 +5,7 @@ import getWoundField from "./fields/getWoundField";
 import getConditionField from "./fields/getConditionField";
 import getAdvancementField from "./fields/getAdvancementField";
 import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
-import { STABILITY_MODIFIERS, STABILITY_STATES, WOUND_MODIFIERS, WOUND_MODIFIERS_GRITTED_TEETH } from "../scripts/constants";
+import { STABILITY_VALUES, STABILITY_MODIFIERS, STABILITY_STATES, WOUND_MODIFIERS, WOUND_MODIFIERS_GRITTED_TEETH } from "../scripts/constants";
 
 
 const ActorSchemaPC = {
@@ -134,19 +134,7 @@ export default class ActorDataPC extends TypeDataModel<
 
   override prepareDerivedData() {
     const stabilityVal = this.stability.value;
-    this.stabilityValues = [
-      {value: 10, label: "10 - Composed"},
-      {value: 9, label: "9 - Moderate Stress"},
-      {value: 8, label: "8 - Moderate Stress"},
-      {value: 7, label: "7 - Serious Stress"},
-      {value: 6, label: "6 - Serious Stress"},
-      {value: 5, label: "5 - Serious Stress"},
-      {value: 4, label: "4 - Critical Stress"},
-      {value: 3, label: "3 - Critical Stress"},
-      {value: 2, label: "2 - Critical Stress"},
-      {value: 1, label: "1 - Critical Stress"},
-      {value: 0, label: "0 - Broken: Draw from the KULT Tarot"},
-    ];
+    this.stabilityValues = STABILITY_VALUES;
     this.stabilityStates = (STABILITY_STATES[stabilityVal] ?? []).join(", ");
     this.stabilityModifiers = STABILITY_MODIFIERS[stabilityVal] ?? [];
 
