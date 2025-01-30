@@ -1,0 +1,36 @@
+<div class="flex-row attribute-type">
+  <div>
+    <label>{{localize "k4lt.Type"}}:</label>
+    <select name="system.type">
+      {{selectOptions typeValues selected=system.type valueAttr="value" labelAttr="label"}}
+    </select>
+  </div>
+  {{#if hasAttributePrompt}}
+  <div>
+    <label>{{localize "k4lt.AttributePrompt"}}:</label>
+    <select name="system.attributemod">
+      {{selectOptions attributeValues selected=system.attributemod valueAttr="value" labelAttr="label"}}
+    </select>
+  </div>
+  {{/if}}
+</div>
+
+<div class="tokens-container">
+  {{#if canHaveHold}}
+  <label>Grants Hold?</label>
+  <input type="checkbox" name="system.hasHold" {{checked system.hasHold}} />
+  {{#if system.hasHold}}
+  <label>{{localize "k4lt.Counter"}}:</label>
+  <input class="tokens-counter" name="system.holdTokens" value="{{system.holdTokens}}" class="short-input"
+    type="number" />
+  {{/if}}
+  {{/if}}
+  {{#if canHaveEdges}}
+  <label>Has Edges?</label>
+  <input type="checkbox" name="system.hasTokens" {{checked system.hasTokens}} />
+  {{#if system.hasTokens}}
+  <label>{{localize "k4lt.Counter"}}:</label>
+  <input class="tokens-counter" name="system.tokens" value="{{system.tokens}}" class="short-input" type="number" />
+  {{/if}}
+  {{/if}}
+</div>

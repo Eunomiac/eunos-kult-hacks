@@ -1,0 +1,21 @@
+<div class="editor-row">
+  <label>{{localize "k4lt.Options"}}:</label>
+  <div>{{editor system.options target="system.options" button=true owner=owner editable=editable}}</div>
+</div>
+{{#unless (eq system.options "")}}
+<div class="flex-row show-options-row">
+  <label>Show Options For:</label>
+  <span class="labelled-checkbox">
+    <label>Success</label>
+    <input type="checkbox" name="system.showOptionsFor.success" {{checked system.showOptionsFor.success}} />
+  </span>
+  <span class="labelled-checkbox">
+    <label>Partial</label>
+    <input type="checkbox" name="system.showOptionsFor.partial" {{checked system.showOptionsFor.partial}} />
+  </span>
+  <span class="labelled-checkbox">
+    <label>Failure</label>
+    <input type="checkbox" name="system.showOptionsFor.failure" {{checked system.showOptionsFor.failure}} />
+  </span>
+</div>
+{{/unless}}

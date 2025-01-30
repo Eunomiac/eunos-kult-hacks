@@ -2,4 +2,13 @@
   .blood-img {
     background-image: none !important;
   }
+  .move-name {
+    color: var(--K4-BLACK) !important;
+
+    + .move-name {
+      font-style: normal;
+      font-family: var(--font-primary-smallcaps);
+      text-transform: lowercase;
+    }
+  }
 }

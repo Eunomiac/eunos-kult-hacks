@@ -12,6 +12,7 @@ import ItemDataMove from "../data-model/ItemDataMove";
 import ItemDataOccupation from "../data-model/ItemDataOccupation";
 import ItemDataRelationship from "../data-model/ItemDataRelationship";
 import ItemDataWeapon from "../data-model/ItemDataWeapon";
+import { GamePhase } from "../../module/scripts/enums";
 // import K4ActiveEffect from "../documents/K4ActiveEffect.js";
 // import Document = foundry.abstract.Document;
 // import K4PCSheet from "../documents/K4PCSheet.js";
@@ -77,9 +78,8 @@ declare global {
   // }
 
   interface SettingConfig {
-    core: {
-      rollMods: string;
-    }
+    "core.rollMods": string;
+    "eunos-kult-hacks.gamePhase": GamePhase;
   }
 
   // interface SettingConfig {

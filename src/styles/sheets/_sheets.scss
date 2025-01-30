@@ -1,12 +1,8 @@
 @forward "pc-sheet.scss";
+@forward "item-sheet.scss";
 
 .kult-sheet {
   background: none !important;
-}
-
-.flex-row {
-  display: flex;
-  flex-direction: row;
 }
 
 .move-name {

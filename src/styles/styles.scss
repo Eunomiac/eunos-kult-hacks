@@ -1,6 +1,15 @@
 @use "globals/typography.scss";
+@use "globals/globals.scss";
 @use "apps/chat.scss";
+@use "apps/eunos-overlay.scss";
 @use "sheets/sheets.scss";
+@use "apps/interface.scss";
+@use "globals/popovers.scss";
+
+body {
+  position: relative;
+}
+
 
 /* #region Color Definitions */
 :root {
@@ -21,40 +30,6 @@
   --K4-bbBLUE: rgb(119, 179, 255);
   --K4-dBLACK: rgb(0, 0, 0);
 
-  body:not(.interface-ready), body:not(.interface-ready) * {
-    opacity: 0 !important;
-    background: black !important;
-  }
+
 }
-/* #endregion */
-
-/* #region Move Cards */
-
-
-/* If player is not GM: */
-.bottom-section .move-section .item-list.move-list .move-card .item-control,
-.item-list.disadvantage-list .move-card .disadvantage-info .advantage-column {
-  // display: none;
-}
-/* #endregion */
-
-/* #region Attribute Spread */
-#Stats .middle-section .attribute-column .attribute-box select,
-#Stats .middle-section .attribute-column .attribute-box select option {
-  font-family: Kultrata;
-  font-weight: 1000;
-  font-size: 24px;
-  box-shadow: none !important;
-}
-
-#Stats .middle-section .attribute-column .attribute-box td:not([class]) {
-  font-size: 11px;
-  line-height: 10px;
-  vertical-align: top;
-  font-family: Kultrata SC;
-  font-style: normal;
-  font-weight: 1000;
-}
-
-
 /* #endregion */

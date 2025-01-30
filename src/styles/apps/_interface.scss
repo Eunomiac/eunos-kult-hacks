@@ -1,0 +1,43 @@
+#ui-left,
+#ui-top,
+#ui-bottom {
+  display: none;
+}
+#sidebar-tabs {
+  justify-content: stretch;
+  .item {
+    flex: 1;
+  }
+  .item[data-tab="combat"],
+  .item[data-tab="scenes"],
+  .item[data-tab="tables"],
+  .item[data-tab="cards"],
+  .item[data-tab="playlists"],
+  .item[data-tab="compendium"] {
+    display: none;
+  }
+}
+
+body.gm-user {
+
+  #ui-middle {
+    z-index: 101;
+  }
+
+  #ui-bottom {
+    bottom: 0;
+    position: absolute;
+    display: block;
+    // z-index: 100000;
+    right: 0;
+  }
+
+  #sidebar-tabs {
+    .item[data-tab="scenes"],
+    .item[data-tab="cards"],
+    .item[data-tab="playlists"],
+    .item[data-tab="compendium"] {
+      display: block;
+    }
+  }
+}

@@ -5,31 +5,51 @@
 
     <div class="flex-container top-section">
       <h1 class="character-name"><input name="name" type="text" value="{{actor.name}}" placeholder="Name" /></h1>
-      <div class="ongoing">
-        {{localize "k4lt.Ongoing"}}:
-        <select class="hidden-select" name="system.ongoing">
-          {{selectOptions modifierValues selected=system.ongoing valueAttr="value" labelAttr="label"}}
-        </select>
-      </div>
-      <div class="forward">
-        {{localize "k4lt.Forward"}}:
-        <select class="hidden-select" name="system.forward">
-          {{selectOptions modifierValues selected=system.forward valueAttr="value" labelAttr="label"}}
-        </select>
-      </div>
-
     </div>
   </header>
   <div class="flex-container sheet-topper">
     <img class="actor-picture" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="324" width="200" />
     <div class="move-section-container">
 
+      <div class="hooks-and-drive">
+        <div class="personal-drive">
+          <div class="section-label">Drive:</div>
+          {{#each darksecrets as |darksecret id|}}
+          <span class="drive-entry">{{{darksecret.system.drive}}}</span>
+          {{/each}}
+        </div>
+        <div class="hooks">
+          <div class="section-label">Hooks</div>
+          <div class="hook-list">
+            <span class="hook-entry">
+              <input type="checkbox" name="system.dramatichooks.dramatichook1.isChecked" {{checked system.dramatichooks.dramatichook1.isChecked}} />
+              <input type="text" class="hook-text" name="system.dramatichooks.dramatichook1.content" value="{{system.dramatichooks.dramatichook1.content}}"></input>
+            </span>
+            <span class="hook-entry">
+              <input type="checkbox" name="system.dramatichooks.dramatichook2.isChecked" {{checked system.dramatichooks.dramatichook2.isChecked}} />
+              <input type="text" class="hook-text" name="system.dramatichooks.dramatichook2.content" value="{{system.dramatichooks.dramatichook2.content}}"></input>
+            </span>
+          </div>
+        </div>
+      </div>
       <div class="move-section">
         <div class="section-label">Basic Moves</div>
+        <div class="ongoing">
+          {{localize "k4lt.Ongoing"}}:
+          <select class="hidden-select" name="system.ongoing">
+            {{selectOptions modifierValues selected=system.ongoing valueAttr="value" labelAttr="label"}}
+          </select>
+        </div>
+        <div class="forward">
+          Next:
+          <select class="hidden-select" name="system.forward">
+            {{selectOptions modifierValues selected=system.forward valueAttr="value" labelAttr="label"}}
+          </select>
+        </div>
         <div class="item-list move-list two-column">
           {{#each moves as |move id|}}
           {{#if (eq move.type "move")}}
-          {{> "systems/k4lt/templates/partials/move-card.hbs" move}}
+          {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" move}}
           {{/if}}
           {{/each}}
         </div>
@@ -184,16 +204,16 @@
           <div class="section-label">{{localize "k4lt.Occupations"}}</div>
           <div class="item-list occupation-list">
             {{#each occupations as |occupation id|}}
-            {{> "systems/k4lt/templates/partials/occupation-card.hbs" occupation}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/occupation-card.hbs" occupation}}
             {{/each}}
           </div>
           {{/if}}
 
           {{#if darksecrets.length}}
-          <div class="section-label">{{localize "k4lt.DarkSecrets"}}</div>
+          <div class="section-label">Dark Secret{{#if (gt darksecrets.length 1)}}s{{/if}}</div>
           <div class="item-list darksecret-list">
             {{#each darksecrets as |darksecret id|}}
-            {{> "systems/k4lt/templates/partials/darksecret-card.hbs" darksecret}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/darksecret-card.hbs" darksecret}}
             {{/each}}
           </div>
           {{/if}}
@@ -202,7 +222,7 @@
           <div class="section-label">{{localize "k4lt.Disadvantages"}}</div>
           <div class="item-list disadvantage-list">
             {{#each disadvantages as |disadvantage id|}}
-            {{> "systems/k4lt/templates/partials/disadvantage-card.hbs" disadvantage}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" disadvantage}}
             {{/each}}
           </div>
           {{/if}}
@@ -211,7 +231,7 @@
           <div class="section-label">{{localize "k4lt.Advantages"}}</div>
           <div class="item-list advantage-list">
             {{#each advantages as |advantage id|}}
-            {{> "systems/k4lt/templates/partials/advantage-card.hbs" advantage}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" advantage}}
             {{/each}}
           </div>
           {{/if}}
@@ -222,7 +242,7 @@
           <div class="section-label">{{localize "k4lt.Abilities"}}</div>
           <div class="item-list ability-list">
             {{#each abilities as |ability id|}}
-            {{> "systems/k4lt/templates/partials/ability-card.hbs" ability}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" ability}}
             {{/each}}
           </div>
           {{/if}}
@@ -231,16 +251,7 @@
           <div class="section-label">{{localize "k4lt.Limitations"}}</div>
           <div class="item-list limitation-list">
             {{#each limitations as |limitation id|}}
-            {{> "systems/k4lt/templates/partials/limitation-card.hbs" limitation}}
-            {{/each}}
-          </div>
-          {{/if}}
-
-          {{#if families.length}}
-          <div class="section-label">{{localize "k4lt.Families"}}</div>
-          <div class="item-list family-list">
-            {{#each families as |family id|}}
-            {{> "systems/k4lt/templates/partials/family-card.hbs" family}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" limitation}}
             {{/each}}
           </div>
           {{/if}}
@@ -249,7 +260,7 @@
           <div class="section-label">{{localize "k4lt.Relationships"}}</div>
           <div class="item-list relationship-list">
             {{#each relationships as |relationship id|}}
-            {{> "systems/k4lt/templates/partials/relationship-card.hbs" relationship}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/relationship-card.hbs" relationship}}
             {{/each}}
           </div>
           {{/if}}
@@ -258,7 +269,7 @@
           <div class="section-label">{{localize "k4lt.Weapons"}}</div>
           <div class="item-list weapon-list">
             {{#each weapons as |weapon id|}}
-            {{> "systems/k4lt/templates/partials/weapon-card.hbs" weapon}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/weapon-card.hbs" weapon}}
             {{/each}}
           </div>
           {{/if}}
@@ -267,7 +278,7 @@
           <div class="section-label">{{localize "k4lt.Gear"}}</div>
           <div class="item-list gear-list">
             {{#each gear as |gear id|}}
-            {{> "systems/k4lt/templates/partials/gear-card.hbs" gear}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs" gear}}
             {{/each}}
           </div>
           {{/if}}

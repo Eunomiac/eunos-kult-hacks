@@ -11,6 +11,20 @@ export default function overrideItemSheet() {
       const data = await super.getData();
 
       Object.assign(data, {
+        attributeValues: [
+          { value: "", label: getLocalizer().localize("k4lt.None") },
+          { value: "ask", label: getLocalizer().localize("k4lt.Ask") },
+          { value: "willpower", label: getLocalizer().localize("k4lt.Willpower") },
+          { value: "fortitude", label: getLocalizer().localize("k4lt.Fortitude") },
+          { value: "reflexes", label: getLocalizer().localize("k4lt.Reflexes") },
+          { value: "reason", label: getLocalizer().localize("k4lt.Reason") },
+          { value: "intuition", label: getLocalizer().localize("k4lt.Intuition") },
+          { value: "perception", label: getLocalizer().localize("k4lt.Perception") },
+          { value: "coolness", label: getLocalizer().localize("k4lt.Coolness") },
+          { value: "violence", label: getLocalizer().localize("k4lt.Violence") },
+          { value: "charisma", label: getLocalizer().localize("k4lt.Charisma") },
+          { value: "soul", label: getLocalizer().localize("k4lt.Soul") }
+        ],
         typeValues: [{
           value: "active",
           label: "Active"

@@ -1,3 +1,4 @@
+// #region Imports ~
 import ActorDataPC from "./data-model/ActorDataPC.ts";
 import ActorDataNPC from "./data-model/ActorDataNPC.ts";
 import ItemDataAbility from "./data-model/ItemDataAbility.ts";
@@ -11,36 +12,24 @@ import ItemDataMove from "./data-model/ItemDataMove.ts";
 import ItemDataOccupation from "./data-model/ItemDataOccupation.ts";
 import ItemDataRelationship from "./data-model/ItemDataRelationship.ts";
 import ItemDataWeapon from "./data-model/ItemDataWeapon.ts";
+import EunosOverlay from "./apps/EunosOverlay.ts";
+import type EunosActor from "./documents/EunosActor.ts";
+import EunosItem from "./documents/EunosItem.ts";
 import overrideActor from "./documents/EunosActor.ts";
 import overridePCSheet from "./documents/sheets/EunosPCSheet.ts";
 import overrideNPCSheet from "./documents/sheets/EunosNPCSheet.ts";
 import overrideItemSheet from "./documents/sheets/EunosItemSheet.ts";
+import * as U from "./scripts/utilities.ts";
+import { GamePhase } from "./scripts/enums.ts";
+import { registerHandlebarHelpers } from "./scripts/helpers.ts";
+import InitializePopovers from "./scripts/popovers.ts";
 
 // @ts-expect-error - TS doesn't support importing SCSS files.
 import "../styles/styles.scss";
 // import k4ltitemsheet from "systems/k4lt/modules/sheets/k4ltitemsheet.js";
+// #endregion
 
-// Add this at the very top of the file, after imports
-(() => {
-  const overlay = document.createElement("div");
-  overlay.id = "eunos-overlay";
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: calc(100vw - var(--sidebar-width) - 5px);
-    height: 100vh;
-    background-color: black;
-    z-index: 100;
-  `;
-
-  // Use requestAnimationFrame to append as soon as possible
-  requestAnimationFrame(() => {
-    document.body.appendChild(overlay);
-    addClassToDOM("interface-ready");
-  });
-})();
-
+// #region Template Paths ~
 const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/pc-sheet.hbs",
   "modules/eunos-kult-hacks/templates/sheets/npc-sheet.hbs",
@@ -55,149 +44,110 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/occupation-sheet.hbs",
   "modules/eunos-kult-hacks/templates/sheets/relationship-sheet.hbs",
   "modules/eunos-kult-hacks/templates/sheets/weapon-sheet.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/full-screen-mask.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/transition-to-top.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/safety-buttons.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/alerts.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/tooltips.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/item-header.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/item-topper.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/item-trigger.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/item-effect.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/item-options.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/item-roll-results.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/item-special-flag.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/occupation-card.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/relationship-card.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/weapon-card.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/darksecret-card.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs"
 ];
-
-
-
-function assignGlobalVariables() {
-  Object.assign(globalThis, {
-    getGame: function getGame(): Game {
-      if (!(game instanceof Game)) {
-        throw new Error("Game is not ready");
-    }
-      return game;
-    },
-
-    /**
-     * Retrieves the collection of all K4Actor instances in the game.
-     * @returns A Collection of K4Actor instances.
-     * @throws Error if the Actors collection is not ready.
-     */
-    getActors: function getActors(): EunosActor[] {
-      const actors = getGame().actors.contents;
-      return actors as EunosActor[];
-    },
-
-    /**
-     * Retrieves the collection of all K4Item instances in the game.
-     * @returns A Collection of K4Item instances.
-     * @throws Error if the Items collection is not ready.
-     */
-    getItems: function getItems(): Items {
-      const items = getGame().items as Maybe<Items>;
-      if (!items) {
-        throw new Error("Items collection is not ready");
-      }
-      return items;
-    },
-
-    /**
-     * Retrieves the collection of all K4ChatMessage instances in the game.
-     * @returns A Collection of K4ChatMessage instances.
-     * @throws Error if the Messages collection is not ready.
-     */
-    getMessages: function getMessages(): Messages {
-      const messages = getGame().messages as Maybe<Messages>;
-      if (!messages) {
-        throw new Error("Messages collection is not ready");
-      }
-      return messages;
-    },
-
-    /**
-     * Retrieves the collection of all User instances in the game.
-     * @returns A Collection of User instances.
-     * @throws Error if the Users collection is not ready.
-     */
-    getUsers: function getUsers(): Users {
-      const users = getGame().users as Maybe<Users>;
-      if (!users) {
-        throw new Error("Users collection is not ready");
-      }
-      return users;
-    },
-
-    /**
-     * Retrieves the client settings for the game.
-     * @returns The client settings.
-     * @throws Error if the settings are not ready.
-     */
-    getSettings: function getSettings(): ClientSettings {
-      const settings = getGame().settings as Maybe<ClientSettings>;
-      if (!settings) {
-        throw new Error("Settings are not ready");
-      }
-      return settings;
-    },
-
-    /**
-     * Retrieves the user for the game.
-     * @returns The user.
-     * @throws Error if the user is not ready.
-     */
-    getUser: function getUser(): User {
-      const user = getGame().user;
-      return user;
-    },
-
-    /**
-     * Retrieves the user's PC for the game.
-     * @returns The user's PC.
-     * @throws Error if the user's PC is not ready.
-     */
-    getActor: function getActor(): EunosActor {
-      const userID: IDString = getUser().id as IDString;
-      const pcs = getActors().filter((actor) => actor.type === "pc");
-      const userPC = pcs.find((pc) => pc.ownership[userID] === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER);
-      if (!userPC) {
-        throw new Error(`User ${getUser().name} has no PC associated with them.`);
-      }
-      return userPC;
-    },
-
-    /**
-     * Retrieves the localizer for the game.
-     * @returns The localizer.
-     * @throws Error if the localizer is not ready.
-     */
-    getLocalizer: function getLocalizer(): Localization {
-      const loc = getGame().i18n as Maybe<Localization>;
-      if (!loc) {
-        throw new Error("I18n is not ready");
-      }
-      return loc;
-    },
-
-    /**
-     * Retrieves the notifier for the game.
-     * @returns The notifier.
-     * @throws Error if the notifier is not ready.
-     */
-    getNotifier: function getNotifier(): Notifications {
-      const notif = ui.notifications;
-      if (!notif) {
-        throw new Error("Notifications are not ready");
-      }
-      return notif;
-    }
-  });
-}
 
 async function preloadHandlebarTemplates() {
   kultLogger("Loading modular templates:", templatePaths); // Log the template paths
   return loadTemplates(templatePaths);
 }
+// #endregion
 
-function addClassToDOM(className: string) {
-  $("body").addClass(className);
+// #region Overriding System Hooks ~
+/**
+ * Replaces the original addBasicMovesToActor hook with a custom implementation
+ * @returns {void}
+ */
+function replaceBasicMovesHook() {
+  // First find and remove the original hook
+  if (!("createActor" in Hooks.events)) {
+    return;
+  }
+  const createActorHooks = Hooks.events
+    .createActor as Array<Hooks.HookedFunction>;
+  if (createActorHooks) {
+    const hookToRemove = createActorHooks.find((hook) =>
+      String(hook.fn).includes(
+        'if (actor.type === "pc" && actor.items.size === 0)',
+      ),
+    );
+
+    if (hookToRemove) {
+      Hooks.off("createActor", hookToRemove.fn);
+      console.log("Successfully removed original addBasicMovesToActor hook");
+    }
+  }
+
+  // Register your new implementation with the same function name
+  async function addBasicMovesToActor(actor: EunosActor) {
+    if (actor.type === "pc" && actor.items.size === 0) {
+      const pack = getPacks().get("eunos-kult-hacks.moves");
+      if (!pack) {
+        throw new Error("Moves pack not found");
+      }
+      const index = pack.indexed ? pack.index : await pack.getIndex();
+      const moves = index.map((move) =>
+        pack.getDocument(move._id).then((item) => item?.toObject()),
+      );
+      await Promise.all(moves).then(async (objects) => {
+        if (objects) {
+          await actor.createEmbeddedDocuments(
+            "Item",
+            objects.filter(Boolean) as foundry.documents.BaseItem.CreateData[],
+          );
+        }
+      });
+    }
+  }
+
+  // Register the new hook
+  Hooks.on("createActor", addBasicMovesToActor);
 }
 
+// #endregion
 Hooks.on("init", () => {
+  Object.assign(globalThis, {
+    U,
+    EunosOverlay,
+    ...U.GLOBAL_VARIABLES,
+  });
+
+  // Register game phase setting to track current phase of play
+  getSettings().register("eunos-kult-hacks", "gamePhase", {
+    name: "Game Phase",
+    scope: "world",
+    config: false,
+    type: String,
+    default: GamePhase.SessionClosed,
+  });
+
+  registerHandlebarHelpers();
+
   overrideActor();
+
+  // Initialize Tooltips Overlay
+  InitializePopovers($("body"));
 
   Object.assign(CONFIG.Actor.dataModels, {
     pc: ActorDataPC,
-    npc: ActorDataNPC
+    npc: ActorDataNPC,
   });
   Object.assign(CONFIG.Item.dataModels, {
     ability: ItemDataAbility,
@@ -210,17 +160,21 @@ Hooks.on("init", () => {
     move: ItemDataMove,
     occupation: ItemDataOccupation,
     relationship: ItemDataRelationship,
-    weapon: ItemDataWeapon
+    weapon: ItemDataWeapon,
   });
 });
 
 Hooks.on("ready", () => {
-  assignGlobalVariables();
-  void preloadHandlebarTemplates();
-  overridePCSheet();
-  overrideNPCSheet();
-  overrideItemSheet();
-  if (getUser().isGM) {
-    addClassToDOM("gm-user");
-  }
+  void preloadHandlebarTemplates().then(async () => {
+    await EunosOverlay.Initialize();
+    EunosOverlay.SyncOverlayState();
+    overridePCSheet();
+    overrideNPCSheet();
+    overrideItemSheet();
+    if (getUser().isGM) {
+      addClassToDOM("gm-user");
+    }
+  });
+
+  replaceBasicMovesHook();
 });

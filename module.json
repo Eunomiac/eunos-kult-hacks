@@ -7,20 +7,58 @@
     "minimum": "12",
     "verified": "12"
   },
-  "authors": [
-    {
-      "name": "Eunomiac"
-    }
-  ],
+  "authors": [{
+		"name": "Ryan West",
+		"url": "https://github.com/Eunomiac",
+		"email": "ryan.o.west@gmail.com",
+		"discord": "Eunomiac#8172"
+	}],
+  "socket": true,
   "esmodules": ["eunos-kult-hacks.js"],
+  "scripts": ["greensock/dist/gsap.min.js"],
   "styles": ["styles.css"],
-  "dependencies": [
+  "packs": [
     {
-      "name": "socketlib"
+      "label": "Advantages",
+      "name": "advantages",
+      "type": "Item",
+      "system": "k4lt",
+      "path": "packs/advantages"
     },
     {
-      "name": "k4lt",
-      "type": "system"
+      "label": "Dark Secrets",
+      "name": "dark-secrets",
+      "type": "Item",
+      "system": "k4lt",
+      "path": "packs/dark-secrets"
+    },
+    {
+      "label": "Disadvantages",
+      "name": "disadvantages",
+      "type": "Item",
+      "system": "k4lt",
+      "path": "packs/disadvantages"
+    },
+    {
+      "label": "Moves",
+      "name": "moves",
+      "type": "Item",
+      "system": "k4lt",
+      "path": "packs/moves"
     }
-  ]
+  ],
+  "relationships": {
+    "systems": [{
+      "id": "k4lt",
+      "type": "system",
+      "manifest": "https://github.com/YanKlInnomme/FoundryVTT-k4lt/releases/latest/download/system.json",
+      "compatibility": {
+        "verified": "4.0.0.1"
+      }
+    }],
+    "requires": [{
+      "id": "socketlib",
+      "type": "module"
+    }]
+  }
 }

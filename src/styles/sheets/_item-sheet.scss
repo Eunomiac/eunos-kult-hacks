@@ -1,0 +1,70 @@
+[id*="-Item-"] {
+
+  .window-content {
+    form {
+      header.sheet-header {
+        img {
+          padding: 0;
+          height: 48px;
+          width: 48px;
+          flex: 0 0 48px;
+        }
+        h1 input {
+          margin: 0;
+          height: 32px;
+          border: none;
+        }
+      }
+      .kult-item-sheet {
+
+
+        .flex-row {
+          display: flex;
+          flex-direction: row;
+
+          &.attribute-type {
+            justify-content: flex-start;
+            gap: 20px;
+          }
+
+          &.show-options-row {
+            align-items: baseline;
+            gap: 10px;
+
+            label {
+              font-family: var(--font-primary-smallcaps);
+              font-weight: normal;
+            }
+
+            .labelled-checkbox {
+              label {
+                font-family: var(--font-primary);
+                font-weight: bold;
+              }
+              input {
+                vertical-align: sub;
+              }
+            }
+          }
+        }
+
+
+        .trigger-row {
+
+
+
+        }
+
+        .editor {
+          .editor-edit {
+          }
+          .editor-content {
+            padding: 0;
+          }
+
+        }
+
+      }
+    }
+  }
+}

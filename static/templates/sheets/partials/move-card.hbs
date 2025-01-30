@@ -1,0 +1,39 @@
+<div class="move-card {{type}}-card {{#if system.hasTokens}}has-tokens{{/if}} {{#if system.hasHold}}has-tokens has-hold{{/if}}">
+  {{#let
+    anchorName=(getUniqueID "move-card-anchor")
+    popoverID=(getUniqueID "move-card-popover")
+  }}
+
+
+  <div class="item-draggable {{type}}-info item-name" data-item-id="{{_id}}" popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}">
+    <a class="move-roll" title="{{localize 'k4lt.RollMove'}}"> <img src="{{img}}" title="{{name}}" /> {{name}} </a>
+    <div class="item-controls">
+      <a class="item-control item-show" title="{{localize 'k4lt.ShowItem'}}"><i class="far fa-comment-alt"></i></a>
+      <a class="item-control item-edit" title="{{localize 'k4lt.EditItem'}}"><i class="fas fa-eye"></i></a>
+      <a class="item-control item-delete" title="{{localize 'k4lt.DeleteItem'}}"><i class="fas fa-trash"></i></a>
+    </div>
+
+    {{#if system.hasTokens}}
+        <span class="advantage-column">Edges:
+          <a class="token-add" title="{{localize 'k4lt.AddEdge'}}"><i class="far fa-plus-square"></i></a>
+          {{#if system.tokens}}{{system.tokens}}{{else}}0{{/if}}
+          <a class="token-spend" title="{{localize 'k4lt.SpendEdge'}}"><i class="far fa-minus-square"></i></a>
+        </span>
+    {{/if}}
+    {{#if system.hasHold}}
+        <span class="advantage-column">Hold:
+          <a class="token-add" title="Add Hold"><i class="far fa-plus-square"></i></a>
+          {{#if system.holdTokens}}{{system.holdTokens}}{{else}}0{{/if}}
+          <a class="token-spend" title="Spend Hold"><i class="far fa-minus-square"></i></a>
+        </span>
+    {{/if}}
+
+
+  </div>
+  <div id="{{popoverID}}"
+    style="position-anchor: --{{anchorName}};"
+    popover>
+    {{{system.trigger}}}
+  </div>
+  {{/let}}
+</div>

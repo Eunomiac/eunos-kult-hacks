@@ -110,6 +110,18 @@ declare global {
   // #region FUNCTIONS IN THE GLOBAL SCOPE ~
 
   /**
+   * Adds a class to the DOM.
+   * @param className - The name of the class to add.
+   */
+  function addClassToDOM(className: string): void;
+
+  /**
+   * Removes a class from the DOM.
+   * @param className - The name of the class to remove.
+   */
+  function removeClassFromDOM(className: string|string[]): void;
+
+  /**
    * Retrieves the current Game instance.
    * @returns The current Game instance.
    * @throws Error if the Game is not ready.
@@ -136,6 +148,17 @@ declare global {
    * @throws Error if the settings are not ready.
    */
   function getSettings(): ClientSettings;
+
+  function getSetting<K extends ClientSettings.KeyFor<ClientSettings.Namespace>>(
+    setting: K,
+    namespace?: ClientSettings.Namespace
+  ): ClientSettings.SettingInitializedType<ClientSettings.Namespace, K>;
+
+  function setSetting<K extends ClientSettings.KeyFor<ClientSettings.Namespace>>(
+    setting: K,
+    value: ClientSettings.SettingAssignmentType<ClientSettings.Namespace, K>,
+    namespace?: ClientSettings.Namespace
+  ): Promise<ClientSettings.SettingInitializedType<ClientSettings.Namespace, K>>;
 
   /**
    * Retrieves the collection of all K4Item instances in the game.
@@ -178,6 +201,13 @@ declare global {
    * @throws Error if the Notifications are not ready.
    */
   function getNotifier(): Notifications;
+
+  /**
+   * Retrieves the collection of all CompendiumPacks instances in the game.
+   * @returns A Collection of CompendiumPacks instances.
+   * @throws Error if the CompendiumPacks collection is not ready.
+   */
+  function getPacks(): CompendiumPacks;
 
   /**
    * The kLog object provides a set of functions for logging messages to the console, displaying them in the chat,

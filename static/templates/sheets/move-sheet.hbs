@@ -1,45 +1,30 @@
 <form class="{{cssClass}}" autocomplete="off">
-  <header class="sheet-header">
-    <img src="{{item.img}}" data-edit="img" title="{{item.name}}" height="64" width="64" />
-    <h1><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
-  </header>
+
+  {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-header.hbs" }}
+
   <div class="forms kult-item-sheet">
-    <div>
-      <label>{{localize "k4lt.AttributePrompt"}}:</label>
-      <select name="system.attributemod">
-        {{selectOptions attributeMoveValues selected=system.attributemod valueAttr="value" labelAttr="label"}}
-      </select>
-    </div>
-    <div class="editor-row">
-      <label>{{localize "k4lt.Trigger"}}:</label>
-      <div>{{editor system.trigger target="system.trigger" button=true owner=owner editable=editable}}</div>
-    </div>
-    <div class="editor-row">
-      <label>{{localize "k4lt.Options"}}:</label>
-      <div>{{editor system.options target="system.options" button=true owner=owner editable=editable}}</div>
-    </div>
-    <div>
-      <label>{{localize "k4lt.Results"}}:</label>
-      <div class="results-input">
-        <div class="editor-row">
-          <label>15+:</label>
-          <div>{{editor system.completesuccess target="system.completesuccess" button=true owner=owner editable=editable}}</div>
-        </div>
-        <div class="editor-row">
-          <label>10-14:</label>
-          <div>{{editor system.partialsuccess target="system.partialsuccess" button=true owner=owner editable=editable}}</div>
-        </div>
-        <div class="editor-row">
-          <label>0-9</label>
-          <div>{{editor system.failure target="system.failure" button=true owner=owner editable=editable}}</div>
-        </div>
-      </div>
-    </div>
-    <div>
-      <label>{{localize "k4lt.SpecialMove"}}:</label>
-      <select name="system.specialflag">
-        {{selectOptions specialMoveValues selected=system.specialflag valueAttr="value" labelAttr="label"}}
-      </select>
-    </div>
+
+    {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-topper.hbs" }}
+
+    {{#if hasTrigger}}
+    {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-trigger.hbs" }}
+    {{/if}}
+
+    {{#if hasEffect}}
+    {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-effect.hbs" }}
+    {{/if}}
+
+    {{#if hasOptions}}
+    {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-options.hbs" }}
+    {{/if}}
+
+    {{#if hasRollResults}}
+    {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-roll-results.hbs" }}
+    {{/if}}
+
+    {{#if hasSpecialFlag}}
+    {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-special-flag.hbs" }}
+    {{/if}}
+
   </div>
 </form>
