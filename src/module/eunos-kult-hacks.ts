@@ -13,6 +13,7 @@ import ItemDataOccupation from "./data-model/ItemDataOccupation.ts";
 import ItemDataRelationship from "./data-model/ItemDataRelationship.ts";
 import ItemDataWeapon from "./data-model/ItemDataWeapon.ts";
 import EunosOverlay from "./apps/EunosOverlay.ts";
+import EunosAlerts from "./apps/EunosAlerts.ts";
 import type EunosActor from "./documents/EunosActor.ts";
 import EunosItem from "./documents/EunosItem.ts";
 import overrideActor from "./documents/EunosActor.ts";
@@ -20,9 +21,14 @@ import overridePCSheet from "./documents/sheets/EunosPCSheet.ts";
 import overrideNPCSheet from "./documents/sheets/EunosNPCSheet.ts";
 import overrideItemSheet from "./documents/sheets/EunosItemSheet.ts";
 import * as U from "./scripts/utilities.ts";
+import * as EunosSocket from "./scripts/sockets.ts";
+import * as EunosSounds from "./scripts/sounds.ts";
+import { assignGlobals } from "./scripts/constants.ts";
 import { GamePhase } from "./scripts/enums.ts";
 import { registerHandlebarHelpers } from "./scripts/helpers.ts";
 import InitializePopovers from "./scripts/popovers.ts";
+import registerConsoleLogger from "./scripts/logger.ts";
+import registerSettings from "./scripts/settings.ts";
 
 // @ts-expect-error - TS doesn't support importing SCSS files.
 import "../styles/styles.scss";
@@ -61,7 +67,8 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/partials/relationship-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/weapon-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/darksecret-card.hbs",
-  "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs"
+  "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs",
+  "modules/eunos-kult-hacks/templates/alerts/alert-simple.hbs"
 ];
 
 async function preloadHandlebarTemplates() {
@@ -122,27 +129,65 @@ function replaceBasicMovesHook() {
 }
 
 // #endregion
+const InitializableClasses = {
+  EunosSocket,
+  EunosAlerts,
+  EunosSounds,
+  EunosOverlay,
+  // K4PCSheet,
+  // K4NPCSheet,
+
+  // K4Item,
+  // K4ItemSheet,
+
+  // K4ChatMessage,
+  // K4ActiveEffect,
+  // K4Roll,
+  // K4Dialog,
+  // K4Sound,
+  // K4Alert,
+  // K4DebugDisplay,
+  // K4GMTracker,
+  // K4CharGen,
+  // K4Socket
+ } as const;
+
+enum InitializerMethod {
+  PreInitialize = "PreInitialize",
+  Initialize = "Initialize",
+  PostInitialize = "PostInitialize"
+}
+
+async function RunInitializer(methodName: InitializerMethod) {
+  return Promise.all(
+    Object.values(InitializableClasses).filter(
+      (doc): doc is typeof doc & Record<InitializerMethod, () => Promise<void>> =>
+        methodName in doc
+    ).map((doc) => doc[methodName]())
+  );
+}
+
+
 Hooks.on("init", () => {
   Object.assign(globalThis, {
     U,
-    EunosOverlay,
-    ...U.GLOBAL_VARIABLES,
+    EunosOverlay
   });
 
-  // Register game phase setting to track current phase of play
-  getSettings().register("eunos-kult-hacks", "gamePhase", {
-    name: "Game Phase",
-    scope: "world",
-    config: false,
-    type: String,
-    default: GamePhase.SessionClosed,
-  });
+  assignGlobals();
+  registerConsoleLogger();
+  kLog.display("Initializing 'Kult: Divinity Lost 4th Edition' for Foundry VTT", 0);
+
+
+
+  registerSettings();
 
   registerHandlebarHelpers();
 
   overrideActor();
 
   // Initialize Tooltips Overlay
+  void RunInitializer(InitializerMethod.PreInitialize);
   InitializePopovers($("body"));
 
   Object.assign(CONFIG.Actor.dataModels, {
@@ -166,7 +211,7 @@ Hooks.on("init", () => {
 
 Hooks.on("ready", () => {
   void preloadHandlebarTemplates().then(async () => {
-    await EunosOverlay.Initialize();
+    await RunInitializer(InitializerMethod.Initialize);
     EunosOverlay.SyncOverlayState();
     overridePCSheet();
     overrideNPCSheet();
@@ -178,3 +223,15 @@ Hooks.on("ready", () => {
 
   replaceBasicMovesHook();
 });
+
+// #region ░░░░░░░[SocketLib]░░░░ SocketLib Initialization ░░░░░░░ ~
+Hooks.once("socketlib.ready", () => {
+  socketlib.registerModule("eunos-kult-hacks");
+  Object.values(InitializableClasses).filter(
+    (doc): doc is typeof doc & {SocketFunctions: Record<string, SocketFunction>} =>
+      "SocketFunctions" in doc
+  ).forEach((doc) => {
+    EunosSocket.registerSocketFunctions(doc.SocketFunctions);
+  });
+});
+// #endregion ░░░░[SocketLib]░░░░

@@ -1,6 +1,6 @@
-<div class="editor-row">
-  <label>{{localize "k4lt.Options"}}:</label>
-  <div>{{editor system.options target="system.options" button=true owner=owner editable=editable}}</div>
+<div class="editor-row options-row {{#if (eq system.options "")}}empty-options{{/if}} {{#unless isGM}}uneditable{{/unless}}">
+  {{#if isGM}}<label>{{localize "k4lt.Options"}}:</label>{{/if}}
+  <div>{{editor system.options target="system.options" button=true owner=owner editable=isGM}}</div>
 </div>
 {{#unless (eq system.options "")}}
 <div class="flex-row show-options-row">

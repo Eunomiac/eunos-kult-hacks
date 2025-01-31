@@ -1,4 +1,5 @@
 body {
+  position: relative;
 
   &:not(.interface-ready)::before {
     content: "";

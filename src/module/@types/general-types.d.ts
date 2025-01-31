@@ -12,7 +12,7 @@
 // import K4Scene from "../documents/K4Scene.js";
 
 
-import type {Socket, SocketLib} from "./socketlib";
+// import type {Socket, SocketLib} from "./socketlib";
 // #endregion
 
 // #region CONFIGURATION OF SYSTEM CLASSES
@@ -31,6 +31,7 @@ import type {Socket, SocketLib} from "./socketlib";
 // import {SchemaField} from "fvtt-types/utils";
 
 // #endregion
+export {};
 
 // #region Internal Convenience Types ~
 type HexDigit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "A" | "B" | "C" | "D" | "E" | "F";
@@ -55,6 +56,8 @@ interface ClampResponse {
 // #endregion
 
 declare global {
+
+  type AudioHelper = Exclude<typeof game.audio, undefined>;
 
   // type EffectChangeData = import("@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/documents/_types.d.mts").EffectChangeData;
   // type EffectChangeData = import("fvtt-types/_types").EffectChangeData;
@@ -179,7 +182,7 @@ declare global {
    * @returns A Collection of User instances.
    * @throws Error if the Users collection is not ready.
    */
-  function getUsers(): Collection<User>;
+  function getUsers(): Users;
 
   /**
    * Retrieves the PC actor owned by the current user.
@@ -201,6 +204,13 @@ declare global {
    * @throws Error if the Notifications are not ready.
    */
   function getNotifier(): Notifications;
+
+  /**
+   * Retrieves the current AudioHelper instance.
+   * @returns The current AudioHelper instance.
+   * @throws Error if the AudioHelper is not ready.
+   */
+  function getAudioHelper(): AudioHelper;
 
   /**
    * Retrieves the collection of all CompendiumPacks instances in the game.

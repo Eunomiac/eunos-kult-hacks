@@ -1,0 +1,54 @@
+{{log "ALERT SIMPLE" this}}
+
+<div class="k4-alert {{cssClasses}}">
+  <div class="k4-alert-frame alert-frame-top">
+    <div class="alert-border border-top-left">
+      <svg viewBox="{{svgPaths.TOPLEFT.viewBox}}">
+        <path d="{{svgPaths.TOPLEFT.d}}" />
+      </svg>
+    </div>
+    <div class="alert-image-container">
+      {{!-- <svg class="alert-circle" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <mask id="ring-mask">
+            <rect width="100" height="100" fill="white"/>
+            <circle cx="50" cy="50" r="40" fill="black"/>
+          </mask>
+        </defs>
+        <circle cx="50" cy="50" r="48" mask="url(#ring-mask)" />
+      </svg> --}}
+      <img class="k4-alert-logo" src="{{logoImg}}">
+    </div>
+    <div class="alert-border border-top-right">
+      <svg viewBox="{{svgPaths.TOPRIGHT.viewBox}}">
+        <path d="{{svgPaths.TOPRIGHT.d}}" />
+      </svg>
+    </div>
+  </div>
+  <div class="k4-alert-frame alert-frame-body">
+    <div class="alert-border border-left">
+      <svg viewBox="{{svgPaths.CHAINS.viewBox}}">
+        <path d="{{svgPaths.CHAINS.d}}" />
+      </svg>
+    </div>
+    <div class="alert-bg"></div>
+    <div class="alert-container">
+      <p class="k4-alert-body">{{{body}}}</p>
+    </div>
+    <div class="alert-border border-right">
+      <svg viewBox="{{svgPaths.CHAINS.viewBox}}">
+        <path d="{{svgPaths.CHAINS.d}}" />
+      </svg>
+    </div>
+  </div>
+  <div class="k4-alert-frame alert-header">
+    <h2 class="k4-alert-header">{{{header}}}</h2>
+  </div>
+  <div class="k4-alert-frame alert-frame-bottom">
+    <div class="alert-border border-bottom">
+      <svg viewBox="{{svgPaths.BOTTOM.viewBox}}">
+        <path d="{{svgPaths.BOTTOM.d}}" />
+      </svg>
+    </div>
+  </div>
+</div>

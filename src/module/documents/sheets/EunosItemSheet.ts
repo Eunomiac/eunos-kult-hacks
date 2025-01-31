@@ -43,6 +43,7 @@ export default function overrideItemSheet() {
         hasSpecialFlag: "type" in data.system && data.system.type === "active",
         hasEffect: true,
         hasOptions: "type" in data.system && data.system.type === "active",
+        isGM: getUser().isGM
       });
 
       return data;

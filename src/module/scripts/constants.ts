@@ -1,6 +1,367 @@
-import { numberToWords, wordsToNumber } from "./utilities";
+import { numberToWords, wordsToNumber } from "./utilities_old";
 
 export const SYSTEM_ID = "eunos-kult-hacks";
+
+// #region Global Variables ~
+const GLOBAL_VARIABLES = {
+  /**
+   * Adds a class to the DOM.
+   * @param className - The class to add.
+   * @returns {void}
+   */
+  addClassToDOM: function addClassToDOM(className: string) {
+    $("body").addClass(className);
+  },
+
+  /**
+   * Removes one or more classes from the DOM.
+   * @param classes - The class(es) to remove.
+   * @returns {void}
+   */
+  removeClassFromDOM: function removeClassFromDOM(classes: string | string[]) {
+    classes = Array.isArray(classes) ? classes : [classes];
+    classes.forEach((className) => {
+      $("body").removeClass(className);
+    });
+  },
+
+  /**
+   * Retrieves the game instance.
+   * @returns The game instance.
+   * @throws Error if the game is not ready.
+   */
+  getGame: function getGame(): Game {
+    if (!(game instanceof Game)) {
+      throw new Error("Game is not ready");
+    }
+    return game;
+  },
+
+  /**
+   * Retrieves the collection of all K4Actor instances in the game.
+   * @returns A Collection of K4Actor instances.
+   * @throws Error if the Actors collection is not ready.
+   */
+  getActors: function getActors(): EunosActor[] {
+    const actors = getGame().actors.contents;
+    return actors as EunosActor[];
+  },
+
+  /**
+   * Retrieves the collection of all K4Item instances in the game.
+   * @returns A Collection of K4Item instances.
+   * @throws Error if the Items collection is not ready.
+   */
+  getItems: function getItems(): Items {
+    const items = getGame().items as Maybe<Items>;
+    if (!items) {
+      throw new Error("Items collection is not ready");
+    }
+    return items;
+  },
+
+  /**
+   * Retrieves the collection of all K4ChatMessage instances in the game.
+   * @returns A Collection of K4ChatMessage instances.
+   * @throws Error if the Messages collection is not ready.
+   */
+  getMessages: function getMessages(): Messages {
+    const messages = getGame().messages as Maybe<Messages>;
+    if (!messages) {
+      throw new Error("Messages collection is not ready");
+    }
+    return messages;
+  },
+
+  /**
+   * Retrieves the collection of all User instances in the game.
+   * @returns A Collection of User instances.
+   * @throws Error if the Users collection is not ready.
+   */
+  getUsers: function getUsers(): Users {
+    const users = getGame().users as Maybe<Users>;
+    if (!users) {
+      throw new Error("Users collection is not ready");
+    }
+    return users;
+  },
+
+  /**
+   * Retrieves the client settings for the game.
+   * @returns The client settings.
+   * @throws Error if the settings are not ready.
+   */
+  getSettings: function getSettings() {
+    const settings = getGame().settings as Maybe<ClientSettings>;
+    if (!settings) {
+      throw new Error("Settings are not ready");
+    }
+    return settings;
+  },
+
+  /**
+   * Retrieves the value of a game setting
+   * @param setting - The setting key to retrieve
+   * @param namespace - The namespace under which the setting is registered
+   * @returns The current value of the requested setting
+   * @example
+   * const phase = getSetting("gamePhase"); // uses default namespace
+   * const mods = getSetting("rollMods", "core");
+   */
+  getSetting: function getSetting<
+    K extends ClientSettings.KeyFor<ClientSettings.Namespace>,
+  >(setting: K, namespace: ClientSettings.Namespace = "eunos-kult-hacks") {
+    return getSettings().get(namespace, setting);
+  },
+
+  /**
+   * Updates the value of a game setting
+   * @param setting - The setting key to update
+   * @param value - The value to assign to the setting
+   * @param namespace - The namespace under which the setting is registered
+   * @returns Promise that resolves with the new setting value
+   * @example
+   * await setSetting("gamePhase", GamePhase.SessionOpen);
+   * await setSetting("rollMods", "1d20", "core");
+   */
+  setSetting: function setSetting<
+    K extends ClientSettings.KeyFor<ClientSettings.Namespace>,
+  >(
+    setting: K,
+    value: ClientSettings.SettingAssignmentType<ClientSettings.Namespace, K>,
+    namespace: ClientSettings.Namespace = "eunos-kult-hacks",
+  ) {
+    return getSettings().set(namespace, setting, value);
+  },
+
+  /**
+   * Retrieves the user for the game.
+   * @returns The user.
+   * @throws Error if the user is not ready.
+   */
+  getUser: function getUser(): User {
+    const user = getGame().user;
+    return user;
+  },
+
+  /**
+   * Retrieves the user's PC for the game.
+   * @returns The user's PC.
+   * @throws Error if the user's PC is not ready.
+   */
+  getActor: function getActor(): EunosActor {
+    const userID: IDString = getUser().id as IDString;
+    const pcs = getActors().filter((actor) => actor.type === "pc");
+    const userPC = pcs.find(
+      (pc) => pc.ownership[userID] === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER,
+    );
+    if (!userPC) {
+      throw new Error(`User ${getUser().name} has no PC associated with them.`);
+    }
+    return userPC;
+  },
+
+  /**
+   * Retrieves the localizer for the game.
+   * @returns The localizer.
+   * @throws Error if the localizer is not ready.
+   */
+  getLocalizer: function getLocalizer(): Localization {
+    const loc = getGame().i18n as Maybe<Localization>;
+    if (!loc) {
+      throw new Error("I18n is not ready");
+    }
+    return loc;
+  },
+
+  /**
+   * Retrieves the notifier for the game.
+   * @returns The notifier.
+   * @throws Error if the notifier is not ready.
+   */
+  getNotifier: function getNotifier(): Notifications {
+    const notif = ui.notifications;
+    if (!notif) {
+      throw new Error("Notifications are not ready");
+    }
+    return notif;
+  },
+
+  /**
+   * Retrieves the audio helper for the game.
+   * @returns The audio helper.
+   * @throws Error if the audio helper is not ready.
+   */
+  getAudioHelper: function getAudioHelper(): AudioHelper {
+    const audioHelper = getGame().audio;
+    if (!audioHelper) {
+      throw new Error("AudioHelper is not ready");
+    }
+    return audioHelper;
+  },
+
+  /**
+   * Retrieves the collection of all CompendiumPacks instances in the game.
+   * @returns A Collection of CompendiumPacks instances.
+   * @throws Error if the CompendiumPacks collection is not ready.
+   */
+  getPacks: function getPacks(): CompendiumPacks {
+    const packs = getGame().packs;
+    if (!packs) {
+      throw new Error("Packs are not ready");
+    }
+    return packs;
+  },
+};
+// #endregion
+
+// #region COLORS ~
+export const Colors = {
+  // GOLD5
+  GOLD0: "rgb(29, 27, 20)",
+  GOLD1: "rgb(58, 54, 41)",
+  GOLD2: "rgb(81, 76, 58)",
+  GOLD3: "rgb(104, 97, 74)",
+  GOLD4: "rgb(127, 119, 90)",
+  GOLD5: "rgb(150, 140, 106)",
+  GOLD6: "rgb(177, 164, 125)",
+  GOLD7: "rgb(203, 189, 143)",
+  GOLD8: "rgb(229, 213, 162)",
+  GOLD9: "rgb(255, 243, 204)",
+  // GOLD ALIASES
+  get ddGOLD() {
+    return this.GOLD0;
+  },
+  get dGOLD() {
+    return this.GOLD3;
+  },
+  get GOLD() {
+    return this.GOLD5;
+  },
+  get bGOLD() {
+    return this.GOLD7;
+  },
+  get bbGOLD() {
+    return this.GOLD9;
+  },
+
+  // RED5
+  RED0: "rgb(19, 4, 4)",
+  RED1: "rgb(38, 8, 8)",
+  RED2: "rgb(68, 14, 14)",
+  RED3: "rgb(97, 20, 20)",
+  RED4: "rgb(126, 26, 26)",
+  RED5: "rgb(155, 33, 33)",
+  RED6: "rgb(180, 38, 38)",
+  RED7: "rgb(205, 47, 43)",
+  RED8: "rgb(230, 57, 48)",
+  RED9: "rgb(255, 124, 114)",
+  // RED ALIASES
+  get ddRED() {
+    return this.RED0;
+  },
+  get dRED() {
+    return this.RED3;
+  },
+  get RED() {
+    return this.RED5;
+  },
+  get bRED() {
+    return this.RED7;
+  },
+  get bbRED() {
+    return this.RED9;
+  },
+
+  // BLUE5
+  BLUE1: "rgb(9, 18, 29)",
+  BLUE2: "rgb(18, 34, 57)",
+  BLUE3: "rgb(26, 51, 84)",
+  BLUE4: "rgb(34, 68, 112)",
+  BLUE5: "rgb(43, 85, 139)",
+  BLUE6: "rgb(52, 103, 168)",
+  BLUE7: "rgb(61, 121, 197)",
+  BLUE8: "rgb(70, 139, 226)",
+  BLUE9: "rgb(119, 179, 255)",
+  // BLUE ALIASES
+  get ddBLUE() {
+    return this.BLUE1;
+  },
+  get dBLUE() {
+    return this.BLUE3;
+  },
+  get BLUE() {
+    return this.BLUE5;
+  },
+  get bBLUE() {
+    return this.BLUE7;
+  },
+  get bbBLUE() {
+    return this.BLUE9;
+  },
+
+  // GREYS
+  GREY0: "rgb(0, 0, 0)",
+  GREY1: "rgb(20, 20, 20)",
+  GREY2: "rgb(47, 47, 47)",
+  GREY3: "rgb(74, 74, 74)",
+  GREY4: "rgb(100, 100, 100)",
+  GREY5: "rgb(127, 127, 127)",
+  GREY6: "rgb(154, 154, 154)",
+  GREY7: "rgb(181, 181, 181)",
+  GREY8: "rgb(208, 208, 208)",
+  GREY9: "rgb(235, 235, 235)",
+  GREY10: "rgb(255, 255, 255)",
+  // GREY ALIASES
+  get dBLACK() {
+    return this.GREY0;
+  },
+  get BLACK() {
+    return this.GREY1;
+  },
+  get dGREY() {
+    return this.GREY3;
+  },
+  get GREY() {
+    return this.GREY5;
+  },
+  get bGREY() {
+    return this.GREY7;
+  },
+  get WHITE() {
+    return this.GREY9;
+  },
+  get bWHITE() {
+    return this.GREY10;
+  },
+};
+// #endregion
+
+// #region LOADING SCREENS ~
+export const LOADING_SCREEN_DATA = {
+  "Azghoul": {
+    title: "Azghouls",
+    subtitle: "Our Former Slaves",
+    home: "Metropolis",
+    body: "The azghouls were once exquisite beings with a proud civilization, until we conquered their world and grafted exoskeletal parasites to their bodies to compel their servitude. They haunt the barren streets of Metropolis to this day, but we have forgotten how to make them obey.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/azghoul.webp",
+  },
+  "Gynachid": {
+    title: "Gynachids",
+    subtitle: "Our Former Slaves",
+    home: "Metropolis",
+    body: "Solitary carnivores, gynachids hunt in Metropolis and other worlds beyond the Illusion. Once enslaved to our rule, we took their ability to create offspring as a means of control. In the eons since, they have adapted, and now implant their fetuses in human hosts to grow.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/gynachid.webp",
+  },
+  "Tekron": {
+    title: "Tekrons",
+    subtitle: "Caretakers of the Machine City",
+    home: "Metropolis",
+    body: "Tekrons are creatures of meat, bone, and plastic, cybernetic life forms originating from the Eternal City where they tend the ancient machinery there. Possessed of little intelligence, they do not understand that Metropolis and its old order have crumbled, and they continue maintaining the aging systems as they have always done.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/tekron.webp",
+  },
+};
+// #endregion
 
 // #region STABILITY ~
 export const STABILITY_VALUES = [
@@ -159,6 +520,9 @@ export const WOUND_MODIFIERS_GRITTED_TEETH = {
 
 // #region SESSION DATA~
 
+export function assignGlobals(): void {
+  Object.assign(globalThis, GLOBAL_VARIABLES);
+}
 
 /**
  * Gets the chapter string based on current chapter number or string
@@ -166,7 +530,10 @@ export const WOUND_MODIFIERS_GRITTED_TEETH = {
  * @param isGettingNext - Whether to increment the chapter by one
  * @returns Chapter string
  */
-export function getChapterString(num: number | string, isGettingNext = false): string {
+export function getChapterString(
+  num: number | string,
+  isGettingNext = false,
+): string {
   // Convert input to number
   num = typeof num === "string" ? wordsToNumber(num) : num;
 
@@ -180,7 +547,8 @@ export function getChapterString(num: number | string, isGettingNext = false): s
 
 export function getNextChapter(current: number | string): string {
   // Convert input to number
-  const currentNum = typeof current === "string" ? wordsToNumber(current) : current;
+  const currentNum =
+    typeof current === "string" ? wordsToNumber(current) : current;
 
   return getChapterString(currentNum + 1);
 }

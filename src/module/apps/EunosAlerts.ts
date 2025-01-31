@@ -1,13 +1,10 @@
 // #region IMPORTS ~
-import C, {K4Influence} from "../scripts/constants.js";
-import U from "../scripts/utilities.js";
-import {AlertPaths, InfluenceKeys, SVGPathData} from "../scripts/svgdata.js";
-import K4Actor from "./K4Actor.js";
-import {K4RollResult} from "./K4Roll.js";
-// import K4ActiveEffect from "./K4ActiveEffect";
-import K4Sound from "./K4Sound.js"
-import {formatForKult} from "../scripts/helpers.js";
-import K4Socket, {UserTargetRef} from "./K4Socket.js";
+// import C, {K4Influence} from "../scripts/constants.js";
+import * as U from "../scripts/utilities.js";
+import EunosActor from "../documents/EunosActor.js";
+import {AlertPaths, type SVGPathData} from "../scripts/svgdata.js";
+import * as Sounds from "../scripts/sounds.js";
+import * as Socket from "../scripts/sockets.js";
 // #endregion
 
 // #region === TYPES, ENUMS, INTERFACE AUGMENTATION === ~
@@ -19,7 +16,7 @@ enum AlertType {
 
 // #endregion
 // #region -- TYPES ~
-namespace K4Alert {
+declare namespace EunosAlerts {
 
   export type AlertPathID = keyof typeof AlertPaths;
   /**
@@ -28,7 +25,7 @@ namespace K4Alert {
   export namespace Context {
     interface Base {
       type: AlertType;
-      target: UserTargetRef|IDString|UUIDString;
+      target: Socket.UserTargetRef|IDString|UUIDString;
       skipQueue?: boolean;
     }
     export interface Simple extends Base {
@@ -38,22 +35,14 @@ namespace K4Alert {
       svgPaths?: Record<string, SVGPathData>;
       logoImg?: string
     }
-    export interface Card extends Base {
-      type: AlertType.card,
-      name: keyof typeof C["Influences"];
-      category: K4Influence;
-      principle: string;
-      img: string;
-      keySVG: SVGPathData;
-    }
   }
   // export type Context<T extends AlertType> = T extends AlertType.simple ? Context.Simple
   //   : T extends AlertType.card ? Context.Card
   //   : never;
-  export type Context = Context.Simple | Context.Card;
+  export type Context = Context.Simple;
 
   /**
-   * The data passed to the K4Alert constructor
+   * The data passed to the EunosAlerts constructor
    */
   export namespace Data {
     interface Base {
@@ -62,24 +51,13 @@ namespace K4Alert {
     export interface Simple extends Context.Simple, Base {
       type: AlertType.simple;
     }
-    export interface Card extends Context.Card, Base {
-      type: AlertType.card;
-    }
   }
   export type TypedData<T extends AlertType> = T extends AlertType.simple ? Data.Simple
-    : T extends AlertType.card ? Data.Card
     : never;
-  export type Data = Data.Simple | Data.Card;
+  export type Data = Data.Simple;
 }
 // #endregion
 // #endregion
-
-/* interface GSAPEffectDefinition<Schema extends gsap.TweenVars = gsap.TweenVars> {
-  name: string,
-  effect: GSAPEffectFunctionWithDefaults<Schema>,
-  defaults: Schema,
-  extendTimeline: boolean
-} */
 
 // #region === GSAP ANIMATIONS ===
 const GSAPEFFECTS: Record<string, GSAPEffectDefinition> = {
@@ -87,7 +65,7 @@ const GSAPEFFECTS: Record<string, GSAPEffectDefinition> = {
     name: "fadeShrinkIn",
     effect: (target, config) => {
       const {duration, ease, startScale, test} = config;
-      return U.gsap.timeline()
+      return gsap.timeline()
         .fromTo(target,
           {
             autoAlpha: 0,
@@ -114,7 +92,7 @@ const GSAPEFFECTS: Record<string, GSAPEffectDefinition> = {
     name: "spreadOut",
     effect: (target, config) => {
       const {startWidth, endWidth, duration, ease} = config;
-      return U.gsap.timeline()
+      return gsap.timeline()
         .fromTo(target,
           {
             width: startWidth as number
@@ -137,8 +115,8 @@ const GSAPEFFECTS: Record<string, GSAPEffectDefinition> = {
     name: "slideDown",
     effect: (target, config) => {
       const {duration, ease, height} = config;
-      return U.gsap.timeline()
-        .add(() => { K4Sound.play("slow-hit"); })
+      return gsap.timeline()
+        .add(() => { Sounds.play("slow-hit"); })
         .fromTo(target,
           {
             height: 0
@@ -160,7 +138,7 @@ const GSAPEFFECTS: Record<string, GSAPEffectDefinition> = {
     name: "fadeIn",
     effect: (target, config) => {
       const {duration, ease} = config;
-      return U.gsap.timeline()
+      return gsap.timeline()
         .fromTo(target,
           {
             opacity: 0
@@ -181,7 +159,7 @@ const GSAPEFFECTS: Record<string, GSAPEffectDefinition> = {
     name: "fadeOut",
     effect: (target, config) => {
       const {duration, ease} = config;
-      return U.gsap.timeline()
+      return gsap.timeline()
         .fromTo(target,
           {
             opacity: 1
@@ -203,7 +181,7 @@ const GSAPEFFECTS: Record<string, GSAPEffectDefinition> = {
 const ALERTANIMATIONS: Record<AlertType, {
   in: GSAPEffectDefinition,
   out: GSAPEffectDefinition,
-  setup?: (target: JQuery, data: K4Alert.Data) => void;
+  setup?: (target: JQuery, data: EunosAlerts.Data) => void;
 }> = {
   [AlertType.simple]: {
     in: {
@@ -215,18 +193,18 @@ const ALERTANIMATIONS: Record<AlertType, {
         const containerHeight = container$.height() ?? 0;
         const imgLogo$ = target$.find("img.k4-alert-logo");
         const heading$ = target$.find("h2");
-        const hr$ = target$.find("hr");
+        // const hr$ = target$.find("hr");
         const body$ = target$.find("p");
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        const tl = U.timeline()
-          .fadeShrinkIn(target$, {duration, ease: "power2.inOut"})
-          .fadeIn(imgLogo$, {duration: 1}, "<50%")
-          .slideDown(container$, {duration: 0.5, height: containerHeight, ease: "power2.in"}, "<50%")
-          .fadeIn(heading$, {duration: 0.5}, "<50%")
-          .spreadOut(hr$, {endWidth: 500})
-          .fadeIn(body$, {}, "<50%")
-          .add(() => { K4Sound.play("subsonic-stinger"); }, 0.25)
+        const tl = gsap.timeline()
+          ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
+          ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease: "power2.in"}, "<50%")
+          ["fadeIn"](heading$, {duration: 0.5}, "<50%")
+          // ["spreadOut"](hr$, {endWidth: 500})
+          ["fadeIn"](body$, {}, "<50%")
+          .add(() => { Sounds.play("subsonic-stinger"); }, 0.25)
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -241,7 +219,7 @@ const ALERTANIMATIONS: Record<AlertType, {
       name: "simpleAlertOut",
       effect: (target, config) => {
         const {duration, stagger, ease} = config;
-        return U.gsap.timeline()
+        return gsap.timeline()
           .fromTo(target, {opacity: 1}, {opacity: 0, duration, stagger, ease});
       },
       defaults: {
@@ -258,9 +236,8 @@ const ALERTANIMATIONS: Record<AlertType, {
       effect: (target, config) => {
         const {duration, ease} = config;
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        return U.gsap.timeline()
-          .fadeShrinkIn(target, {duration, ease: "power2.inOut"}) as gsap.core.Timeline;
-        /* eslint-enable */
+        return gsap.timeline()
+          ["fadeShrinkIn"](target, {duration, ease: "power2.inOut"}) as gsap.core.Timeline;
       },
       defaults: {
         duration: 1,
@@ -272,10 +249,8 @@ const ALERTANIMATIONS: Record<AlertType, {
       name: "cardAlertOut",
       effect: (target, config) => {
         const {duration, ease} = config;
-        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-        return U.gsap.timeline()
-          .fadeOut(target, {duration, ease: "power2.inOut"}) as gsap.core.Timeline;
-        /* eslint-enable */
+        return gsap.timeline()
+          ["fadeOut"](target, {duration, ease: "power2.inOut"}) as gsap.core.Timeline;
       },
       defaults: {
         duration: 0.5,
@@ -363,13 +338,13 @@ class OrderedSet<T> {
   }
 }
 
-// #region === K4Alert CLASS ===
-class K4Alert {
+// #region === EunosAlerts CLASS ===
+class EunosAlerts {
   // #region INITIALIZATION ~
 
   public static readonly SocketFunctions: Record<string, SocketFunction> = {
-    "Alert": (data: Partial<K4Alert.Data>) => {
-      const thisAlert = new K4Alert(data);
+    "Alert": (data: Partial<EunosAlerts.Data>) => {
+      const thisAlert = new EunosAlerts(data);
       kLog.log("Alert", data, thisAlert);
       if (data.skipQueue) {
         void thisAlert.run();
@@ -377,84 +352,54 @@ class K4Alert {
       }
       const {context} = thisAlert;
 
-      function isRepeatAlert(ctext: K4Alert.Context): boolean {
-        const queuedAlertsOfType = Array.from(K4Alert.AlertQueue.values())
+      function isRepeatAlert(ctext: EunosAlerts.Context): boolean {
+        const queuedAlertsOfType = Array.from(EunosAlerts.AlertQueue.values())
           .filter((al) => al.type === ctext.type)
-          .map((al) => al.context as K4Alert.Context.Simple);
+          .map((al) => al.context);
         if (!queuedAlertsOfType.length) { return false; }
         if ([AlertType.simple].includes(ctext.type)) {
           return queuedAlertsOfType
-            .some((al) => [AlertType.simple].includes(al.type) && al.body === (ctext as K4Alert.Context.Simple).body);
+            .some((al) => [AlertType.simple].includes(al.type) && al.body === ctext.body);
         }
         return false;
       }
 
       if (isRepeatAlert(context)) { return; }
-      K4Alert.AlertQueue.add(thisAlert);
-      K4Alert.RunQueue();
+      EunosAlerts.AlertQueue.add(thisAlert);
+      EunosAlerts.RunQueue();
     }
   }
 
   /**
-  * Pre-Initialization of the K4Alert class. This method should be run during the "init" hook.
+  * Pre-Initialization of the EunosAlerts class. This method should be run during the "init" hook.
   *
-  * - Generates the overlay element to contain K4Alert instances
-  * - Sets up socketlib to synchronize K4Alert instances across clients
-  * - Registers gsap effects for K4Alert instances
+  * - Generates the overlay element to contain EunosAlerts instances
+  * - Sets up socketlib to synchronize EunosAlerts instances across clients
+  * - Registers gsap effects for EunosAlerts instances
   */
   static PreInitialize() {
 
-    // Generate the overlay element to contain K4Alert instances
-    const overlay = $("<div>").attr("id", "kult-alerts");
-    $("body").append(overlay);
-
     // Register GSAP Effects
     Object.values(GSAPEFFECTS).forEach((effect) => {
-      U.gsap.registerEffect(effect);
+      gsap.registerEffect(effect);
     });
-
-    // Append dev sample alert image for dev purposes
-    const sampleAlert = $("<img>").attr({
-      id: "dev-sample-image",
-      src: "systems/kult4th/assets/animated-alert-sample.gif"
-    });
-    overlay.append(sampleAlert);
 
     Object.assign(globalThis, {
-      K4Alert
+      EunosAlerts
     });
   }
   // #endregion
 
   static get Overlay$(): JQuery {
-    return $("#kult-alerts");
+    return $("#EUNOS_ALERTS");
   }
-  static readonly AlertQueue: OrderedSet<K4Alert> = new OrderedSet<K4Alert>();
+  static readonly AlertQueue: OrderedSet<EunosAlerts> = new OrderedSet<EunosAlerts>();
 
-  static ParseData(data: K4Alert.Data, docs: Record<string, foundry.abstract.Document.Any> = {}): K4Alert.Data {
-    switch (data.type) {
-      case AlertType.simple: {
-        // Must parse header, body, and logoImg for "%insert.<doc>.<dotkey>%" values and resolve them.
-        // For now we'll just use formatForKult with the actor doc, and hope that's enough!
-        const {actor} = docs;
-        if (!(actor instanceof K4Actor)) { return data; }
-        data.header = formatForKult(data.header, actor);
-        data.body = formatForKult(data.body, actor);
-        if (data.logoImg) {
-          data.logoImg = formatForKult(data.logoImg, actor);
-        }
-        break;
-      }
-      default: break;
-    }
-    return data;
-  }
-
-  static Alert(fullData: Partial<K4Alert.Data>) {
+  static Alert(fullData: Partial<EunosAlerts.Data>) {
     const {target, ...data} = fullData;
-    const userTargets = K4Socket.GetUsers(target);
-    kLog.log(`target: ${target} -> Users: ${userTargets.map((user) => user.name).join(", ")}`);
-    return userTargets.map((user) => K4Socket.Call(
+    const userTargets = Socket.getUsersFromTarget(target);
+    kLog.log(`target: ${target} -> Users: ${userTargets.map((user) => user.name).join(", ")}`,0);
+    return userTargets.map((user) => Socket.call(
         "Alert",
         user.id as IDString,
         data
@@ -463,8 +408,8 @@ class K4Alert {
 
   static RunQueue() {
     if (this.AlertQueue.size === 0) {
-      U.gsap.to(
-        $("#interface"),
+      gsap.to(
+        $("#interface")[0]!,
         {
           background: "rgba(0, 0, 0, 0)",
           duration: 0.5,
@@ -475,8 +420,8 @@ class K4Alert {
     }
     const alert = this.AlertQueue.next()!;
     if (alert.isTweening) { return; }
-    U.gsap.to(
-      $("#interface"),
+    gsap.to(
+      $("#interface")[0]!,
       {
         background: "rgba(0, 0, 0, 0.75)",
         duration: 0.5,
@@ -497,30 +442,22 @@ class K4Alert {
     if (!content.length) {
       return "";
     };
-    return `systems/kult4th/assets/chat/dropcaps/${content.slice(0, 1).toUpperCase()}.png`;
+    return `modules/eunos-kult-hacks/assets/chat/dropcaps/${content.slice(0, 1).toUpperCase()}.png`;
   }
 
-  static GetDefaultData<T extends AlertType>(type: T): K4Alert.TypedData<T> {
+  static GetDefaultData<T extends AlertType>(type: T): EunosAlerts.TypedData<T> {
     switch (type) {
       case AlertType.simple: {
         return {
           type,
-          target: UserTargetRef.all,
+          target: Socket.UserTargetRef.all,
           skipQueue: false,
           header: "",
           body: "",
           displayDuration: 5,
           svgPaths: AlertPaths,
-          logoImg: "systems/kult4th/assets/alerts/logo-bird.webp"
-        } as K4Alert.Data.Simple & K4Alert.TypedData<T>;
-      }
-      case AlertType.card: {
-        return {
-          type,
-          target: UserTargetRef.all,
-          skipQueue: false,
-          ...C.Influences.Kether
-        } as K4Alert.Data.Card & K4Alert.TypedData<T>;
+          logoImg: "modules/eunos-kult-hacks/assets/alerts/logo-bird.webp"
+        } as EunosAlerts.Data.Simple & EunosAlerts.TypedData<T>;
       }
       default: return undefined as never;
     }
@@ -529,7 +466,7 @@ class K4Alert {
 
   // #region GETTERS & SETTERS ~
   _type: AlertType;
-  _context: K4Alert.Context;
+  _context: EunosAlerts.Context;
   _displayDuration: number;
   _timeline: Maybe<GSAPAnimation>;
   _element: Maybe<JQuery>;
@@ -537,7 +474,7 @@ class K4Alert {
   get type(): AlertType {
     return this._type;
   }
-  get context(): K4Alert.Context {
+  get context(): EunosAlerts.Context {
     return this._context;
   }
   get displayDuration(): number {
@@ -559,13 +496,13 @@ class K4Alert {
   // #endregion
 
   // #region CONSTRUCTOR
-  constructor(data: Partial<K4Alert.Data>) {
+  constructor(data: Partial<EunosAlerts.Data>) {
     this._type = data.type ?? AlertType.simple;
     const {displayDuration, ...contextData} = {
-      ...K4Alert.GetDefaultData(this._type),
+      ...EunosAlerts.GetDefaultData(this._type),
       ...data
     };
-    this._context = contextData as K4Alert.Context;
+    this._context = contextData as EunosAlerts.Context;
     this._displayDuration = displayDuration!;
   }
   // #endregion
@@ -578,7 +515,7 @@ class K4Alert {
         U.getTemplatePath("alerts", `alert-${this.type}`),
         this.context
       );
-      this._element = $(elementCode).appendTo(K4Alert.Overlay$);
+      this._element = $(elementCode).appendTo(EunosAlerts.Overlay$);
       kLog.log("Element created", this._element);
     }
     // return;
@@ -586,12 +523,12 @@ class K4Alert {
       const animations = ALERTANIMATIONS[this.type];
       kLog.log("No timeline, creating");
       const self = this;
-      this._timeline = U.gsap.timeline(
+      this._timeline = gsap.timeline(
         {
           onComplete() {
             self.element!.remove();
-            K4Alert.AlertQueue.delete(self);
-            K4Alert.RunQueue();
+            EunosAlerts.AlertQueue.delete(self);
+            EunosAlerts.RunQueue();
           }
         }
       )
@@ -609,6 +546,6 @@ class K4Alert {
 // #ENDREGION
 
 // #region EXPORTS ~
-export default K4Alert;
+export default EunosAlerts;
 export {AlertType};
 // #endregion

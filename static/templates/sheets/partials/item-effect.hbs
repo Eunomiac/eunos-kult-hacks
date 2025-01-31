@@ -1,4 +1,4 @@
-<div class="editor-row">
-  <label>{{localize "k4lt.Effect"}}:</label>
-  <div>{{editor system.effect target="system.effect" button=true owner=owner editable=editable}}</div>
+<div class="editor-row effect-row {{#unless isGM}}uneditable{{/unless}}">
+  {{#if isGM}}<label>{{localize "k4lt.Effect"}}:</label>{{/if}}
+  <div>{{editor system.effect target="system.effect" button=true owner=owner editable=isGM}}</div>
 </div>

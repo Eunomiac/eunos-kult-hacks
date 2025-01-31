@@ -15,12 +15,26 @@
     // -1px -1px 1px var(--K4-bbBLUE);
 }
 
-.editor {
-  background-color: rgba(0, 0, 0, 0.1);
-  min-height: 30px;
-  height: auto;
+.editor-row {
+
+  .editor {
+    background-color: rgba(0, 0, 0, 0.1);
+    min-height: 30px;
+    height: auto;
+    padding: 0 5px;
+
+    .editor-content {
+      min-height: 30px;
+    }
+  }
+
+  &.uneditable .editor {
+    background: transparent;
+    border: none;
+  }
 }
 
-.editor-content {
-  min-height: 30px;
+input[readonly] {
+  background: transparent;
+  box-shadow: none !important;
 }

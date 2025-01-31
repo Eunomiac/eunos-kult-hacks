@@ -80,6 +80,8 @@ declare global {
   interface SettingConfig {
     "core.rollMods": string;
     "eunos-kult-hacks.gamePhase": GamePhase;
+    "eunos-kult-hacks.debug": number;
+    "eunos-kult-hacks.useStabilityVariant": boolean;
   }
 
   // interface SettingConfig {

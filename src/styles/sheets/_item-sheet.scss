@@ -48,13 +48,6 @@
           }
         }
 
-
-        .trigger-row {
-
-
-
-        }
-
         .editor {
           .editor-edit {
           }
@@ -64,6 +57,17 @@
 
         }
 
+      }
+
+      &.uneditable {
+        .attribute-type,
+        .tokens-container,
+        .trigger-row,
+        .empty-options,
+        .show-options-row,
+        .special-flag-row {
+          display: none;
+        }
       }
     }
   }

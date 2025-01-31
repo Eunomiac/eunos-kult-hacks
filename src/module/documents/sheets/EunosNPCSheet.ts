@@ -12,6 +12,9 @@ export default function overrideNPCSheet() {
       const data = super.getData() as {
         system: ActorDataNPC
       };
+      Object.assign(data, {
+        isGM: getUser().isGM
+      });
       return data;
     }
 

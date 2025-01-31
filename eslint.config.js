@@ -37,6 +37,10 @@ const rules = {
   ],
 
   "@typescript-eslint/no-namespace": ["error", { allowDeclarations: true }],
+  // "@typescript-eslint/no-namespace": "off",
+
+  "@typescript-eslint/no-this-alias": ["error", { allowedNames: ["self"] }],
+  "prefer-const": ["error", {destructuring: "all"}],
 
   "tsdoc/syntax": "warn",
 }
@@ -49,6 +53,7 @@ const linterOptions = {
 if (LINTER_STRICTNESS === "dev") {
   // Disable rules that are frequently flagged unnecessarily during development,
   // and that are easy to fix once toggled on for production.
+  rules["@typescript-eslint/no-duplicate-type-constituents"] = "off";
   rules["@typescript-eslint/no-empty-function"] = "off";
   rules["@typescript-eslint/no-empty-object-type"] = "off";
   rules["@typescript-eslint/no-unused-vars"] = "off";

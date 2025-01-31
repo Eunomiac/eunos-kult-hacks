@@ -1,4 +1,4 @@
 <header class="sheet-header">
-  <img src="{{item.img}}" data-edit="img" title="{{item.name}}" height="48" width="48" />
-  <h1><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
+  <img src="{{item.img}}" {{#if isGM}}data-edit="img"{{/if}} title="{{item.name}}" height="48" width="48" />
+  <h1><input name="name" type="text" value="{{item.name}}" placeholder="Name" {{#unless isGM}}readonly{{/unless}} /></h1>
 </header>

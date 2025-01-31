@@ -1,0 +1,278 @@
+#EUNOS_ALERTS {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+
+  .k4-alert {
+    position: absolute;
+    width: 700px;
+    height: auto;
+    transform: translate(-50%, 0%);
+    top: 10%;
+    left: calc(50% - 0.5 * var(--sidebar-width));
+    opacity: 0;
+    filter:
+      drop-shadow(0px 2px 1px var(--K4-dBLACK))
+      drop-shadow(0px 2px 2px var(--K4-dBLACK))
+      drop-shadow(0px 2px 4px var(--K4-dBLACK));
+
+    .k4-alert-frame {
+      position: absolute;
+
+      svg {
+        fill: var(--K4-GOLD);
+        height: auto;
+        width: auto;
+
+      }
+
+      &.alert-frame-top,
+      &.alert-frame-bottom {
+        left: 0;
+        z-index: 1;
+
+        &.alert-frame-top {
+          height: 20px;
+          width: 100%;
+          top: -10px;
+
+          .alert-image-container {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            left: 50%;
+            top: 50%;
+            height: 100px;
+            width: 100px;
+            z-index: 1;
+
+            svg {
+              position: absolute;
+              height: 100px;
+              width: 100px;
+              top: 0;
+              left: 0;
+
+              circle {
+                fill: linear-gradient(to bottom right, #ff0000, #0000ff);
+              }
+            }
+
+            img {
+              position: absolute;
+              height: 80px; // Adjust this to fit inside the ring
+              // width: 80px;
+              transform: translate(-50%, -50%);
+              top: 50%;
+              left: 50%;
+              border: none;
+              outline: none;
+              // border-radius: 50%;
+              object-fit: cover;
+            }
+          }
+
+          .alert-border {
+            position: absolute;
+            top: 0px;
+            height: 20px;
+            width: auto;
+            overflow: visible;
+
+            svg {
+              position: absolute;
+              width: 100%;
+              height: 20px;
+              transform: scale(1, 2);
+            }
+
+            &.border-top-right {
+              right: 0;
+              width: 45%;
+
+              svg {
+                right: 0;
+              }
+
+            }
+            &.border-top-left {
+              left: 0;
+              width: 45%;
+
+              svg {
+                left: 0;
+              }
+            }
+          }
+        }
+        &.alert-frame-bottom {
+          height: 12px;
+          width: calc(100% - 2 * (15px));
+          bottom: 0px;
+          transform: translate(-50%, 0);
+          left: 50%;
+          z-index: 0;
+        }
+      }
+
+      &.alert-frame-body {
+        position: relative;
+        overflow: hidden;
+        z-index: 0;
+        height: auto;
+        svg {
+          fill: var(--K4-GREY);
+        }
+
+        .alert-border {
+          position: absolute;
+          top: 10px;
+          bottom: 10px;
+          overflow: hidden;
+          width: 15px;
+
+          &.border-left {
+            left: 15px;
+          }
+          &.border-right {
+            right: 15px;
+
+          }
+        }
+
+        .alert-bg {
+          position: absolute;
+          height: 100%;
+          width: calc(100% - 50px);
+          background: rgba(0, 0, 0, 0.75);
+          z-index: -1;
+          padding: 10px 0px 10px 0px;
+          margin: 0 25px;
+        }
+
+        .alert-container {
+          position: static;
+          overflow: hidden;
+          padding: 10px 0px 10px 0px;
+          margin: 25px 25px 0px 25px;
+        }
+      }
+
+      &.alert-header {
+        transform: translate(-50%, 0%);
+        top: 10px;
+        left: 50%;
+        z-index: 1;
+
+        .k4-alert-header {
+          white-space: nowrap;
+          text-shadow: build-text-shadow(4px, var(--K4-dBLACK), 4);
+        }
+      }
+    }
+    .k4-alert-header {
+      font-family: var(--K4-alert-font-family, var(--font-primary-smallcaps));
+      text-transform: lowercase;
+      font-size: var(--K4-alert-font-size, 24px);
+      line-height: var(--K4-alert-font-size, 24px);
+      color: var(--K4-alert-font-color, #f00);
+      text-align: center;
+      margin: 5px 0 0 0;
+      border: none;
+    }
+
+    hr {
+      margin: 0;
+      border: none;
+      border-bottom: 2px solid transparent;
+      width: 70%;
+      margin-left: auto;
+      margin-right: auto;
+      border-image: linear-gradient(to right, transparent, var(--K4-bbRED), transparent) 1;
+    }
+
+    .k4-alert-body {
+      font-family: var(--K4-alert-font-family, var(--font-body-1));
+      font-size: var(--K4-alert-font-size, 20px);
+      line-height: var(--K4-alert-font-size, 20px);
+      color: var(--K4-alert-font-color, var(--K4-WHITE));
+      text-align: center;
+      margin: 10px 0 15px 0;
+    }
+
+    &.alert-card {
+      width: 400px;
+
+      .alert-card-name h2 {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        top: 0%;
+        left: 50%;
+        z-index: 1;
+        text-align: center;
+        font-family: Sokol;
+        font-size: 124px;
+        font-weight: normal;
+        white-space: nowrap;
+        vertical-align: top;
+        letter-spacing: 5px;
+        line-height: 124px;
+        text-shadow: build-text-shadow(5px, var(--K4-bbRED), 6);
+        color: var(--K4-dBLACK);
+        &::first-letter {
+          font-size: 200px;
+          vertical-align: top;
+          line-height: 160px;
+        }
+      }
+      .alert-card-description {
+        position: absolute;
+        transform: translate(-50%, 0%);
+        left: 50%;
+        bottom: -25%;
+        font-family: var(--font-body-1);
+        font-size: 20px;
+        line-height: 20px;
+        color: var(--K4-dBLACK);
+        display: flex;
+        text-align: center;
+        flex-direction: column;
+        z-index: 1;
+        text-shadow: build-text-shadow(3px, var(--K4-dBLACK), 6);
+      }
+      .alert-card-image-influence-key {
+        position: absolute;
+        transform-origin: center center;
+        scale: 1.5;
+        width: 200px;
+        left: 100px;
+        height: auto;
+        fill: var(--K4-GOLD);
+      }
+      .alert-card-image-tarot {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        left: 50%;
+        top: 50%;
+        width: auto;
+        height: 100%;
+        fill: var(--K4-GOLD);
+        z-index: 0;
+        opacity: 0.25;
+        filter: blur(5px);
+      }
+    }
+  }
+}
+
+
+#dev-sample-image {
+  position: absolute;
+  width: 700px;
+  transform: translate(-50%, -50%);
+  left: 30%;
+  top: 20%;
+}

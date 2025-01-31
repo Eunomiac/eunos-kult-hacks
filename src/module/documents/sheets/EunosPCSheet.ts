@@ -12,7 +12,9 @@ export default function overridePCSheet() {
       const data = super.getData() as {
         system: ActorDataPC
       };
-
+      Object.assign(data, {
+        isGM: getUser().isGM
+      });
       return data;
     }
 

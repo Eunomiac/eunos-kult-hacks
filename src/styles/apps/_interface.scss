@@ -7,8 +7,13 @@
   justify-content: stretch;
   .item {
     flex: 1;
+
+    i {
+      font-size: 26px;
+    }
   }
   .item[data-tab="combat"],
+  .item[data-tab="items"],
   .item[data-tab="scenes"],
   .item[data-tab="tables"],
   .item[data-tab="cards"],
@@ -33,6 +38,8 @@ body.gm-user {
   }
 
   #sidebar-tabs {
+    .item i { font-size: 20px;}
+    .item[data-tab="items"],
     .item[data-tab="scenes"],
     .item[data-tab="cards"],
     .item[data-tab="playlists"],

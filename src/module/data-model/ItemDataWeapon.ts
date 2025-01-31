@@ -10,7 +10,10 @@ const ItemSchemaWeapon = {
     initial: (...args: unknown[]) => {
       console.log("INITIAL WEAPON ARGS", args);
       return 0;
-    }
+    },
+    required: false,
+    min: 0,
+    max: 100
   }),
   attacks: new fields.ArrayField(getAttackField())
 };
