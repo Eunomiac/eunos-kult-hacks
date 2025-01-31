@@ -4,16 +4,10 @@
     width: fit-content !important;
   }
 
-  .chat-message *[style*="anchor-name"]:not([popovertarget]) + [style*="position-anchor"]:not([popover]),
   [popover] {
-    position: fixed;
-    top: 5%;
-    bottom: unset;
-    left: 5%;
-    // inset-block-start: auto; // Modern version of 'top'
-    // inset: auto auto 100% 50%; // Shorthand for all edges: top right bottom left
-    // translate: -50% 0; // Center and move up
-    margin-bottom: 10px;
+    position: absolute;
+    position-area: top;
+    inset-area: top;
     width: fit-content !important;
     min-width: 200px !important;
     max-width: 500px !important;
@@ -79,59 +73,6 @@
     }
 
 
-    .archetype-example-container {
-      // line-height: $rem-10;
-      display: inline-flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      width: 100%;
-      gap: 5px;
-      margin-bottom: 5px;
-
-      &:last-of-type {
-        margin-bottom: 0;
-      }
-
-      .archetype-example-label {
-        font-weight: bold;
-        color: var(--K4-bbGOLD);
-        display: inline-flex;
-        margin-top: 1px;
-        // font-style: normal;
-        // font-size: $rem-10;
-        // line-height: $rem-12;
-      }
-      .archetype-example-list {
-        // font-style: normal;
-        // text-align: left;
-        text-wrap: pretty;
-        font-family: var(--font-primary-smallcaps);
-        display: inline-flex;
-        flex-wrap: wrap;
-        // vertical-align: middle;
-        justify-content: center;
-        gap: 0px 8px;
-
-        .archetype-example {
-          font-size: 14px;
-          line-height: 18px;
-          color: var(--K4-GOLD);
-
-        }
-
-        .archetype-example-separator {
-          color: #666;
-          font-size: 10px;
-          line-height: 20px;
-          margin-bottom: -2px;
-
-        }
-
-
-        // font-size: $rem-10;
-        // line-height: $rem-12;
-      }
-    }
 
     /* Final state of the exit animation */
     opacity: 0;
@@ -155,28 +96,8 @@
     }
   }
 
-  /* Transition for the popover's backdrop */
-  // [popover]::backdrop {
-  //   background-color: change-alpha(var(--K4-dBLACK), 0);
-  //   transition: all 0.75s allow-discrete;
+  // .chat-message *[style*="anchor-name"]:not([popovertarget]) + [style*="position-anchor"] {
+  //   visibility: hidden;
+  //   opacity: 0;
   // }
-
-  // [popover]:popover-open::backdrop {
-  //   background-color: change-alpha(var(--K4-dBLACK), 0.25);
-  //   // backdrop-filter: blur(2px);
-  // }
-
-  /* The nesting selector (&) cannot represent pseudo-elements
-  so this starting-style rule cannot be nested */
-
-  // @starting-style {
-  //   [popover]:popover-open::backdrop {
-  //     background-color: change-alpha(var(--K4-dBLACK), 0);
-  //   }
-  // }
-
-  .chat-message *[style*="anchor-name"]:not([popovertarget]) + [style*="position-anchor"] {
-    visibility: hidden;
-    opacity: 0;
-  }
   /** Because chat messages are parsed before being rendered, must add popover attributes via script -- and keep it invisible until done **/

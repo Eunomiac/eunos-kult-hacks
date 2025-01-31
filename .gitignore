@@ -15,6 +15,7 @@
 node_modules
 vite.config.ts.timestamp-*-*.mjs
 dist
+static/assets/chat/!!don't need
 
 # In build mode the TypeScript compiler forces sub-project state to be emitted.
 # This is in the gitignore because they're never useful files and ideally would be hidden.

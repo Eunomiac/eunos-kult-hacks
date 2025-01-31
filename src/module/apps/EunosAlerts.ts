@@ -484,7 +484,7 @@ class EunosAlerts {
     return this._element;
   }
   hasElement(): this is typeof this & { _element: JQuery} {
-    return Boolean(this._element);
+    return Boolean(this._element?.[0]);
   }
   hasTimeline(): this is typeof this & { _timeline: GSAPAnimation } {
     return Boolean(this._timeline);
