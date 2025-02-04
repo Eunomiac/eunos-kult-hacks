@@ -136,6 +136,16 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
       },
     },
     plugins,
+    resolve: {
+      alias: [
+        {
+          // This will allow you to use 'assets/...' in your code but have it resolve
+          // to the correct path during development
+          find: /^assets\//,
+          replacement: command === "serve" ? "/modules/eunos-kult-hacks/assets/" : "/assets/"
+        }
+      ]
+    },
   };
 });
 

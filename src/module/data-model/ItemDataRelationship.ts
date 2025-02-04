@@ -1,7 +1,7 @@
 import fields = foundry.data.fields;
 import TypeDataModel = foundry.abstract.TypeDataModel;
 import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
-import {type ItemDerivedFieldsBase} from "./fields/itemFields";
+import {type ItemDerivedFieldsRelationship} from "./fields/itemFields";
 
 const ItemSchemaRelationship = {
   target: new fields.StringField(),
@@ -14,9 +14,17 @@ export default class ItemDataRelationship extends TypeDataModel<
   typeof ItemSchemaRelationship,
   Item,
   EmptyObject,
-  InterfaceToObject<ItemDerivedFieldsBase>
+  InterfaceToObject<ItemDerivedFieldsRelationship>
 > {
   static override defineSchema() {
     return ItemSchemaRelationship;
+  }
+
+  override prepareDerivedData(): void {
+    super.prepareDerivedData();
+
+    this.isGM = game.user?.isGM ?? false;
+
+    this.strengthText = ["Neutral", "Meaningful", "Vital"][this.strength ?? 0] as string;
   }
 }

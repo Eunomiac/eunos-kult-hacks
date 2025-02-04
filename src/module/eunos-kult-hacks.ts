@@ -64,6 +64,7 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/partials/item-options.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-roll-results.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-special-flag.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/item-controls.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/weapon-attack.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/occupation-card.hbs",
@@ -71,7 +72,8 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/partials/weapon-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/darksecret-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs",
-  "modules/eunos-kult-hacks/templates/alerts/alert-simple.hbs"
+  "modules/eunos-kult-hacks/templates/alerts/alert-simple.hbs",
+  "modules/eunos-kult-hacks/templates/apps/chat/roll-card.hbs"
 ];
 
 async function preloadHandlebarTemplates() {

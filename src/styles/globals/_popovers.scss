@@ -8,12 +8,13 @@
     position: absolute;
     position-area: top;
     inset-area: top;
+    height: min-content !important;
     width: fit-content !important;
     min-width: 200px !important;
     max-width: 500px !important;
 
-    // display: flex;
-    // flex-direction: column;
+    display: flex;
+    flex-direction: column;
     // align-items: center;
     pointer-events: none !important;
 
@@ -38,10 +39,21 @@
     margin-bottom: 10px;
     border-radius: 10px;
 
+    /* Initial state */
+    opacity: 0;
+    scale: 1.25;
+
+    /* Simple transition for all changes */
+    transition: opacity 0.25s ease-out, scale 0.25s ease-out;
+
     * {
       white-space: break-spaces;
       text-wrap: balance;
       hyphens: none !important;
+    }
+
+    > div {
+      height: 30px !important;
     }
 
     > * {
@@ -65,8 +77,9 @@
       }
     }
 
-    &.weapon-tooltip {
-      display: block !important;
+    &.weapon-tooltip,
+    &.relationship-tooltip {
+      // display: block !important;
       overflow: hidden !important;
       // align-items: flex-start !important;
       h1 {
@@ -75,9 +88,10 @@
         text-transform: none !important;
         border: none !important;
         text-align: center !important;
-        margin-bottom: 10px !important;
+        margin-bottom: 0px !important;
         width: min-content !important;
         white-space: nowrap !important;
+        width: 100% !important;
       }
 
       h2, h2 em {
@@ -85,12 +99,16 @@
         font-family: var(--font-primary-smallcaps) !important;
         text-transform: lowercase !important;
         // font-style: italic !important;
-        width: min-content !important;
+        // width: 100% !important;
         text-align: center !important;
         font-size: 18px !important;
         color: var(--K4-bGREY) !important;
-        white-space: nowrap !important;
-        margin: 0 auto !important;
+        // white-space: nowrap !important;
+        // margin: 0 auto !important;
+      }
+
+      h2 {
+        display: block !important;
       }
 
       * {
@@ -99,21 +117,25 @@
       }
 
       .flex-row {
+        display: flex !important;
+        // width: 100% !important;
+        height: 20px !important;
         // outline: 1px dotted yellow;
         flex-direction: row !important;
         justify-content: flex-start !important;
         align-items: flex-start !important;
         align-content: flex-start !important;
         justify-items: flex-start !important;
-        width: min-content !important;
+        // width: min-content !important;
         text-align: left !important;
-        height: 60px !important;
-        line-height: 10px !important;
+        // height: 60px !important;
+        line-height: 14px !important;
+        // height: unset !important;
         gap: 0 !important;
         flex-wrap: nowrap !important;
         overflow: hidden !important;
-        margin-top: -10px !important;
-        margin-bottom: -10px !important;
+        // margin-top: -10px !important;
+        // margin-bottom: -10px !important;
 
         label {
           font-weight: 1000 !important;
@@ -146,28 +168,19 @@
     }
 
 
-
-    /* Final state of the exit animation */
-    opacity: 0;
-    scale: 1.25;
-
-    transition: all 0.25s allow-discrete;
   }
 
-  /* Transition for the popover itself */
+  /* State when popover is open */
   [popover]:popover-open {
     opacity: 1;
     scale: 1;
   }
 
-
-
-  /* Needs to be after the previous [popover]:popover-open rule
-  to take effect, as the specificity is the same */
+  /* Initial state when opening */
   @starting-style {
     [popover]:popover-open {
       opacity: 0;
-      scale: 0.75;
+      scale: 1.25;
     }
   }
 

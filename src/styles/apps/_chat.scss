@@ -1,14 +1,152 @@
 #chat-log {
-  .blood-img {
-    background-image: none !important;
+  .message-header {
   }
-  .move-name {
-    color: var(--K4-BLACK) !important;
 
-    + .move-name {
-      font-style: normal;
-      font-family: var(--font-primary-smallcaps);
-      text-transform: lowercase;
+  .message-content {
+    // pointer-events: none;
+    .blood-img {
+      width: calc(100% + 14px);
+      margin-left: -7px;
+      padding: 0 5px;
+      margin-top: -25px;
+      padding-top: 30px;
+      padding-bottom: 10px;
+      margin-bottom: -5px;
+      // pointer-events: none;
+
+      --bg-fade-color: color-mix(in srgb, var(--fg-color) 75%, transparent);
+      background: linear-gradient(
+        to top,
+        var(--bg-fade-color) calc(100% - 60px),
+        transparent calc(100% - 0px)
+      );
+
+      &.roll-result-completesuccess {
+        --bg-color: var(--K4-dGOLD);
+        --fg-color: var(--K4-bbGOLD);
+      }
+
+      &.roll-result-partialsuccess {
+        --bg-color: var(--K4-GREY);
+        --fg-color: var(--K4-WHITE);
+
+      }
+
+      &.roll-result-failure {
+        --bg-color: var(--K4-ddRED);
+        --fg-color: var(--K4-bRED);
+      }
+
+      .tooltip {
+        font-family: "Sokol";
+        filter: brightness(1.5);
+        font-size: 100px;
+        line-height: 10px;
+        max-height: 20px;
+        position: relative;
+        top: 40px;
+        left: 5px;
+        padding: 5px 0px;
+        // position: relative;
+
+        .roll-total {
+          --rollval-height: 100px;
+          // transform: translate(-0%, -50%);
+          height: var(--rollval-height);
+          width: calc(var(--rollval-height) * 5 / 8);
+          // pointer-events: none;
+          border: none;
+          margin-top: -70px;
+          margin-left: -10px;
+          position: relative;
+          top: 10px;
+          filter: drop-shadow(0px 0px 3px black);
+          // height: 160px;
+          // margin-bottom: -100px;
+          // margin-top: -50px;
+        }
+
+        .roll-total:hover {
+          + .tooltiptext {
+            visibility: visible;
+          }
+        }
+
+        .tooltiptext {
+          font-family: var(--font-primary);
+          font-size: 14px;
+          white-space: nowrap;
+          width: fit-content;
+          padding: 5px;
+          margin-top: -30px;
+          color: white;
+        }
+      }
+
+      .result-roll {
+        text-align: left;
+        background-color: var(--bg-color);
+        width: calc(100% + 10px);
+        margin-left: -5px;
+
+        + .move-name {
+          color: var(--fg-color);
+          margin-top: -30px;
+          text-indent: 20px;
+          text-shadow:
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black;
+
+          + .move-name {
+            font-style: normal;
+            color: var(--fg-color);
+            font-family: var(--font-primary-smallcaps) !important;
+            text-transform: lowercase;
+            filter: brightness(1.5);
+
+            margin-top: 12px;
+            margin-bottom: 20px;
+            text-indent: 20px;
+            background: var(--bg-color);
+            padding: 5px 0px;
+            margin-left: 50px;
+            border-bottom-left-radius: 20px;
+            width: calc(100% + 10px - 45px);
+            margin-left: 40px;
+            text-shadow:
+              0 0 1px black,
+              0 0 1px black,
+              0 0 1px black,
+              0 0 1px black,
+              0 0 1px black,
+              0 0 1px black;
+          }
+        }
+      }
+
+      .move-result *,
+      .move-options * {
+        text-shadow: none;
+
+        &.gm-move-text {
+          filter: brightness(1.5);
+          text-shadow:
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black;
+        }
+
+
+
+      }
+      // background-image: none !important;
     }
   }
 }

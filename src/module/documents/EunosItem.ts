@@ -39,17 +39,142 @@ export default class EunosItem extends Item {
   }
 
   get chatMessage(): string {
-    return "";
+    switch (this.type) {
+      case "move":
+      case "advantage":
+      case "disadvantage":
+      case "ability":
+      case "limitation":
+        return this.getMechanicalItemChatMessage();
+      case "gear":
+        return this.getGearChatMessage();
+      case "relationship":
+        return this.getRelationshipChatMessage();
+      case "darksecret":
+        return this.getDarkSecretChatMessage();
+      case "weapon":
+        return this.getWeaponChatMessage();
+      default:
+        return "";
+    }
   }
 
-  override prepareDerivedData(): void {
-    super.prepareDerivedData();
-
-    (this.system as ItemDataWeapon).isGM = game.user?.isGM ?? false;
-
-    if (this.isMechanicalItem() && ["active", "triggered"].includes(this.system.type)) {
-      this.system.tooltip = this.system.trigger ? this.system.trigger : false;
+  getMechanicalItemChatMessage(): string {
+    if (!this.isMechanicalItem()) {
+      return "";
     }
+    const htmlStrings: string[] = [
+      `<div class='item-block item-block-${this.type}'>`,
+      "<div class='item-header'>",
+      `<img src='${this.img}' alt='${this.name}' />`,
+      `<div class='move-name'>${this.name}</div>`,
+      "</div>",
+      "<div class='item-body'>",
+      `<div>${this.system.effect}</div>`
+    ];
+
+    if (this.system.type === "active") {
+      htmlStrings.push(
+        "<div class='roll-results-block'>",
+        "<div class='complete-success-row'>",
+        "<label>15+:</label>",
+        `<div>${this.system.completesuccess}</div>`,
+        "</div>",
+        "<div class='partial-success-row'>",
+        "<label>10-14:</label>",
+        `<div>${this.system.partialsuccess}</div>`,
+        "</div>",
+        "<div class='failure-row'>",
+        "<label>0-9</label>",
+        `<div>${this.system.failure}</div>`,
+        "</div>"
+      );
+    }
+
+    if (this.system.options) {
+      htmlStrings.push(
+        `<div>${this.system.options}</div>`
+      );
+    }
+
+    htmlStrings.push(
+      "</div>"
+    );
+
+    return htmlStrings.join("");
+  }
+
+  getGearChatMessage(): string {
+    if (!this.isGear()) {
+      return "";
+    }
+    const htmlStrings: string[] = [
+      "<div class='item-block item-block-gear'>",
+      "<div class='item-header'>",
+      `<img src='${this.img}' alt='${this.name}' />`,
+      `<div class='item-name'>${this.name}</div>`,
+      "</div>",
+      "<div class='item-body'>",
+      `<div>${this.system.description}</div>`,
+      this.system.usesMax || this.system.armor ? "<div class='gear-footer-wrapper'>" : "",
+      this.system.usesMax ? `<div class='gear-uses'>
+      <span class='uses'>${this.system.uses ?? 0}</span> <strong>/</strong> <span class='uses-max'>${this.system.usesMax ?? 0}</span>
+      </div>` : "",
+      this.system.armor ? `<div class='gear-armor'><i class="far fa-shield"></i><span class='value'>${this.system.armor}</span></div>` : "",
+      this.system.usesMax || this.system.armor ? "</div>" : "",
+      "</div>"
+    ];
+    return htmlStrings.join("");
+  }
+
+  getRelationshipChatMessage(): string {
+    const htmlStrings: string[] = [];
+    return htmlStrings.join("");
+  }
+
+  getDarkSecretChatMessage(): string {
+    const htmlStrings: string[] = [];
+    return htmlStrings.join("");
+  }
+
+  getWeaponChatMessage(): string {
+    const htmlStrings: string[] = [];
+    return htmlStrings.join("");
+  }
+
+  getAttackChatMessage(attack: {
+    name: string;
+    harm: number;
+    ammoCost: number;
+    special: string;
+    isDefault: boolean;
+  }, item: EunosItem): string {
+    if (!item.isWeapon()) {
+      return "";
+    }
+    const htmlStrings: string[] = [
+      "<div class='item-block item-block-attack'>",
+      "<div class='item-header'>",
+      `<div class='weapon-name'>${item.name}</div>`,
+      `<div class='item-name'>${attack.name}</div>`,
+      "</div>",
+      "<div class='item-subheader'>",
+      `<div class='item-harm key-word'>${attack.harm} Harm</div>`,
+      `<div class='item-ammo-cost'>${attack.ammoCost > 0 ? `${attack.ammoCost} Ammo` : ""}</div>`,
+      "</div>"
+    ];
+
+    if (attack.special) {
+      htmlStrings.push(
+        "<div class='item-body'>",
+        `<div class='item-description'>${attack.special}</div>`,
+        "</div>"
+      );
+    }
+    htmlStrings.push(
+      "</div>"
+    );
+    return htmlStrings.join("");
   }
 
   async showInChat() {
@@ -79,6 +204,7 @@ export default class EunosItem extends Item {
     // @ts-expect-error ChatMessage.create is not typed
     await ChatMessage.create({ content: htmlStrings.join(""), speaker: ChatMessage.getSpeaker({ alias: this.name }) });
   }
+
 }
 
 Hooks.on("init", () => {

@@ -78,12 +78,14 @@ export function initializeGSAP(): void {
           })
           .fromTo($image, {
             filter: "brightness(0) blur(10px)",
-            left:"0%",
+            // left:"0%",
+            x: "+=100",
             scale: 1.5,
             height: "100vh"
             // height: "600vh"
           }, {
             filter: "brightness(1) blur(0px)",
+            x: 0,
             // height: "100vh",
             scale: 1,
             duration: entryDuration + displayDuration + exitDuration,

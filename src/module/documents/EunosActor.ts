@@ -222,6 +222,40 @@ export default function registerEunosActor(): void {
       }
       return "Critically Stressed";
     }
+
+
+    override async displayRollResult({ roll, moveName, result, resultText, moveResultText, optionsText, rollMode }: { roll: Roll, moveName: string, result: string, resultText: string, moveResultText: string, optionsText: string, rollMode: string }) {
+      const templateData = {
+        total: Math.max(0, roll.total ?? 0),
+        result: roll.result,
+        moveName: moveName,
+        resultClass: `roll-result-${result}`,
+        resultText: resultText,
+        moveResultText: moveResultText,
+        optionsText: optionsText
+      };
+
+      const content = await renderTemplate("modules/eunos-kult-hacks/templates/apps/chat/roll-card.hbs", templateData);
+
+      const chatData = {
+        speaker: ChatMessage.getSpeaker({ alias: this.name }),
+        content: content,
+        rolls: [roll],
+        rollMode: rollMode
+      };
+
+      // Appliquer les destinataires pour le mode gmroll
+      if (rollMode === "gmroll") {
+        // @ts-expect-error ChatMessage.getWhisperRecipients is not typed
+        chatData.whisper = ChatMessage.getWhisperRecipients("GM");
+      }
+
+      kultLogger("chatData => ", chatData);
+      // @ts-expect-error ChatMessage.create is not typed
+      void ChatMessage.create(chatData);
+    }
+
+
     override async moveroll(moveID: string) {
       if (!this.isPC()) {
         return;
@@ -332,6 +366,7 @@ export default function registerEunosActor(): void {
             await this.displayRollResult({
               roll: r,
               moveName,
+              result: "completesuccess",
               resultText: getLocalizer().localize("k4lt.Success"),
               moveResultText: completesuccess ?? "",
               optionsText: showOptionsFor.success ? options ?? "" : "",
@@ -341,6 +376,7 @@ export default function registerEunosActor(): void {
             await this.displayRollResult({
               roll: r,
               moveName,
+              result: "failure",
               resultText: getLocalizer().localize("k4lt.Failure"),
               moveResultText: failure ?? "",
               optionsText: showOptionsFor.failure ? options ?? "" : "",
@@ -350,6 +386,7 @@ export default function registerEunosActor(): void {
             await this.displayRollResult({
               roll: r,
               moveName,
+              result: "partialsuccess",
               resultText: getLocalizer().localize("k4lt.PartialSuccess"),
               moveResultText: partialsuccess ?? "",
               optionsText: showOptionsFor.partial ? options ?? "" : "",

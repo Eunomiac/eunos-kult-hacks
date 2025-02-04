@@ -278,13 +278,13 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     }
     return false;
   },
-  "getAmmoDisplay": (current: number, max: number): string => {
+  "getDotline": (current: number, max: number): string => {
     // Create array of styled bullet spans
-    const bullets = Array(max).fill(`<span class="ammo-dot empty"></span>`);
+    const bullets = Array(max).fill(`<span class="dot empty"></span>`);
     for (let i = 0; i < current; i++) {
-      bullets[i] = `<span class="ammo-dot filled"></span>`;
+      bullets[i] = `<span class="dot filled"></span>`;
     }
-    return `<div class="ammo-display">${bullets.join("")}</div>`;
+    return `<div class="dotline">${bullets.join("")}</div>`;
   }
 };
 

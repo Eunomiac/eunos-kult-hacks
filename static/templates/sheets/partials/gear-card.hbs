@@ -15,9 +15,9 @@
         <span class="value">{{system.armor}}</span>
       </span>
     {{/if}}
-    <a class="move-roll">{{name}}</a>
+    <a class="move-show">{{name}}</a>
     {{#if system.usesMax}}
-      {{{getAmmoDisplay system.uses system.usesMax}}}
+      {{{getDotline system.uses system.usesMax}}}
     {{/if}}
   </div>
 
@@ -25,16 +25,12 @@
     class="gear-tooltip"
     style="position-anchor: --{{anchorName}};"
     popover>
-    <p>{{system.description}}</p>
+    {{{system.description}}}
     {{#if system.usesMax}}
       <label>Uses:</label><span>{{system.uses}}/{{system.usesMax}}</span>
     {{/if}}
   </div>
 
-    <div class="item-controls" data-item-id="{{_id}}">
-      <a class="item-control item-show" title="{{localize 'k4lt.ShowItem'}}"><i class="far fa-comment-alt"></i></a>
-      <a class="item-control item-edit" title="{{localize 'k4lt.EditItem'}}"><i class="fas fa-eye"></i></a>
-      <a class="item-control item-delete" title="{{localize 'k4lt.DeleteItem'}}"><i class="fas fa-trash"></i></a>
-    </div>
+  {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-controls.hbs" view=true show=true trash=true isGM=isGM id=_id }}
   {{/let}}
 </div>

@@ -28,7 +28,12 @@
             .advantage-column {
               position: absolute;
               bottom: 2px;
-              right: 3px;
+              left: 30px;
+              font-family: var(--font-primary-smallcaps);
+              text-transform: lowercase;
+              font-weight: 1000;
+              font-size: 10px;
+              filter: brightness(1.5);
             }
           }
 
@@ -111,7 +116,7 @@
           }
         }
 
-        .ammo-display {
+        .dotline {
           position: absolute;
           right: 10px;
           width: min-content;
@@ -120,7 +125,7 @@
           display: inline-flex;
           gap: 2px;
 
-          .ammo-dot {
+          .dot {
             display: inline-block;
             width: 12px;
             height: 12px;
@@ -137,8 +142,8 @@
           }
         }
 
-        .gear-card .ammo-display {
-          .ammo-dot {
+        .gear-card .dotline {
+          .dot {
             width: 4px;
             border-radius: 0;
           }
@@ -197,7 +202,7 @@
                 vertical-align: middle;
               }
             }
-            .ammo-display {
+            .dotline {
               position: absolute;
               font-size: 16px;
               font-family: var(--font-primary);
@@ -207,7 +212,7 @@
               // line-height: 16px;
               // place-self: flex-end;
 
-              .ammo-dot {
+              .dot {
               border: 1px solid black;
               &.empty {
                 background: transparent;
@@ -580,16 +585,7 @@
   }
 }
 
-body.gm-user {
-  [id^="EunosPCSheet"]
-    .window-content
-    .kult-sheet
-    .item-list
-    .move-card
-    .item-control {
-    display: block !important;
-  }
-}
+
 
 .armor-value {
   position: relative;

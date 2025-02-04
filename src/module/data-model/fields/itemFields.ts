@@ -50,3 +50,7 @@ export interface ItemDerivedFieldsBase {
   isGM: boolean;
   tooltip: string|false;
 }
+
+export interface ItemDerivedFieldsRelationship extends ItemDerivedFieldsBase {
+  strengthText: string;
+}
