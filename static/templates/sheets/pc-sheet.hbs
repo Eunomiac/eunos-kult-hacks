@@ -1,8 +1,13 @@
 {{!log 'pc-sheet' this}}
 <form class="{{cssClass}} kult-sheet" autocomplete="off">
   <header class="sheet-header">
-
-
+    <button class="lock-sheet-button">
+      {{#if system.isSheetLocked}}
+      <i class="fa-solid fa-lock"></i>
+      {{else}}
+      <i class="fa-solid fa-unlock"></i>
+      {{/if}}
+    </button>
     <div class="flex-container top-section">
       <h1 class="character-name"><input name="name" type="text" value="{{actor.name}}" placeholder="Name" /></h1>
     </div>
@@ -81,11 +86,10 @@
   {{!-- Sheet Tab Navigation --}}
   <nav class="sheet-tabs tabs align-center" data-group="primary">
     <a class="choice" data-tab="Stats">{{localize "k4lt.Stats"}}</a>
-    <a class="choice" data-tab="Background">{{localize "k4lt.Background"}}</a>
     <a class="choice" data-tab="Conditions">{{localize "k4lt.Conditions"}}<span class="condition-count"
         style="display: none;"></span></a>
-    <a class="choice" data-tab="Advancement">{{localize "k4lt.Advancement.Title"}}</a>
     <a class="choice" data-tab="Notes">{{localize "k4lt.Notes"}}</a>
+    <a class="choice" data-tab="Advancement">{{localize "k4lt.Advancement.Title"}}</a>
   </nav>
 
   {{!-- Sheet Body --}}
@@ -289,50 +293,6 @@
 
     {{!-- Background Tab --}}
     <div id="Background" class="tab background-section {{actor._id}}-tab" data-group="primary" data-tab="Background">
-      <div>
-        <div class="section-label">{{localize "k4lt.WhoAreYou"}}</div>
-        <div class="free-text">
-          {{editor system.whoareyou target="system.whoareyou" button=true owner=owner editable=editable}}
-        </div>
-      </div>
-      <div class="two-column">
-        <div>
-          <div class="section-label"><input name="system.background.section1" type="text"
-              style="border: none; background-color: transparent;" value="{{system.background.section1}}"
-              placeholder="{{localize " k4lt.WhatYouHoldDear"}}" /></div>
-          <div class="free-text">
-            {{editor system.whatyouholddear target="system.whatyouholddear" button=true owner=owner editable=editable}}
-          </div>
-        </div>
-        <div>
-          <div class="section-label"><input name="system.background.section2" type="text"
-              style="border: none; background-color: transparent;" value="{{system.background.section2}}"
-              placeholder="{{localize " k4lt.ThingsInYourPossession"}}" /></div>
-          <div class="free-text">
-            {{editor system.thingsinyourpossession target="system.thingsinyourpossession" button=true owner=owner
-            editable=editable}}
-          </div>
-        </div>
-      </div>
-      <div class="two-column">
-        <div>
-          <div class="section-label"><input name="system.background.section3" type="text"
-              style="border: none; background-color: transparent;" value="{{system.background.section3}}"
-              placeholder="{{localize " k4lt.RelationToTheOtherCharacters"}}" /></div>
-          <div class="free-text">
-            {{editor system.relationtotheothercharacters target="system.relationtotheothercharacters" button=true
-            owner=owner editable=editable}}
-          </div>
-        </div>
-        <div>
-          <div class="section-label"><input name="system.background.section4" type="text"
-              style="border: none; background-color: transparent;" value="{{system.background.section4}}"
-              placeholder="{{localize " k4lt.DramaticHooks"}}" /></div>
-          <div class="free-text">
-            {{editor system.dramatichooks target="system.dramatichooks" button=true owner=owner editable=editable}}
-          </div>
-        </div>
-      </div>
     </div>
 
     {{!-- Conditions Tab --}}
@@ -515,6 +475,53 @@
 
     </div>
 
+    {{!-- Notes Tab --}}
+    <div id="Notes" class="tab background-section {{actor._id}}-tab" data-group="primary" data-tab="Notes">
+
+      <div>
+        <div class="section-label">Who Are You?</div>
+        <div class="free-text">
+          {{editor system.whoareyou target="system.whoareyou" button=true owner=owner editable=editable}}
+        </div>
+      </div>
+      <div class="two-column">
+        <div>
+          <div class="section-label"><input name="system.bio.block1.label" type="text"
+              style="border: none; background-color: transparent;" value="{{system.bio.block1.label}}"
+              placeholder="(section label)" /></div>
+          <div class="free-text">
+            {{editor system.bio.block1.content target="system.bio.block1.content" button=true owner=owner editable=editable}}
+          </div>
+        </div>
+        <div>
+          <div class="section-label"><input name="system.bio.block2.label" type="text"
+              style="border: none; background-color: transparent;" value="{{system.bio.block2.label}}"
+              placeholder="(section label)" /></div>
+          <div class="free-text">
+            {{editor system.bio.block2.content target="system.bio.block2.content" button=true owner=owner editable=editable}}
+          </div>
+        </div>
+      </div>
+      <div class="two-column">
+        <div>
+          <div class="section-label"><input name="system.bio.block3.label" type="text"
+              style="border: none; background-color: transparent;" value="{{system.bio.block3.label}}"
+              placeholder="(section label)" /></div>
+          <div class="free-text">
+            {{editor system.bio.block3.content target="system.bio.block3.content" button=true owner=owner editable=editable}}
+          </div>
+        </div>
+        <div>
+          <div class="section-label"><input name="system.bio.block4.label" type="text"
+              style="border: none; background-color: transparent;" value="{{system.bio.block4.label}}"
+              placeholder="(section label)" /></div>
+          <div class="free-text">
+            {{editor system.bio.block4.content target="system.bio.block4.content" button=true owner=owner editable=editable}}
+          </div>
+        </div>
+      </div>
+    </div>
+
     {{!-- Advancement Tab --}}
     <div id="Advancement" class="tab background-section {{actor._id}}-tab" data-group="primary" data-tab="Advancement">
       <div class="advancement-line">
@@ -688,17 +695,6 @@
       </div>
     </div>
 
-
-    {{!-- Notes Tab --}}
-    <div id="Notes" class="tab background-section {{actor._id}}-tab" data-group="primary" data-tab="Notes">
-      <div class="one-column">
-        <div "notes-box">
-          <div class="free-text">
-            {{editor system.notes target="system.notes" button=true owner=owner editable=editable}}
-          </div>
-        </div>
-      </div>
-    </div>
 
   </section>
 

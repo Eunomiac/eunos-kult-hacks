@@ -1,23 +1,28 @@
 <form class="{{cssClass}}" autocomplete="off">
   <header class="sheet-header">
-    <img src="{{item.img}}" data-edit="img" title="{{item.name}}" height="64" width="64" />
-    <h1><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
+    <img src="{{item.img}}" {{#if isGM}}data-edit="img"{{/if}} title="{{item.name}}" height="64" width="64" />
+    <h1><input class="{{#unless isGM}}uneditable{{/unless}}" name="name" type="text" value="{{item.name}}" placeholder="Name" {{#unless isGM}}disabled{{/unless}} /></h1>
   </header>
   <div class="kult-item-sheet">
-    <div>
-      <label>{{localize "k4lt.Uses"}}:</label>
-      <span>
-        <input name="system.ammo.value" style="width: 80px" type="text" value="{{system.ammo.value}}" />/<input
-          name="system.ammo.max"
-          style="width: 80px"
-          type="number"
-          value="{{system.ammo.max}}"
-        />
-      </span>
-    </div>
     <div class="editor-row">
       <label>{{localize "k4lt.Description"}}:</label>
       <div>{{editor system.description target="system.description" button=true owner=owner editable=editable}}</div>
+    </div>
+    <div class="flex-row gear-topper" style="justify-content: space-between;">
+      {{#if (test system.usesMax "||" isGM)}}
+      <div>
+        <label>Uses:</label>
+        <input name="system.uses" type="number" value="{{system.uses}}" />
+        <span><strong>/</strong></span>
+        <input class="{{#unless isGM}}uneditable{{/unless}}" name="system.usesMax" type="number" value="{{system.usesMax}}" {{#unless isGM}}disabled{{/unless}} />
+      </div>
+      {{/if}}
+      {{#if (test system.armor "||" isGM)}}
+      <div>
+        <label>Armor:</label>
+        <input class="{{#unless isGM}}uneditable{{/unless}}" name="system.armor" type="number" value="{{system.armor}}" {{#unless isGM}}disabled{{/unless}} />
+      </div>
+      {{/if}}
     </div>
   </div>
 </form>

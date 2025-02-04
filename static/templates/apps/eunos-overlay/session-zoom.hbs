@@ -1,0 +1,60 @@
+<div id="SESSION_ZOOM" class="session-zoom">
+  <div id="blackout-layer"></div>
+  {{!-- <section id="intro-section"></section> --}}
+  <section id="reading-section" class="master-layer">
+    <section id="background-layer" class="canvas-layer"></section>
+    <section id="under-layer" class="canvas-layer"></section>
+    {{!-- <section id="card-layer" class="canvas-layer"></section> --}}
+    {{!-- <section id="over-layer" class="canvas-layer"></section> --}}
+    {{!-- <section id="control-layer" class="canvas-layer"></section> --}}
+  </section>
+</div>
+
+{{!-- <script>
+  function animateSessionZoom(perspective = 800) {
+    // Clear out any existing styles on elements that will be animated
+    document.querySelector(".top-zindex-mask")?.removeAttribute("style");
+    document.querySelector(".mid-zindex-mask")?.removeAttribute("style");
+    document.querySelector("#reading-section")?.removeAttribute("style");
+    document.querySelector("#blackout-layer")?.removeAttribute("style");
+    document.querySelectorAll(".canvas-layer").forEach(el => el.removeAttribute("style"));
+
+    gsap.set("#reading-section", {perspective});
+    await gsap.timeline()
+      .to([
+        ".top-zindex-mask",
+        ".mid-zindex-mask"
+      ], {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.out"
+      }, 0)
+      .fromTo("#reading-section", {
+        rotationZ: 65
+      }, {
+        rotationZ: 0,
+        duration: 7,
+        ease: "back"
+      }, 0)
+      .fromTo("#reading-section", {
+        scale: 2
+      }, {
+        scale: 1,
+        duration: 16,
+        ease: "back.out(2)"
+      }, 0)
+      .to("#blackout-layer", {
+        opacity: 0,
+        duration: 0.5,
+        rotationX: 45,
+        ease: "sine",
+        onComplete() { $("#blackout-layer").remove() }
+      }, 0)
+      .to(".canvas-layer", {
+        rotationX: 45,
+        duration: 10,
+        ease: "elastic.out(1, 0.75)" // "sine"
+      }, 0);
+  }
+  animateSessionZoom(2000);
+</script> --}}

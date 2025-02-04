@@ -1,7 +1,8 @@
-import {getHoldFields, getEdgeFields, getMoveFields} from "./fields/itemFields";
+import {type ItemDerivedFieldsBase, getHoldFields, getEdgeFields, getMoveFields} from "./fields/itemFields";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fields = foundry.data.fields;
 import TypeDataModel = foundry.abstract.TypeDataModel;
+import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
 
 const ItemSchemaAdvantage = {
   ...getEdgeFields(),
@@ -11,7 +12,9 @@ const ItemSchemaAdvantage = {
 
 export default class ItemDataAdvantage extends TypeDataModel<
   typeof ItemSchemaAdvantage,
-  Item
+  Item,
+  EmptyObject,
+  InterfaceToObject<ItemDerivedFieldsBase>
 > {
   static override defineSchema() {
     return ItemSchemaAdvantage;

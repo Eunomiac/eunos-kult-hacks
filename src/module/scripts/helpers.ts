@@ -1,6 +1,7 @@
 // #region IMPORTS ~
 import * as C from "./constants.js";
 import * as U from "./utilities_old.js";
+import EunosItem from "../documents/EunosItem.js";
 // import SVGDATA, {SVGKEYMAP} from "./svgdata.js";
 // import K4Actor from "../documents/K4Actor.js";
 // import K4Item from "../documents/K4Item.js";
@@ -188,6 +189,10 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     }
 
     switch (operator) {
+      case "||":
+        return Boolean(param1) || Boolean(param2);
+      case "&&":
+        return Boolean(param1) && Boolean(param2);
       case "!":
       case "!!":
       case "not":
@@ -261,7 +266,26 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     kLog.hbsLog(...(args.map(String) as Tuple<string>), dbLevel);
   },
   "getImgName": U.toKey,
-  "stringify": (ref: Record<string, unknown>): string => JSON.stringify(ref, null, 2)
+  "stringify": (ref: Record<string, unknown>): string => JSON.stringify(ref, null, 2),
+  "getTooltip": (actorID: string, itemID: string): string|false => {
+    const actor = getGame().actors.get(actorID);
+    const item = actor?.items.get(itemID);
+    console.log(`Getting tooltip for Actor: ${actorID} and Item: ${itemID}`);
+    if (!item) { return false; }
+    console.log("Item", item);
+    if (item.isMechanicalItem() && ["active", "triggered"].includes(item.system.type)) {
+      return item.system.trigger!;
+    }
+    return false;
+  },
+  "getAmmoDisplay": (current: number, max: number): string => {
+    // Create array of styled bullet spans
+    const bullets = Array(max).fill(`<span class="ammo-dot empty"></span>`);
+    for (let i = 0; i < current; i++) {
+      bullets[i] = `<span class="ammo-dot filled"></span>`;
+    }
+    return `<div class="ammo-display">${bullets.join("")}</div>`;
+  }
 };
 
 export function registerHandlebarHelpers() {

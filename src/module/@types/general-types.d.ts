@@ -189,7 +189,7 @@ declare global {
    * @returns The current Actor instance.
    * @throws Error if the Actor is not ready.
    */
-  function getActor(): k4ltActor;
+  function getActor(): EunosActor;
 
   /**
    * Retrieves the current I18n instance.

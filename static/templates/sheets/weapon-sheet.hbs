@@ -1,35 +1,50 @@
 <form class="{{cssClass}}" autocomplete="off">
   <header class="sheet-header">
-    <img src="{{item.img}}" data-edit="img" title="{{item.name}}" height="64" width="64" />
-    <h1><input name="name" type="text" value="{{item.name}}" placeholder="Name" /></h1>
+    <img src="{{item.img}}" {{#if isGM}}data-edit="img"{{/if}} title="{{item.name}}" height="64" width="64" />
+    <h1><input class="{{#unless isGM}}uneditable{{/unless}}" name="name" type="text" value="{{item.name}}" placeholder="Name" {{#unless isGM}}disabled{{/unless}} /></h1>
   </header>
   <div class="kult-item-sheet">
-    <div class="kult-item-flex">
+    <div class="flex-row weapon-topper">
       <div>
-        <label>{{localize "k4lt.Range"}}:</label>
-        <input name="system.range" type="text" style="width: 191px" value="{{system.range}}" />
+        <label>Class:</label>
+        <select class="{{#unless isGM}}uneditable{{/unless}}" name="system.class" {{#unless isGM}}disabled{{/unless}}>
+          {{selectOptions classOptions selected=system.class valueAttr="value" labelAttr="label"}}
+        </select>
       </div>
       <div>
-        <label>{{localize "k4lt.Harm"}}:</label>
-        <input name="system.harm" style="width: 80px" type="text" value="{{system.harm}}" data-dtype="Number" />
+        <label>Subclass:</label>
+        <select class="{{#unless isGM}}uneditable{{/unless}}" name="system.subClass" {{#unless isGM}}disabled{{/unless}}>
+          {{selectOptions subclassOptions selected=system.subClass valueAttr="value" labelAttr="label"}}
+        </select>
       </div>
     </div>
-    <div>
-      <label>{{localize "k4lt.Ammo"}}:</label>
-      <span>
-        <input class="short-input" style="width: 80px" name="system.ammo.value" type="number" data-dtype="Number" value="{{system.ammo.value}}" />/<input
-          class="short-input"
-          style="width: 80px"
-          name="system.ammo.max"
-          type="number"
-          data-dtype="Number"
-          value="{{system.ammo.max}}"
-        />
-      </span>
+    <div class="flex-row weapon-topper">
+      <div>
+        <label>Range:</label>
+        <input class="{{#unless isGM}}uneditable{{/unless}}" name="system.range" type="text" value="{{system.range}}" {{#unless isGM}}disabled{{/unless}} />
+      </div>
+      {{#if (eq system.class "Firearm")}}
+      <div>
+        <label>Ammo:</label>
+        <input name="system.ammo.value" type="number" value="{{system.ammo.value}}" />
+        <span><strong>/</strong></span>
+        <input class="{{#unless isGM}}uneditable{{/unless}}" name="system.ammo.max" type="number" value="{{system.ammo.max}}" {{#unless isGM}}disabled{{/unless}} />
+      </div>
+      {{/if}}
     </div>
-    <div class="editor-row">
-      <label>{{localize "k4lt.Special"}}:</label>
-      <div>{{editor system.special target="system.special" button=true owner=owner editable=editable}}</div>
+
+    <div class="section-header">
+      <h3>Attacks</h3>
+      {{#if isGM}}
+      <a class="add-attack" title="Add Attack">
+        <i class="fas fa-plus"></i>
+      </a>
+      {{/if}}
+    </div>
+    <div class="weapon-attacks">
+      {{#each system.attacks as |attack i|}}
+      {{> "modules/eunos-kult-hacks/templates/sheets/partials/weapon-attack.hbs" attack=attack item=../this i=i isGM=../isGM}}
+      {{/each}}
     </div>
   </div>
 </form>

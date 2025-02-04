@@ -45,3 +45,8 @@ export function getAttackField() {
     isDefault: new fields.BooleanField({initial: false})
   })
 }
+
+export interface ItemDerivedFieldsBase {
+  isGM: boolean;
+  tooltip: string|false;
+}

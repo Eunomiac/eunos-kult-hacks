@@ -4,20 +4,25 @@ import getDramaticHookField from "./fields/getDramaticHookField";
 import getWoundField from "./fields/getWoundField";
 import getConditionField from "./fields/getConditionField";
 import getAdvancementField from "./fields/getAdvancementField";
+import getBioBlockField from "./fields/getBioBlockField";
 import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
 import { STABILITY_VALUES, STABILITY_MODIFIERS, STABILITY_STATES, WOUND_MODIFIERS, WOUND_MODIFIERS_GRITTED_TEETH } from "../scripts/constants";
 
 
 const ActorSchemaPC = {
+  isSheetLocked: new fields.BooleanField({ initial: true }),
   whoareyou: new fields.HTMLField(),
-  whatyouholddear: new fields.HTMLField(),
-  thingsinyourpossession: new fields.HTMLField(),
-  relationtotheothercharacters: new fields.HTMLField(),
+  bio: new fields.SchemaField({
+    whoareyou: new fields.HTMLField(),
+    block1: getBioBlockField(),
+    block2: getBioBlockField(),
+    block3: getBioBlockField(),
+    block4: getBioBlockField(),
+  }),
   dramatichooks: new fields.SchemaField({
     dramatichook1: getDramaticHookField(),
     dramatichook2: getDramaticHookField(),
   }),
-  notes: new fields.HTMLField(),
   majorwound1: getWoundField(),
   majorwound2: getWoundField(),
   majorwound3: getWoundField(),
@@ -134,7 +139,7 @@ export default class ActorDataPC extends TypeDataModel<
 
   override prepareDerivedData() {
     const stabilityVal = this.stability.value;
-    this.stabilityValues = STABILITY_VALUES;
+    this.stabilityValues = this.parent.hasBroken ? STABILITY_VALUES.slice(4) : STABILITY_VALUES;
     this.stabilityStates = (STABILITY_STATES[stabilityVal] ?? []).join(", ");
     this.stabilityModifiers = STABILITY_MODIFIERS[stabilityVal] ?? [];
 

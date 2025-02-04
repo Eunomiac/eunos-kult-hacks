@@ -9,6 +9,8 @@ declare global {
     get hasUnstabilizedCriticalWound(): boolean;
     get hasFieldTendedCriticalWound(): boolean;
     get hasGrittedTeeth(): boolean;
+    get hasBroken(): boolean;
+    get stabilityState(): string;
     get armor(): number;
     getWoundPenaltyFor(move: EunosItem): number;
     getStabilityPenaltyFor(move: EunosItem): number;
@@ -24,6 +26,14 @@ export default function registerEunosActor(): void {
   class EunosActor extends k4Actor {
     isPC(): this is EunosActor & { system: ActorDataPC } {
       return this.type === "pc";
+    }
+
+    override prepareDerivedData(): void {
+      super.prepareDerivedData();
+      if (this.isPC() && this.hasBroken) {
+        this.system.stability.max = 6;
+        this.system.stability.value = Math.min(this.system.stability.value, 6);
+      }
     }
 
     get numSeriousWounds(): number {
@@ -52,6 +62,10 @@ export default function registerEunosActor(): void {
 
     get hasGrittedTeeth(): boolean {
       return this.items.some((item) => item.name === "Gritted Teeth");
+    }
+
+    get hasBroken(): boolean {
+      return this.items.some((item) => item.name === "Broken");
     }
 
     getWoundPenaltyFor(move: EunosItem): number {
@@ -191,6 +205,22 @@ export default function registerEunosActor(): void {
           item.type === "gear" && (item.system as ItemDataGear).isEquipped,
       ) as Array<EunosItem & { system: ItemDataGear }>;
       return gearItems.reduce((acc, gear) => acc + (gear.system.armor ?? 0), 0);
+    }
+
+    get stabilityState(): string {
+      if (!this.isPC()) {
+        return "";
+      }
+      if (this.system.stability.value === 0) {
+        return "Broken";
+      }
+      if (this.system.stability.value >= 8) {
+        return "Moderately Stressed";
+      }
+      if (this.system.stability.value >= 5) {
+        return "Seriously Stressed";
+      }
+      return "Critically Stressed";
     }
     override async moveroll(moveID: string) {
       if (!this.isPC()) {

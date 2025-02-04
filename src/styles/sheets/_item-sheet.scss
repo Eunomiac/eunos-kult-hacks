@@ -46,6 +46,77 @@
               }
             }
           }
+
+          &.weapon-topper {
+            gap: 10px;
+
+            > div {
+              display: flex;
+              gap: 5px;
+              align-items: center;
+            }
+
+            input[name="system.ammoCapacity"] {
+              font-weight: 1000;
+              // color: var(--K4-bRED);
+              font-size: 18px;
+
+            }
+          }
+        }
+
+
+        .attack-row {
+          // margin-bottom: 10px;
+
+          .flex-row {
+            align-items: baseline;
+            gap: 5px;
+            max-height: 20px;
+
+            label {
+              white-space: nowrap;
+              font-size: 12px;
+            }
+
+            .harm-input {
+              font-weight: 1000;
+              color: var(--K4-BLUE);
+              font-size: 18px;
+              height: 18px;
+            }
+
+            .ammo-input {
+              font-weight: 1000;
+              color: var(--K4-bRED);
+              font-size: 18px;
+              height: 18px;
+
+            }
+          }
+
+
+            .flex-row:first-of-type input[type="text"]:first-of-type {
+              font-weight: 1000;
+            }
+            .flex-row:nth-of-type(2) {
+              position: relative;
+
+              &::before {
+                content: "↳";
+                font-size: 12px;
+                position: absolute;
+                left: 5px;
+                top: -2px;
+                color: black;
+              }
+
+              input[type="text"] {
+              margin-top: -5px;
+              text-indent: 10px;
+              }
+            }
+
         }
 
         .editor {
@@ -68,6 +139,26 @@
         .special-flag-row {
           display: none;
         }
+      }
+    }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0;
+
+    h3 {
+      margin: 0;
+    }
+
+    .add-attack {
+      color: var(--color-text-light-highlight);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--color-text-highlight);
       }
     }
   }

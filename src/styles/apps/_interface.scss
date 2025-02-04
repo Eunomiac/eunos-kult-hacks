@@ -47,4 +47,10 @@ body.gm-user {
       display: block;
     }
   }
+
+  .mid-zindex-mask,
+  .top-zindex-mask,
+  #SESSION_ZOOM {
+    display: none;
+  }
 }

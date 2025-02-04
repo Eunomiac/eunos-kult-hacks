@@ -1,140 +1,414 @@
-body {
-  position: relative;
+html {
+	position: absolute;
+	transform-origin: center center;
+	background: rgb(0, 0, 0);
 
-  &:not(.interface-ready)::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: black;
-    z-index: 10000;
-    pointer-events: all;
-  }
+  body {
+    position: relative;
+    background-image: url('modules/eunos-kult-hacks/assets/backgrounds/bg-burnt-background.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
 
-  #EUNOS_OVERLAY {
-    position: static;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    margin-right: -100%;
-    margin-bottom: -100%;
-
-    .full-screen-mask {
+    &:not(.interface-ready)::before {
+      content: "";
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 100;
-
-      .canvas-mask {
-        position: absolute;
-        z-index: 100;
-        width: calc(100vw - var(--sidebar-width) - 5px);
-        height: 100%;
-        background-color: black;
-      }
-      .sidebar-mask {
-        position: absolute;
-        left: unset;
-        right: 0;
-        z-index: 100;
-        width: calc(var(--sidebar-width) + 5px);
-        background: black;
-        height: 100%;
-        pointer-events: none;
-      }
-
-    }
-    .transition-to-top {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
       z-index: 10000;
+      pointer-events: all;
+    }
 
-      .chapter-title-container {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+    #EUNOS_OVERLAY {
+      position: static;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      margin-right: -100%;
+      margin-bottom: -100%;
+
+      .mid-zindex-mask {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+
+        .loading-screen-item {
+          position: absolute;
+          z-index: 100;
+          visibility: hidden;
+          height: 100%;
+          width: 100%;
+          pointer-events: none;
+
+          > * {
+            position: absolute;
+            pointer-events: none;
+            --shadow-blur: 8px;
+            text-shadow:
+              0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+              0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+              0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+              0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+              0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+              0 0 var(--shadow-blur) rgba(0, 0, 0, 1);
+          }
+
+          &.item-home-metropolis {
+            --loading-screen-item-title-color: var(--K4-bGOLD);
+            --loading-screen-item-subtitle-color: var(--K4-GOLD);
+            --loading-screen-item-home-color: var(--K4-GOLD);
+            --loading-screen-item-body-color: var(--K4-bGOLD);
+          }
+          &.item-home-limbo {
+            --loading-screen-item-title-color: rgb(230, 230, 250);
+            --loading-screen-item-subtitle-color: rgb(230, 230, 250);
+            --loading-screen-item-home-color: rgb(230, 230, 250);
+            --loading-screen-item-body-color: rgb(230, 230, 250);
+          }
+          &.item-home-elysium {
+            --loading-screen-item-title-color: rgb(220, 240, 240);
+            --loading-screen-item-subtitle-color: rgb(220, 240, 240);
+            --loading-screen-item-home-color: rgb(220, 240, 240);
+            --loading-screen-item-body-color: rgb(220, 240, 240);
+          }
+          &.item-home-inferno {
+            --loading-screen-item-title-color: var(--K4-bRED);
+            --loading-screen-item-subtitle-color: var(--K4-RED);
+            --loading-screen-item-home-color: var(--K4-RED);
+            --loading-screen-item-body-color: var(--K4-bRED);
+          }
+          &.item-home-gaia {
+            --loading-screen-item-title-color: rgb(173, 196, 122);
+            --loading-screen-item-subtitle-color: rgb(173, 196, 122);
+            --loading-screen-item-home-color: rgb(173, 196, 122);
+            --loading-screen-item-body-color: rgb(173, 196, 122);
+          }
+          &.item-home-underworld {
+            /* Is displayed on black background, should maybe be grey */
+            --loading-screen-item-title-color: var(--K4-bGREY);
+            --loading-screen-item-subtitle-color: var(--K4-bGREY);
+            --loading-screen-item-home-color: var(--K4-bGREY);
+            --loading-screen-item-body-color: var(--K4-bGREY);
+          }
+          &.item-home-borderlands {
+            /* Is displayed on black background, should maybe be grey */
+            --loading-screen-item-title-color: rgb(255, 218, 185);
+            --loading-screen-item-subtitle-color: rgb(255, 218, 185);
+            --loading-screen-item-home-color: rgb(255, 218, 185);
+            --loading-screen-item-body-color: rgb(255, 218, 185);
+          }
+
+          .loading-screen-item-image {
+            width: fit-content;
+
+            img {
+              height: 90%;
+              max-width: unset;
+              transform: translate(-50%, -50%);
+              top: 60%;
+              left: 70%;
+              transform-origin: center center;
+              position: relative;
+              border: none;
+            }
+          }
+
+          .loading-screen-item-title {
+            top: 30%;
+            left: 25%;
+            font-family: var(--font-primary-smallcaps);
+            text-transform: lowercase;
+            font-size: 48px;
+            text-align: center;
+            white-space: nowrap;
+            color: var(--loading-screen-item-title-color);
+
+            strong {
+              font-family: var(--font-heading-1);
+              text-transform: lowercase;
+              font-size: 64px;
+              text-align: center;
+              font-weight: normal;
+            }
+          }
+
+          .loading-screen-item-subtitle {
+            font-family: var(--font-primary);
+            font-style: italic;
+            font-weight: 1000;
+            color: var(--loading-screen-item-subtitle-color);
+            font-size: 24px;
+            text-align: center;
+            top: calc(30% + 64px);
+            left: 30%;
+            width: 400px;
+            text-align: center;
+            white-space: nowrap;
+          }
+
+          .loading-screen-item-home {
+            font-family: var(--font-primary);
+            color: var(--loading-screen-item-home-color);
+            font-size: 20px;
+            top: calc(30% + 64px + 24px + 4px);
+            left: 30%;
+            width: 400px;
+            text-align: right;
+
+            strong {
+              font-weight: 1000;
+              filter: brightness(1.5);
+            }
+          }
+
+          .loading-screen-item-body {
+            font-family: var(--font-primary);
+            color: var(--loading-screen-item-body-color);
+            font-size: 18px;
+            line-height: 28px;
+            width: 500px;
+            text-align: left;
+            top: calc(30% + 64px + 48px + 32px);
+            left: 25%;
+          }
+        }
+
+        .canvas-mask {
+          position: absolute;
+          z-index: 100;
+          width: calc(100vw - var(--sidebar-width) - 5px);
+          height: 100%;
+          background: url('modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed.webp');
+          background-size: 100vw 100%;
+          background-position: left;
+          background-repeat: no-repeat;
+          pointer-events: none;
+        }
+        .canvas-mask-bars {
+          position: absolute;
+          z-index: 101;
+          width: calc(100vw - var(--sidebar-width) - 5px);
+          height: 100%;
+          background: url('modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed-bars.webp');
+          background-size: 100vw 100%;
+          background-position: center;
+          background-repeat: no-repeat;
+
+          pointer-events: none;
+
+
+          // Add loading screen styles
+          .loading-screen-countdown {
+            position: absolute;
+            transform: translate(-50%, 0);
+            top: 40px;
+            left: 50vw;
+            color: var(--K4-GOLD);
+            font-family: var(--font-primary);
+            font-size: 4em;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            z-index: 101;
+            pointer-events: none;
+            letter-spacing: 2px;
+
+            // Optional: Add a subtle glow animation
+            animation: glow 2s ease-in-out infinite alternate;
+          }
+        }
+        .sidebar-mask {
+          position: absolute;
+          left: unset;
+          right: 0;
+          z-index: 100;
+          width: calc(var(--sidebar-width) + 5px);
+          background: url('modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed.webp');
+          background-size: 100vw 100vh;
+          background-position: right;
+          background-repeat: no-repeat;
+          pointer-events: none;
+          height: 100%;
+          pointer-events: none;
+        }
+
+        .sidebar-mask-bars {
+          position: absolute;
+          left: unset;
+          right: 0;
+          z-index: 101;
+          width: calc(var(--sidebar-width) + 5px);
+          height: 100%;
+          background: url('modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed-bars.webp');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          pointer-events: none;
+        }
+
+      }
+      .top-zindex-mask {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        // background: blue;
-        height: 300px;
-        width: 600px;
 
-        .chapter-number {
-          font-family: var(--font-primary-smallcaps);
-          text-transform: lowercase;
-          color: white;
-          font-size: 48px;
-          text-align: center;
-          margin-bottom: 20px;
-          visibility: hidden;
+        .chapter-title-container {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 10000;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          // background: blue;
+          height: 300px;
+          width: 600px;
+
+          .chapter-number {
+            font-family: var(--font-primary-smallcaps);
+            text-transform: lowercase;
+            color: white;
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 20px;
+            visibility: hidden;
+          }
+          .horiz-rule {
+            border: none;
+            visibility: hidden;
+          }
+          .chapter-title {
+            font-family: Infidel;
+            margin-top: 40px;
+            font-size: 60px;
+            color: white;
+            text-align: center;
+            visibility: hidden;
+            line-height: 60px;
+          }
         }
-        .horiz-rule {
-          border: none;
-          visibility: hidden;
-        }
-        .chapter-title {
-          font-family: Infidel;
-          margin-top: 40px;
-          font-size: 60px;
-          color: white;
-          text-align: center;
-          visibility: hidden;
-          line-height: 60px;
-        }
+
+
       }
+      #SESSION_ZOOM {
+        margin: 0;
+        height: 100vh;
+        width: 100vw;
 
+        #blackout-layer {
+          display: block;
+          position: fixed;
+          height: 1000%;
+          width: 1000%;
+          background: black;
+          pointer-events: none;
+          z-index: 1000000;
+        }
 
-    }
-    .safety-buttons {
+        #reading-section {
+          display: block;
+          position: fixed;
+          height: 100vh;
+          width: 100vw;
+          pointer-events: none;
+          perspective: 800px;
+          transform-style: preserve-3d;
+          perspective-origin: center center;
+          transform: translate(-50%, -50%);
+          top: 50%;
+          left: 50%;
 
-    }
-    .alert-container {
+          .canvas-layer {
+            display: block;
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            pointer-events: none;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%) translate3d(-3vw, -120vh, -1500px) rotateY(-3deg) rotateX(45deg) rotateZ(23deg);
 
-    }
-    .tooltip-container {
+            * { // For all child elements of canvas layers:
+              position: absolute;
+              pointer-events: none;
+              transform-style: preserve-3d;
+            }
 
-    }
-  }
+            &#under-layer {
+              height: 500%;
+              width: 500%;
+              background: radial-gradient(circle at 25% 0%, transparent, rgba(0, 0, 0, 0.9) 50%);
+              // opacity: 0.1;
+            }
 
-  &.session-closed {
-    #EUNOS_OVERLAY {
-      .transition-to-top,
-      .safety-buttons,
-      .alert-container,
+            &#background-layer {
+              height: 500%;
+              width: 500%;
+              background: black url('modules/eunos-kult-hacks/assets/intro/intro-map-splash.webp');
+              // background-size: contain;
+              background-position: center;
+              background-repeat: no-repeat;
+              // background-attachment: fixed;
+            }
+          }
+        }
+
+      }
+      .safety-buttons {
+
+      }
+      .alert-container {
+
+      }
       .tooltip-container {
-        display: none;
+
+      }
+    }
+
+    &.session-closed {
+      #EUNOS_OVERLAY {
+        .top-zindex-mask,
+        .safety-buttons {
+          display: none;
+        }
+      }
+    }
+
+    &.session-starting,
+    &.session-ending {
+      #EUNOS_OVERLAY {
+        .safety-buttons {
+          display: none;
+        }
+      }
+    }
+
+    &.session-running {
+      #EUNOS_OVERLAY {
+        .mid-zindex-mask,
+        .top-zindex-mask {
+          display: none;
+        }
       }
     }
   }
+}
 
-  &.session-starting,
-  &.session-ending {
-    #EUNOS_OVERLAY {
-      .safety-buttons,
-      .alert-container,
-      .tooltip-container {
-        display: none;
-      }
-    }
+@keyframes glow {
+  from {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
   }
-
-  &.session-running {
-    #EUNOS_OVERLAY {
-      .full-screen-mask,
-      .transition-to-top {
-        display: none;
-      }
-    }
+  to {
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
   }
 }

@@ -1,0 +1,7 @@
+2025/02/02-18:49:05.935 11b6c Recovering log #24
+2025/02/02-18:49:06.005 11b6c Delete type=0 #24
+2025/02/02-18:49:06.006 11b6c Delete type=3 #22
+2025/02/02-19:51:45.843 11a78 Level-0 table #29: started
+2025/02/02-19:51:45.843 11a78 Level-0 table #29: 0 bytes OK
+2025/02/02-19:51:45.874 11a78 Delete type=0 #27
+2025/02/02-19:51:45.900 11a78 Manual compaction at level-0 from '!folders!3UXlPGHxvzM5aavO' @ 72057594037927935 : 1 .. '!items!zzSPJb1p3n9UMhWq' @ 0 : 0; will stop at (end)

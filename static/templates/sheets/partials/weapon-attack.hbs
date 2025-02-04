@@ -1,0 +1,22 @@
+<div class="attack-row">
+  <div class="flex-row">
+    <input class="name-input {{#unless isGM}}uneditable{{/unless}}" name="system.attacks.{{i}}.name" type="text" value="{{attack.name}}" placeholder="Name" {{#unless isGM}}disabled{{/unless}} />
+    <label>Harm:</label>
+    <input class="harm-input {{#unless isGM}}uneditable{{/unless}}" name="system.attacks.{{i}}.harm" type="number" value="{{attack.harm}}" placeholder="Harm" {{#unless isGM}}disabled{{/unless}} />
+    {{#if (eq item.system.class "Firearm")}}
+    <label>Ammo:</label>
+    <input class="ammo-input {{#unless isGM}}uneditable{{/unless}}" name="system.attacks.{{i}}.ammoCost" type="number" value="{{attack.ammoCost}}" placeholder="Ammo Cost" {{#unless isGM}}disabled{{/unless}} />
+    {{/if}}
+  </div>
+  {{#if isGM}}
+  <div class="flex-row">
+    <input class="special-input {{#unless isGM}}uneditable{{/unless}}" name="system.attacks.{{i}}.special" type="text" value="{{attack.special}}" placeholder="Special" {{#unless isGM}}disabled{{/unless}} />
+  </div>
+  {{else}}
+    {{#if (ne attack.special "")}}
+  <div class="flex-row">
+    <input class="special-input {{#unless isGM}}uneditable{{/unless}}" name="system.attacks.{{i}}.special" type="text" value="{{attack.special}}" placeholder="Special" {{#unless isGM}}disabled{{/unless}} />
+  </div>
+    {{/if}}
+  {{/if}}
+</div>

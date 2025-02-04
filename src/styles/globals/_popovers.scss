@@ -1,7 +1,7 @@
   [popovertarget] {
     pointer-events: auto !important;
     anchor-name: var(--popover-anchor);
-    width: fit-content !important;
+    // width: fit-content !important;
   }
 
   [popover] {
@@ -12,9 +12,9 @@
     min-width: 200px !important;
     max-width: 500px !important;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    // display: flex;
+    // flex-direction: column;
+    // align-items: center;
     pointer-events: none !important;
 
     font-family: var(--font-primary);
@@ -24,7 +24,7 @@
     text-align: center;
     color: white;
     background: black;
-    text-wrap: balance;
+    // text-wrap: balance;
     hyphens: none !important;
     outline: 1px solid white;
     box-shadow:
@@ -35,6 +35,7 @@
     // padding: 10px;
     padding: 5px;
     margin: 0;
+    margin-bottom: 10px;
     border-radius: 10px;
 
     * {
@@ -53,6 +54,78 @@
       * {
         justify-content: flex-start !important;
       }
+    }
+
+    .trigger-words, .key-word {
+      font-weight: normal;
+      color: white !important;
+
+      &.key-word {
+        font-weight: 1000 !important;
+      }
+    }
+
+    &.weapon-tooltip {
+      display: block !important;
+      overflow: hidden !important;
+      // align-items: flex-start !important;
+      h1 {
+        font-family: var(--font-primary) !important;
+        font-size: 22px !important;
+        text-transform: none !important;
+        border: none !important;
+        text-align: center !important;
+        margin-bottom: 10px !important;
+        width: min-content !important;
+        white-space: nowrap !important;
+      }
+
+      h2, h2 em {
+        border: none !important;
+        font-family: var(--font-primary-smallcaps) !important;
+        text-transform: lowercase !important;
+        // font-style: italic !important;
+        width: min-content !important;
+        text-align: center !important;
+        font-size: 18px !important;
+        color: var(--K4-bGREY) !important;
+        white-space: nowrap !important;
+        margin: 0 auto !important;
+      }
+
+      * {
+        // margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .flex-row {
+        // outline: 1px dotted yellow;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+        align-content: flex-start !important;
+        justify-items: flex-start !important;
+        width: min-content !important;
+        text-align: left !important;
+        height: 60px !important;
+        line-height: 10px !important;
+        gap: 0 !important;
+        flex-wrap: nowrap !important;
+        overflow: hidden !important;
+        margin-top: -10px !important;
+        margin-bottom: -10px !important;
+
+        label {
+          font-weight: 1000 !important;
+          text-transform: lowercase !important;
+          font-family: var(--font-primary-smallcaps) !important;
+          margin-right: 10px !important;
+        }
+        > span {
+          // outline: 1px dotted red;
+        }
+      }
+
     }
 
 
@@ -87,12 +160,14 @@
     scale: 1;
   }
 
+
+
   /* Needs to be after the previous [popover]:popover-open rule
   to take effect, as the specificity is the same */
   @starting-style {
     [popover]:popover-open {
       opacity: 0;
-      scale: 1.25;
+      scale: 0.75;
     }
   }
 

@@ -12,6 +12,15 @@
       .item-list {
         .move-card {
           position: relative;
+          // overflow: hidden;
+
+          &:hover {
+            .item-controls {
+              transform: translateY(0);
+              height: 24px;
+              opacity: 1;
+            }
+          }
 
           &.has-tokens {
             height: 40px;
@@ -28,21 +37,201 @@
             flex-wrap: nowrap;
             justify-content: stretch;
             align-items: flex-start;
+            width: fit-content;
+          }
 
-            .item-controls {
+          .item-controls {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 3px;
+            height: 0px;
+            overflow: hidden;
+            padding: 0 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-top-left-radius: 8px;
+            width: fit-content;
+            // transform: translateY(100%);
+            filter: brightness(1.5);
+            opacity: 1;
+            transition: height 0.2s ease-out;
+
+            .item-control {
+              color: var(--color-text-light-highlight);
+              cursor: pointer;
+
+              &:hover {
+                color: var(--color-text-highlight);
+              }
+            }
+
+            .item-delete {
+              opacity: 1;
+            }
+          }
+
+          &.weapon-card,
+          &.gear-card {
+            left: 15px;
+            .is-equipped-container {
+              .item-toggle-equipped {
+                color: var(--color-text-light-highlight);
+                cursor: pointer;
+
+                &:hover {
+                  color: var(--color-text-highlight);
+                }
+
+                i {
+                  font-size: 1.2em;
+                }
+              }
+            }
+            .is-equipped-container {
               position: absolute;
-              top: 0;
-              right: 0;
-              display: flex;
-              justify-content: flex-end;
-              align-items: center;
-              flex-wrap: nowrap;
-              gap: 3px;
-              height: 16px;
-              padding-right: 5px;
+              left: -21px;
+              top: 5px;
+              text-shadow:
+                0 0 1px black,
+                0 0 1px black,
+                0 0 1px black,
+                0 0 1px black,
+                0 0 1px black,
+                0 0 1px black,
+                0 0 1px black;
+            }
 
-              .item-delete {
-                display: none;
+            .far.fa-hand {
+              text-shadow: none;
+            }
+          }
+        }
+
+        .ammo-display {
+          position: absolute;
+          right: 10px;
+          width: min-content;
+          transform: translateY(-50%);
+          top: 50%;
+          display: inline-flex;
+          gap: 2px;
+
+          .ammo-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid var(--K4-bbGOLD);
+
+            &.empty {
+              background: transparent;
+            }
+
+            &.filled {
+              background: var(--K4-bbGOLD);
+            }
+          }
+        }
+
+        .gear-card .ammo-display {
+          .ammo-dot {
+            width: 4px;
+            border-radius: 0;
+          }
+        }
+
+        .weapon-card + .weapon-attack-block {
+          margin-top: -5px;
+        }
+        .weapon-attack-block {
+          // border-radius: 10px;
+          // border: 2px outset var(--K4-bRED);
+          margin-left: 20px;
+          padding: 0 5px;
+          width: calc(100%);
+          // margin-bottom: 3px;
+          border-bottom: 1px solid var(--K4-RED);
+
+          &:hover {
+            background: color-mix(in srgb, var(--K4-ddRED) 25%, transparent);
+          }
+
+          .attack-top-row {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            width: 100%;
+            .attack-name {
+              font-size: 12px;
+              line-height: 16px;
+              font-family: var(--font-primary);
+              font-weight: 1000;
+              color: var(--K4-RED);
+              white-space: nowrap;
+              width: min-content;
+            }
+            .attack-harm {
+              width: 20px;
+              font-size: 16px;
+              line-height: 16px;
+              font-family: var(--font-primary);
+              font-weight: 1000;
+              color: var(--K4-BLUE);
+              margin-right: 5px;
+              &::before {
+                content: "[";
+                color: black;
+                font-size: 12px;
+                vertical-align: middle;
+              }
+              &::after {
+                content: "]";
+                color: black;
+                font-size: 12px;
+                vertical-align: middle;
+              }
+            }
+            .ammo-display {
+              position: absolute;
+              font-size: 16px;
+              font-family: var(--font-primary);
+              font-weight: 1000;
+              right: 10px;
+              // transform: none;
+              // line-height: 16px;
+              // place-self: flex-end;
+
+              .ammo-dot {
+              border: 1px solid black;
+              &.empty {
+                background: transparent;
+              }
+
+              &.filled {
+                background: black;
+              }
+            }
+            }
+          }
+
+          .attack-bottom-row {
+            .attack-special {
+              font-size: 12px;
+              text-indent: 25px;
+              margin-top: -2px;
+              color: var(--K4-RED);
+
+              .down-arrow {
+                position: relative;
+                top: -3px;
+                font-weight: 1000;
+                font-size: 10px;
               }
             }
           }
@@ -143,15 +332,15 @@
               border-right: none;
               .section-label {
                 font-weight: 1000;
-                font-size: 18px;
-                line-height: 18px;
+                font-size: 12px;
+                line-height: 5px;
                 margin-bottom: -2px;
                 // vertical-align: baseline;
               }
 
               .drive-entry {
-                font-size: 18px;
-                line-height: 18px;
+                font-size: 12px;
+                line-height: 5px;
                 // vertical-align: baseline;
               }
             }
@@ -399,5 +588,26 @@ body.gm-user {
     .move-card
     .item-control {
     display: block !important;
+  }
+}
+
+.armor-value {
+  position: relative;
+  margin-right: 5px;
+
+  i {
+    color: var(--K4-bbGOLD);
+    font-size: 16px;
+  }
+
+  .value {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: var(--K4-bbGOLD);
+    line-height: 1;
   }
 }

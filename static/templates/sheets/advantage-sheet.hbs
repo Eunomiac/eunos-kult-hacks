@@ -14,12 +14,12 @@
     {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-effect.hbs" }}
     {{/if}}
 
-    {{#if hasOptions}}
-    {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-options.hbs" }}
-    {{/if}}
-
     {{#if hasRollResults}}
     {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-roll-results.hbs" }}
+    {{/if}}
+
+    {{#if hasOptions}}
+    {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-options.hbs" }}
     {{/if}}
 
     {{#if hasSpecialFlag}}

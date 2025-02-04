@@ -340,26 +340,70 @@ export const Colors = {
 // #region LOADING SCREENS ~
 export const LOADING_SCREEN_DATA = {
   "Azghoul": {
+    prefix: "the",
     title: "Azghouls",
-    subtitle: "Our Former Slaves",
+    subtitle: "Our Forgotten Thralls",
     home: "Metropolis",
     body: "The azghouls were once exquisite beings with a proud civilization, until we conquered their world and grafted exoskeletal parasites to their bodies to compel their servitude. They haunt the barren streets of Metropolis to this day, but we have forgotten how to make them obey.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/azghoul.webp",
   },
   "Gynachid": {
+    prefix: "the",
     title: "Gynachids",
-    subtitle: "Our Former Slaves",
+    subtitle: "Mothers No More",
     home: "Metropolis",
     body: "Solitary carnivores, gynachids hunt in Metropolis and other worlds beyond the Illusion. Once enslaved to our rule, we took their ability to create offspring as a means of control. In the eons since, they have adapted, and now implant their fetuses in human hosts to grow.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/gynachid.webp",
   },
   "Tekron": {
+    prefix: "",
     title: "Tekrons",
     subtitle: "Caretakers of the Machine City",
     home: "Metropolis",
     body: "Tekrons are creatures of meat, bone, and plastic, cybernetic life forms originating from the Eternal City where they tend the ancient machinery there. Possessed of little intelligence, they do not understand that Metropolis and its old order have crumbled, and they continue maintaining the aging systems as they have always done.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/tekron.webp",
   },
+  "Yōko Sakai": {
+    prefix: "",
+    title: "Yōko Sakai",
+    subtitle: "Dream Princess of the Crimson Delirium",
+    home: "Limbo",
+    body: "Once a geisha, now a Dream Princess of Limbo, Yōko Sakai rules a realm of opium haze and whispered desires. Here, courtesans offer tea alongside syringes of heroin and the crystallized blood of angels. Those who fail to bow before her beauty are woven into the rice-paper walls of her palace, forever part of her domain. Yet, those who earn her favor may receive whispered secrets of Limbo or passage through the shifting dreamways.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/dream-princess.webp",
+  },
+  "Lictor": {
+    prefix: "the",
+    title: "Lictors",
+    subtitle: "Our Jailers",
+    home: "Elysium",
+    body: "The Lictors are the veiled wardens of our prison, shaping laws, faith, and industry to keep us blind. They are the unyielding judges, the priests who mold sin into chains, the executives who barter away futures, the police chiefs who dictate law with iron resolve. They rarely kill—unless we try to escape. Beneath the Illusion they are bloated, translucent monsters over eight feet tall, with prehensile, barbed tongues a meter long.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/lictor.webp",
+  },
+  "Nepharite": {
+    prefix: "",
+    title: "Nepharites",
+    subtitle: "Priests of Pain",
+    home: "Inferno",
+    body: "Nepharites are Inferno's high priests of suffering, torturers and prophets who flay souls to nourish the Death Angels. They weave pacts, shape agony into worship, and slip into Elysium through cracks in the Illusion, draped in robes of flayed flesh and adorned with gleaming knives. Where they walk, the air is thick with the scent of blood and incense.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/nepharite.webp",
+  },
+  "Purgatide": {
+    prefix: "",
+    title: "Purgatides",
+    subtitle: "The Mutilated Damned",
+    home: "Inferno",
+    body: "Purgatides are the discarded remnants of Inferno's endless tortures, little more than torn flesh held together by rusted clamps and thread. Their butchered bodies leak blood and pus, concealed beneath tattered coats. Mindless and fanatical, they shuffle through Elysium as hollow servants of razides and nepharites, their fevered eyes betraying the agony they no longer recognize as their own.",
+    // short_body: "Purgatides are husks of suffering, bodies shredded by Inferno's tortures and crudely stitched back together. Their minds are broken, their purpose singular: serve, suffer, and obey.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/purgatide.webp",
+  },
+  "Razide": {
+    prefix: "",
+    title: "Razides",
+    subtitle: "Horrors of Flesh and Steel",
+    home: "Inferno",
+    body: "Razides are forged from the tortured remnants of souls torn from Inferno's purgatories, their flesh fused with tubes, razors and grinding gears, their minds enslaved by a writhing parasitic worm harvested from the Underworld. Hulking brutes of Inferno, they serve the Death Angels as warriors and enforcers, spreading terror and bloodshed in Elysium's shadows.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/razide.webp",
+  }
 };
 // #endregion
 
@@ -552,3 +596,36 @@ export function getNextChapter(current: number | string): string {
 
   return getChapterString(currentNum + 1);
 }
+// #endregion
+
+// #region WEAPON CLASSES ~
+export const WEAPON_CLASSES = [
+  { value: "Melee Weapon", label: "Melee Weapon" },
+  { value: "Thrown Weapon", label: "Thrown Weapon" },
+  { value: "Firearm", label: "Firearm" }
+] as const;
+
+export const WEAPON_SUBCLASSES = {
+  "Melee Weapon": [
+    { value: "Unarmed", label: "Unarmed" },
+    { value: "Edged Weapon", label: "Edged Weapon" },
+    { value: "Crushing Weapon", label: "Crushing Weapon" },
+    { value: "Chopping Weapon", label: "Chopping Weapon" },
+    { value: "Other", label: "Other" }
+  ],
+  "Thrown Weapon": [
+    { value: "Explosive", label: "Explosive" },
+    { value: "Other", label: "Other" }
+  ],
+  "Firearm": [
+    { value: "Handgun", label: "Handgun" },
+    { value: "Magnum Handgun", label: "Magnum Handgun" },
+    { value: "Submachine Gun", label: "Submachine Gun" },
+    { value: "Assault Rifle", label: "Assault Rifle" },
+    { value: "Machine Gun", label: "Machine Gun" },
+    { value: "Rifle", label: "Rifle" },
+    { value: "Combat Shotgun", label: "Combat Shotgun" },
+    { value: "Other", label: "Other" }
+  ]
+} as const;
+// #endregion

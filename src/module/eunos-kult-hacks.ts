@@ -29,7 +29,7 @@ import { registerHandlebarHelpers } from "./scripts/helpers.ts";
 import InitializePopovers from "./scripts/popovers.ts";
 import registerConsoleLogger from "./scripts/logger.ts";
 import registerSettings from "./scripts/settings.ts";
-
+import { initializeGSAP } from "./scripts/animations.ts";
 // @ts-expect-error - TS doesn't support importing SCSS files.
 import "../styles/styles.scss";
 // import k4ltitemsheet from "systems/k4lt/modules/sheets/k4ltitemsheet.js";
@@ -50,11 +50,13 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/occupation-sheet.hbs",
   "modules/eunos-kult-hacks/templates/sheets/relationship-sheet.hbs",
   "modules/eunos-kult-hacks/templates/sheets/weapon-sheet.hbs",
-  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/full-screen-mask.hbs",
-  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/transition-to-top.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/mid-zindex-mask.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/top-zindex-mask.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/session-zoom.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/safety-buttons.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/alerts.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/tooltips.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-header.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-topper.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-trigger.hbs",
@@ -62,6 +64,7 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/partials/item-options.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-roll-results.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-special-flag.hbs",
+  "modules/eunos-kult-hacks/templates/sheets/partials/weapon-attack.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/occupation-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/relationship-card.hbs",
@@ -178,7 +181,7 @@ Hooks.on("init", () => {
   registerConsoleLogger();
   kLog.display("Initializing 'Kult: Divinity Lost 4th Edition' for Foundry VTT", 0);
 
-
+  initializeGSAP();
 
   registerSettings();
 

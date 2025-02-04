@@ -1,8 +1,46 @@
 @forward "pc-sheet.scss";
 @forward "item-sheet.scss";
 
-.kult-sheet {
-  background: none !important;
+.app.sheet {
+  --lock-color: var(--K4-bRED);
+
+  &.locked {
+    --lock-color: var(--K4-GREY);
+
+    .item-delete {display: none !important;}
+  }
+
+  input[type="number"] {
+    width: 50px;
+    text-align: center;
+  }
+
+  .kult-sheet {
+    background: none !important;
+
+    .sheet-header {
+      .lock-sheet-button {
+        position: absolute;
+        left: 0px;
+        top: 30px;
+        color: var(--lock-color);
+        height: 32px;
+        width: 32px;
+        border: none;
+        background: none;
+        box-shadow: none !important;
+
+        i {
+          font-size: 24px;
+        }
+
+        &:hover {
+          color: var(--K4-RED);
+          filter: brightness(1.5);
+        }
+      }
+    }
+  }
 }
 
 .move-name {
@@ -13,6 +51,25 @@
   text-shadow: none;
     // 1px 1px 1px var(--K4-bbBLUE),
     // -1px -1px 1px var(--K4-bbBLUE);
+}
+
+input.uneditable,
+select.uneditable,
+textarea.uneditable,
+.uneditable .editor {
+  background: transparent;
+  border: none;
+}
+select.uneditable {
+  color: black;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  // Remove IE11 arrow
+  &::-ms-expand {
+    display: none;
+  }
 }
 
 .editor-row {
