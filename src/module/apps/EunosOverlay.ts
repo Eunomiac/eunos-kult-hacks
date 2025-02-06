@@ -5,6 +5,12 @@ import { LOADING_SCREEN_DATA } from "../scripts/constants";
 import type { EmptyObject } from "fvtt-types/utils";
 import { GamePhase } from "../scripts/enums";
 import { type GSAPEffect, OverlayItemSide } from "../scripts/animations";
+import * as EunosSocket from "../scripts/sockets";
+
+// #region Type Definitions
+interface AudioResource {
+  stop: () => Promise<void>;
+}
 
 enum EunosOverlayState {
   BlockCanvas = "BlockCanvas",
@@ -12,8 +18,7 @@ enum EunosOverlayState {
   GameActive = "GameActive",
 }
 
-/**
- * Represents a cached loading screen item with its DOM element and loading state
+/** Represents a cached loading screen item with its DOM element and loading state
  */
 interface LoadingScreenCache {
   /** The DOM element containing the rendered template */
@@ -24,36 +29,52 @@ interface LoadingScreenCache {
   loading: Promise<void> | null;
 }
 
+/** Options for phase change operations
+ */
+interface PhaseChangeOptions {
+  /** Optional data needed for the new phase (e.g. chapter info for SessionStarting) */
+  data?: Record<string, unknown>;
+  /** Whether to skip cleanup of previous phase */
+  skipCleanup?: boolean;
+  /** Whether to skip initialization of new phase */
+  skipInit?: boolean;
+}
+
+/** Tracks active resources for cleanup
+ */
+interface ResourceTracker {
+  /** Active GSAP timelines */
+  timelines: Set<gsap.core.Timeline>;
+  /** Active video elements */
+  videos: Set<HTMLVideoElement>;
+  /** Active audio elements/playlists */
+  audio: Set<AudioResource>;
+  /** Loading screen cache */
+  loadingScreenCache: Map<string, LoadingScreenCache>;
+  /** Preloaded assets */
+  preloadedAssets: Set<string>;
+}
+// #endregion Type Definitions
+
 export default class EunosOverlay extends HandlebarsApplicationMixin(
   ApplicationV2,
 ) {
-  // #region SINGLE INSTANCE FACTORY ~
-  /**
-   * Private static field to store the singleton instance
-   */
+  // #region SINGLETON PATTERN ~
   private static _instance: EunosOverlay | null = null;
 
-  /**
-   * Private constructor to prevent direct instantiation
-   */
   private constructor() {
     super();
   }
 
-  /**
-   * Static getter to access the singleton instance
-   * Creates instance if it doesn't exist
-   * @returns EunosOverlay The singleton instance
-   */
   public static get instance(): EunosOverlay {
     if (!EunosOverlay._instance) {
       EunosOverlay._instance = new EunosOverlay();
     }
     return EunosOverlay._instance;
   }
-  // #endregion
+  // #endregion SINGLETON PATTERN
 
-  // #region CONFIGURATION ~
+  // #region STATIC CONFIGURATION ~
   static override DEFAULT_OPTIONS = {
     id: "EUNOS_OVERLAY",
     classes: ["eunos-overlay"],
@@ -108,9 +129,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/tooltips.hbs",
     },
   };
-  // #endregion
+  // #endregion STATIC CONFIGURATION
 
-  // #region INITIALIZATION ~
+  // #region STATIC METHODS ~
   static async Initialize() {
     await this.instance.render({ force: true });
     addClassToDOM("interface-ready");
@@ -153,9 +174,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
     }
   }
-  // #endregion
 
-  // #region FEATURE: SAFETY BUTTONS ~
   static CallFadeToBlack(this: EunosOverlay, ...args: unknown[]) {
     kultLogger("Fade to black called", args);
   }
@@ -163,8 +182,123 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   static CallStopScene(this: EunosOverlay, ...args: unknown[]) {
     kultLogger("Stop scene called", args);
   }
-  // #endregion
 
+  static async animateSessionTitle(
+    chapter: string,
+    title: string,
+  ): Promise<void> {
+    const instance = EunosOverlay.instance;
+    $("body").removeClass("session-closed");
+    $("body").addClass("session-starting");
+    const chapterElem$ = instance.topZIndexMask$.find(".chapter-number");
+    const horizRule$ = instance.topZIndexMask$.find(".horiz-rule");
+    const titleElem$ = instance.topZIndexMask$.find(".chapter-title");
+
+    chapterElem$.text(`Chapter ${chapter}`);
+    titleElem$.text(title);
+
+    return new Promise((resolve) => {
+      const tl = gsap.timeline({
+        onComplete: resolve,
+      });
+
+      tl.fromTo(
+        chapterElem$,
+        {
+          scale: 0.9,
+          autoAlpha: 0,
+          // y: "-=20"
+        },
+        {
+          scale: 1,
+          autoAlpha: 1,
+          // y: 0,
+          duration: 5,
+          ease: "none",
+        },
+      )
+        .fromTo(
+          horizRule$,
+          {
+            scaleX: 0,
+            autoAlpha: 0,
+          },
+          {
+            scaleX: 1,
+            autoAlpha: 1,
+            duration: 1,
+            ease: "none",
+          },
+          0.2,
+        )
+        .fromTo(
+          titleElem$,
+          {
+            scale: 0.9,
+            autoAlpha: 0,
+            // y: "+=20"
+          },
+          {
+            scale: 1,
+            autoAlpha: 1,
+            // y: 0,
+            duration: 5,
+            ease: "none",
+          },
+          0.4,
+        );
+    });
+  }
+
+  static async animateSessionZoom(): Promise<void> {
+    await gsap.timeline()
+      .to([
+        ".top-zindex-mask",
+        ".mid-zindex-mask"
+      ], {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.out"
+      }, 0)
+      .fromTo("#reading-section", {
+        rotationZ: 65,
+        rotationY: -45,
+      }, {
+        rotationZ: 0,
+        rotationY: 0,
+        duration: 7,
+        ease: "back"
+      }, 0)
+      .fromTo("#reading-section", {
+        scale: 1
+      }, {
+        scale: 2,
+        duration: 16,
+        ease: "back.out(2)"
+      }, 0)
+      .fromTo("#reading-section", {
+        perspective: 800
+      }, {
+        perspective: 300,
+        duration: 46,
+        ease: "back.out(2)"
+      }, 0)
+      .to("#blackout-layer", {
+        opacity: 0,
+        duration: 0.5,
+        rotationX: 45,
+        ease: "sine",
+        onComplete() { $("#blackout-layer").remove() }
+      }, 0)
+      .to(".canvas-layer", {
+        rotationX: 45,
+        duration: 10,
+        ease: "elastic.out(1, 0.75)" // "sine"
+      }, 0);
+  }
+  // #endregion STATIC METHODS
+
+  // #region INSTANCE PROPERTIES ~
   #overlayState: EunosOverlayState = EunosOverlayState.BlockCanvas;
   get overlayState() {
     return this.#overlayState;
@@ -173,7 +307,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.#overlayState = state;
   }
 
-  // #region Element Getters ~
+  /** Cache of all loading screen items, keyed by their data key */
+  private loadingScreenCache: Map<string, LoadingScreenCache> = new Map();
+  /** Number of items to preload before starting the rotation */
+  private preloadBatch = 5;
+  /** Key of the next item to be displayed */
+  private nextItemKey: string | null = null;
+  /** Key of the current item to be displayed */
+  private currentItemKey: string | null = null;
+  /** Current deck of item keys to display */
+  private itemDeck: string[] = [];
+  /** Timer reference for the countdown display */
+  private countdownTimer: number | null = null;
+  /** Timer reference for the loading screen content rotation */
+  private loadScreenTimer: number | null = null;
+  /** Tracks which direction to animate the next item from */
+  private animateFromRight = false;
+  /** Audio element for ambient background sound */
+  private ambientAudio: HTMLAudioElement | null = null;
+  /** Tracks active resources for cleanup */
+  private resourceTracker: ResourceTracker = {
+    timelines: new Set(),
+    videos: new Set(),
+    audio: new Set(),
+    loadingScreenCache: new Map(),
+    preloadedAssets: new Set()
+  };
+  // #endregion INSTANCE PROPERTIES
+
+  // #region DOM ELEMENT GETTERS ~
   #midZIndexMask: Maybe<HTMLElement>;
   #sidebarMask: Maybe<HTMLElement>;
   #sidebarBars: Maybe<HTMLElement>;
@@ -291,63 +453,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     return $(this.#tooltips);
   }
-  // #endregion
+  // #endregion DOM ELEMENT GETTERS
 
-  steps: Record<GamePhase, Array<() => Promise<void>>> = {
-    [GamePhase.SessionStarting]: [
-      /* PLAY INTRO VIDEO */
-      // - have gsap time player introductions and chapter name to video playing
-      // - load assets for session beneath playing video
-      /* SWOOP INTO GAME CANVAS */
-      // - with sidebar and all app windows temporarily hidden for non-GM characters
-      // - swoop along map of widow's wending
-    ],
-    [GamePhase.SessionRunning]: [
-
-    ],
-    [GamePhase.SessionEnding]: [
-
-    ],
-    [GamePhase.SessionClosed]: [
-
-
-      // When timer reaches the duration of the song selected by GM in settings, fade out timer, begin song.
-      // Start monitoring player connection status and trigger preloading of assets for introduction when they do.
-    ]
-  }
-
-  /** Cache of all loading screen items, keyed by their data key */
-  private loadingScreenCache: Map<string, LoadingScreenCache> = new Map();
-
-  /** Number of items to preload before starting the rotation */
-  private preloadBatch = 5;
-
-  /** Key of the next item to be displayed, used to ensure smooth transitions */
-  private nextItemKey: string | null = null;
-
-  /** Key of the current item to be displayed, used to ensure smooth transitions */
-  private currentItemKey: string | null = null;
-
-  /** Current deck of item keys to display, shuffled and consumed in order */
-  private itemDeck: string[] = [];
-
-  /** Timer reference for the countdown display */
-  private countdownTimer: number | null = null;
-
-  /** Timer reference for the loading screen content rotation */
-  private loadScreenTimer: number | null = null;
-
-  /** Tracks which direction to animate the next item from */
-  private animateFromRight = false;
-
-  /** Audio element for ambient background sound */
-  private ambientAudio: HTMLAudioElement | null = null;
-
-  /**
-   * Preloads a loading screen item by rendering its template and waiting for images
-   * @param key - Key identifying this item in LOADING_SCREEN_DATA
-   * @param data - Data to render the template with
-   */
+  // #region RESOURCE MANAGEMENT ~
   private async preloadItem(
     key: string,
     data: typeof LOADING_SCREEN_DATA[keyof typeof LOADING_SCREEN_DATA]
@@ -411,10 +519,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await cache.loading;
   }
 
-  /**
-   * Initializes and plays the ambient background audio
-   * @returns Promise that resolves when audio is ready to play
-   */
   private async initializeAmbientAudio(): Promise<void> {
     // Cleanup any existing audio
     if (this.ambientAudio) {
@@ -434,11 +538,248 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
   }
 
-  /**
-   * Initializes the loading screen display
-   * Sets up the countdown timer and loading screen item rotation
-   * Preloads initial batch of items before starting rotation
-   */
+  private async backgroundPreload(entries: Array<[string, typeof LOADING_SCREEN_DATA[keyof typeof LOADING_SCREEN_DATA]]>): Promise<void> {
+    for (const [key, data] of entries) {
+      await this.preloadItem(key, data);
+      // Small delay between loads to prevent network saturation
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+
+  private getNextFromDeck(): string {
+    console.log(`Current deck size: ${this.itemDeck.length}`);
+
+    // Check if we need to reshuffle
+    if (this.itemDeck.length === 0) {
+      console.log("Deck empty, reshuffling");
+      this.shuffleDeck();
+
+      // If the first card matches the last shown card, move it to the end
+      if (this.currentItemKey === this.itemDeck[0]) {
+        console.log("First card matches last shown, rotating deck");
+        const firstCard = this.itemDeck.shift();
+        if (firstCard) {
+          this.itemDeck.push(firstCard);
+        }
+      }
+    }
+
+    const nextKey = this.itemDeck.shift()!;
+    console.log(`Drew key from deck: ${nextKey}`);
+    console.log(`Current deck size: ${this.itemDeck.length}`);
+    return nextKey;
+  }
+
+  private async prepareItem(key: string): Promise<void> {
+    console.log(`== Preparing Item: ${key}`);
+
+    // Ensure the next item is fully loaded before setting it as next
+    const nextCache = this.loadingScreenCache.get(key);
+    if (nextCache?.loading) {
+      console.log("Waiting for next item to load");
+      await nextCache.loading;
+    }
+  }
+
+  private async renderLoadScreenItem(nextKey: string): Promise<void> {
+    console.log(`Starting render of item: ${nextKey}`);
+
+    const nextItem = this.loadingScreenCache.get(nextKey)?.element;
+    if (!nextItem) {
+      console.error(`Item not found: ${nextKey}`);
+      throw new Error("Item not found");
+    }
+
+    const effect = gsap.effects["displayOverlayItem"] as Maybe<GSAPEffect>;
+    if (!effect) {
+      console.error("Effect displayOverlayItem not found");
+      throw new Error("Effect displayOverlayItem not found");
+    }
+
+    console.log(`Animating from ${this.animateFromRight ? 'right' : 'left'}`);
+    const tl = effect(nextItem, {
+      side: this.animateFromRight ? OverlayItemSide.Right : OverlayItemSide.Left
+    });
+
+    await tl;
+    console.log(`Finished rendering item: ${nextKey}`);
+  }
+
+  private cleanup(): void {
+    if (this.ambientAudio) {
+      this.ambientAudio.pause();
+      this.ambientAudio = null;
+    }
+
+    if (this.countdownTimer) {
+      window.clearInterval(this.countdownTimer);
+      this.countdownTimer = null;
+    }
+
+    if (this.loadScreenTimer) {
+      window.clearInterval(this.loadScreenTimer);
+      this.loadScreenTimer = null;
+    }
+  }
+
+  private shuffleDeck(): string {
+    // Get all keys of fully loaded items
+    const loadedKeys = Array.from(this.loadingScreenCache.entries())
+      .filter(([, cache]) => cache.loaded)
+      .map(([key]) => key);
+
+    // Create new deck and shuffle it
+    this.itemDeck = [...loadedKeys];
+    for (let i = this.itemDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      if (!this.itemDeck[i] || !this.itemDeck[j]) {
+        throw new Error("Item deck is not properly initialized");
+      }
+      [this.itemDeck[i], this.itemDeck[j]] = [this.itemDeck[j], this.itemDeck[i]!];
+    }
+    if (!this.itemDeck[0]) {
+      throw new Error("Item deck is not properly initialized");
+    }
+    return this.itemDeck[0];
+  }
+
+  private createPhaseTimeline(phase: GamePhase): gsap.core.Timeline {
+    const timeline = gsap.timeline({
+      onComplete: () => {
+        this.resourceTracker.timelines.delete(timeline);
+      }
+    });
+    this.resourceTracker.timelines.add(timeline);
+    return timeline;
+  }
+
+  private trackResource<T extends keyof ResourceTracker>(
+    type: T,
+    resource: ResourceTracker[T] extends Set<infer U> ? U : never
+  ): void {
+    if (resource instanceof Set) {
+      (this.resourceTracker[type] as Set<unknown>).add(resource);
+    }
+  }
+
+  private async cleanupResources(type: keyof ResourceTracker): Promise<void> {
+    const resources = this.resourceTracker[type];
+    if (resources instanceof Set) {
+      for (const resource of resources) {
+        if (resource instanceof HTMLVideoElement) {
+          resource.pause();
+          resource.removeAttribute("src");
+          resource.load(); // Triggers garbage collection
+        } else if (
+          typeof resource === "object" &&
+          resource !== null &&
+          "stop" in resource &&
+          typeof (resource as AudioResource).stop === "function"
+        ) {
+          await (resource as AudioResource).stop();
+        } else if (resource instanceof gsap.core.Timeline) {
+          // GSAP timelines
+          resource.kill(); // This automatically cleans up all child tweens
+        }
+      }
+      resources.clear();
+    } else if (resources instanceof Map) {
+      resources.clear();
+    }
+  }
+  // #endregion RESOURCE MANAGEMENT
+
+  // #region PHASE MANAGEMENT ~
+  async changePhase(newPhase: GamePhase, options: PhaseChangeOptions = {}): Promise<void> {
+    const currentPhase = getSetting("gamePhase");
+    if (!currentPhase) {
+      throw new Error("Game phase setting not found");
+    }
+
+    // 1. Run cleanup for current phase if needed
+    if (!options.skipCleanup) {
+      await this.cleanupPhase(currentPhase);
+    }
+
+    // 2. Update phase in settings
+    await getSettings().set("eunos-kult-hacks", "gamePhase", newPhase);
+
+    // 3. Sync UI state across all clients
+    try {
+      await EunosSocket.call("syncOverlayState", "all", newPhase);
+    } catch (error) {
+      console.error("Failed to sync overlay state:", error);
+      throw new Error("Socket functionality not properly initialized");
+    }
+
+    // 4. Initialize new phase if needed
+    if (!options.skipInit) {
+      await this.initializePhase(newPhase, options.data);
+    }
+  }
+
+  private async cleanupPhaseResources(phase: GamePhase): Promise<void> {
+    switch (phase) {
+      case GamePhase.SessionClosed:
+        // Clean up loading screen animations and ambient audio
+        await this.cleanupResources("timelines");
+        await this.cleanupResources("audio");
+        await this.cleanupResources("loadingScreenCache");
+        break;
+      case GamePhase.SessionStarting:
+        // Clean up video elements and related animations
+        await this.cleanupResources("videos");
+        await this.cleanupResources("timelines");
+        break;
+      case GamePhase.SessionRunning:
+        // Clean up any remaining video/audio from intro
+        await this.cleanupResources("videos");
+        await this.cleanupResources("audio");
+        break;
+      case GamePhase.SessionEnding:
+        // Clean up stage animations
+        await this.cleanupResources("timelines");
+        break;
+    }
+  }
+
+  private async cleanupPhase(phase: GamePhase): Promise<void> {
+    await this.cleanupPhaseResources(phase);
+    switch (phase) {
+      case GamePhase.SessionClosed:
+        await this.cleanup_SessionClosed();
+        break;
+      case GamePhase.SessionStarting:
+        await this.cleanup_SessionStarting();
+        break;
+      case GamePhase.SessionRunning:
+        await this.cleanup_SessionRunning();
+        break;
+      case GamePhase.SessionEnding:
+        await this.cleanup_SessionEnding();
+        break;
+    }
+  }
+
+  private async initializePhase(phase: GamePhase, data?: Record<string, unknown>): Promise<void> {
+    switch (phase) {
+      case GamePhase.SessionClosed:
+        await this.initialize_SessionClosed();
+        break;
+      case GamePhase.SessionStarting:
+        await this.initialize_SessionStarting(data);
+        break;
+      case GamePhase.SessionRunning:
+        await this.initialize_SessionRunning();
+        break;
+      case GamePhase.SessionEnding:
+        await this.initialize_SessionEnding();
+        break;
+    }
+  }
+  // #endregion PHASE MANAGEMENT
+
+  // #region LOADING SCREEN ~
   private async initializeLoadingScreen(): Promise<void> {
     // Clear any existing timers
     if (this.countdownTimer) window.clearInterval(this.countdownTimer);
@@ -527,275 +868,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Start the rotation
     void rotateContent();
   }
+  // #endregion LOADING SCREEN
 
-  /**
-   * Preloads remaining items in the background
-   * Adds delay between loads to prevent network saturation
-   * @param entries - Array of remaining items to load
-   */
-  private async backgroundPreload(entries: Array<[string, typeof LOADING_SCREEN_DATA[keyof typeof LOADING_SCREEN_DATA]]>): Promise<void> {
-    for (const [key, data] of entries) {
-      await this.preloadItem(key, data);
-      // Small delay between loads to prevent network saturation
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-  }
-
-  /**
-   * Gets the next item key from the deck, reshuffling if necessary
-   * Ensures no repeats between deck reshuffles
-   * @returns Key of the next item to display
-   */
-  private getNextFromDeck(): string {
-    console.log(`Current deck size: ${this.itemDeck.length}`);
-
-    // Check if we need to reshuffle
-    if (this.itemDeck.length === 0) {
-      console.log("Deck empty, reshuffling");
-      this.shuffleDeck();
-
-      // If the first card matches the last shown card, move it to the end
-      if (this.currentItemKey === this.itemDeck[0]) {
-        console.log("First card matches last shown, rotating deck");
-        const firstCard = this.itemDeck.shift();
-        if (firstCard) {
-          this.itemDeck.push(firstCard);
-        }
-      }
-    }
-
-    const nextKey = this.itemDeck.shift()!;
-    console.log(`Drew key from deck: ${nextKey}`);
-    console.log(`Current deck size: ${this.itemDeck.length}`);
-    return nextKey;
-  }
-
-  /**
-   * Preloads and prepares the next item to be displayed
-   * @param key - Key of the current item
-   */
-  private async prepareItem(key: string): Promise<void> {
-    console.log(`== Preparing Item: ${key}`);
-
-    // Ensure the next item is fully loaded before setting it as next
-    const nextCache = this.loadingScreenCache.get(key);
-    if (nextCache?.loading) {
-      console.log("Waiting for next item to load");
-      await nextCache.loading;
-    }
-  }
-
-  /**
-   * Performs transition animation for a loading screen item
-   * @param nextKey - Key of item to display
-   */
-  private async renderLoadScreenItem(nextKey: string): Promise<void> {
-    console.log(`Starting render of item: ${nextKey}`);
-
-    const nextItem = this.loadingScreenCache.get(nextKey)?.element;
-    if (!nextItem) {
-      console.error(`Item not found: ${nextKey}`);
-      throw new Error("Item not found");
-    }
-
-    const effect = gsap.effects["displayOverlayItem"] as Maybe<GSAPEffect>;
-    if (!effect) {
-      console.error("Effect displayOverlayItem not found");
-      throw new Error("Effect displayOverlayItem not found");
-    }
-
-    console.log(`Animating from ${this.animateFromRight ? 'right' : 'left'}`);
-    const tl = effect(nextItem, {
-      side: this.animateFromRight ? OverlayItemSide.Right : OverlayItemSide.Left
-    });
-
-    await tl;
-    console.log(`Finished rendering item: ${nextKey}`);
-  }
-
-  /**
-   * Cleanup method to stop audio and clear timers
-   */
-  private cleanup(): void {
-    if (this.ambientAudio) {
-      this.ambientAudio.pause();
-      this.ambientAudio = null;
-    }
-
-    if (this.countdownTimer) {
-      window.clearInterval(this.countdownTimer);
-      this.countdownTimer = null;
-    }
-
-    if (this.loadScreenTimer) {
-      window.clearInterval(this.loadScreenTimer);
-      this.loadScreenTimer = null;
-    }
-  }
-
-  // Add cleanup to phase change methods
-  async changePhase_StartSession(
-    chapterNum?: string,
-    chapterTitle?: string,
-  ): Promise<void> {
-    this.cleanup();
-    // Only proceed if user is GM
-    if (!game.user?.isGM) return;
-
-    // Show dialog to get input unless provided
-    if (!chapterNum || !chapterTitle) {
-      const dialogResult = await Dialog.prompt({
-        title: "Session Title",
-        content: `
-          <div class="form-group">
-            <label>Chapter:</label>
-            <input class='chapter-number' type="text" name="chapter" placeholder="One, Two, Twenty-Three...">
-          </div>
-          <div class="form-group">
-            <label>Title:</label>
-            <input class='chapter-title' type="text" name="title">
-          </div>
-        `,
-        callback: (html: JQuery) => {
-          const chapter = html.find(".chapter-number").val() as string;
-          const title = html.find(".chapter-title").val() as string;
-          return { chapter, title };
-        },
-      });
-      chapterNum = dialogResult.chapter;
-      chapterTitle = dialogResult.title;
-    }
-
-    // Trigger hook for all clients
-    Hooks.callAll("revealChapterTitle", chapterNum, chapterTitle);
-  }
-
-  changePhase_EndSession(): void {
-    this.cleanup();
-    // Fully block screen, show dramatic hook and session scribe prompts
-  }
-
-  async changePhase_CloseSession(): Promise<void> {
-    // Return to canvas/sidebar blocking and "loading screen" tips
-  }
-
-  // Move animation logic to static method so it can be called from Hook
-  static async animateSessionTitle(
-    chapter: string,
-    title: string,
-  ): Promise<void> {
-    const instance = EunosOverlay.instance;
-    $("body").removeClass("session-closed");
-    $("body").addClass("session-starting");
-    const chapterElem$ = instance.topZIndexMask$.find(".chapter-number");
-    const horizRule$ = instance.topZIndexMask$.find(".horiz-rule");
-    const titleElem$ = instance.topZIndexMask$.find(".chapter-title");
-
-    chapterElem$.text(`Chapter ${chapter}`);
-    titleElem$.text(title);
-
-    return new Promise((resolve) => {
-      const tl = gsap.timeline({
-        onComplete: resolve,
-      });
-
-      tl.fromTo(
-        chapterElem$,
-        {
-          scale: 0.9,
-          autoAlpha: 0,
-          // y: "-=20"
-        },
-        {
-          scale: 1,
-          autoAlpha: 1,
-          // y: 0,
-          duration: 5,
-          ease: "none",
-        },
-      )
-        .fromTo(
-          horizRule$,
-          {
-            scaleX: 0,
-            autoAlpha: 0,
-          },
-          {
-            scaleX: 1,
-            autoAlpha: 1,
-            duration: 1,
-            ease: "none",
-          },
-          0.2,
-        )
-        .fromTo(
-          titleElem$,
-          {
-            scale: 0.9,
-            autoAlpha: 0,
-            // y: "+=20"
-          },
-          {
-            scale: 1,
-            autoAlpha: 1,
-            // y: 0,
-            duration: 5,
-            ease: "none",
-          },
-          0.4,
-        );
-    });
-  }
-
-  // Animate zoom and traversal of map of Emma's Rise
-  static async animateSessionZoom(): Promise<void> {
-    await gsap.timeline()
-      .to([
-        ".top-zindex-mask",
-        ".mid-zindex-mask"
-      ], {
-        opacity: 0,
-        duration: 0.5,
-        ease: "power2.out"
-      }, 0)
-      .fromTo("#reading-section", {
-        rotationZ: 65,
-        rotationY: -45,
-      }, {
-        rotationZ: 0,
-        rotationY: 0,
-        duration: 7,
-        ease: "back"
-      }, 0)
-      .fromTo("#reading-section", {
-        scale: 1
-      }, {
-        scale: 2,
-        duration: 16,
-        ease: "back.out(2)"
-      }, 0)
-      .fromTo("#reading-section", {
-        perspective: 800
-      }, {
-        perspective: 300,
-        duration: 46,
-        ease: "back.out(2)"
-      }, 0)
-      .to("#blackout-layer", {
-        opacity: 0,
-        duration: 0.5,
-        rotationX: 45,
-        ease: "sine",
-        onComplete() { $("#blackout-layer").remove() }
-      }, 0)
-      .to(".canvas-layer", {
-        rotationX: 45,
-        duration: 10,
-        ease: "elastic.out(1, 0.75)" // "sine"
-      }, 0);
-  }
-
-  // #region OVERRIDES ~
+  // #region APPLICATION OVERRIDES ~
   override _prepareContext(context: ApplicationV2.RenderOptions) {
     return super._prepareContext(context);
   }
@@ -846,31 +921,43 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       fadeTimeline.reverse();
     });
   }
-  // #endregion
+  // #endregion APPLICATION OVERRIDES
 
-  /**
-   * Creates a new shuffled deck containing all currently loaded items
-   * Uses Fisher-Yates shuffle algorithm for unbiased randomization
-   * @returns The first key from the newly shuffled deck
-   */
-  private shuffleDeck(): string {
-    // Get all keys of fully loaded items
-    const loadedKeys = Array.from(this.loadingScreenCache.entries())
-      .filter(([, cache]) => cache.loaded)
-      .map(([key]) => key);
-
-    // Create new deck and shuffle it
-    this.itemDeck = [...loadedKeys];
-    for (let i = this.itemDeck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      if (!this.itemDeck[i] || !this.itemDeck[j]) {
-        throw new Error("Item deck is not properly initialized");
-      }
-      [this.itemDeck[i], this.itemDeck[j]] = [this.itemDeck[j], this.itemDeck[i]!];
-    }
-    if (!this.itemDeck[0]) {
-      throw new Error("Item deck is not properly initialized");
-    }
-    return this.itemDeck[0];
+  // #region PHASE LIFECYCLE METHODS ~
+  // #region Cleanup Methods
+  private async cleanup_SessionClosed(): Promise<void> {
+    kLog.log("Would cleanup SessionClosed phase", "Stopping countdown timer and ambient audio");
   }
+
+  private async cleanup_SessionStarting(): Promise<void> {
+    kLog.log("Would cleanup SessionStarting phase", "Cleaning up intro video and chapter title animations");
+  }
+
+  private async cleanup_SessionRunning(): Promise<void> {
+    kLog.log("Would cleanup SessionRunning phase", "Cleaning up stage elements and UI components");
+  }
+
+  private async cleanup_SessionEnding(): Promise<void> {
+    kLog.log("Would cleanup SessionEnding phase", "Cleaning up dramatic hook UI and session summary");
+  }
+  // #endregion Cleanup Methods
+
+  // #region Initialization Methods
+  private async initialize_SessionClosed(): Promise<void> {
+    kLog.log("Would initialize SessionClosed phase", "Starting countdown timer and ambient audio");
+  }
+
+  private async initialize_SessionStarting(data?: Record<string, unknown>): Promise<void> {
+    kLog.log("Would initialize SessionStarting phase", "Starting intro video and chapter animations", data);
+  }
+
+  private async initialize_SessionRunning(): Promise<void> {
+    kLog.log("Would initialize SessionRunning phase", "Setting up stage and UI components");
+  }
+
+  private async initialize_SessionEnding(): Promise<void> {
+    kLog.log("Would initialize SessionEnding phase", "Setting up dramatic hook UI and session summary");
+  }
+  // #endregion Initialization Methods
+  // #endregion PHASE LIFECYCLE METHODS
 }
