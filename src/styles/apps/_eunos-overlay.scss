@@ -5,7 +5,7 @@ html {
 
   body {
     position: relative;
-    background-image: url('assets/backgrounds/bg-burnt-background.webp');
+    background-image: url('modules/eunos-kult-hacks/assets/backgrounds/bg-burnt-background.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -186,7 +186,7 @@ html {
           z-index: 100;
           width: calc(100vw - var(--sidebar-width) - 5px);
           height: 100%;
-          background: url('assets/backgrounds/bg-session-closed.webp');
+          background: url('modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed.webp');
           background-size: 100vw 100%;
           background-position: left;
           background-repeat: no-repeat;
@@ -197,7 +197,7 @@ html {
           z-index: 101;
           width: calc(100vw - var(--sidebar-width) - 5px);
           height: 100%;
-          background: url('assets/backgrounds/bg-session-closed-bars.webp');
+          background: url('modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed-bars.webp');
           background-size: 100vw 100%;
           background-position: center;
           background-repeat: no-repeat;
@@ -229,7 +229,7 @@ html {
           right: 0;
           z-index: 100;
           width: calc(var(--sidebar-width) + 5px);
-          background: url('assets/backgrounds/bg-session-closed.webp');
+          background: url('modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed.webp');
           background-size: 100vw 100vh;
           background-position: right;
           background-repeat: no-repeat;
@@ -245,7 +245,7 @@ html {
           z-index: 101;
           width: calc(var(--sidebar-width) + 5px);
           height: 100%;
-          background: url('assets/backgrounds/bg-session-closed-bars.webp');
+          background: url('modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed-bars.webp');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
@@ -354,7 +354,7 @@ html {
             &#background-layer {
               height: 500%;
               width: 500%;
-              background: black url('assets/intro/intro-map-splash.webp');
+              background: black url('modules/eunos-kult-hacks/assets/intro/intro-map-splash.webp');
               // background-size: contain;
               background-position: center;
               background-repeat: no-repeat;

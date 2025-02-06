@@ -201,6 +201,14 @@
   }
 }
 
+@mixin neon-glow-soft($textColor, $glowColor) {
+  color: $textColor;
+  text-shadow:
+    0 0 2px #000,
+    0 0 10px $glowColor,
+    0 0 5px $glowColor,
+    0 0 25px $glowColor;
+}
 
 
 // @mixin neon-glow-animated($name, $color, $text-color: var(--K4-neon-text-color)) {
@@ -226,12 +234,3 @@
 //   color: var(--K4-color-primary-bright);
 //   animation: neonGlow-#{$name} 1.5s infinite alternate cubic-bezier(0.455, 0.030, 0.515, 0.955);
 // }
-
-@mixin neon-glow-soft($textColor, $glowColor) {
-  color: $textColor;
-  text-shadow:
-    0 0 2px #000,
-    0 0 10px $glowColor,
-    0 0 5px $glowColor,
-    0 0 25px $glowColor;
-}
