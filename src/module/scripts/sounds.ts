@@ -4,8 +4,8 @@
  * Map of sound names to their HTMLAudioElement instances
  */
 export const Sounds: Partial<Record<string, HTMLAudioElement>> = {
-  "slow-hit": new Audio("modules/eunos-kult-hacks/assets/sounds/Slow Hit 02.wav"),
-  "subsonic-stinger": new Audio("modules/eunos-kult-hacks/assets/sounds/Sub Sonic Stinger 01.wav")
+  "slow-hit": new Audio("modules/eunos-kult-hacks/assets/sounds/alert-hit.ogg"),
+  "subsonic-stinger": new Audio("modules/eunos-kult-hacks/assets/sounds/subsonic-stinger.ogg")
 };
 
 /**
