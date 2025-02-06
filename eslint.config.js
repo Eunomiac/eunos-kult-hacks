@@ -58,6 +58,7 @@ if (LINTER_STRICTNESS === "dev") {
   rules["@typescript-eslint/no-empty-object-type"] = "off";
   rules["@typescript-eslint/no-unused-vars"] = "off";
   rules["@typescript-eslint/no-unnecessary-condition"] = "off";
+  rules["@typescript-eslint/require-await"] = "off";
 
   // Disable warnings that mask actual errors during development, and
   // that are easy to fix once toggled on for production.

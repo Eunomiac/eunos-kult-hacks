@@ -1,3 +1,30 @@
+# Coding Standards & Practices
+## Commenting
+- JSDoc headers must be present on all functions, methods, classes, modules, and other such code blocks
+- For simple one-line headers, write the header on the top line of the comment block, so that it remains visible when collapsed.
+- comprehensive inline comments should be included throughout the codebase to explain "why" behind the "what" and "how"
+
+## Code Requirements
+- "no-unsafe-member-access" similar rules (e.g. "no-unsafe-call") rules are active: if a value could be undefined, it is not assumed to be defined
+- "strict" mode is enabled: no implicit 'any' types are allowed
+- use double-quotes for strings, and always wrap the parameters of arrow functions in parentheses
+- the error parameter of a catch block should be explicitly typed as 'unknown'
+
+## Global Helper Functions
+- several global helper functions exist that return certain system variables after confirming they have been initialized. For example, `game.settings` and other `game` properties could be undefined, so instead access these with the following global functions:
+  - `getGame(): Game`
+  - `getSettings(): Settings`
+  - `getActors(): EunosActor[]`
+  - `getItems(): EunosItem[]`
+  - `getPacks(): CompendiumPacks`
+  - `getAudioHelper(): AudioHelper`
+  - `getLocalizer(): Localization`
+  - `getNotifier(): Notifications`
+  - `getUser(): User` -- returns the user object for the current user
+  - `getActor(): EunosActor` -- returns the PC for the current user
+- global helper functions `getSetting(setting: string, namespace?: string)` and `setSetting(setting: string, value: unknown, namespace?: string)` are available to access and set game settings.
+- `addClassToDOM(classString: string)` and `removeClassFromDOM(classes: string | string[])` are available to add and remove classes from the main `<body>` element.
+
 # Session Phase Control System Documentation
 
 ## Overview
