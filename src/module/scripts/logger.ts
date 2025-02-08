@@ -116,7 +116,7 @@ const checkDebugLevel = (loggerArgs: unknown[]) => {
   const dbLevel: DebugLevel = (loggerArgs.length > 0 && [0,1,2,3,4,5].includes(U.getLast(loggerArgs) as number))
     ? loggerArgs.pop() as DebugLevel
     : DEFAULT_DB_LEVEL;
-  return dbLevel <= maxDBLevel;
+  return true; // dbLevel <= maxDBLevel;
 }
 const getConsoleCalls = (type: KeyOf<typeof STYLES> = "base", ...content: [string, ...unknown[]]): Array<Tuple<(...args: unknown[]) => void, unknown[]>> => {
   const [message, ...data] = content;
@@ -186,9 +186,5 @@ const kLog = {
   hbsLog: (...content: [string, ...unknown[]]) => { k4Logger("handlebars", ...content); }
 };
 
-const registerConsoleLogger = () => {
-  Object.assign(globalThis, {kLog});
-};
-
-export default registerConsoleLogger;
+export default kLog;
 export type {DebugReport};

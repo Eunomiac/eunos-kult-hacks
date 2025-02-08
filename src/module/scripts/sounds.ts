@@ -1,5 +1,7 @@
 // #region === SOUND FUNCTIONS AND VALUES ===
 
+export const name = "EunosSounds";
+
 /**
  * Map of sound names to their HTMLAudioElement instances
  */

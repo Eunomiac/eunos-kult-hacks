@@ -4,7 +4,8 @@
     "types": [
       "fvtt-types",
       "jquery",
-      "gsap"
+      "gsap",
+      "@ethaks/fvtt-quench"
     ],
     "paths": {
       // "k4lt": ["./@types/k4lt"]  // Add this to map the k4lt module

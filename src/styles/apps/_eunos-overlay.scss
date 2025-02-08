@@ -43,7 +43,6 @@ html {
         .loading-screen-item {
           position: absolute;
           z-index: 100;
-          visibility: hidden;
           height: 100%;
           width: 100%;
           pointer-events: none;
@@ -190,7 +189,7 @@ html {
           background-size: 100vw 100%;
           background-position: left;
           background-repeat: no-repeat;
-          pointer-events: none;
+          pointer-events: auto;
         }
         .canvas-mask-bars {
           position: absolute;
@@ -206,21 +205,57 @@ html {
 
 
           // Add loading screen styles
-          .loading-screen-countdown {
+          .loading-screen-countdown-container {
             position: absolute;
-            transform: translate(-50%, 0);
-            top: 40px;
-            left: 50vw;
-            color: var(--K4-GOLD);
-            font-family: var(--font-primary);
-            font-size: 4em;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            top: 70px;
+            transform-origin: center center;
+            left: 60%;
+            z-index: 101;
+            pointer-events: none;
+            visibility: hidden;
+            height: fit-content;
+            width: fit-content;
+          }
+          .loading-screen-countdown {
+            position: relative;
+            transform: translate(-50%, 0%);
+            top: 0px;
+            left: 0%;
             z-index: 101;
             pointer-events: none;
             letter-spacing: 2px;
+            display: flex;
+            flex-direction: column;
+            // text-shadow:
+            //   0 0 10px rgba(255, 255, 255, 1);
+
+            .glitch-text {
+              position: absolute;
+              pointer-events: none;
+              user-select: none;
+              display: block;
+              color: var(--K4-bbGOLD);
+              font-family: var(--font-decorative);
+              font-size: 12em;
+              transform-origin: center center;
+              height: 150px;
+  ;
+
+              &.glitch-top {
+                position: relative;
+                clip-path: inset(0 0 48% 0);
+              }
+
+              &.glitch-bottom {
+                clip-path: inset(48% 0 0 0);
+              }
+            }
+
+
 
             // Optional: Add a subtle glow animation
-            animation: glow 2s ease-in-out infinite alternate;
+            // animation: glow 2s ease-in-out infinite alternate;
           }
         }
         .sidebar-mask {
@@ -299,6 +334,15 @@ html {
           }
         }
 
+        .intro-video {
+          position: absolute;
+          transform: translate(-50%, -50%);
+          top: 50%;
+          left: 50%;
+          z-index: 10000;
+          visibility: hidden;
+        }
+
 
       }
       #SESSION_ZOOM {
@@ -373,13 +417,105 @@ html {
       .tooltip-container {
 
       }
+
+      .video-status-panel {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid var(--K4-GOLD);
+        border-radius: 4px;
+        padding: 12px;
+        color: white;
+        pointer-events: all;
+        z-index: 10001;
+        width: 250px;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s;
+
+        h3 {
+          font-family: var(--font-primary);
+          font-size: 16px;
+          margin: 0 0 8px 0;
+          color: var(--K4-GOLD);
+          text-align: center;
+        }
+
+        .user-status-list {
+          margin-bottom: 12px;
+
+          .user-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-family: var(--font-primary);
+            font-size: 14px;
+
+            .user-name {
+              color: #ffffff;
+            }
+
+            .status-indicator {
+              font-size: 12px;
+            }
+
+            &.notstarted {
+              opacity: 0.6;
+            }
+
+            &.loading {
+              .status-indicator {
+                animation: pulse 1s infinite;
+              }
+            }
+
+            &.ready {
+              .user-name {
+                color: #90EE90;
+              }
+            }
+          }
+        }
+
+        .start-video {
+          width: 100%;
+          background: var(--K4-RED);
+          color: white;
+          border: none;
+          padding: 8px;
+          border-radius: 4px;
+          font-family: var(--font-primary);
+          font-size: 14px;
+          cursor: pointer;
+          pointer-events: all;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background: var(--K4-bRED);
+          }
+
+          &:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+          }
+        }
+      }
+
+      // Hide from non-GM users
+      .gm-only {
+        display: none;
+      }
     }
 
     &.session-closed {
       #EUNOS_OVERLAY {
         .top-zindex-mask,
         .safety-buttons {
-          display: none;
+          visibility: hidden;
         }
       }
     }
@@ -388,7 +524,7 @@ html {
     &.session-ending {
       #EUNOS_OVERLAY {
         .safety-buttons {
-          display: none;
+          visibility: hidden;
         }
       }
     }
@@ -397,7 +533,7 @@ html {
       #EUNOS_OVERLAY {
         .mid-zindex-mask,
         .top-zindex-mask {
-          display: none;
+          visibility: hidden;
         }
       }
     }
@@ -411,4 +547,21 @@ html {
   to {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
   }
+}
+
+// Show GM-only elements to GM users
+body.gm-user #EUNOS_OVERLAY .gm-only {
+  display: block;
+}
+
+// Show video status panel when receiving updates
+body.show-video-status.gm-user #EUNOS_OVERLAY .video-status-panel {
+  opacity: 1;
+  visibility: visible;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }

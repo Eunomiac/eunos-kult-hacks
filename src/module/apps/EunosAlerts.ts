@@ -4,7 +4,7 @@ import * as U from "../scripts/utilities.js";
 import EunosActor from "../documents/EunosActor.js";
 import {AlertPaths, type SVGPathData} from "../scripts/svgdata.js";
 import * as Sounds from "../scripts/sounds.js";
-import * as Socket from "../scripts/sockets.js";
+import EunosSockets, {UserTargetRef} from "../apps/EunosSockets.js";
 // #endregion
 
 // #region === TYPES, ENUMS, INTERFACE AUGMENTATION === ~
@@ -25,7 +25,7 @@ declare namespace EunosAlerts {
   export namespace Context {
     interface Base {
       type: AlertType;
-      target: Socket.UserTargetRef|IDString|UUIDString;
+      target: UserTargetRef|IDString|UUIDString;
       skipQueue?: boolean;
     }
     export interface Simple extends Base {
@@ -383,10 +383,6 @@ class EunosAlerts {
     Object.values(GSAPEFFECTS).forEach((effect) => {
       gsap.registerEffect(effect);
     });
-
-    Object.assign(globalThis, {
-      EunosAlerts
-    });
   }
   // #endregion
 
@@ -397,13 +393,14 @@ class EunosAlerts {
 
   static Alert(fullData: Partial<EunosAlerts.Data>) {
     const {target, ...data} = fullData;
-    const userTargets = Socket.getUsersFromTarget(target);
+    const sockets = EunosSockets.getInstance();
+    const userTargets = sockets.getUsersFromTarget(target);
     kLog.log(`target: ${target} -> Users: ${userTargets.map((user) => user.name).join(", ")}`,0);
-    return userTargets.map((user) => Socket.call(
+    return Promise.all(userTargets.map((user) => user.id && sockets.call(
         "Alert",
-        user.id as IDString,
+        user.id,
         data
-      ))
+      )));
   }
 
   static RunQueue() {
@@ -450,7 +447,7 @@ class EunosAlerts {
       case AlertType.simple: {
         return {
           type,
-          target: Socket.UserTargetRef.all,
+          target: UserTargetRef.all,
           skipQueue: false,
           header: "",
           body: "",

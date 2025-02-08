@@ -23,6 +23,22 @@
   }
 }
 
+#quench-results {
+  .window-content {
+    #quench-batches {
+      #quench-batches-list {
+        .test-batch {
+          > label {
+            font-family: Voltaire;
+            font-weight: normal;
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+}
+
 body.gm-user {
 
   #ui-middle {

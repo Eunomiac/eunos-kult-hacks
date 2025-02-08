@@ -1,8 +1,6 @@
 import type ActorDataPC from "../../data-model/ActorDataPC";
-import type EunosActor from "../EunosActor";
 import EunosAlerts, { AlertType } from "../../apps/EunosAlerts";
-import { UserTargetRef } from "../../scripts/sockets";
-import type ItemDataWeapon from "../../data-model/ItemDataWeapon";
+import { UserTargetRef } from "../../apps/EunosSockets";
 export default function overridePCSheet() {
   const pcSheet: typeof k4ltPCsheet = CONFIG.Actor.sheetClasses.pc[
     "k4lt.k4ltPCsheet"

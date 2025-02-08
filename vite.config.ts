@@ -126,7 +126,7 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
     },
     server: {
       port: devServerPort,
-      open: "/game",
+      open: false,
       proxy: {
         [`^(?!/${escapeRegExp(foundryPackagePath)})`]: `http://${foundryHost}`,
         "/socket.io": {

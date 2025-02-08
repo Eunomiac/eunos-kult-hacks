@@ -1,6 +1,13 @@
 import { numberToWords, wordsToNumber } from "./utilities_old";
+import type {Quench} from "@ethaks/fvtt-quench";
 
 export const SYSTEM_ID = "eunos-kult-hacks";
+
+export const MEDIA_PATHS = {
+  PRESESSION_AMBIENT_AUDIO: "modules/eunos-kult-hacks/assets/sounds/session-closed-ambiance.flac",
+  INTRO_VIDEO: "modules/eunos-kult-hacks/assets/video/something-unholy-intro.webm",
+  LOADING_SCREEN_ITEM: "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs"
+}
 
 // #region Global Variables ~
 const GLOBAL_VARIABLES = {
@@ -78,12 +85,12 @@ const GLOBAL_VARIABLES = {
    * @returns A Collection of User instances.
    * @throws Error if the Users collection is not ready.
    */
-  getUsers: function getUsers(): Users {
+  getUsers: function getUsers(): User[] {
     const users = getGame().users as Maybe<Users>;
     if (!users) {
       throw new Error("Users collection is not ready");
     }
-    return users;
+    return users.contents as User[];
   },
 
   /**
@@ -139,8 +146,11 @@ const GLOBAL_VARIABLES = {
    * @returns The user.
    * @throws Error if the user is not ready.
    */
-  getUser: function getUser(): User {
+  getUser: function getUser(userId?: string): User {
     const user = getGame().user;
+    if (userId) {
+      return getUsers().find((user) => user.id === userId) as User;
+    }
     return user;
   },
 
@@ -212,6 +222,18 @@ const GLOBAL_VARIABLES = {
     }
     return packs;
   },
+
+  /**
+   * Retrieves the current Quench instance.
+   * @returns The current Quench instance.
+   * @throws Error if the Quench is not ready.
+   */
+  getQuench: function getQuench(): Quench {
+    if ("quench" in globalThis && globalThis.quench !== undefined) {
+      return globalThis.quench;
+    }
+    throw new Error("Quench is not ready");
+  }
 };
 // #endregion
 
@@ -404,7 +426,7 @@ export const LOADING_SCREEN_DATA = {
     body: "Razides are forged from the tortured remnants of souls torn from Inferno's purgatories, their flesh fused with tubes, razors and grinding gears, their minds enslaved by a writhing parasitic worm harvested from the Underworld. Hulking brutes of Inferno, they serve the Death Angels as warriors and enforcers, spreading terror and bloodshed in Elysium's shadows.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/razide.webp",
   }
-};
+} as const;
 // #endregion
 
 // #region STABILITY ~
@@ -564,8 +586,14 @@ export const WOUND_MODIFIERS_GRITTED_TEETH = {
 
 // #region SESSION DATA~
 
-export function assignGlobals(): void {
-  Object.assign(globalThis, GLOBAL_VARIABLES);
+export function assignGlobals(...newGlobals: Array<Record<string, unknown>>): void {
+  const mergedNewGlobals = newGlobals.reduce((acc, curr) => {
+    return { ...acc, ...curr };
+  }, {});
+  Object.assign(globalThis, {
+    ...GLOBAL_VARIABLES,
+    ...mergedNewGlobals
+  });
 }
 
 /**
@@ -629,3 +657,34 @@ export const WEAPON_SUBCLASSES = {
   ]
 } as const;
 // #endregion
+
+/** Pre-session sequence timing constants */
+export const PRE_SESSION = {
+  /** Interaction events that would enable playing pre-session ambient audio */
+  INTERACTION_EVENTS: [
+    "click",
+    "touchstart",
+    "keydown",
+    "mousedown",
+    "pointerdown"
+  ],
+  /** Duration data for display and animation of loading screen items */
+  LOADING_SCREEN_ITEM_DURATION: {
+    ENTRY: 10,
+    DISPLAY: 20,
+    EXIT: 5,
+    DELAY: 3
+  },
+  /** Time in seconds before session start when SessionLoading phase begins */
+  LOAD_SESSION: 900, // 15 minutes
+  /** Time in seconds before session start when UI elements fade out */
+  UI_FADE_OUT: 5,
+  /** Time in seconds before session start when countdown disappears */
+  COUNTDOWN_HIDE: 5,
+  /** Default session day (5 = Friday) */
+  DEFAULT_SESSION_DAY: 5,
+  /** Default session hour in 24h format (19 = 7 PM) */
+  DEFAULT_SESSION_HOUR: 19,
+  /** Default session minute */
+  DEFAULT_SESSION_MINUTE: 30
+} as const;

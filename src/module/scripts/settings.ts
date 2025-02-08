@@ -33,6 +33,36 @@ export default function registerSettings() {
     type: String,
     default: GamePhase.SessionClosed,
   });
+
+  // Next game session date/time (in Toronto timezone)
+  getSettings().register("eunos-kult-hacks", "nextGameSession", {
+    name: "Next Game Session",
+    hint: "Date and time of the next game session (Toronto time). Format: YYYY-MM-DD HH:mm",
+    scope: "world",
+    config: true,
+    type: String,
+    default: (() => {
+      // Default to next Friday at 7:30 PM Toronto time
+      const date = new Date();
+      date.setUTCHours(23, 30, 0, 0); // 7:30 PM Toronto (UTC-4/5)
+
+      // Find next Friday
+      while (date.getDay() !== 5) { // 5 = Friday
+        date.setDate(date.getDate() + 1);
+      }
+
+      return date.toLocaleString("en-CA", { timeZone: "America/Toronto" });
+    })(),
+    onChange: (value) => {
+      // Validate the date format
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        ui.notifications?.error("Invalid date format. Please use YYYY-MM-DD HH:mm");
+        return false;
+      }
+      return true;
+    }
+  });
 }
 
 export function initTinyMCEStyles() {

@@ -82,6 +82,8 @@ declare global {
     "eunos-kult-hacks.gamePhase": GamePhase;
     "eunos-kult-hacks.debug": number;
     "eunos-kult-hacks.useStabilityVariant": boolean;
+    "eunos-kult-hacks.videoReadyClients": string[];
+    "eunos-kult-hacks.nextGameSession": string; // ISO date string in Toronto timezone
   }
 
   // interface SettingConfig {

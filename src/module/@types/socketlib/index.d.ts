@@ -6,8 +6,14 @@ declare global {
   type SocketFunction = SyncSocketFunction|AsyncSocketFunction
 
   interface Socket {
-
-    register(funcName: string, func: SocketFunction): void;
+    register(name: string, func: SocketFunction): void;
+    executeAsUser(name: string, userId: string, data?: unknown): Promise<unknown>;
+    executeForUsers(name: string, userIds: string[], data?: unknown): Promise<void>;
+    executeForEveryone(name: string, data?: unknown): Promise<void>;
+    executeForGM(name: string, data?: unknown): Promise<void>;
+    executeAsGM(name: string, data?: unknown): Promise<unknown>;
+    on(event: "connect" | "disconnect", handler: () => void): void;
+    connected: boolean;
 
     /**
      * Chooses One Connected GM Client (at random, if multiple).
@@ -37,12 +43,6 @@ declare global {
       */
     executeForOtherGMs<S extends SyncSocketFunction>(handler: string | S, ...parameters: Parameters<S>): Promise<void>
 
-    /**
-      * Chooses ALL Clients.
-      * Executes 'handler' on ALL, passing it 'parameters'.
-      * CANNOT 'await' return value.
-      */
-    executeForEveryone<S extends SyncSocketFunction>(handler: string | S, ...parameters: Parameters<S>): Promise<void>
     /**
       * Chooses ALL Clients EXCEPT Caller.
       * Executes 'handler' on ALL, passing it 'parameters'.

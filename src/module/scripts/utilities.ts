@@ -1,4 +1,5 @@
 // import {gsap, MotionPathPlugin} from "../libraries";
+import { PRE_SESSION } from "./constants";
 
 // #region ▒▒▒▒▒▒▒ [HELPERS] Internal Functions, Data & References Used by Utility Functions ▒▒▒▒▒▒▒ ~
 
@@ -2616,32 +2617,21 @@ function displayImageSelector(
 }
 
 /**
- * Calculates time remaining until next occurrence of specified day/time in Toronto timezone
- * @param targetDay - Day of week (0-6, Sunday-Saturday)
- * @param targetHour - Hour in 24h format (0-23)
- * @param targetMinute - Minute (0-59)
- * @returns Object containing days, hours, minutes and seconds until target time
- * @throws Error if input parameters are invalid
+ * Calculates time remaining until next game session
+ * @returns Object containing days, hours, minutes, seconds and total seconds until target time
+ * @throws Error if nextGameSession setting is invalid
  */
-function countdownUntil(
-  targetDay: number,
-  targetHour: number,
-  targetMinute: number
-): {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-} {
-  // Validate inputs
-  if (!Number.isInteger(targetDay) || targetDay < 0 || targetDay > 6) {
-    throw new Error("Day must be an integer between 0 and 6");
+function countdownUntil(): CountdownTime {
+  // Get next session time from settings
+  const nextSessionStr = getSettings().get("eunos-kult-hacks", "nextGameSession");
+  if (!nextSessionStr) {
+    throw new Error("Next game session time not set");
   }
-  if (!Number.isInteger(targetHour) || targetHour < 0 || targetHour > 23) {
-    throw new Error("Hour must be an integer between 0 and 23");
-  }
-  if (!Number.isInteger(targetMinute) || targetMinute < 0 || targetMinute > 59) {
-    throw new Error("Minute must be an integer between 0 and 59");
+
+  // Parse the date in Toronto timezone
+  const targetDate = new Date(nextSessionStr);
+  if (isNaN(targetDate.getTime())) {
+    throw new Error("Invalid next game session time format");
   }
 
   // Get current time in Toronto
@@ -2649,38 +2639,66 @@ function countdownUntil(
   const now = new Date().toLocaleString("en-US", { timeZone: torontoTz });
   const currentDate = new Date(now);
 
-  // Create target date starting from current date
-  const targetDate = new Date(currentDate);
-  targetDate.setHours(targetHour, targetMinute, 0, 0);
-
-  // Adjust to next occurrence of target day
-  while (
-    targetDate <= currentDate ||
-    targetDate.getDay() !== targetDay
-  ) {
-    targetDate.setDate(targetDate.getDate() + 1);
-    targetDate.setHours(targetHour, targetMinute, 0, 0);
-  }
-
   // Calculate difference in milliseconds
   const diffMs = targetDate.getTime() - currentDate.getTime();
 
+  // If countdown has reached zero, advance to next week
+  if (diffMs <= 0 && getUser().isGM) {
+    // Add 7 days to target date
+    targetDate.setDate(targetDate.getDate() + 7);
+
+    // Update the setting
+    void setSetting(
+      "nextGameSession",
+      targetDate.toLocaleString("en-CA", { timeZone: torontoTz })
+    );
+
+    // Return countdown for next week
+    return {
+      days: 7,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+      totalSeconds: 7 * 24 * 60 * 60
+    };
+  }
+
   // Convert to days, hours, minutes, seconds
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+  const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+  const days = Math.floor(totalSeconds / (60 * 60 * 24));
+  const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+  const seconds = totalSeconds % 60;
 
   return {
     days,
     hours,
     minutes,
-    seconds
+    seconds,
+    totalSeconds
   };
 }
 
-
 // #endregion ▄▄▄▄▄ FOUNDRY ▄▄▄▄▄
+
+/**
+ * Converts a date between Toronto timezone and UTC
+ * @param date - The date to convert
+ * @param toUTC - Whether to convert to UTC (true) or from UTC to Toronto time (false)
+ * @returns The converted date
+ */
+function convertTorontoTime(date: Date, toUTC = false): Date {
+  const torontoTz = "America/Toronto";
+
+  if (toUTC) {
+    // Convert Toronto time to UTC
+    const utcString = date.toLocaleString("en-US", { timeZone: torontoTz });
+    return new Date(utcString);
+  } else {
+    // Convert UTC to Toronto time
+    return new Date(date.toLocaleString("en-US", { timeZone: torontoTz }));
+  }
+}
 
 export {
   // █████████████████ FOUNDRY UTILS ████████████████████████
@@ -2793,8 +2811,9 @@ export {
 
   parseDocRefToUUID,
 
-  loc, getSetting, getTemplatePath, displayImageSelector
+  loc, getSetting, getTemplatePath, displayImageSelector,
 
+  convertTorontoTime,
 
 };
 // #endregion ▄▄▄▄▄ EXPORTS ▄▄▄▄▄

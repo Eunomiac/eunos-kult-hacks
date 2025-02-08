@@ -21,17 +21,17 @@ import overridePCSheet from "./documents/sheets/EunosPCSheet.ts";
 import overrideNPCSheet from "./documents/sheets/EunosNPCSheet.ts";
 import overrideItemSheet from "./documents/sheets/EunosItemSheet.ts";
 import * as U from "./scripts/utilities.ts";
-import * as EunosSocket from "./scripts/sockets.ts";
+import EunosSockets from "./apps/EunosSockets.ts";
 import * as EunosSounds from "./scripts/sounds.ts";
 import { assignGlobals } from "./scripts/constants.ts";
-import { GamePhase } from "./scripts/enums.ts";
+import { GamePhase, InitializerMethod } from "./scripts/enums.ts";
 import { registerHandlebarHelpers } from "./scripts/helpers.ts";
 import InitializePopovers from "./scripts/popovers.ts";
-import registerConsoleLogger from "./scripts/logger.ts";
+import kLog from "./scripts/logger.ts";
 import registerSettings from "./scripts/settings.ts";
 import { initializeGSAP } from "./scripts/animations.ts";
-// @ts-expect-error - TS doesn't support importing SCSS files.
 import "../styles/styles.scss";
+import registerEunosSocketTests from "./tests/tests-EunosSocket.ts";
 // import k4ltitemsheet from "systems/k4lt/modules/sheets/k4ltitemsheet.js";
 // #endregion
 
@@ -57,6 +57,7 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/alerts.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/tooltips.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/countdown.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-header.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-topper.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-trigger.hbs",
@@ -134,53 +135,36 @@ function replaceBasicMovesHook() {
 }
 
 // #endregion
-const InitializableClasses = {
-  EunosSocket,
-  EunosAlerts,
-  EunosSounds,
+
+assignGlobals({
+  U,
   EunosOverlay,
-  // K4PCSheet,
-  // K4NPCSheet,
-
-  // K4Item,
-  // K4ItemSheet,
-
-  // K4ChatMessage,
-  // K4ActiveEffect,
-  // K4Roll,
-  // K4Dialog,
-  // K4Sound,
-  // K4Alert,
-  // K4DebugDisplay,
-  // K4GMTracker,
-  // K4CharGen,
-  // K4Socket
- } as const;
-
-enum InitializerMethod {
-  PreInitialize = "PreInitialize",
-  Initialize = "Initialize",
-  PostInitialize = "PostInitialize"
-}
+  EunosAlerts,
+  EunosSockets,
+  EunosSounds,
+  kLog,
+  InitializableClasses: {
+    EunosSockets,
+    EunosAlerts,
+    EunosSounds,
+    EunosOverlay
+  } as const
+});
 
 async function RunInitializer(methodName: InitializerMethod) {
   return Promise.all(
     Object.values(InitializableClasses).filter(
       (doc): doc is typeof doc & Record<InitializerMethod, () => Promise<void>> =>
         methodName in doc
-    ).map((doc) => doc[methodName]())
+    ).map((doc) => {
+      kLog.log(`Running ${methodName} initializer for`, doc.name ?? "Unknown Object", 0);
+      return doc[methodName]();
+    })
   );
 }
 
-
+// Initialize core systems
 Hooks.on("init", () => {
-  Object.assign(globalThis, {
-    U,
-    EunosOverlay
-  });
-
-  assignGlobals();
-  registerConsoleLogger();
   kLog.display("Initializing 'Kult: Divinity Lost 4th Edition' for Foundry VTT", 0);
 
   initializeGSAP();
@@ -191,8 +175,13 @@ Hooks.on("init", () => {
 
   overrideActor();
 
+  Hooks.on("quenchReady", () => {
+    registerEunosSocketTests();
+  });
+
   // Initialize Tooltips Overlay
   void RunInitializer(InitializerMethod.PreInitialize);
+  kLog.display("Pre-Initialization Complete.");
   InitializePopovers($("body"));
 
   Object.assign(CONFIG.Actor.dataModels, {
@@ -217,7 +206,6 @@ Hooks.on("init", () => {
 Hooks.on("ready", () => {
   void preloadHandlebarTemplates().then(async () => {
     await RunInitializer(InitializerMethod.Initialize);
-    EunosOverlay.SyncOverlayState();
     overridePCSheet();
     overrideNPCSheet();
     overrideItemSheet();
@@ -228,15 +216,3 @@ Hooks.on("ready", () => {
 
   replaceBasicMovesHook();
 });
-
-// #region ░░░░░░░[SocketLib]░░░░ SocketLib Initialization ░░░░░░░ ~
-Hooks.once("socketlib.ready", () => {
-  socketlib.registerModule("eunos-kult-hacks");
-  Object.values(InitializableClasses).filter(
-    (doc): doc is typeof doc & {SocketFunctions: Record<string, SocketFunction>} =>
-      "SocketFunctions" in doc
-  ).forEach((doc) => {
-    EunosSocket.registerSocketFunctions(doc.SocketFunctions);
-  });
-});
-// #endregion ░░░░[SocketLib]░░░░

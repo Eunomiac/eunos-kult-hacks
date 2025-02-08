@@ -11,6 +11,8 @@
 // import K4Roll from "../documents/K4Roll.js";
 // import K4Scene from "../documents/K4Scene.js";
 
+import type {Quench} from "@ethaks/fvtt-quench";
+
 
 // import type {Socket, SocketLib} from "./socketlib";
 // #endregion
@@ -56,6 +58,8 @@ interface ClampResponse {
 // #endregion
 
 declare global {
+
+  const InitializableClasses: Record<string, Constructor>;
 
   type AudioHelper = Exclude<typeof game.audio, undefined>;
 
@@ -136,7 +140,7 @@ declare global {
    * @returns The current User instance.
    * @throws Error if the User is not ready.
    */
-  function getUser(): User;
+  function getUser(userId?: string): User;
 
   /**
    * Retrieves the collection of all K4Actor instances in the game.
@@ -182,7 +186,7 @@ declare global {
    * @returns A Collection of User instances.
    * @throws Error if the Users collection is not ready.
    */
-  function getUsers(): Users;
+  function getUsers(): User[];
 
   /**
    * Retrieves the PC actor owned by the current user.
@@ -235,6 +239,13 @@ declare global {
 
 
   function kultLogger(...content: unknown[]): void;
+
+  /**
+   * Retrieves the current Quench instance.
+   * @returns The current Quench instance.
+   * @throws Error if the Quench is not ready.
+   */
+  function getQuench(): Quench;
   // #endregion
 
   // #region MISCELLANEOUS TYPE ALIASES (nonfunctional; for clarity) ~
@@ -400,6 +411,9 @@ declare global {
   // #endregion
 
   // #region UTILITY TYPES ~
+
+  // Represents the return value of Object.entries when the object is a known constant
+  type Entries<T> = [keyof T, T[keyof T]][];
 
   // Represents an object describing dimensions of an HTML element, of form {x: number, y: number, width: number, height: number}
   interface ElemPosData {x: number, y: number, width: number, height: number;}
@@ -613,5 +627,35 @@ declare global {
   // #endregion
 
   // #endregion
+
+  /** Represents the time remaining until a target date/time */
+  interface CountdownTime {
+    /** Days remaining */
+    days: number;
+    /** Hours remaining */
+    hours: number;
+    /** Minutes remaining */
+    minutes: number;
+    /** Seconds remaining */
+    seconds: number;
+    /** Total seconds remaining */
+    totalSeconds: number;
+  }
+
+  /** Pre-session sequence state */
+  interface PreSessionState {
+    /** Whether the loading screen content should continue rotating */
+    loadingScreenActive: boolean;
+    /** Whether the countdown should be visible */
+    countdownVisible: boolean;
+    /** Whether UI elements should be visible */
+    uiVisible: boolean;
+    /** Whether the video element should be visible */
+    videoVisible: boolean;
+    /** Whether the pre-session song is playing */
+    songPlaying: boolean;
+    /** Whether the video is preloaded and ready */
+    videoPreloaded: boolean;
+  }
 
 }

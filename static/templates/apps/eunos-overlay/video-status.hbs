@@ -1,0 +1,19 @@
+{{!-- Video Preload Status Panel --}}
+<div class="video-status-panel">
+  <h3>Video Preload Status</h3>
+  <div class="user-status-list">
+    {{#each users}}
+    <div class="user-status {{this.statusClass}}" data-user-id="{{this.id}}">
+      <span class="user-name">{{this.name}}</span>
+      <span class="status-indicator">
+        {{#if this.isNotConnected}}<span style="filter: grayscale({{#unless this.active}}1{{else}}0{{/unless}})">⭕</span>{{/if}}
+        {{#if this.isPreloadNotRequested}}🔴{{/if}}
+        {{#if this.isLoadPending}}🟠{{/if}}
+        {{#if this.isLoading}}🟡{{/if}}
+        {{#if this.isReady}}🟢{{/if}}
+      </span>
+    </div>
+    {{/each}}
+  </div>
+  <div class="start-video">Start Video</div>
+</div>
