@@ -1494,6 +1494,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.killCountdown();
     void this.killLoadingScreenItems();
     this.killVideoStatusPanel();
+    if (getUser().isGM) {
+      void this.sessionStartingPlaylist.stopAll();
+    }
   }
 
   // #endregion SessionLoading Methods
