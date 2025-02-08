@@ -1048,11 +1048,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         reportStatus(VideoLoadStatus.Loading);
 
         const video = video$[0]!;
-        video.addEventListener("canplaythrough", () => {
-          reportStatus(VideoLoadStatus.Ready);
-        });
 
-        video.load();
+        // Check if video is already loaded
+        if (video.readyState >= 4) { // HAVE_ENOUGH_DATA
+          reportStatus(VideoLoadStatus.Ready);
+        } else {
+          video.addEventListener("canplaythrough", () => {
+            reportStatus(VideoLoadStatus.Ready);
+          }, { once: true });
+          video.load();
+        }
         return;
       }
 
