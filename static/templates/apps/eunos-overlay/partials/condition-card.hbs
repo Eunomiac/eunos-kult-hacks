@@ -1,0 +1,19 @@
+{{log this}}
+{{#if (eq state "checked")}}
+  {{#let
+  anchorName=(getUniqueID (concat "condition-card-" name))
+  popoverID=(getUniqueID (concat "condition-card-popover-" name))
+  tooltip=answer
+  }}
+
+<div class="condition-card" data-action="conditionCardClick" data-condition-name="{{name}}" popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}">{{name}}</div>
+<div id="{{popoverID}}" style="position-anchor: --{{anchorName}};" popover>
+  <h2>{{name}}</h2>
+{{#if tooltip}}
+  {{{tooltip}}}
+  {{else}}
+  (No Explanation)
+  {{/if}}
+</div>
+{{/let}}
+{{/if}}

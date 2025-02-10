@@ -22,7 +22,8 @@ const ActorSchemaNPC = {
     influence: new fields.NumberField(),
     magic: new fields.NumberField(),
   }),
-  isSpotlit: new fields.BooleanField()
+  isSpotlit: new fields.BooleanField(),
+  sceneIndex: new fields.NumberField({nullable: true})
 };
 
 export default class ActorDataNPC extends TypeDataModel<

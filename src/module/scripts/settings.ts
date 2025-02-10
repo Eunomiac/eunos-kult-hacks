@@ -1,7 +1,9 @@
 // #region IMPORTS ~
 import {getSetting} from "./utilities.ts";
 import {GamePhase} from "./enums.ts";
+import fields = foundry.data.fields;
 // #endregion
+
 
 export default function registerSettings() {
   getSettings().register("eunos-kult-hacks", "debug", {
@@ -63,7 +65,54 @@ export default function registerSettings() {
       return true;
     }
   });
+  getSettings().register("eunos-kult-hacks", "npcSceneData", {
+    name: "NPCs in Scene",
+    hint: "The IDs of the NPCs in the current scene.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {
+      1: null,
+      2: null,
+      3: null,
+      4: null,
+      5: null,
+      6: null,
+    }
+  });
+  getSettings().register("eunos-kult-hacks", "location", {
+    name: "Location",
+    hint: "The name and image of the current location.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: null,
+  });
+  getSettings().register("eunos-kult-hacks", "sessionScribeID", {
+    name: "Session Scribe",
+    hint: "The ID of the player who is the session scribe.",
+    scope: "world",
+    config: false,
+    type: String,
+    default: "",
+  });
+  getSettings().register("eunos-kult-hacks", "pcsPresent", {
+    name: "PCs Present",
+    hint: "The IDs of the players who are present in the scene.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {
+      1: null,
+      2: null,
+      3: null,
+      4: null,
+      5: null
+    },
+  });
 }
+
+
 
 export function initTinyMCEStyles() {
   return;

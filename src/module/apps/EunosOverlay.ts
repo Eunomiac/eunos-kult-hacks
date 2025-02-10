@@ -46,7 +46,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region ACTIONS ~
   static readonly ACTIONS = {
     pcPortraitClick(event: PointerEvent, target: HTMLElement) {
-      const pcId = target.dataset['pcId'];
+      const pcId = $(target).closest("[data-pc-id]").attr("data-pc-id");
       if (!pcId) {
         kLog.error("No pcId found for pc portrait click");
         return;
@@ -73,6 +73,46 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         body: "A player has requested a fade to black.",
       });
     },
+    conditionCardClick(event: PointerEvent, target: HTMLElement) {
+      const pcId = $(target).closest("[data-pc-id]").attr("data-pc-id");
+      if (!pcId) {
+        kLog.error("No pcId found for condition card click");
+        return;
+      }
+      const pc = getActors().find((actor) => actor.id === pcId);
+      if (!pc || !pc.isPC()) {
+        kLog.error("No pc found for pcId", { pcId });
+        return;
+      }
+      const conditionName = target.dataset['conditionName'];
+
+      if (!conditionName) {
+        kLog.error("No condition name found for condition card click");
+        return;
+      }
+
+      const getBody = () => {
+        switch (conditionName) {
+          case "Angry":
+          case "Guilt Ridden":
+          case "Sad":
+          case "Scared":
+            return `${pc.name} loses <span class='key-word'>1 Stability</span>, and will suffer <em>&minus;1 ongoing</em> to all rolls where this condition would apply.`;
+          case "Distracted":
+            return `${pc.name} will suffer <em>&minus;2 ongoing</em> to all rolls where this condition would apply.`;
+          case "Haunted":
+            return `${pc.name} will be haunted by this experience at a later time: <span class='gm-move-text'>The GM takes 1 Hold.</span>`;
+          case "Obsessed":
+            return `${pc.name} grows obsessed, gaining <span class='key-word'>+1 Relation</span> towards the source of their obsession.`;
+        }
+      }
+
+      void EunosSockets.getInstance().call("Alert", UserTargetRef.all, {
+        type: AlertType.simple,
+        header: `${pc.name} is ${conditionName}`,
+        body: getBody()
+      })
+    },
   }
   // #endregion ACTIONS
 
@@ -98,9 +138,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       contentClasses: ["eunos-overlay-content"],
     },
     actions: {
-      pcPortraitClick: EunosOverlay.ACTIONS.pcPortraitClick.bind(EunosOverlay.instance),
-      stopSceneClick: EunosOverlay.ACTIONS.stopSceneClick.bind(EunosOverlay.instance),
-      fadeToBlackClick: EunosOverlay.ACTIONS.fadeToBlackClick.bind(EunosOverlay.instance),
+      pcPortraitClick: EunosOverlay.ACTIONS.pcPortraitClick.bind(EunosOverlay),
+      stopSceneClick: EunosOverlay.ACTIONS.stopSceneClick.bind(EunosOverlay),
+      fadeToBlackClick: EunosOverlay.ACTIONS.fadeToBlackClick.bind(EunosOverlay),
+      conditionCardClick: EunosOverlay.ACTIONS.conditionCardClick.bind(EunosOverlay),
     }
   };
 
@@ -113,10 +154,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/top-zindex-mask.hbs",
     },
-    sessionZoom: {
-      template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/session-zoom.hbs",
-    },
     safetyButtons: {
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/safety-buttons.hbs",
@@ -125,9 +162,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/alerts.hbs",
     },
-    tooltips: {
+    stage: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/tooltips.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage.hbs",
     },
     videoStatus: {
       template:
@@ -146,7 +183,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region STATIC METHODS ~
   static async Initialize() {
     // Register hook for game phase changes
-    Hooks.on("preUpdateSetting", async (setting: Setting, {value: newValue}: {value: unknown}) => {
+    Hooks.on("preUpdateSetting", (setting: Setting, {value: newValue}: {value: unknown}) => {
       if (
         setting.key.endsWith("gamePhase") &&
         typeof setting.value === "string" &&
@@ -167,9 +204,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           "setting.value !== prevValue": setting.value !== newValue,
         });
         kLog.log(`Cleaning up phase: ${String(setting.value)}`);
-        await EunosOverlay.instance.cleanupPhase(setting.value as GamePhase);
-        kLog.log(`Initializing phase: ${String(newValue)}`);
-        await EunosOverlay.instance.initializePhase(newValue as GamePhase);
+        void EunosOverlay.instance.cleanupPhase(setting.value as GamePhase)
+          .then(() => {
+            kLog.log(`Initializing phase: ${String(newValue)}`);
+            return EunosOverlay.instance.initializePhase(newValue as GamePhase);
+          })
+          .catch((error: unknown) => {
+            kLog.error("Error initializing phase:", error);
+          });
+      }
+    });
+
+    // Register hook to re-render when any PC actor is updated
+    Hooks.on("updateActor", (actor: Actor) => {
+      if (actor.type === "pc") {
+        void EunosOverlay.instance.render({parts: ["stage"]});
       }
     });
 
@@ -610,7 +659,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       window.clearInterval(this.#countdownTimer);
       this.#countdownTimer = undefined;
     }
-    this.countdown$.hide();
+    this.countdownContainer$.css("visibility", "hidden");
     this.countdownTimeline.kill();
   }
 
@@ -665,6 +714,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       getUser().isGM
     ) {
       await setSetting("gamePhase", GamePhase.SessionLoading);
+      kLog.log(`updateCountdown - set gamePhase to ${getSetting("gamePhase")}`);
       return;
     }
 
@@ -1324,7 +1374,36 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   override async _prepareContext(options: ApplicationV2.RenderOptions) {
     const context = await super._prepareContext(options);
 
+    // Prepare location data for stage
+    const location = getSetting("location");
 
+    // Prepare NPC data for stage
+    const npcSceneData = getSetting("npcSceneData");
+    const npcsData = Object.fromEntries(
+      Object.entries<string|null>(npcSceneData ?? {})
+        .map(([sceneIndex, npcId]) => [parseInt(sceneIndex, 10), npcId ? getActors().find((actor) => actor.id === npcId) : null])
+    );
+
+    // Prepare PC data for stage
+    const pcsData = getActors().filter((actor) => actor.type === "pc");
+    const pcsPresent = getSetting("pcsPresent");
+
+    Object.assign(context, {
+      location,
+      npcsData,
+      pcsData,
+      pcsPresent,
+      sessionScribeID: getSetting("sessionScribeID")
+    });
+
+    if (!getUser().isGM) {
+      const pcActor = getActor();
+      if (pcActor.isPC()) {
+        Object.assign(context, {
+          dramaticHookCandleID: pcActor.system.dramatichooks.assigningFor
+        });
+      }
+    }
 
     if (!getUser().isGM) {
       return context;
@@ -1350,8 +1429,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       };
     });
 
+
     Object.assign(context, {
       users,
+      isGM: true
     });
 
     return context;
@@ -1480,12 +1561,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionClosed Methods
   private async initialize_SessionClosed(): Promise<void> {
     // If there are fewer than 15 minutes remaining, immediately switch to SessionLoading phase
-    if (countdownUntil().totalSeconds <= PRE_SESSION.LOAD_SESSION) {
-      if (getUser().isGM) {
-        await setSetting("gamePhase", GamePhase.SessionLoading);
-      }
-      return;
-    }
+    // if (countdownUntil().totalSeconds <= PRE_SESSION.LOAD_SESSION) {
+    //   if (getUser().isGM) {
+    //     await setSetting("gamePhase", GamePhase.SessionLoading);
+    //   }
+    //   return;
+    // }
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),

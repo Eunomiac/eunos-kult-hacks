@@ -345,12 +345,15 @@ html {
 
 
       }
-      #SESSION_ZOOM {
+      #STAGE {
+        position: fixed;
         margin: 0;
         height: 100vh;
         width: 100vw;
+        top: 0;
+        left: 0;
 
-        #blackout-layer {
+        #BLACKOUT-LAYER {
           display: block;
           position: fixed;
           height: 1000%;
@@ -358,9 +361,10 @@ html {
           background: black;
           pointer-events: none;
           z-index: 1000000;
+          visibility: hidden;
         }
 
-        #reading-section {
+        #SECTION-3D {
           display: block;
           position: fixed;
           height: 100vh;
@@ -388,14 +392,14 @@ html {
               transform-style: preserve-3d;
             }
 
-            &#under-layer {
+            &.under-layer {
               height: 500%;
               width: 500%;
               background: radial-gradient(circle at 25% 0%, transparent, rgba(0, 0, 0, 0.9) 50%);
               // opacity: 0.1;
             }
 
-            &#background-layer {
+            &.background-layer {
               height: 500%;
               width: 500%;
               background: black url('modules/eunos-kult-hacks/assets/intro/intro-map-splash.webp');
@@ -406,15 +410,311 @@ html {
             }
           }
         }
+      }
+      #MAIN-STAGE {
+        display: block;
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        pointer-events: none;
 
+        .location-container {
+          position: absolute;
+          transform: translate(-50%, -50%);
+          top: 40%;
+          left: calc(50% - 0.5 * var(--sidebar-width));
+          z-index: 10000;
+          border-radius: 30px;
+          border: 10px solid var(--K4-GOLD);
+          background: rgba(0, 0, 0, 0.5);
+          // padding: 20px;
+          backdrop-filter: blur(10px);
+          height: 30vh;
+          width: 35vw;
+          overflow: hidden;
+
+          .location-name {
+            font-family: var(--font-primary-smallcaps);
+            font-size: 32px;
+            color: var(--K4-dBLACK);
+
+            text-align: center;
+            height: 40px;
+            width: 100%;
+            background: var(--K4-dGOLD);
+          }
+
+          .location-image {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+          }
+
+          .location-description {
+            position: absolute;
+            bottom: 5px;
+            padding: 5px;
+            font-family: var(--font-primary);
+            font-size: 16px;
+            color: var(--K4-bWHITE);
+            text-shadow:
+              0 0 2px var(--K4-dBLACK),
+              0 0 2px var(--K4-dBLACK),
+              0 0 2px var(--K4-dBLACK),
+              0 0 2px var(--K4-dBLACK),
+              0 0 2px var(--K4-dBLACK),
+              0 0 2px var(--K4-dBLACK),
+              0 0 2px var(--K4-dBLACK),
+              0 0 2px var(--K4-dBLACK);
+            text-align: justify;
+          }
+        }
+
+        .pcs-container {
+          position: absolute;
+          bottom: 20px;
+          left: 0;
+          width: calc(100vw - var(--sidebar-width));
+          height: 300px;
+          display: flex;
+          justify-content: space-between;
+          // padding: 0 40px;
+          z-index: 1000;
+          pointer-events: all;
+          // outline: 1px solid red;
+
+          .pc-container {
+            position: relative;
+            height: 100%;
+            width: 20%;
+            // outline: 1px solid blue;
+
+            // Portrait container
+            .pc-portrait-container {
+              position: relative;
+              width: 100px;
+              height: 140px;
+              margin: 0 auto;
+              border: 3px solid var(--K4-GOLD);
+              border-radius: 50px / 70px;
+              overflow: hidden;
+              cursor: pointer;
+              transition: all 0.3s ease;
+
+              &:hover {
+                border-color: var(--K4-bGOLD);
+                transform: translateY(-2px);
+              }
+
+              &.pc-portrait-container-dimmed {
+                opacity: 0.7;
+                filter: grayscale(50%);
+              }
+
+              .pc-portrait {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                object-position: center top;
+              }
+
+              // Session Scribe indicator
+              &.is-scribe::after {
+                content: "";
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                width: 20px;
+                height: 20px;
+                background: url("modules/eunos-kult-hacks/assets/icons/quill-scroll.webp") no-repeat center/contain;
+              }
+            }
+
+            // Dramatic Hooks panel
+            .dramatic-hooks-panel {
+              position: absolute;
+              bottom: calc(100% + 50px);
+              top: unset;
+              bottom: unset;
+              top: -70px;
+              left: 50%;
+              transform: translateX(-50%);
+              display: flex;
+              flex-direction: column;
+              gap: 3px;
+              width: 90%;
+
+              .dramatic-hook-container {
+                background: rgba(0, 0, 0, 1);
+                border: 1px solid var(--K4-GOLD);
+                border-radius: 3px;
+                padding: 3px;
+
+                .dramatic-hook-content {
+                  color: var(--K4-bWHITE);
+                  font-size: 10px;
+                  line-height: 1.2;
+                  font-family: var(--font-primary);
+                }
+
+                &.checked {
+                  text-decoration: line-through;
+                  opacity: 0.7;
+                }
+              }
+            }
+
+            // Stability panel
+            .stability-panel {
+              position: absolute;
+              top: 5px;
+              left: 15%;
+              transform: translateX(-50%);
+              width: 32px;
+              height: 32px;
+              background: rgba(0, 0, 0, 0.8);
+              border: 1px solid var(--K4-GOLD);
+              border-radius: 16px;
+              padding: 3px;
+
+
+              .stability-number {
+                font-size: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 18px;
+                font-weight: bold;
+                color: var(--K4-bBLUE);
+                text-align: center;
+                cursor: pointer;
+                margin-top: 4px;
+                margin-bottom: -4px;
+
+                &:hover {
+                  color: var(--K4-GOLD);
+                }
+              }
+
+              // Popover styling
+              [popover] {
+                padding: 6px 10px;
+                border: 1px solid var(--K4-GOLD);
+                background: rgba(0, 0, 0, 0.95);
+                border-radius: 4px;
+
+                .stability-tier {
+                  font-size: 14px;
+                  color: var(--K4-GOLD);
+                  text-align: center;
+                  font-style: italic;
+                  white-space: nowrap;
+                }
+              }
+
+              .stability-conditions {
+                margin-top: 10px;
+                font-size: 9px;
+                color: var(--K4-bbBLUE);
+                font-weight: 1000;
+                text-align: center;
+                white-space: nowrap;
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                justify-content: center;
+                align-items: center;
+                text-shadow:
+                  0 0 2px var(--K4-dBLACK),
+                  0 0 2px var(--K4-dBLACK),
+                  0 0 2px var(--K4-dBLACK),
+                  0 0 2px var(--K4-dBLACK),
+                  0 0 2px var(--K4-dBLACK),
+                  0 0 2px var(--K4-dBLACK),
+                  0 0 2px var(--K4-dBLACK),
+                  0 0 2px var(--K4-dBLACK);
+              }
+            }
+
+            // Wounds panel
+            .wounds-panel {
+              position: absolute;
+              bottom: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 110px;
+              background: rgba(0, 0, 0, 0.8);
+              border: 1px solid var(--K4-RED);
+              border-radius: 3px;
+              padding: 3px;
+
+              .wound {
+                font-size: 10px;
+                color: var(--K4-bRED);
+                margin: 1px 0;
+
+                &.serious { color: var(--K4-RED); }
+                &.critical { color: var(--K4-bRED); }
+                &.stabilized { text-decoration: line-through; }
+              }
+            }
+
+            // Triggers and Holds panel
+            .triggers-and-holds-panel {
+              position: absolute;
+              bottom: 50px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 110px;
+              background: rgba(0, 0, 0, 0.8);
+              border: 1px solid var(--K4-GOLD);
+              border-radius: 3px;
+              padding: 3px;
+
+              .trigger-hold-item {
+                display: flex;
+                align-items: center;
+                gap: 2px;
+                margin: 1px 0;
+
+                .hold-control {
+                  display: flex;
+                  gap: 1px;
+                  font-size: 10px;
+                  color: var(--K4-GOLD);
+                }
+
+                .trigger-icon {
+                  width: 12px;
+                  height: 12px;
+                }
+
+                .trigger-text {
+                  font-size: 9px;
+                  color: var(--K4-bWHITE);
+                  flex: 1;
+                }
+              }
+            }
+
+            // Dramatic Hook candle indicator
+            &.has-hook-assignment::after {
+              content: "";
+              position: absolute;
+              bottom: -15px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 12px;
+              height: 18px;
+              background: url("modules/eunos-kult-hacks/assets/icons/candle.webp") no-repeat center/contain;
+            }
+          }
+        }
       }
       .safety-buttons {
 
       }
       .alert-container {
-
-      }
-      .tooltip-container {
 
       }
 

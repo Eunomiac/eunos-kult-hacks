@@ -214,6 +214,9 @@ export default function registerEunosActor(): void {
       if (this.system.stability.value === 0) {
         return "Broken";
       }
+      if (this.system.stability.value === 10) {
+        return "Composed";
+      }
       if (this.system.stability.value >= 8) {
         return "Moderately Stressed";
       }
