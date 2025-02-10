@@ -478,6 +478,31 @@ class EunosOverlay {
     3. Wounds panel <!-- Compact display of wound data: bright red/dark red for serious/critical, strike-through for stabilized serious. Clicking sends global EunosAlert.Alert() -->
     4. Triggers & Hold panel <!-- Wide panel beneath portrait. Shows system.type === "active" or "triggered" Advantages/Disadvantages as <hold> <image icon> <trigger>. Hold +/- controls visible to GM if canHold true -->
 
+#### Using Data-Action
+```javascript
+// for proper class definition you'd need to use HandlebarsApplicationMixin
+// but it's not used here because these are properties of the base ApplicationV2 class
+class MyApplication extends ApplicationV2 {
+  static DEFAULT_OPTIONS = {
+    actions: {
+      myAction: MyApplication.myAction
+    }
+  }
+
+  /**
+   * @param {PointerEvent} event - The originating click event
+   * @param {HTMLElement} target - the capturing HTML element which defined a [data-action]
+   */
+  static myAction(event, target) {
+    console.log(this) // logs the specific application class instance
+  }
+}
+```
+Pair with HTML:
+```html
+<div data-action="myAction">Using a div for inline text</div>
+```
+
 - **Safety System**
   - "STOP SCENE" button <!-- Looks like a stop sign, visible to all players, bottom left. Sends private whisper to GM -->
   - "FADE TO BLACK" button <!-- Looks like lowering black curtain, visible to all players, bottom left. Sends private whisper to GM -->

@@ -4,6 +4,7 @@ import TypeDataModel = foundry.abstract.TypeDataModel;
 const ActorSchemaNPC = {
   home: new fields.StringField(),
   creaturetype: new fields.StringField(),
+  shortDescription: new fields.StringField(),
   harm: new fields.SchemaField({
     value: new fields.NumberField(),
     min: new fields.NumberField(),
@@ -20,7 +21,8 @@ const ActorSchemaNPC = {
     combat: new fields.NumberField(),
     influence: new fields.NumberField(),
     magic: new fields.NumberField(),
-  })
+  }),
+  isSpotlit: new fields.BooleanField()
 };
 
 export default class ActorDataNPC extends TypeDataModel<

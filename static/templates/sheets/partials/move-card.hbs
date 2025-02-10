@@ -5,9 +5,6 @@
   popoverID=(getUniqueID "move-card-popover")
   tooltip=(getTooltip actorID _id)
   }}
-  {{log "ActorID: " actorID}}
-  {{log "ItemID: " _id}}
-  {{log "Tooltip: " tooltip}}
   <div class="item-draggable {{type}}-info item-name" data-item-id="{{_id}}" {{#if
     tooltip}}popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}" {{/if}}>
     {{#if (eq system.type "active")}}

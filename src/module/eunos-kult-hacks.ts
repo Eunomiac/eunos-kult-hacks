@@ -55,7 +55,7 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/session-zoom.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/safety-buttons.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/alerts.hbs",
-  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/tooltips.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/countdown.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-header.hbs",

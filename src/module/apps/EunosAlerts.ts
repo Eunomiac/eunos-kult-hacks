@@ -11,7 +11,7 @@ import EunosSockets, {UserTargetRef} from "../apps/EunosSockets.js";
 // #region -- ENUMS ~
 enum AlertType {
   simple = "simple",
-  card = "card"
+  gmNotice = "gmNotice"
 };
 
 // #endregion
@@ -35,6 +35,12 @@ declare namespace EunosAlerts {
       svgPaths?: Record<string, SVGPathData>;
       logoImg?: string
     }
+
+    export interface GMNotice extends Base {
+      type: AlertType.gmNotice,
+      header: string;
+      body: string;
+    }
   }
   // export type Context<T extends AlertType> = T extends AlertType.simple ? Context.Simple
   //   : T extends AlertType.card ? Context.Card
@@ -51,10 +57,14 @@ declare namespace EunosAlerts {
     export interface Simple extends Context.Simple, Base {
       type: AlertType.simple;
     }
+    export interface GMNotice extends Context.GMNotice, Base {
+      type: AlertType.gmNotice;
+    }
   }
   export type TypedData<T extends AlertType> = T extends AlertType.simple ? Data.Simple
+    : T extends AlertType.gmNotice ? Data.GMNotice
     : never;
-  export type Data = Data.Simple;
+  export type Data = Data.Simple | Data.GMNotice;
 }
 // #endregion
 // #endregion
@@ -230,27 +240,22 @@ const ALERTANIMATIONS: Record<AlertType, {
       extendTimeline: true
     }
   },
-  [AlertType.card]: {
+  [AlertType.gmNotice]: {
     in: {
-      name: "cardAlertIn",
-      effect: (target, config) => {
-        const {duration, ease} = config;
+      name: "gmNoticeAlertIn",
+      effect: (target) => {
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         return gsap.timeline()
-          ["fadeShrinkIn"](target, {duration, ease: "power2.inOut"}) as gsap.core.Timeline;
+          ["fadeShrinkIn"](target, {duration: 1.5, ease: "power2.inOut"}) as gsap.core.Timeline;
       },
-      defaults: {
-        duration: 1,
-        ease: "power3.in"
-      },
+      defaults: {},
       extendTimeline: true
     },
     out: {
-      name: "cardAlertOut",
-      effect: (target, config) => {
-        const {duration, ease} = config;
+      name: "gmNoticeAlertOut",
+      effect: (target) => {
         return gsap.timeline()
-          ["fadeOut"](target, {duration, ease: "power2.inOut"}) as gsap.core.Timeline;
+          ["fadeOut"](target, {duration: 0.5, ease: "power2.inOut"}) as gsap.core.Timeline;
       },
       defaults: {
         duration: 0.5,

@@ -1,6 +1,7 @@
+// #region -- IMPORTS ~
 import ApplicationV2 = foundry.applications.api.ApplicationV2;
 import HandlebarsApplicationMixin = foundry.applications.api.HandlebarsApplicationMixin;
-import { countdownUntil } from "../scripts/utilities";
+import { countdownUntil, formatDateAsISO } from "../scripts/utilities";
 import {
   LOADING_SCREEN_DATA,
   PRE_SESSION,
@@ -10,8 +11,10 @@ import type { EmptyObject } from "fvtt-types/utils";
 import { GamePhase } from "../scripts/enums";
 import { type GSAPEffect, OverlayItemSide } from "../scripts/animations";
 import EunosSockets, { UserTargetRef, SocketState } from "./EunosSockets";
+import {AlertType} from "./EunosAlerts";
+// #endregion -- IMPORTS ~
 
-// #region Type Definitions
+// #region Type Definitions ~
 /** Status of video loading for each user */
 export enum VideoLoadStatus {
   NotConnected = "NotConnected",
@@ -21,7 +24,7 @@ export enum VideoLoadStatus {
   LoadPending = "LoadPending",
   PreloadNotRequested = "PreloadNotRequested",
 }
-
+// #endregion Type Definitions
 export default class EunosOverlay extends HandlebarsApplicationMixin(
   ApplicationV2,
 ) {
@@ -39,6 +42,39 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return EunosOverlay._instance;
   }
   // #endregion SINGLETON PATTERN
+
+  // #region ACTIONS ~
+  static readonly ACTIONS = {
+    pcPortraitClick(event: PointerEvent, target: HTMLElement) {
+      const pcId = target.dataset['pcId'];
+      if (!pcId) {
+        kLog.error("No pcId found for pc portrait click");
+        return;
+      }
+      const pc = getActors().find((actor) => actor.id === pcId);
+      if (!pc || !pc.isPC()) {
+        kLog.error("No pc found for pcId", { pcId });
+        return;
+      }
+      // @ts-expect-error Don't know why the types won't recognize this syntax.
+      pc.sheet?.render({force: true});
+    },
+    stopSceneClick(event: PointerEvent, target: HTMLElement) {
+      void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
+        type: AlertType.gmNotice,
+        header: "STOP SCENE",
+        body: "A player has requested an immediate scene stop.",
+      });
+    },
+    fadeToBlackClick(event: PointerEvent, target: HTMLElement) {
+      void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
+        type: AlertType.gmNotice,
+        header: "FADE TO BLACK",
+        body: "A player has requested a fade to black.",
+      });
+    },
+  }
+  // #endregion ACTIONS
 
   // #region STATIC CONFIGURATION ~
   static override DEFAULT_OPTIONS = {
@@ -60,6 +96,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       resizable: false,
       contentTag: "div",
       contentClasses: ["eunos-overlay-content"],
+    },
+    actions: {
+      pcPortraitClick: EunosOverlay.ACTIONS.pcPortraitClick.bind(EunosOverlay.instance),
+      stopSceneClick: EunosOverlay.ACTIONS.stopSceneClick.bind(EunosOverlay.instance),
+      fadeToBlackClick: EunosOverlay.ACTIONS.fadeToBlackClick.bind(EunosOverlay.instance),
     }
   };
 
@@ -133,14 +174,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
 
     await this.instance.render({ force: true });
-  }
-
-  static CallFadeToBlack(this: EunosOverlay, ...args: unknown[]) {
-    kultLogger("Fade to black called", args);
-  }
-
-  static CallStopScene(this: EunosOverlay, ...args: unknown[]) {
-    kultLogger("Stop scene called", args);
   }
 
   static async animateSessionTitle(
@@ -1287,9 +1320,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #endregion LISTENERS ~
 
-  // #region APPLICATION OVERRIDES ~
+  // #region OVERRIDE: PREPARE CONTEXT ~
   override async _prepareContext(options: ApplicationV2.RenderOptions) {
     const context = await super._prepareContext(options);
+
+
 
     if (!getUser().isGM) {
       return context;
@@ -1321,7 +1356,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     return context;
   }
+  // #endregion OVERRIDE: PREPARE CONTEXT ~
 
+  // #region OVERRIDE: ON RENDER ~
   override _onRender(
     context: EmptyObject,
     options: ApplicationV2.RenderOptions,
@@ -1336,7 +1373,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     this.addStartVideoButtonListeners();
   }
-  // #endregion APPLICATION OVERRIDES
+  // #endregion OVERRIDE: ON RENDER ~
 
   // #region PHASE LIFECYCLE METHODS ~
 

@@ -2623,7 +2623,7 @@ function displayImageSelector(
  */
 function countdownUntil(): CountdownTime {
   // Get next session time from settings
-  const nextSessionStr = getSettings().get("eunos-kult-hacks", "nextGameSession");
+  const nextSessionStr = getSettings().get("eunos-kult-hacks", "sessionData.nextGameSession");
   if (!nextSessionStr) {
     throw new Error("Next game session time not set");
   }
@@ -2649,7 +2649,7 @@ function countdownUntil(): CountdownTime {
 
     // Update the setting
     void setSetting(
-      "nextGameSession",
+      "sessionData.nextGameSession",
       targetDate.toLocaleString("en-CA", { timeZone: torontoTz })
     );
 
@@ -2698,6 +2698,149 @@ function convertTorontoTime(date: Date, toUTC = false): Date {
     // Convert UTC to Toronto time
     return new Date(date.toLocaleString("en-US", { timeZone: torontoTz }));
   }
+}
+
+/**
+ * Formats a date into a modified ISO 8601 format (YYYY-MM-DD HH:mm:ss) in Toronto timezone
+ * Attempts to normalize various input formats before throwing an error
+ * @param input - Optional Date object, timestamp number, date string, or undefined
+ * @returns Formatted date string
+ * @throws Error if input cannot be converted to a valid Date after normalization
+ */
+function formatDateAsISO(input?: Date | string | number): string {
+  // Create a Date object based on input type
+  const date = (() => {
+    if (input === undefined) {
+      return new Date();
+    }
+    if (input instanceof Date) {
+      return input;
+    }
+
+    // If it's a string, try to normalize it first
+    if (typeof input === "string") {
+      // Remove multiple spaces and trim
+      let normalized = input.replace(/\s+/g, " ").trim();
+
+      // Try to handle common date formats
+      // DD/MM/YYYY or MM/DD/YYYY
+      if (/^\d{1,2}[/-]\d{1,2}[/-]\d{4}/.test(normalized)) {
+        normalized = normalized.replace(/\//g, "-");
+      }
+
+      // Handle 12-hour time format (convert to 24-hour)
+      if (/\d{1,2}:\d{2}(?::\d{2})?\s*[AaPp][Mm]/.test(normalized)) {
+        const [datePart, timePart] = normalized.split(/\s+/);
+        const [time, meridiem] = timePart!.split(/(?=[AaPp][Mm])/);
+        const [hours, minutes, seconds = "00"] = time!.split(":");
+        let hour = parseInt(hours!, 10);
+
+        if (meridiem!.toLowerCase() === "pm" && hour < 12) {
+          hour += 12;
+        } else if (meridiem!.toLowerCase() === "am" && hour === 12) {
+          hour = 0;
+        }
+
+        normalized = `${datePart} ${hour.toString().padStart(2, "0")}:${minutes}:${seconds}`;
+      }
+
+      // Add seconds if missing
+      if (/\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(normalized)) {
+        normalized += ":00";
+      }
+
+      // Try the normalized string first
+      const normalizedDate = new Date(normalized);
+      if (!isNaN(normalizedDate.getTime())) {
+        return normalizedDate;
+      }
+    }
+
+    // If normalization failed or input was a number, try direct construction
+    const constructed = new Date(input);
+    if (isNaN(constructed.getTime())) {
+      throw new Error(`Invalid date input: ${String(input)}`);
+    }
+    return constructed;
+  })();
+
+  return date.toLocaleString('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'America/Toronto',
+  }).replace(',', '');
+}
+
+/**
+ * Gets the next occurrence of a specified day and time in Toronto timezone
+ * @param dayOfWeek - Day to find (0-6 for Sunday-Saturday, or day name)
+ * @param hours - Hour in 24-hour format (0-23)
+ * @param minutes - Minutes (0-59)
+ * @returns Date object set to next occurrence of specified day/time in Toronto timezone
+ * @throws Error if parameters are invalid
+ */
+function getNextDayTime(
+  dayOfWeek: number | string,
+  hours: number,
+  minutes: number
+): Date {
+  // Validate and normalize inputs
+  const dayNum = (() => {
+    if (typeof dayOfWeek === "number") {
+      if (dayOfWeek < 0 || dayOfWeek > 6) {
+        throw new Error("Day of week must be 0-6 (Sunday-Saturday)");
+      }
+      return dayOfWeek;
+    }
+
+    // Minimum unique patterns to match each day
+    const dayPatterns = [
+      /^su/i,    // Sunday
+      /^m/i,     // Monday
+      /^tu/i,    // Tuesday
+      /^w/i,     // Wednesday
+      /^th/i,    // Thursday
+      /^f/i,     // Friday
+      /^sa/i     // Saturday
+    ];
+
+    const index = dayPatterns.findIndex(pattern => pattern.test(dayOfWeek));
+    if (index === -1) {
+      throw new Error(`Invalid day name: ${dayOfWeek}`);
+    }
+    return index;
+  })();
+
+  if (hours < 0 || hours > 23) {
+    throw new Error("Hours must be 0-23");
+  }
+  if (minutes < 0 || minutes > 59) {
+    throw new Error("Minutes must be 0-59");
+  }
+
+  // Create a date object in Toronto timezone
+  const date = new Date();
+  const torontoDate = new Date(date.toLocaleString("en-US", { timeZone: "America/Toronto" }));
+
+  // Set the time
+  torontoDate.setHours(hours, minutes, 0, 0);
+
+  // If we've already passed this time today, add a day
+  if (torontoDate < date) {
+    torontoDate.setDate(torontoDate.getDate() + 1);
+  }
+
+  // Keep adding days until we hit the target day
+  while (torontoDate.getDay() !== dayNum) {
+    torontoDate.setDate(torontoDate.getDate() + 1);
+  }
+
+  return torontoDate;
 }
 
 export {
@@ -2813,7 +2956,7 @@ export {
 
   loc, getSetting, getTemplatePath, displayImageSelector,
 
-  convertTorontoTime,
+  convertTorontoTime, formatDateAsISO, getNextDayTime
 
 };
 // #endregion ▄▄▄▄▄ EXPORTS ▄▄▄▄▄

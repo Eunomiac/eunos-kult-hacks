@@ -34,12 +34,12 @@ function registerCountdownTests(quench: Quench): void {
         let originalNextSession: string;
 
         before(async function () {
-          originalNextSession = getSetting("nextGameSession");
+          originalNextSession = getSetting("sessionData.nextGameSession");
         });
 
         after(async function () {
           // Restore original nextGameSession value
-          await setSetting("nextGameSession", originalNextSession);
+          await setSetting("sessionData.nextGameSession", originalNextSession);
         });
 
         it("should trigger pre-session song at appropriate time", async function () {
@@ -49,7 +49,7 @@ function registerCountdownTests(quench: Quench): void {
           const date = new Date();
           date.setMinutes(date.getMinutes() + 5);
           await setSetting(
-            "nextGameSession",
+            "sessionData.nextGameSession",
             new Date(date.toLocaleString("en-US", { timeZone: "America/Toronto" })).toISOString(),
           );
 
@@ -90,7 +90,7 @@ function registerCountdownTests(quench: Quench): void {
           const date = new Date();
           date.setMinutes(date.getMinutes() + 6);
           await setSetting(
-            "nextGameSession",
+            "sessionData.nextGameSession",
             new Date(date.toLocaleString("en-US", { timeZone: "America/Toronto" })).toISOString(),
           );
 
@@ -134,7 +134,7 @@ function registerCountdownTests(quench: Quench): void {
           const date = new Date();
           date.setSeconds(date.getSeconds() + 10);
           await setSetting(
-            "nextGameSession",
+            "sessionData.nextGameSession",
             new Date(date.toLocaleString("en-US", { timeZone: "America/Toronto" })).toISOString(),
           );
 
@@ -182,7 +182,7 @@ function registerCountdownTests(quench: Quench): void {
           const date = new Date();
           date.setSeconds(date.getSeconds() + 10);
           await setSetting(
-            "nextGameSession",
+            "sessionData.nextGameSession",
             new Date(date.toLocaleString("en-US", { timeZone: "America/Toronto" })).toISOString(),
           );
 
@@ -272,7 +272,7 @@ function registerDateTests(quench: Quench): void {
           const nextSession = new Date();
           nextSession.setHours(nextSession.getHours() + 2); // 2 hours from now
           void setSetting(
-            "nextGameSession",
+            "sessionData.nextGameSession",
             nextSession.toISOString()
           );
 

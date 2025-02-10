@@ -1,0 +1,46 @@
+<div id="STAGE" class="eunos-overlay-stage">
+  <div class="3d-background-container">
+    <div class="3d-background"></div>
+  </div>
+  <div class="main-stage-container">
+    <div class="main-stage">
+      <div class="location-container">
+        <div class="location-name">{{location.name}}</div>
+        <img class="location-image" src="{{location.image}}" alt="{{location.name}}" />
+        <div class="location-description">{{location.description}}</div>
+      </div>
+      <div class="npcs-container">
+        {{#each npcsData as |npc index|}}
+        {{#let
+          anchorName=(getUniqueID "npc-container-anchor")
+          popoverID=(getUniqueID "npc-container-popover")
+          tooltip=npc.description
+        }}
+        <div class="npc-container npc-container-index-{{index}}" data-npc-id="{{npc.id}}" {{#if tooltip}}popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}" {{/if}}>
+          <div class="npc-name">{{npc.name}}</div>
+          <img class="npc-image" src="{{npc.img}}" alt="{{npc.name}}" />
+          <div class="npc-description">{{npc.system.shortDescription}}</div>
+        </div>
+        {{#if tooltip}}
+        <div id="{{popoverID}}" style="position-anchor: --{{anchorName}};" popover>
+          {{{tooltip}}}
+        </div>
+        {{/if}}
+        <div class="npc-container-spotlight npc-container-spotlight-index-{{index}}" data-npc-id="{{npc.id}}" data-is-spotlit="{{npc.system.isSpotlit}}">
+        {{/let}}
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  <div class="pcs-container">
+    {{#each pcsData as |pc index|}}
+    <div class="pc-container">
+      <div class="pc-portrait-container" data-action>
+        <img class="pc-portrait" src="{{pc.img}}" alt="{{pc.name}}" />
+      </div>
+
+
+    </div>
+    {{/each}}
+  </div>
+</div>
