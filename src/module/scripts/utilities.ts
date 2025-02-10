@@ -2623,7 +2623,7 @@ function displayImageSelector(
  */
 function countdownUntil(): CountdownTime {
   // Get next session time from settings
-  const nextSessionStr = getSettings().get("eunos-kult-hacks", "sessionData.nextGameSession");
+  const nextSessionStr = getSettings().get("eunos-kult-hacks", "nextGameSession");
   if (!nextSessionStr) {
     throw new Error("Next game session time not set");
   }
@@ -2649,7 +2649,7 @@ function countdownUntil(): CountdownTime {
 
     // Update the setting
     void setSetting(
-      "sessionData.nextGameSession",
+      "nextGameSession",
       targetDate.toLocaleString("en-CA", { timeZone: torontoTz })
     );
 
