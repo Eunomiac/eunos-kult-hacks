@@ -1,4 +1,5 @@
 import { SYSTEM_ID } from "../scripts/constants";
+import { GamePhase } from "../scripts/enums";
 import * as U from "../scripts/utilities";
 import EunosAlerts from "./EunosAlerts";
 import { socketLogger } from "../scripts/socket-logger";
@@ -18,6 +19,13 @@ export type UserTarget = UserTargetRef | IDString | UUIDString;
 
 /** Type-safe socket event definitions */
 export interface SocketEvents {
+  /** GM changes the current game phase */
+  changePhase: {
+    data: {
+      prevPhase: GamePhase;
+      newPhase: GamePhase;
+    };
+  };
   /** GM triggers video preloading for all clients */
   preloadIntroVideo: {
     data?: never;
@@ -40,6 +48,11 @@ export interface SocketEvents {
   };
   Alert: {
     data: Partial<EunosAlerts.Data>;
+  };
+  setLocation: {
+    data: {
+      location: string;
+    };
   };
 }
 
@@ -241,6 +254,18 @@ export default class EunosSockets {
     data: unknown
   ): asserts data is SocketEvents[E]["data"] {
     switch (event) {
+      case "changePhase": {
+        if (typeof data !== "object" || data === null) {
+          throw new Error("changePhase event requires an object with prevPhase and newPhase properties");
+        }
+        break;
+      }
+      case "setLocation": {
+        if (typeof data !== "object" || data === null) {
+          throw new Error("setLocation event requires an object with location string");
+        }
+        break;
+      }
       case "preloadIntroVideo": {
         break;
       }
@@ -295,6 +320,7 @@ export default class EunosSockets {
       this.validateEventData(event, data);
 
       socketLogger.logEvent(
+        target === (UserTargetRef.gm as string) ? "GM-Targeted Call" : "Broadcast Call",
         event,
         data,
         users.map((user: User) => user.name ?? user.id!),
@@ -304,7 +330,7 @@ export default class EunosSockets {
       if (target === UserTargetRef.gm as string) {
         const result = await socket.executeAsGM(event, data);
         const duration = performance.now() - startTime;
-        socketLogger.logResult(event, duration);
+        socketLogger.logResult("GM-Targeted Call", event, duration, data, result);
         return result as R;
       }
 
@@ -312,26 +338,11 @@ export default class EunosSockets {
       const userIds = users.map((user: User) => user.id!);
       await socket.executeForUsers(event, userIds, data);
       const duration = performance.now() - startTime;
-      socketLogger.logResult(event, duration);
+      socketLogger.logResult("Broadcast Call", event, duration, data, undefined);
       return undefined as R;
     } catch (error: unknown) {
       socketLogger.logError(event, error);
       throw error;
-    }
-  }
-
-  /** Checks if an event requires data */
-  private eventRequiresData(event: SocketEventName): boolean {
-    switch (event) {
-      case "reportPreloadStatus":
-      case "Alert":
-        return true;
-      case "startVideoPlayback":
-      case "requestVideoSync":
-        return false;
-      default: {
-        throw new Error(`Unknown socket event: ${String(event)}`);
-      }
     }
   }
 
@@ -345,16 +356,16 @@ export default class EunosSockets {
 
     if (!func || typeof func !== "function") {
       const error = new Error(`Socket function not found or invalid: ${event}`);
-      socketLogger.logError(event, error);
+      socketLogger.logError(event, error, data);
       throw error;
     }
 
     try {
       await Promise.resolve(func(data));
       const duration = performance.now() - startTime;
-      socketLogger.logResult(event, duration);
+      socketLogger.logResult("Socket Function Call", event, duration, data);
     } catch (error: unknown) {
-      socketLogger.logError(event, error);
+      socketLogger.logError(event, error, data);
       throw error;
     }
   }

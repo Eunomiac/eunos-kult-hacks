@@ -392,7 +392,7 @@ class EunosAlerts {
   // #endregion
 
   static get Overlay$(): JQuery {
-    return $("#EUNOS_ALERTS");
+    return $("#ALERTS");
   }
   static readonly AlertQueue: OrderedSet<EunosAlerts> = new OrderedSet<EunosAlerts>();
 

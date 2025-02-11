@@ -1,0 +1,48 @@
+#COUNTDOWN {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 100px;
+  transform-origin: center center;
+  left: 50%;
+  z-index: 101;
+  pointer-events: none;
+  visibility: hidden;
+  height: fit-content;
+  width: fit-content;
+  .loading-screen-countdown {
+    position: relative;
+    transform: translate(-50%, 0%);
+    top: 0px;
+    left: 0%;
+    z-index: 101;
+    pointer-events: none;
+    letter-spacing: 2px;
+    display: flex;
+    flex-direction: column;
+    // text-shadow:
+    //   0 0 10px rgba(255, 255, 255, 1);
+
+    .glitch-text {
+      position: absolute;
+      pointer-events: none;
+      user-select: none;
+      display: block;
+      color: var(--K4-bbGOLD);
+      font-family: var(--font-decorative);
+      font-size: 12em;
+      transform-origin: center center;
+      height: 150px;
+      &.glitch-top {
+        position: relative;
+        clip-path: inset(0 0 48% 0);
+      }
+
+      &.glitch-bottom {
+        clip-path: inset(48% 0 0 0);
+      }
+    }
+
+    // Optional: Add a subtle glow animation
+    // animation: glow 2s ease-in-out infinite alternate;
+  }
+}

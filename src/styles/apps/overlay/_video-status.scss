@@ -1,0 +1,87 @@
+
+#VIDEO-STATUS-PANEL {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--K4-GOLD);
+  border-radius: 4px;
+  padding: 12px;
+  color: white;
+  pointer-events: all;
+  z-index: 10001;
+  width: 250px;
+  // opacity: 0;
+  // visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s;
+
+  h3 {
+    font-family: var(--font-primary);
+    font-size: 16px;
+    margin: 0 0 8px 0;
+    color: var(--K4-GOLD);
+    text-align: center;
+  }
+
+  .user-status-list {
+    margin-bottom: 12px;
+
+    .user-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-family: var(--font-primary);
+      font-size: 14px;
+
+      .user-name {
+        color: #ffffff;
+      }
+
+      .status-indicator {
+        font-size: 12px;
+      }
+
+      &.notstarted {
+        opacity: 0.6;
+      }
+
+      &.loading {
+        .status-indicator {
+          animation: pulse 1s infinite;
+        }
+      }
+
+      &.ready {
+        .user-name {
+          color: #90EE90;
+        }
+      }
+    }
+  }
+
+  .start-video {
+    width: 100%;
+    background: var(--K4-RED);
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    font-family: var(--font-primary);
+    font-size: 14px;
+    cursor: pointer;
+    pointer-events: all;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: var(--K4-bRED);
+    }
+
+    &:disabled {
+      background: #666;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+}

@@ -6,6 +6,9 @@ import getConditionField from "./fields/getConditionField";
 import getAdvancementField from "./fields/getAdvancementField";
 import getBioBlockField from "./fields/getBioBlockField";
 import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
+import EunosItem from "../documents/EunosItem";
+import ItemDataAdvantage from "./ItemDataAdvantage";
+import ItemDataDisadvantage from "./ItemDataDisadvantage";
 import { STABILITY_VALUES, STABILITY_MODIFIERS, STABILITY_STATES, WOUND_MODIFIERS, WOUND_MODIFIERS_GRITTED_TEETH } from "../scripts/constants";
 
 
@@ -126,6 +129,8 @@ interface ActorDerivedSchemaPC {
   stabilityValues: Array<{value: number, label: string}>;
   stabilityModifiers: string[];
   woundModifiers: string[];
+  advantages: Array<EunosItem & {system: ItemDataAdvantage}>;
+  disadvantages: Array<EunosItem & {system: ItemDataDisadvantage}>;
 }
 
 export default class ActorDataPC extends TypeDataModel<
@@ -161,5 +166,9 @@ export default class ActorDataPC extends TypeDataModel<
       this.woundModifiers = woundModifiers.singleSerious;
     }
 
+    this.advantages = this.parent.items
+      .filter((item): item is EunosItem & {system: ItemDataAdvantage} => item.isAdvantage());
+    this.disadvantages = this.parent.items
+      .filter((item): item is EunosItem & {system: ItemDataDisadvantage} => item.isDisadvantage());
   }
 }

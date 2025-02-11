@@ -359,10 +359,87 @@ export const Colors = {
 };
 // #endregion
 
+// #region LOCATIONS ~
+export const LOCATIONS = {
+  "Willow's Wending": {
+    image: "",
+    description: "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
+    mapTransforms: [
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          perspective: 800
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer",
+        properties: {
+          x: -4857.6,
+          y: -3370.7,
+          z: -1500,
+          rotationX: 41.7,
+          rotationY: -18.9,
+          rotationZ: 16.9,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          background: "radial-gradient(circle at 67% 85%, transparent, rgba(0, 0, 0, 0.9) 13%)"
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          filter: "hue-rotate(130deg) saturate(0.5)"
+        }
+      }
+    ],
+  },
+  "Ranger Station #1": {
+    image: "",
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          perspective: 446
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer",
+        properties: {
+          x: -3689.8,
+          y: -976,
+          z: 451,
+          rotationX: 24,
+          rotationY: -3.8,
+          rotationZ: 4,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          background: "radial-gradient(circle at 44% 20%, transparent, rgba(0, 0, 0, 0.9) 8%)"
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          filter: "hue-rotate(0deg) saturate(1)"
+        }
+      }
+    ]
+  }
+} as const;
+
+
+// #endregion
+
 // #region LOADING SCREENS ~
 export const LOADING_SCREEN_DATA = {
   "Azghoul": {
-    prefix: "the",
+    prefix: "",
     title: "Azghouls",
     subtitle: "Our Forgotten Thralls",
     home: "Metropolis",
@@ -370,7 +447,7 @@ export const LOADING_SCREEN_DATA = {
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/azghoul.webp",
   },
   "Gynachid": {
-    prefix: "the",
+    prefix: "",
     title: "Gynachids",
     subtitle: "Mothers No More",
     home: "Metropolis",
@@ -394,7 +471,7 @@ export const LOADING_SCREEN_DATA = {
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/dream-princess.webp",
   },
   "Lictor": {
-    prefix: "the",
+    prefix: "",
     title: "Lictors",
     subtitle: "Our Jailers",
     home: "Elysium",
@@ -415,7 +492,6 @@ export const LOADING_SCREEN_DATA = {
     subtitle: "The Mutilated Damned",
     home: "Inferno",
     body: "Purgatides are the discarded remnants of Inferno's endless tortures, little more than torn flesh held together by rusted clamps and thread. Their butchered bodies leak blood and pus, concealed beneath tattered coats. Mindless and fanatical, they shuffle through Elysium as hollow servants of razides and nepharites, their fevered eyes betraying the agony they no longer recognize as their own.",
-    // short_body: "Purgatides are husks of suffering, bodies shredded by Inferno's tortures and crudely stitched back together. Their minds are broken, their purpose singular: serve, suffer, and obey.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/purgatide.webp",
   },
   "Razide": {
@@ -425,7 +501,63 @@ export const LOADING_SCREEN_DATA = {
     home: "Inferno",
     body: "Razides are forged from the tortured remnants of souls torn from Inferno's purgatories, their flesh fused with tubes, razors and grinding gears, their minds enslaved by a writhing parasitic worm harvested from the Underworld. Hulking brutes of Inferno, they serve the Death Angels as warriors and enforcers, spreading terror and bloodshed in Elysium's shadows.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/razide.webp",
-  }
+  },
+  "Moth Child": {
+    prefix: "the",
+    title: "Moth Child",
+    subtitle: "Whisperer of Dreams",
+    home: "Limbo",
+    body: "The Moth Child is a tragic dream being, its naked, ash-grey body covered in moths that emerge from its flesh. It haunts solitary victims, whispering in dreams and feeding on their blood in Elysium. As it intrudes upon dreams, the fluttering of moth wings becomes a constant presence, and the victim begins to attract moths in the waking world.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/the-moth-child.webp",
+  },
+  "The Seamstress": {
+    prefix: "the",
+    title: "Seamstress",
+    subtitle: "Stitcher of Dreams",
+    home: "Limbo",
+    body: "The Seamstress is a dream being who disassembles and reassembles her victims, demanding stories from their waking lives as payment. Her realm is a French suburb filled with reanimated corpses, stitched together and controlled by her will. In her sewing chamber, she hoards the organs of dreamers, promising their return for further services.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/the-seamstress.webp",
+  },
+  "Ferals": {
+    prefix: "",
+    title: "Ferals",
+    subtitle: "Survivors, Twisted",
+    home: "Metropolis",
+    body: "Once human, ferals have become abominations lurking in Metropolis's shadows. Distorted by contagion and poison, they are grey-skinned, hollow-eyed, and move with an animalistic gait. Living in ruins, they are cannibals, preying on wanderers and scavenging for sustenance. Their sole objective is survival.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/feral.webp",
+  },
+  "Jackals": {
+    prefix: "",
+    title: "Jackals",
+    subtitle: "Mad Predators",
+    home: "Elysium",
+    body: "Jackals are distorted humans, bound to the Death Angels' principles, living on society's fringes. They are wild, cannibalistic, and lack empathy outside their pack. Recognizable by their animal musk, they blend into extremist groups. Each pack varies by the Death Angel they follow, preying on the vulnerable, reveling in terror, and driven by primal instincts.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/jackal.webp",
+  },
+  "Mancipia": {
+    prefix: "",
+    title: "Mancipia",
+    subtitle: "Built for Pleasure",
+    home: "Metropolis",
+    body: "Mancipia are eyeless, hairless beings with serpentine tongues, hidden by the Illusion to appear human. They exude an intoxicating allure, inciting obsession and desire, their bodies a perfect symbiosis of male and female. Used by Archons to manipulate and lead astray those who threaten secrets, they can also inspire creativity and reveal humanity's divinity through art.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/mancipia.webp",
+  },
+  "Cairath": {
+    prefix: "",
+    title: "Cairath",
+    subtitle: "Underworld Abominations",
+    home: "the Underworld",
+    body: "Cairath are grotesque, bloated abominations dwelling in sewers and catacombs. They meld their victims to their rotting bodies, drawing worship from those on the brink of madness. These creatures influence their surroundings, forming cults that offer sacrifices. As they grow in power, they can transform into something even more terrifying: gransangthir.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/cairath.webp",
+  },
+  "Azadaevae": {
+    prefix: "",
+    title: "Azadaevae",
+    subtitle: "Who Would Be Azghouls",
+    home: "the Underworld",
+    body: "The azadaevae are long and slender beings with delicate features and surrounded by a scintillating veil of dust that weaves illusions. Remnants of the civilization we enslaved and transformed into the azghouls, their ability to see true souls makes them both revered and hunted to this day, leaving few of them in existence. Only in the depths of the Underworld can they find reprieve from those who hunt them.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/azadaevae.webp",
+  },
 } as const;
 // #endregion
 

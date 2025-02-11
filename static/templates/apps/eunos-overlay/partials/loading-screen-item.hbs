@@ -1,19 +1,19 @@
-<div class="loading-screen-item item-home-{{case "lower" home}}">
+<div class="loading-screen-item item-home-{{case "lower" data.home}}" data-key="{{key}}">
   <div class="loading-screen-item-image">
-    <img src="{{image}}" alt="{{title}}">
+    <img src="{{data.image}}" alt="{{data.title}}">
   </div>
   <div class="loading-screen-item-title">
-    <span>{{prefix}}</span>
-    <span><strong>{{title}}</strong></span>
+    <span>{{data.prefix}}</span>
+    <span><strong>{{data.title}}</strong></span>
   </div>
   <div class="loading-screen-item-subtitle">
-    {{subtitle}}
+    {{data.subtitle}}
   </div>
   <div class="loading-screen-item-home">
     <span>Native to</span>
-    <span><strong>{{home}}</strong></span>
+    <span><strong>{{data.home}}</strong></span>
   </div>
   <div class="loading-screen-item-body">
-    {{{body}}}
+    {{{data.body}}}
   </div>
 </div>

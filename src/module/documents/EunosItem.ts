@@ -25,6 +25,12 @@ export default class EunosItem extends Item {
       this.type === "limitation"
     );
   }
+  isAdvantage(): this is EunosItem & { system: ItemDataAdvantage } {
+    return this.type === "advantage";
+  }
+  isDisadvantage(): this is EunosItem & { system: ItemDataDisadvantage } {
+    return this.type === "disadvantage";
+  }
   isWeapon(): this is EunosItem & { system: ItemDataWeapon } {
     return this.type === "weapon";
   }
@@ -63,6 +69,7 @@ export default class EunosItem extends Item {
     if (!this.isMechanicalItem()) {
       return "";
     }
+
     const htmlStrings: string[] = [
       `<div class='item-block item-block-${this.type}'>`,
       "<div class='item-header'>",
@@ -87,6 +94,7 @@ export default class EunosItem extends Item {
         "<div class='failure-row'>",
         "<label>0-9</label>",
         `<div>${this.system.failure}</div>`,
+        "</div>",
         "</div>"
       );
     }
@@ -98,7 +106,7 @@ export default class EunosItem extends Item {
     }
 
     htmlStrings.push(
-      "</div>"
+      "</div></div>"
     );
 
     return htmlStrings.join("");
@@ -110,19 +118,19 @@ export default class EunosItem extends Item {
     }
     const htmlStrings: string[] = [
       "<div class='item-block item-block-gear'>",
-      "<div class='item-header'>",
-      `<img src='${this.img}' alt='${this.name}' />`,
-      `<div class='item-name'>${this.name}</div>`,
-      "</div>",
+        "<div class='item-header'>",
+          `<img src='${this.img}' alt='${this.name}' />`,
+          `<div class='item-name'>${this.name}</div>`,
+        "</div>",
       "<div class='item-body'>",
-      `<div>${this.system.description}</div>`,
-      this.system.usesMax || this.system.armor ? "<div class='gear-footer-wrapper'>" : "",
-      this.system.usesMax ? `<div class='gear-uses'>
-      <span class='uses'>${this.system.uses ?? 0}</span> <strong>/</strong> <span class='uses-max'>${this.system.usesMax ?? 0}</span>
-      </div>` : "",
+        `<div>${this.system.description}</div>`,
+        this.system.usesMax || this.system.armor ? "<div class='gear-footer-wrapper'>" : "",
+          this.system.usesMax ? `<div class='gear-uses'>
+            <span class='uses'>${this.system.uses ?? 0}</span> <strong>/</strong> <span class='uses-max'>${this.system.usesMax ?? 0}</span>
+          </div>` : "",
       this.system.armor ? `<div class='gear-armor'><i class="far fa-shield"></i><span class='value'>${this.system.armor}</span></div>` : "",
       this.system.usesMax || this.system.armor ? "</div>" : "",
-      "</div>"
+      "</div></div>"
     ];
     return htmlStrings.join("");
   }

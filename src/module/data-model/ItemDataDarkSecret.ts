@@ -2,6 +2,7 @@ import fields = foundry.data.fields;
 import TypeDataModel = foundry.abstract.TypeDataModel;
 import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
 import {type ItemDerivedFieldsBase} from "./fields/itemFields";
+import type EunosItem from "../documents/EunosItem";
 const ItemSchemaDarkSecret = {
   description: new fields.HTMLField(),
   drive: new fields.StringField(),
@@ -16,5 +17,8 @@ export default class ItemDataDarkSecret extends TypeDataModel<
 > {
   static override defineSchema() {
     return ItemSchemaDarkSecret;
+  }
+  override prepareDerivedData() {
+    this.summary = (this.parent as EunosItem).chatMessage;
   }
 }

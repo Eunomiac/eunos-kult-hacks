@@ -1,15 +1,11 @@
-<div class="mid-zindex-mask">
-
+<div id="MID-ZINDEX-MASK" class="mid-zindex-mask">
   <div class="canvas-mask">
-
+    {{#each LOADING_SCREEN_DATA as |data key|}}
+    {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs" data=data key=key}}
+    {{/each}}
   </div>
-  <div class="sidebar-mask">
-
-  </div>
-  <div class="canvas-mask-bars">
-    {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/countdown.hbs" }}
-  </div>
-  <div class="sidebar-mask-bars">
-
-  </div>
+  <div class="canvas-mask-bars"></div>
+  <audio class="session-closed-ambiance" src="modules/eunos-kult-hacks/assets/sounds/session-closed-ambiance.flac"
+    loop="loop" preload="auto" volume="0.5" data-volume="0.5">
+  </audio>
 </div>

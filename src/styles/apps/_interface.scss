@@ -46,11 +46,13 @@ body.gm-user {
   }
 
   #ui-bottom {
-    bottom: 0;
+    bottom: unset;
+    top: 0;
+    left: 10px;
     position: absolute;
     display: block;
     // z-index: 100000;
-    right: 0;
+    // right: 100px;
   }
 
   #sidebar-tabs {

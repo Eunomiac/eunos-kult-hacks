@@ -3,6 +3,7 @@ import {type ItemDerivedFieldsBase, getHoldFields, getEdgeFields, getMoveFields}
 import fields = foundry.data.fields;
 import TypeDataModel = foundry.abstract.TypeDataModel;
 import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
+import type EunosItem from "../documents/EunosItem";
 
 
 const ItemSchemaDisadvantage = {
@@ -19,5 +20,9 @@ export default class ItemDataDisadvantage extends TypeDataModel<
 > {
   static override defineSchema() {
     return ItemSchemaDisadvantage;
+  }
+
+  override prepareDerivedData() {
+    this.summary = (this.parent as EunosItem).chatMessage;
   }
 }

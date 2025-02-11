@@ -2650,7 +2650,7 @@ function countdownUntil(): CountdownTime {
     // Update the setting
     void setSetting(
       "nextGameSession",
-      targetDate.toLocaleString("en-CA", { timeZone: torontoTz })
+      formatDateAsISO(new Date(targetDate.toLocaleString("en-US", { timeZone: torontoTz })))
     );
 
     // Return countdown for next week
@@ -2764,7 +2764,7 @@ function formatDateAsISO(input?: Date | string | number): string {
     return constructed;
   })();
 
-  return date.toLocaleString('en-CA', {
+  return date.toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

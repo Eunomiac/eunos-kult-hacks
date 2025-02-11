@@ -45,6 +45,7 @@ export class SocketLogger {
 
     /** Logs a socket event */
     public logEvent<E extends SocketEventName>(
+        title: string,
         event: E,
         data?: SocketEvents[E]["data"],
         target?: string|string[]
@@ -69,13 +70,16 @@ export class SocketLogger {
             details["data"] = data;
         }
 
-        kLog.log("[Socket Event]", details);
+        kLog.log(`[Socket Event] ${title}`, details);
     }
 
     /** Logs a socket event result */
     public logResult(
+        title: string,
         event: SocketEventName,
-        duration: number
+        duration: number,
+        data?: SocketEvents[SocketEventName]["data"],
+        result?: unknown
     ): void {
         if (!this.config.enabled || !this.config.logResults) return;
 
@@ -90,19 +94,22 @@ export class SocketLogger {
         // Log result details
         const details: Record<string, unknown> = {
             event,
+            data,
+            result,
             duration: `${duration.toFixed(2)}ms`,
             avgDuration: `${avgDuration.toFixed(2)}ms`
         };
 
-        kLog.log("[Socket Result]", details);
+        kLog.log(`[Socket Result] ${title}`, details);
     }
 
     /** Logs a socket event error */
-    public logError(event: SocketEventName, error: unknown): void {
+    public logError(event: SocketEventName, error: unknown, data?: SocketEvents[SocketEventName]["data"]): void {
         if (!this.config.enabled || !this.config.logErrors) return;
 
         kLog.error("[Socket Error]", {
             event,
+            data,
             error
         });
     }

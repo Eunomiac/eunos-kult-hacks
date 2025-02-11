@@ -1,5 +1,5 @@
-@forward "pc-sheet.scss";
-@forward "item-sheet.scss";
+@forward "pc-sheet";
+@forward "item-sheet";
 
 .app.sheet {
   --lock-color: var(--K4-bRED);

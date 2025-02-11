@@ -49,6 +49,7 @@ export function getAttackField() {
 export interface ItemDerivedFieldsBase {
   isGM: boolean;
   tooltip: string|false;
+  summary: string;
 }
 
 export interface ItemDerivedFieldsRelationship extends ItemDerivedFieldsBase {

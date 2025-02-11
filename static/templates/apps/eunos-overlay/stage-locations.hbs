@@ -1,0 +1,9 @@
+<div id="LOCATIONS" class="location-container">
+  <div class="location-name">{{location.name}}</div>
+  {{#if location.image}}
+  <img class="location-image" src="{{location.image}}" alt="{{location.name}}" />
+  {{/if}}
+  {{#if location.description}}
+  <div class="location-description">{{location.description}}</div>
+  {{/if}}
+</div>

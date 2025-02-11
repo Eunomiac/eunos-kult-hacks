@@ -1,5 +1,5 @@
 // #region IMPORTS ~
-import {getSetting} from "./utilities.ts";
+import {getSetting, formatDateAsISO} from "./utilities.ts";
 import {GamePhase} from "./enums.ts";
 import fields = foundry.data.fields;
 // #endregion
@@ -53,11 +53,11 @@ export default function registerSettings() {
         date.setDate(date.getDate() + 1);
       }
 
-      return date.toLocaleString("en-CA", { timeZone: "America/Toronto" });
+      return formatDateAsISO(new Date(date.toLocaleString("en-US", { timeZone: "America/Toronto" })));
     })(),
     onChange: (value) => {
       // Validate the date format
-      const date = new Date(value);
+      const date = new Date(formatDateAsISO(value));
       if (isNaN(date.getTime())) {
         ui.notifications?.error("Invalid date format. Please use YYYY-MM-DD HH:mm");
         return false;
@@ -85,8 +85,8 @@ export default function registerSettings() {
     hint: "The name and image of the current location.",
     scope: "world",
     config: false,
-    type: Object,
-    default: null,
+    type: String,
+    default: "",
   });
   getSettings().register("eunos-kult-hacks", "sessionScribeID", {
     name: "Session Scribe",

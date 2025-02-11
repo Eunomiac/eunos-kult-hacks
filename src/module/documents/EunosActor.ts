@@ -1,4 +1,5 @@
 import EunosItem from "./EunosItem";
+import EunosOverlay from "../apps/EunosOverlay";
 import type ItemDataGear from "../data-model/ItemDataGear";
 import type ActorDataPC from "../data-model/ActorDataPC";
 
@@ -400,6 +401,12 @@ export default function registerEunosActor(): void {
           await move.showInChat();
         }
       }
+    }
+
+    override _onUpdate(...args: Parameters<Actor["_onUpdate"]>): void {
+      super._onUpdate(...args);
+      if (!this.isPC()) { return; }
+      void EunosOverlay.instance.render({parts: ["pcs"]});
     }
   }
 

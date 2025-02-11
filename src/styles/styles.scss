@@ -1,9 +1,8 @@
-@use "globals/colors.scss";
-@use "globals/typography.scss";
-@use "globals/globals.scss";
-@use "apps/chat.scss";
-@use "apps/eunos-overlay.scss";
-@use "apps/eunos-alerts.scss";
-@use "sheets/sheets.scss";
-@use "apps/interface.scss";
-@use "globals/popovers.scss";
+@use "globals/colors";
+@use "globals/typography";
+@use "globals/globals";
+@use "apps/chat";
+@use "apps/eunos-overlay";
+@use "sheets/sheets";
+@use "apps/interface";
+@use "globals/popovers";

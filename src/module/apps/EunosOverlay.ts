@@ -6,12 +6,16 @@ import {
   LOADING_SCREEN_DATA,
   PRE_SESSION,
   MEDIA_PATHS,
+  LOCATIONS,
 } from "../scripts/constants";
 import type { EmptyObject } from "fvtt-types/utils";
 import { GamePhase } from "../scripts/enums";
 import { type GSAPEffect, OverlayItemSide } from "../scripts/animations";
 import EunosSockets, { UserTargetRef, SocketState } from "./EunosSockets";
-import {AlertType} from "./EunosAlerts";
+import { AlertType } from "./EunosAlerts";
+import ItemDataAdvantage from "../data-model/ItemDataAdvantage";
+import ItemDataDisadvantage from "../data-model/ItemDataDisadvantage";
+import type EunosItem from "../documents/EunosItem";
 // #endregion -- IMPORTS ~
 
 // #region Type Definitions ~
@@ -57,7 +61,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       // @ts-expect-error Don't know why the types won't recognize this syntax.
-      pc.sheet?.render({force: true});
+      pc.sheet?.render({ force: true });
     },
     stopSceneClick(event: PointerEvent, target: HTMLElement) {
       void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
@@ -84,7 +88,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         kLog.error("No pc found for pcId", { pcId });
         return;
       }
-      const conditionName = target.dataset['conditionName'];
+      const conditionName = target.dataset["conditionName"];
 
       if (!conditionName) {
         kLog.error("No condition name found for condition card click");
@@ -105,15 +109,70 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           case "Obsessed":
             return `${pc.name} grows obsessed, gaining <span class='key-word'>+1 Relation</span> towards the source of their obsession.`;
         }
-      }
+      };
 
       void EunosSockets.getInstance().call("Alert", UserTargetRef.all, {
         type: AlertType.simple,
         header: `${pc.name} is ${conditionName}`,
-        body: getBody()
-      })
+        body: getBody(),
+      });
     },
-  }
+    async addHold(event: PointerEvent, target: HTMLElement) {
+      const elem$ = $(target).closest("[data-item-id]");
+      const itemId = elem$.attr("data-item-id");
+      const actorId = elem$.attr("data-actor-id");
+      if (!itemId || !actorId) {
+        kLog.error("No itemId or actorId found for addHold", {
+          itemId,
+          actorId,
+        });
+        return;
+      }
+      const item = fromUuidSync(`Actor.${actorId}.Item.${itemId}`) as EunosItem;
+      if (!item) {
+        kLog.error("No item found for itemId", { itemId });
+        return;
+      }
+      const itemData = item.system as ItemDataAdvantage | ItemDataDisadvantage;
+      if (!itemData.hasHold) {
+        kLog.error("Item does not have hold", { itemId });
+        return;
+      }
+      await item.update({
+        system: { holdTokens: (itemData.holdTokens ?? 0) + 1 },
+      });
+      void EunosOverlay.instance.render({ parts: ["pcs"] });
+    },
+    async spendHold(event: PointerEvent, target: HTMLElement) {
+      const elem$ = $(target).closest("[data-item-id]");
+      const itemId = elem$.attr("data-item-id");
+      const actorId = elem$.attr("data-actor-id");
+      if (!itemId || !actorId) {
+        kLog.error("No itemId or actorId found for spendHold", {
+          itemId,
+          actorId,
+        });
+        return;
+      }
+      const item = fromUuidSync(`Actor.${actorId}.Item.${itemId}`) as EunosItem;
+      if (!item) {
+        kLog.error("No item found for itemId", { itemId });
+        return;
+      }
+      const itemData = item.system as ItemDataAdvantage | ItemDataDisadvantage;
+      if (!itemData.hasHold) {
+        kLog.error("Item does not have hold", { itemId });
+        return;
+      }
+      if ((itemData.holdTokens ?? 0) <= 0) {
+        return;
+      }
+      await item.update({
+        system: { holdTokens: (itemData.holdTokens ?? 0) - 1 },
+      });
+      void EunosOverlay.instance.render({ parts: ["pcs"] });
+    },
+  };
   // #endregion ACTIONS
 
   // #region STATIC CONFIGURATION ~
@@ -140,9 +199,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     actions: {
       pcPortraitClick: EunosOverlay.ACTIONS.pcPortraitClick.bind(EunosOverlay),
       stopSceneClick: EunosOverlay.ACTIONS.stopSceneClick.bind(EunosOverlay),
-      fadeToBlackClick: EunosOverlay.ACTIONS.fadeToBlackClick.bind(EunosOverlay),
-      conditionCardClick: EunosOverlay.ACTIONS.conditionCardClick.bind(EunosOverlay),
-    }
+      fadeToBlackClick:
+        EunosOverlay.ACTIONS.fadeToBlackClick.bind(EunosOverlay),
+      conditionCardClick:
+        EunosOverlay.ACTIONS.conditionCardClick.bind(EunosOverlay),
+      addHold: EunosOverlay.ACTIONS.addHold.bind(EunosOverlay),
+      spendHold: EunosOverlay.ACTIONS.spendHold.bind(EunosOverlay),
+    },
   };
 
   static override PARTS = {
@@ -166,6 +229,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage.hbs",
     },
+    countdown: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/countdown.hbs",
+    },
     videoStatus: {
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/video-status.hbs",
@@ -177,48 +244,83 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         height: "auto",
       },
     },
+    locations: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-locations.hbs",
+    },
+    npcs: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-npcs.hbs",
+    },
+    pcs: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-pcs.hbs",
+    },
   };
   // #endregion STATIC CONFIGURATION
 
   // #region STATIC METHODS ~
+  static #lastPhaseChange: GamePhase | undefined;
   static async Initialize() {
     // Register hook for game phase changes
-    Hooks.on("preUpdateSetting", (setting: Setting, {value: newValue}: {value: unknown}) => {
-      if (
-        setting.key.endsWith("gamePhase") &&
-        typeof setting.value === "string" &&
-        setting.value in GamePhase
-      ) {
-        if (typeof newValue === "string") {
-          newValue = newValue.slice(1, -1) as GamePhase;
-        }
-        if (newValue === setting.value) {
-          return;
-        }
-        kLog.log("preUpdateSetting hook triggered", {
-          "setting.value": setting.value,
-          "prevValue": newValue,
-          "typeof prevValue": typeof newValue,
-          "prevValue in GamePhase": typeof newValue === "string" && newValue in GamePhase,
-          "setting.value in GamePhase": setting.value in GamePhase,
-          "setting.value !== prevValue": setting.value !== newValue,
-        });
-        kLog.log(`Cleaning up phase: ${String(setting.value)}`);
-        void EunosOverlay.instance.cleanupPhase(setting.value as GamePhase)
-          .then(() => {
-            kLog.log(`Initializing phase: ${String(newValue)}`);
-            return EunosOverlay.instance.initializePhase(newValue as GamePhase);
-          })
-          .catch((error: unknown) => {
-            kLog.error("Error initializing phase:", error);
+    Hooks.on(
+      "preUpdateSetting",
+      (setting: Setting, { value: newValue }: { value: unknown }) => {
+        if (
+          getUser().isGM &&
+          setting.key.endsWith("gamePhase") &&
+          typeof setting.value === "string" &&
+          setting.value in GamePhase
+        ) {
+          if (typeof newValue === "string") {
+            newValue = newValue.slice(1, -1) as GamePhase;
+          }
+          if (newValue === setting.value) {
+            return;
+          }
+          kLog.log("preUpdateSetting hook triggered", {
+            "setting.value": setting.value,
+            prevValue: newValue,
+            "typeof prevValue": typeof newValue,
+            "prevValue in GamePhase":
+              typeof newValue === "string" && newValue in GamePhase,
+            "setting.value in GamePhase": setting.value in GamePhase,
+            "setting.value !== prevValue": setting.value !== newValue,
           });
-      }
-    });
+          if (setting.value === this.#lastPhaseChange) {
+            return;
+          }
+          this.#lastPhaseChange = setting.value as GamePhase;
+          void EunosSockets.getInstance().call(
+            "changePhase",
+            UserTargetRef.all,
+            {
+              prevPhase: setting.value as GamePhase,
+              newPhase: newValue as GamePhase,
+            },
+          );
+          // void EunosOverlay.instance.cleanupPhase(setting.value as GamePhase)
+          //   .then(() => {
+          //     kLog.log(`Initializing phase: ${String(newValue)}`);
+          //     return EunosOverlay.instance.initializePhase(newValue as GamePhase);
+          //   })
+          //   .catch((error: unknown) => {
+          //     kLog.error("Error initializing phase:", error);
+          //   });
+        }
+      },
+    );
 
+    Hooks.on("updateSetting", (setting: Setting, data: unknown) => {
+      kLog.log("UpdateSetting hook triggered", {
+        setting: JSON.stringify(setting.toObject()),
+        data: JSON.stringify(data),
+      });
+    });
     // Register hook to re-render when any PC actor is updated
     Hooks.on("updateActor", (actor: Actor) => {
       if (actor.type === "pc") {
-        void EunosOverlay.instance.render({parts: ["stage"]});
+        void EunosOverlay.instance.render({ parts: ["stage"] });
       }
     });
 
@@ -293,12 +395,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region SOCKET FUNCTIONS ~
   public static readonly SocketFunctions: Record<string, SocketFunction> = {
+    changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
+      void EunosOverlay.instance
+        .cleanupPhase(data.prevPhase)
+        .then(() => {
+          return EunosOverlay.instance.initializePhase(data.newPhase);
+        })
+        .catch((error: unknown) => {
+          kLog.error("Error initializing phase:", error);
+        });
+    },
+
     preloadIntroVideo: () => {
       void EunosOverlay.instance.preloadIntroVideo();
     },
 
-    reportPreloadStatus: (userId: string, status: VideoLoadStatus) => {
+    reportPreloadStatus: ({
+      userId,
+      status,
+    }: {
+      userId: string;
+      status: VideoLoadStatus;
+    }) => {
       if (!getUser().isGM) return;
+      kLog.log("reportPreloadStatus", { userId, status });
       EunosOverlay.instance.updateVideoStatusPanel(userId, status);
     },
 
@@ -311,18 +431,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     requestVideoSync: (userId: string) => {
       // GM returns the current timestamp
       if (getUser().isGM) {
-        const timestamp = EunosOverlay.instance.introVideo$[0]?.currentTime ?? 0;
+        const timestamp =
+          EunosOverlay.instance.introVideo$[0]?.currentTime ?? 0;
         kLog.log("GM returning video timestamp:", timestamp);
         return timestamp;
       }
+    },
+
+    setLocation: (data: { location: string }) => {
+      EunosOverlay.instance.goToLocation(data.location as KeyOf<typeof LOCATIONS>);
     },
   };
   // #endregion SOCKET FUNCTIONS
 
   // #region DOM ELEMENT GETTERS ~
   #midZIndexMask: Maybe<HTMLElement>;
-  #sidebarMask: Maybe<HTMLElement>;
-  #sidebarBars: Maybe<HTMLElement>;
+  #uiRight: Maybe<HTMLElement>;
   #canvasMask: Maybe<HTMLElement>;
   #canvasBars: Maybe<HTMLElement>;
   #topZIndexMask: Maybe<HTMLElement>;
@@ -331,9 +455,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #countdownContainer: Maybe<HTMLElement>;
   #countdown: Maybe<HTMLElement>;
   #videoStatusPanel: Maybe<HTMLElement>;
-  #sessionClosedAmbientAudio: Maybe<HTMLAudioElement>;
   #sessionStartingSong?: PlaylistSound;
   #introVideo: Maybe<HTMLVideoElement>;
+
+  get overlay$() {
+    return $(this.element);
+  }
 
   get midZIndexMask$() {
     if (!this.#midZIndexMask) {
@@ -347,28 +474,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(this.#midZIndexMask);
   }
 
-  get sidebarMask$() {
-    if (!this.#sidebarMask) {
-      this.#sidebarMask = this.element.querySelector(
-        ".sidebar-mask",
-      ) as Maybe<HTMLElement>;
+  get uiRight$() {
+    if (!this.#uiRight) {
+      this.#uiRight = $("#ui-right")[0] as Maybe<HTMLElement>;
     }
-    if (!this.#sidebarMask) {
-      throw new Error("Sidebar mask not found");
+    if (!this.#uiRight) {
+      throw new Error("UI right not found");
     }
-    return $(this.#sidebarMask);
-  }
-
-  get sidebarBars$() {
-    if (!this.#sidebarBars) {
-      this.#sidebarBars = this.element.querySelector(
-        ".sidebar-mask-bars",
-      ) as Maybe<HTMLElement>;
-    }
-    if (!this.#sidebarBars) {
-      throw new Error("Sidebar bars not found");
-    }
-    return $(this.#sidebarBars);
+    return $(this.#uiRight);
   }
 
   get canvasMask$() {
@@ -445,9 +558,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get countdown$() {
     // if (!this.#countdown) {
-      this.#countdown = this.element.querySelector(
-        ".loading-screen-countdown",
-      ) as Maybe<HTMLElement>;
+    this.#countdown = this.element.querySelector(
+      ".loading-screen-countdown",
+    ) as Maybe<HTMLElement>;
     // }
     if (!this.#countdown) {
       throw new Error("Countdown not found");
@@ -471,31 +584,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   /** Gets or creates the ambient audio element */
-  get sessionClosedAmbientAudio$() {
-    if (!this.#sessionClosedAmbientAudio) {
-      // First try to find existing element
-      this.#sessionClosedAmbientAudio = this.element.querySelector(
-        ".session-closed-ambiance",
-      ) as Maybe<HTMLAudioElement>;
-
-      // Create new element if not found
-      if (!this.#sessionClosedAmbientAudio) {
-        this.#sessionClosedAmbientAudio = new Audio(
-          MEDIA_PATHS.PRESESSION_AMBIENT_AUDIO,
-        );
-        this.#sessionClosedAmbientAudio.className = "session-closed-ambiance";
-        this.#sessionClosedAmbientAudio.loop = true;
-        this.#sessionClosedAmbientAudio.volume = 0.5;
-        this.#sessionClosedAmbientAudio.preload = "auto";
-        this.#sessionClosedAmbientAudio.autoplay = false;
-        this.midZIndexMask$.append(this.#sessionClosedAmbientAudio);
-      }
+  get sessionClosedAmbientAudio$(): JQuery<HTMLAudioElement> {
+    const audio = this.element.querySelector(
+      ".session-closed-ambiance",
+    ) as Maybe<HTMLAudioElement>;
+    if (!audio) {
+      return $();
     }
-
-    if (!this.#sessionClosedAmbientAudio) {
-      throw new Error("Session closed ambiance audio not found");
-    }
-    return $(this.#sessionClosedAmbientAudio);
+    return $(audio);
   }
 
   get sessionStartingPlaylist(): Playlist {
@@ -507,7 +603,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   get sessionStartingSong(): PlaylistSound {
-    this.#sessionStartingSong = this.sessionStartingPlaylist.sounds.contents[0] ?? undefined;
+    this.#sessionStartingSong =
+      this.sessionStartingPlaylist.sounds.contents[0] ?? undefined;
     if (!this.#sessionStartingSong) {
       throw new Error("No songs in Pre-Session Tracks playlist");
     }
@@ -530,32 +627,58 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
   // #endregion DOM ELEMENT GETTERS
 
+  // #region ===== PRE-SESSION MANAGEMENT & GAME PHASE CONTROL =====
   // #region COUNTDOWN ~
   #countdownTimer: Maybe<number>;
   #countdownTimeline: Maybe<gsap.core.Timeline>;
-  #countdownContainerTimeline: Maybe<gsap.core.Timeline>;
+  isCountdownContainerTimelineActive = false;
+
   public get glitchRepeatDelay(): number {
     const totalSeconds = 7 * 24 * 60 * 60;
     const currentSeconds = countdownUntil().totalSeconds;
     const progress = currentSeconds / totalSeconds;
-    const delay = gsap.utils.interpolate(0, 20, progress);
+    const delay = gsap.utils.interpolate(20, 500, progress);
     return delay;
+  }
+  private get preSessionSongDuration(): number {
+    const preSessionSong = this.sessionStartingSong;
+    if (!preSessionSong.sound) {
+      throw new Error(
+        "Attempt to access pre-session song duration before song is loaded.",
+      );
+    }
+    return preSessionSong.sound.duration;
   }
 
   private get countdownContainerTimeline(): gsap.core.Timeline {
-    if (!this.#countdownContainerTimeline) {
-      const self = this;
-      this.#countdownContainerTimeline = gsap.timeline({paused: true})
-        .to(this.countdownContainer$, {
-          top: "50%",
-          scale: 3,
-          duration: function() {
-            return self.sessionStartingSong.sound?.duration ?? 5;
-          },
-            ease: "power4.inOut",
-          });
-    }
-    return this.#countdownContainerTimeline;
+    const duration = countdownUntil().totalSeconds;
+    this.isCountdownContainerTimelineActive = true;
+    const self = this;
+    return gsap
+      .timeline({
+        onComplete() {
+          self.isCountdownContainerTimelineActive = false;
+        },
+      })
+      .to(this.countdownContainer$, {
+        top: "50%",
+        scale: 3,
+        duration,
+        ease: "power4.out",
+      })
+      .call(this.killLoadingScreenItems.bind(this), [], 0.5 * duration)
+      .fromTo(
+        [this.topZIndexMask$, this.introVideo$],
+        {
+          autoAlpha: 0,
+        },
+        {
+          autoAlpha: 1,
+          duration: 0.5,
+          ease: "power2.inOut",
+        },
+        duration - 0.5,
+      );
   }
 
   private get countdownTimeline(): gsap.core.Timeline {
@@ -565,10 +688,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       const glitchBottom$ = this.countdown$.find(".glitch-bottom");
       const self = this;
 
-      this.#countdownTimeline = gsap.timeline({
-        repeat: -1,
-        repeatDelay: this.glitchRepeatDelay,
-      })
+      this.#countdownTimeline = gsap
+        .timeline({
+          repeat: -1,
+          repeatDelay: this.glitchRepeatDelay,
+        })
         .addLabel("glitch")
         .to(glitchText$, {
           duration: 0.1,
@@ -607,15 +731,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           { duration: 0.08, textShadow: "0px 0px 0px var(--K4-dRED)" },
           "+=0.09",
         )
-        .to(
-          glitchText$,
-          { duration: 0.02, color: "#FFF"},
-          "-=0.05"
-        )
-        .to(
-          glitchText$,
-          { duration: 0.02, color: "var(--K4-bGOLD)"}
-        )
+        .to(glitchText$, { duration: 0.02, color: "#FFF" }, "-=0.05")
+        .to(glitchText$, { duration: 0.02, color: "var(--K4-bGOLD)" })
         .to(
           glitchText$,
           { duration: 0.03, textShadow: "13px 13px 0px #FFF" },
@@ -623,7 +740,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         )
         .to(
           glitchText$,
-          { duration: 0.08, textShadow: "0px 0px 0px transparent", clearProps: "textShadow" },
+          {
+            duration: 0.08,
+            textShadow: "0px 0px 0px transparent",
+            clearProps: "textShadow",
+          },
           "+=0.01",
         )
         .to(glitchTop$, { duration: 0.2, x: 0, ease: "power4.inOut" })
@@ -649,18 +770,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }, 1000);
     // Show countdown & apply countdown timeline
     this.countdownContainer$.css("visibility", "visible");
-    this.countdownTimeline.play();
+    this.countdownTimeline.seek(0).play();
     // Update countdown immediately
+    kLog.log("initializeCountdown -> updateCountdown");
     await this.updateCountdown();
   }
 
   private killCountdown() {
+    kLog.log("killCountdown");
     if (this.#countdownTimer) {
       window.clearInterval(this.#countdownTimer);
       this.#countdownTimer = undefined;
     }
     this.countdownContainer$.css("visibility", "hidden");
-    this.countdownTimeline.kill();
+    this.countdownTimeline.seek(0).kill();
   }
 
   private updateCountdownText() {
@@ -679,33 +802,25 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   /** Updates the countdown display and handles pre-session sequence */
   private async updateCountdown(): Promise<void> {
-    // kLog.log("updateCountdown", {
-    //   "gamePhase": getSetting("gamePhase"),
-    //   "countdownTimer": this.#countdownTimer,
-    //   "countdownTimeline": this.countdownTimeline,
-    // });
-    if (
-      ![GamePhase.SessionClosed, GamePhase.SessionLoading].includes(
-        getSetting("gamePhase"),
-      )
-    ) {
-      kLog.log("updateCountdown - killing countdown");
-      this.killCountdown();
-      return;
-    }
     const timeLeft = this.updateCountdownText().totalSeconds;
 
     if (timeLeft <= PRE_SESSION.COUNTDOWN_HIDE) {
+      kLog.log("updateCountdown -> killCountdown (COUNTDOWN HIDE)");
       this.killCountdown();
       return;
+    }
+
+    if (!this.countdownTimeline.isActive()) {
+      kLog.log("updateCountdown -> countdownTimeline.play('glitch')");
+      this.countdownTimeline.play("glitch");
     }
 
     if (
       timeLeft <= (this.sessionStartingSong.sound?.duration ?? 0) &&
-      !this.countdownContainerTimeline.isActive()
+      !this.isCountdownContainerTimelineActive
     ) {
-      const secondsIn = this.sessionStartingSong.sound?.currentTime ?? 0;
-      this.countdownContainerTimeline.play(secondsIn);
+      this.countdownContainerTimeline.play();
+      return;
     }
 
     if (
@@ -713,13 +828,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       getSetting("gamePhase") === GamePhase.SessionClosed &&
       getUser().isGM
     ) {
+      kLog.log("updateCountdown -> set gamePhase to SESSION LOADING");
       await setSetting("gamePhase", GamePhase.SessionLoading);
       kLog.log(`updateCountdown - set gamePhase to ${getSetting("gamePhase")}`);
       return;
-    }
-
-    if (!this.countdownTimeline.isActive()) {
-      this.countdownTimeline.play("glitch");
     }
   }
   // #endregion COUNTDOWN ~
@@ -732,8 +844,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // Use native play() method since it returns a Promise for autoplay handling
       // jQuery's trigger('play') doesn't handle this properly
       if (document.hasFocus() && !document.hidden) {
+        // assert existence of element; if this fails, will throw an error that will be caught below
         await this.sessionClosedAmbientAudio$[0]!.play();
-        return; // Exit if playback successful
+        return;
       }
     } catch (error: unknown) {
       kLog.error("Failed to play ambient audio, setting up handlers", error);
@@ -745,9 +858,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private handleAudioInteraction(e: Event): void {
     // Ignore clicks on the start video button
-    if (e.target instanceof Element &&
-        (e.target.classList.contains('start-video') ||
-         e.target.closest('.start-video'))) {
+    if (
+      e.target instanceof Element &&
+      (e.target.classList.contains("start-video") ||
+        e.target.closest(".start-video"))
+    ) {
       return;
     }
 
@@ -768,7 +883,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async killSessionClosedAmbientAudio(): Promise<void> {
-    const audio = this.sessionClosedAmbientAudio$[0]!;
+    const audio = this.sessionClosedAmbientAudio$[0];
+
+    if (!audio || audio.volume === 0) {
+      return;
+    }
 
     // Create a promise that resolves when the fade is complete
     return new Promise<void>((resolve) => {
@@ -783,8 +902,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               this.handleAudioInteraction.bind(this),
             );
           });
-          audio.remove();
-          this.#sessionClosedAmbientAudio = undefined;
+          audio.pause();
+          audio.currentTime = 0;
           resolve();
         },
       });
@@ -802,23 +921,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #currentLoadingScreenItem: Maybe<KeyOf<typeof LOADING_SCREEN_DATA>>;
   #loadingScreenItemDeck: Array<KeyOf<typeof LOADING_SCREEN_DATA>> = [];
 
-  private async createLoadingScreenItems(): Promise<void> {
-    await Promise.all(
-      (
-        Object.entries(LOADING_SCREEN_DATA) as Entries<
-          typeof LOADING_SCREEN_DATA
-        >
-      ).map(async ([key, data]) => {
-        const html$ = $(
-          await renderTemplate(MEDIA_PATHS.LOADING_SCREEN_ITEM, data),
-        ).appendTo(this.canvasMask$);
-        this.#loadingScreenItems.set(key, html$);
-        this.#loadingScreenItemTimelines.set(
-          key,
-          this.buildLoadingScreenItemTimeline(key),
-        );
-      }),
-    );
+  private cacheLoadingScreenItems(): void {
+    $(".loading-screen-item").each((index, element) => {
+      const key = $(element).data("key") as KeyOf<typeof LOADING_SCREEN_DATA>;
+      this.#loadingScreenItems.set(key, $(element));
+      // this.#loadingScreenItemTimelines.set(key, this.buildLoadingScreenItemTimeline(key));
+    });
   }
 
   private fillLoadingScreenItemDeck(): void {
@@ -857,11 +965,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private get currentLoadingScreenItemTimeline(): Maybe<gsap.core.Timeline> {
-    let timeline = this.#loadingScreenItemTimelines.get(this.currentLoadingScreenItem);
+    let timeline = this.#loadingScreenItemTimelines.get(
+      this.currentLoadingScreenItem,
+    );
     if (!timeline) {
-      timeline = this.buildLoadingScreenItemTimeline(this.currentLoadingScreenItem);
+      timeline = this.buildLoadingScreenItemTimeline(
+        this.currentLoadingScreenItem,
+      );
     }
-    this.#loadingScreenItemTimelines.set(this.currentLoadingScreenItem, timeline);
+    this.#loadingScreenItemTimelines.set(
+      this.currentLoadingScreenItem,
+      timeline,
+    );
     return timeline;
   }
 
@@ -990,13 +1105,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         )
         .addLabel("display", entryDuration)
         .to(
-          [
-            $image,
-            $title,
-            $subtitle,
-            $home,
-            $body,
-          ],
+          [$image, $title, $subtitle, $home, $body],
           {
             autoAlpha: 0,
             filter: "blur(10px)",
@@ -1025,12 +1134,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async initializeLoadingScreenItemRotation(): Promise<void> {
     try {
-      // Clear any existing loading screen items
-      await this.killLoadingScreenItems();
+      // Clear any existing loading screen timelines
+      this.killLoadingScreenItems();
 
-      // Create loading screen items
-      kLog.display("Creating loading screen items");
-      await this.createLoadingScreenItems();
+      // Caching loading screen items & build timelines
+      this.cacheLoadingScreenItems();
 
       // Begin item rotation
       void this.rotateLoadingScreenItems();
@@ -1046,30 +1154,33 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     void this.renderNextItem().then(() => {
       this.isFirstItem = false;
       // Schedule next rotation
-      this.#loadScreenRotationTimer = window.setTimeout(
-        () => {
-          void this.rotateLoadingScreenItems();
-        },
-        PRE_SESSION.LOADING_SCREEN_ITEM_DURATION.DELAY,
-      );
+      this.#loadScreenRotationTimer = window.setTimeout(() => {
+        void this.rotateLoadingScreenItems();
+      }, PRE_SESSION.LOADING_SCREEN_ITEM_DURATION.DELAY);
     });
   }
 
-  private async killLoadingScreenItems(): Promise<void> {
+  private killLoadingScreenItems(): void {
     // Kill the rotation interval
     window.clearInterval(this.#loadScreenRotationTimer);
 
     // Wait for any currently-running timeline to complete
-    const currentTimeline = this.#loadingScreenItemTimelines.get(this.#currentLoadingScreenItem ?? "");
+    const currentTimeline = this.#loadingScreenItemTimelines.get(
+      this.#currentLoadingScreenItem ?? "",
+    );
     if (currentTimeline?.isActive()) {
-      await currentTimeline.timeScale(5);
+      void currentTimeline.timeScale(5).then(() => {
+        currentTimeline.seek(0).kill();
+      });
     }
 
-    // Remove all loading items from the DOM
-    this.#loadingScreenItems.forEach((item) => {
-      item.remove();
+    this.#loadingScreenItemTimelines.forEach((timeline) => {
+      timeline.seek(0).kill();
     });
-    this.#loadingScreenItems.clear();
+    this.#loadingScreenItemTimelines.clear();
+    this.#currentLoadingScreenItem = undefined;
+    this.isFirstItem = true;
+    this.#loadScreenRotationTimer = undefined;
   }
   // #endregion LOADING SCREEN
 
@@ -1077,14 +1188,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   /** Schedules playing of the pre-session song based on its duration */
 
   private async initializePreSessionSong(): Promise<void> {
+    if (!getUser().isGM) {
+      return;
+    }
 
+    kLog.log("initializePreSessionSong");
+
+    await getGame().audio.unlock;
     const timeRemaining = countdownUntil().totalSeconds;
     const preSessionSong = this.sessionStartingSong;
     await preSessionSong.load();
     const songDuration = preSessionSong.sound?.duration ?? 0;
 
     kLog.display("Initializing pre-session song");
-    kLog.log(`timeRemaining: ${Math.floor(timeRemaining / 60)}:${timeRemaining % 60}, songDuration: ${Math.floor(songDuration / 60)}:${songDuration % 60}`);
+    kLog.log(
+      `timeRemaining: ${Math.floor(timeRemaining / 60)}:${timeRemaining % 60}, songDuration: ${Math.floor(songDuration / 60)}:${songDuration % 60}`,
+    );
 
     if (timeRemaining <= songDuration) {
       kLog.log("playing song IMMEDIATELY");
@@ -1092,10 +1211,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     } else {
       const delay = timeRemaining - songDuration;
       kLog.log(`playing song in ${Math.floor(delay / 60)}:${delay % 60}`);
-      window.setTimeout(
-        this.playPreSessionSong.bind(this),
-        delay * 1000,
-      );
+      window.setTimeout(this.playPreSessionSong.bind(this), delay * 1000);
     }
   }
   /** Plays the pre-session song */
@@ -1109,7 +1225,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion PRE-SESSION SONG ~
 
   // #region INTRO VIDEO ~
-
 
   /** Initializes video preloading with user interaction handling */
   private async preloadIntroVideo(): Promise<void> {
@@ -1132,13 +1247,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
         const video = video$[0]!;
 
+        // Restore video attributes if they were cleared
+        if (!video.hasAttribute("src")) {
+          video.src = MEDIA_PATHS.INTRO_VIDEO;
+          video.preload = "auto";
+        }
+
         // Check if video is already loaded
-        if (video.readyState >= 4) { // HAVE_ENOUGH_DATA
+        if (video.readyState >= 4) {
+          // HAVE_ENOUGH_DATA
           reportStatus(VideoLoadStatus.Ready);
         } else {
-          video.addEventListener("canplaythrough", () => {
-            reportStatus(VideoLoadStatus.Ready);
-          }, { once: true });
+          video.addEventListener(
+            "canplaythrough",
+            () => {
+              reportStatus(VideoLoadStatus.Ready);
+            },
+            { once: true },
+          );
           video.load();
         }
         return;
@@ -1154,22 +1280,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   /** Sets up event listeners to handle video preloading after user interaction */
   private setupVideoPreloadHandlers(): void {
     const interactionEvents = [
-      'click',
-      'touchstart',
-      'keydown',
-      'mousedown',
-      'pointerdown'
+      "click",
+      "touchstart",
+      "keydown",
+      "mousedown",
+      "pointerdown",
     ];
 
     const handleVideoPreload = (e: Event) => {
       // Ignore clicks on the start video button
-      if (e.target instanceof Element &&
-          (e.target.classList.contains('start-video') ||
-           e.target.closest('.start-video'))) {
+      if (
+        e.target instanceof Element &&
+        (e.target.classList.contains("start-video") ||
+          e.target.closest(".start-video"))
+      ) {
         return;
       }
 
       const video = this.introVideo$[0]!;
+
+      // Restore video attributes if they were cleared
+      if (!video.hasAttribute("src")) {
+        video.src = MEDIA_PATHS.INTRO_VIDEO;
+        video.preload = "auto";
+      }
 
       // Update status to Loading once user interacts
       if (!getUser().isGM) {
@@ -1178,24 +1312,34 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           status: VideoLoadStatus.Loading,
         });
       } else {
-        this.updateVideoStatusPanel(getUser().id ?? "", VideoLoadStatus.Loading);
+        this.updateVideoStatusPanel(
+          getUser().id ?? "",
+          VideoLoadStatus.Loading,
+        );
       }
 
-      video.addEventListener("canplaythrough", () => {
-        if (!getUser().isGM) {
-          void EunosSockets.getInstance().call("reportPreloadStatus", "gm", {
-            userId: getUser().id ?? "",
-            status: VideoLoadStatus.Ready,
-          });
-        } else {
-          this.updateVideoStatusPanel(getUser().id ?? "", VideoLoadStatus.Ready);
-        }
-      }, { once: true });
+      video.addEventListener(
+        "canplaythrough",
+        () => {
+          if (!getUser().isGM) {
+            void EunosSockets.getInstance().call("reportPreloadStatus", "gm", {
+              userId: getUser().id ?? "",
+              status: VideoLoadStatus.Ready,
+            });
+          } else {
+            this.updateVideoStatusPanel(
+              getUser().id ?? "",
+              VideoLoadStatus.Ready,
+            );
+          }
+        },
+        { once: true },
+      );
 
       video.load();
     };
 
-    interactionEvents.forEach(event => {
+    interactionEvents.forEach((event) => {
       document.addEventListener(event, handleVideoPreload, { once: true });
     });
   }
@@ -1203,7 +1347,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   /** Initiates video preloading for all users */
   private initializeVideoPreloading(): void {
     if (!getUser().isGM) return;
-    void EunosSockets.getInstance().call("preloadIntroVideo", UserTargetRef.all);
+    void EunosSockets.getInstance().call(
+      "preloadIntroVideo",
+      UserTargetRef.all,
+    );
   }
 
   /** Plays the intro video from the start */
@@ -1211,15 +1358,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const video$ = this.introVideo$;
     const video = video$[0]!;
 
-    // Add ended event listener before playing
-    video.addEventListener('ended', () => {
-      kLog.log("Video playback complete");
-      if (getUser().isGM) {
-        void setSetting("gamePhase", GamePhase.SessionRunning);
-      }
-    }, { once: true }); // Use once: true so it auto-removes after firing
+    // Reset volume in case it was faded out
+    video.volume = 1;
 
-    await gsap.to([this.introVideo$, this.topZIndexMask$], {
+    // Add ended event listener before playing
+    video.addEventListener(
+      "ended",
+      () => {
+        kLog.log("Video playback complete");
+        if (getUser().isGM) {
+          void setSetting("gamePhase", GamePhase.SessionRunning);
+        }
+      },
+      { once: true },
+    );
+
+    await gsap.to(this.introVideo$, {
       autoAlpha: 1,
       duration: 0.5,
     });
@@ -1235,11 +1389,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
 
     const syncRequestTime = Date.now();
-    const gmTimestamp = await EunosSockets.getInstance().call<number>("requestVideoSync", UserTargetRef.gm);
+    const gmTimestamp = await EunosSockets.getInstance().call<number>(
+      "requestVideoSync",
+      UserTargetRef.gm,
+    );
     const latency = (Date.now() - syncRequestTime) / 2;
 
     // Calculate where video should be now, including network delay
-    const targetTimestamp = gmTimestamp + (latency / 1000);
+    const targetTimestamp = gmTimestamp + latency / 1000;
 
     const video$ = this.introVideo$;
     const video = video$[0]!;
@@ -1269,17 +1426,37 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Create a promise that resolves when the fade is complete
     return new Promise<void>((resolve) => {
       // Create a timeline to handle both video and container fade
-      gsap.timeline({
-        onComplete: () => {
-          video.pause();
-          resolve();
-        }
-      })
-      .to(video, {
-        volume: 0,
-        duration: 0.5,
-        ease: "power1.out",
-      })
+      gsap
+        .timeline({
+          onComplete: () => {
+            // Stop playback
+            video.pause();
+
+            // Reset playback position
+            video.currentTime = 0;
+
+            // Clear source buffer
+            video.removeAttribute("src");
+            video.load();
+
+            // Reset properties that might prevent garbage collection
+            video.preload = "none";
+
+            // Clear any media keys or encrypted media data
+            if (video.mediaKeys) {
+              video.setMediaKeys(null).catch(() => {
+                // Ignore errors, this is just cleanup
+              });
+            }
+
+            resolve();
+          },
+        })
+        .to(video, {
+          volume: 0,
+          duration: 0.5,
+          ease: "power1.out",
+        });
     });
   }
 
@@ -1291,7 +1468,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     VideoLoadStatus
   >();
 
-  private updateVideoStatusPanel(userId: string, status: VideoLoadStatus): void {
+  private updateVideoStatusPanel(
+    userId: string,
+    status: VideoLoadStatus,
+  ): void {
     if (!getUser().isGM) return;
 
     const allUsers = getUsers();
@@ -1302,19 +1482,345 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         this.videoLoadStatus.set(user.id!, VideoLoadStatus.PreloadNotRequested);
       }
     }
-    addClassToDOM("show-video-status");
 
     // Render just the videoStatus part instead of the whole application
     void this.render({ parts: ["videoStatus"] });
   }
 
-  /** Hide GM video status panel */
-  private killVideoStatusPanel() {
-    removeClassFromDOM("show-video-status");
-  }
   // #endregion GM Video Status Panel ~
 
   // #endregion INTRO VIDEO ~
+
+  // #region PHASE LIFECYCLE METHODS ~
+
+  async initializePhase(gamePhase?: GamePhase) {
+    gamePhase = gamePhase ?? getSetting("gamePhase");
+    kLog.log(`Initializing phase: ${gamePhase}`);
+    switch (gamePhase) {
+      case GamePhase.SessionClosed: {
+        await this.initialize_SessionClosed();
+        break;
+      }
+      case GamePhase.SessionLoading: {
+        await this.initialize_SessionLoading();
+        break;
+      }
+      case GamePhase.SessionStarting: {
+        await this.initialize_SessionStarting();
+        break;
+      }
+      case GamePhase.SessionRunning: {
+        await this.initialize_SessionRunning();
+        break;
+      }
+      case GamePhase.SessionEnding: {
+        await this.initialize_SessionEnding();
+        break;
+      }
+    }
+    setTimeout(() => {
+      addClassToDOM("interface-ready");
+    }, 1000);
+  }
+
+  async syncPhase() {
+    // Get current game phase from settings.
+    const gamePhase = getSetting("gamePhase");
+    kLog.log(`Syncing phase: ${gamePhase}`);
+    // Add the appropriate class based on the game phase.
+    switch (gamePhase) {
+      case GamePhase.SessionClosed: {
+        await this.sync_SessionClosed();
+        break;
+      }
+      case GamePhase.SessionLoading: {
+        await this.sync_SessionLoading();
+        break;
+      }
+      case GamePhase.SessionStarting: {
+        await this.sync_SessionStarting();
+        break;
+      }
+      case GamePhase.SessionRunning: {
+        await this.sync_SessionRunning();
+        break;
+      }
+      case GamePhase.SessionEnding: {
+        await this.sync_SessionEnding();
+        break;
+      }
+    }
+    setTimeout(() => {
+      addClassToDOM("interface-ready");
+    }, 1000);
+  }
+
+  async cleanupPhase(gamePhase?: GamePhase) {
+    gamePhase = gamePhase ?? getSetting("gamePhase");
+    kLog.log(`Cleaning up phase: ${gamePhase}`);
+    switch (gamePhase) {
+      case GamePhase.SessionClosed: {
+        await this.cleanup_SessionClosed();
+        break;
+      }
+      case GamePhase.SessionLoading: {
+        await this.cleanup_SessionLoading();
+        break;
+      }
+      case GamePhase.SessionStarting: {
+        await this.cleanup_SessionStarting();
+        break;
+      }
+      case GamePhase.SessionRunning: {
+        await this.cleanup_SessionRunning();
+        break;
+      }
+      case GamePhase.SessionEnding: {
+        await this.cleanup_SessionEnding();
+        break;
+      }
+    }
+  }
+
+  // #region SessionClosed Methods
+  private async initialize_SessionClosed(): Promise<void> {
+    // If there are fewer than 15 minutes remaining, immediately switch to SessionLoading phase
+    // if (countdownUntil().totalSeconds <= PRE_SESSION.LOAD_SESSION) {
+    //   if (getUser().isGM) {
+    //     await setSetting("gamePhase", GamePhase.SessionLoading);
+    //   }
+    //   return;
+    // }
+    addClassToDOM("session-closed");
+    await this.initializeLoadingScreenItemRotation();
+    await Promise.all([
+      this.initializeCountdown(),
+      this.initializeAmbientAudio(),
+    ]);
+    // this.addCanvasMaskListeners();
+  }
+  async sync_SessionClosed() {
+    addClassToDOM("session-closed");
+    await this.initializeLoadingScreenItemRotation();
+    await Promise.all([
+      this.initializeCountdown(),
+      this.initializeAmbientAudio(),
+    ]);
+    // this.addCanvasMaskListeners();
+  }
+  private async cleanup_SessionClosed(): Promise<void> {
+    removeClassFromDOM("session-closed");
+  }
+  // #endregion SessionClosed Methods
+
+  // #region SessionLoading Methods
+  private async initialize_SessionLoading(): Promise<void> {
+    addClassToDOM("session-loading");
+    await Promise.all([
+      this.initializeCountdown(),
+      this.initializePreSessionSong(),
+    ]);
+    this.initializeVideoPreloading();
+  }
+
+  async sync_SessionLoading() {
+    addClassToDOM("session-loading");
+    await this.initializeLoadingScreenItemRotation();
+    await Promise.all([
+      this.initializeCountdown(),
+      this.initializeAmbientAudio(),
+      this.preloadIntroVideo(),
+    ]);
+    // this.addStartVideoButtonListeners();
+  }
+
+  private async cleanup_SessionLoading(): Promise<void> {
+    this.killCountdown();
+    this.killLoadingScreenItems();
+    if (getUser().isGM) {
+      void this.sessionStartingPlaylist.stopAll();
+    }
+    removeClassFromDOM("session-loading");
+  }
+
+  // #endregion SessionLoading Methods
+
+  // #region SessionStarting Methods
+  private async initialize_SessionStarting(
+    data?: Record<string, unknown>,
+  ): Promise<void> {
+    addClassToDOM("session-starting");
+    if (!getUser().isGM) return;
+
+    // GM triggers video playback for all clients
+    void EunosSockets.getInstance().call(
+      "startVideoPlayback",
+      UserTargetRef.all,
+    );
+  }
+
+  async sync_SessionStarting(): Promise<void> {
+    addClassToDOM("session-starting");
+    if (getUser().isGM) {
+      // GM already has video preloaded
+      await this.playIntroVideo();
+    } else {
+      // Late-join handling for players
+      try {
+        await this.handleLateJoinSync();
+      } catch (error) {
+        kLog.error("Failed to sync video playback:", error);
+        // Fallback to normal playback if sync fails
+        await this.playIntroVideo();
+      }
+    }
+  }
+
+  private async cleanup_SessionStarting(): Promise<void> {
+    await this.killIntroVideo();
+    removeClassFromDOM("session-starting");
+  }
+  // #endregion SessionStarting Methods
+
+  // #region SessionRunning Methods
+  private async initialize_SessionRunning(): Promise<void> {
+    this.initializeLocation();
+    addClassToDOM("session-running");
+    kLog.log(
+      "Would initialize SessionRunning phase",
+      "Setting up stage and UI components",
+    );
+  }
+
+  async sync_SessionRunning() {
+    this.initializeLocation();
+    addClassToDOM("session-running");
+  }
+
+  private async cleanup_SessionRunning(): Promise<void> {
+    removeClassFromDOM("session-running");
+  }
+
+  // #endregion SessionRunning Methods
+
+  // #region SessionEnding Methods
+  private async initialize_SessionEnding(): Promise<void> {
+    addClassToDOM("session-ending");
+    kLog.log(
+      "Would initialize SessionEnding phase",
+      "Setting up dramatic hook UI and session summary",
+    );
+  }
+
+  async sync_SessionEnding() {
+    addClassToDOM("session-ending");
+  }
+
+  private async cleanup_SessionEnding(): Promise<void> {
+    removeClassFromDOM("session-ending");
+    kLog.log(
+      "Would cleanup SessionEnding phase",
+      "Cleaning up dramatic hook UI and session summary",
+    );
+  }
+  // #endregion SessionEnding Methods
+
+  // #endregion PHASE LIFECYCLE METHODS
+
+  // #endregion PRE-SESSION MANAGEMENT & GAME PHASE CONTROL ~
+
+  // #region ===== STAGE CONTROL =====
+
+  get locationContainer(): JQuery {
+    return this.overlay$.find("#LOCATIONS");
+  }
+  get locationName(): JQuery {
+    return this.locationContainer.find(".location-name");
+  }
+  get locationImage(): JQuery {
+    return this.locationContainer.find(".location-image");
+  }
+  get locationDescription(): JQuery {
+    return this.locationContainer.find(".location-description");
+  }
+
+  public initializeLocation() {
+    const location = getSetting("location");
+    if (!location || !(location in LOCATIONS)) {
+      kLog.error(`Location ${location} not found`);
+      return;
+    }
+    this.goToLocation(location as KeyOf<typeof LOCATIONS>, true);
+  }
+
+  public async setLocation(location: KeyOf<typeof LOCATIONS>) {
+    if (!getUser().isGM) { return; }
+    await setSetting("location", location);
+    void EunosSockets.getInstance().call("setLocation", UserTargetRef.all, { location });
+  }
+
+  public goToLocation(location: KeyOf<typeof LOCATIONS>, isInstant = false) {
+    const locationData = LOCATIONS[location];
+    if (!locationData) {
+      kLog.error("Location not found", { location });
+      return;
+    }
+
+    const {image, description,mapTransforms} = locationData;
+
+    // Construct a timeline that will animate all of the map transforms smoothly and simultaneously
+
+    const timeline = gsap.timeline({paused: true})
+      .to(
+        this.locationContainer,
+        {
+          y: "-=200",
+          x: "-=100",
+          filter: "blur(30px)",
+          opacity: 0,
+          duration: 0.5,
+          ease: "power2.out",
+        }, 0)
+      .call(() => {
+        this.locationName.text(location);
+        this.locationImage.attr("src", image ?? "");
+        this.locationDescription.html(description ?? "");
+      })
+      .to(
+        this.locationContainer,
+        {
+          y: 0,
+          x: 0,
+          filter: "blur(0)",
+          duration: 0,
+          ease: "none"
+        }
+      )
+      .addLabel("startMoving");
+
+    mapTransforms.forEach(({selector, properties}) => {
+      timeline.to(selector, {
+        ...properties,
+        duration: 3,
+        ease: "power3.inOut"
+      }, "startMoving");
+    });
+
+    timeline
+      .to(this.locationContainer, {
+        opacity: 1,
+        duration: 1,
+        ease: "power3.inOut",
+      }, "-=0.5");
+
+    if (isInstant) {
+      timeline.progress(1);
+    } else {
+      timeline.play();
+    }
+  }
+
+  // #endregion
 
   // #region LISTENERS ~
 
@@ -1323,9 +1829,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!this.#sidebarTimeline) {
       this.#sidebarTimeline = gsap
         .timeline({ paused: true })
-        .to([this.sidebarMask$, this.sidebarBars$], {
+        .to(this.uiRight$, {
           opacity: 0,
-          duration: 2,
+          duration: 0.01,
+          ease: "none",
+        })
+        .to(this.uiRight$, {
+          opacity: 1,
+          zIndex: 500,
+          duration: 0.5,
           ease: "power2.out",
         });
     }
@@ -1333,11 +1845,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private addCanvasMaskListeners() {
+    this.sessionClosedAmbientAudio$[0]!.volume = Number(
+      this.sessionClosedAmbientAudio$[0]?.dataset["volume"] ?? 0.5,
+    );
+
     $(document)
       // Handle cursor movement
       .on("mousemove", (event) => {
         const isOverSidebar =
-          event.clientX >= (this.sidebarMask$.offset()?.left ?? 0);
+          event.clientX >= (this.uiRight$.offset()?.left ?? 0);
         if (isOverSidebar) {
           this.sidebarTimeline.play();
         } else {
@@ -1360,10 +1876,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     kLog.log("adding start video button listener");
 
     // Use event delegation on document
-    $(document).off("click.startVideo").on("click.startVideo", ".start-video", (e) => {
-      kLog.log("start video button clicked");
-      void setSetting("gamePhase", GamePhase.SessionStarting);
-    });
+    $(document)
+      .off("click.startVideo")
+      .on("click.startVideo", ".start-video", (e) => {
+        kLog.log("start video button clicked");
+        void setSetting("gamePhase", GamePhase.SessionStarting);
+      });
 
     this.#startVideoListenerAdded = true;
   }
@@ -1380,27 +1898,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Prepare NPC data for stage
     const npcSceneData = getSetting("npcSceneData");
     const npcsData = Object.fromEntries(
-      Object.entries<string|null>(npcSceneData ?? {})
-        .map(([sceneIndex, npcId]) => [parseInt(sceneIndex, 10), npcId ? getActors().find((actor) => actor.id === npcId) : null])
+      Object.entries<string | null>(npcSceneData ?? {}).map(
+        ([sceneIndex, npcId]) => [
+          parseInt(sceneIndex, 10),
+          npcId ? getActors().find((actor) => actor.id === npcId) : null,
+        ],
+      ),
     );
 
     // Prepare PC data for stage
     const pcsData = getActors().filter((actor) => actor.type === "pc");
     const pcsPresent = getSetting("pcsPresent");
 
+    // Prepare loading screen item data
+
     Object.assign(context, {
       location,
       npcsData,
       pcsData,
       pcsPresent,
-      sessionScribeID: getSetting("sessionScribeID")
+      LOADING_SCREEN_DATA,
+      sessionScribeID: getSetting("sessionScribeID"),
+      isGM: getUser().isGM,
     });
 
     if (!getUser().isGM) {
       const pcActor = getActor();
       if (pcActor.isPC()) {
         Object.assign(context, {
-          dramaticHookCandleID: pcActor.system.dramatichooks.assigningFor
+          dramaticHookCandleID: pcActor.system.dramatichooks.assigningFor,
         });
       }
     }
@@ -1411,9 +1937,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Prepare video status data for template
     const users = getUsers().map((user: User) => {
-      const status = !user.active || this.videoLoadStatus.get(user.id ?? "") === VideoLoadStatus.NotConnected
-        ? VideoLoadStatus.NotConnected
-        : (this.videoLoadStatus.get(user.id ?? "") ?? VideoLoadStatus.PreloadNotRequested);
+      const status =
+        !user.active ||
+        this.videoLoadStatus.get(user.id ?? "") === VideoLoadStatus.NotConnected
+          ? VideoLoadStatus.NotConnected
+          : (this.videoLoadStatus.get(user.id ?? "") ??
+            VideoLoadStatus.PreloadNotRequested);
 
       return {
         id: user.id,
@@ -1429,10 +1958,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       };
     });
 
-
     Object.assign(context, {
       users,
-      isGM: true
+      isGM: true,
     });
 
     return context;
@@ -1449,250 +1977,259 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (options.isFirstRender) {
       void this.syncPhase();
     }
-    if ([GamePhase.SessionClosed, GamePhase.SessionLoading].includes(getSetting("gamePhase"))) {
+    if (
+      [GamePhase.SessionClosed, GamePhase.SessionLoading].includes(
+        getSetting("gamePhase"),
+      )
+    ) {
       this.addCanvasMaskListeners();
     }
     this.addStartVideoButtonListeners();
   }
   // #endregion OVERRIDE: ON RENDER ~
-
-  // #region PHASE LIFECYCLE METHODS ~
-
-  async initializePhase(gamePhase?: GamePhase) {
-    gamePhase = gamePhase ?? getSetting("gamePhase");
-    kLog.log(`Initializing phase: ${gamePhase}`);
-    addClassToDOM("interface-ready");
-    switch (gamePhase) {
-      case GamePhase.SessionClosed: {
-        await this.initialize_SessionClosed();
-        addClassToDOM("session-closed");
-        break;
-      }
-      case GamePhase.SessionLoading: {
-        await this.initialize_SessionLoading();
-        addClassToDOM("session-loading");
-        break;
-      }
-      case GamePhase.SessionStarting: {
-        await this.initialize_SessionStarting();
-        addClassToDOM("session-starting");
-        break;
-      }
-      case GamePhase.SessionRunning: {
-        await this.initialize_SessionRunning();
-        addClassToDOM("session-running");
-        break;
-      }
-      case GamePhase.SessionEnding: {
-        await this.initialize_SessionEnding();
-        addClassToDOM("session-ending");
-        break;
-      }
-    }
-  }
-
-  async syncPhase() {
-    // Get current game phase from settings.
-    const gamePhase = getSetting("gamePhase");
-    kLog.log(`Syncing phase: ${gamePhase}`);
-    addClassToDOM("interface-ready");
-    // Add the appropriate class based on the game phase.
-    switch (gamePhase) {
-      case GamePhase.SessionClosed: {
-        await this.sync_SessionClosed();
-        addClassToDOM("session-closed");
-        break;
-      }
-      case GamePhase.SessionLoading: {
-        await this.sync_SessionLoading();
-        addClassToDOM("session-loading");
-        break;
-      }
-      case GamePhase.SessionStarting: {
-        await this.sync_SessionStarting();
-        addClassToDOM("session-starting");
-        break;
-      }
-      case GamePhase.SessionRunning: {
-        await this.sync_SessionRunning();
-        addClassToDOM("session-running");
-        break;
-      }
-      case GamePhase.SessionEnding: {
-        await this.sync_SessionEnding();
-        addClassToDOM("session-ending");
-        break;
-      }
-    }
-  }
-
-  async cleanupPhase(gamePhase?: GamePhase) {
-    gamePhase = gamePhase ?? getSetting("gamePhase");
-    kLog.log(`Cleaning up phase: ${gamePhase}`);
-    switch (gamePhase) {
-      case GamePhase.SessionClosed: {
-        await this.cleanup_SessionClosed();
-        removeClassFromDOM("session-closed");
-        break;
-      }
-      case GamePhase.SessionLoading: {
-        await this.cleanup_SessionLoading();
-        removeClassFromDOM("session-loading");
-        break;
-      }
-      case GamePhase.SessionStarting: {
-        await this.cleanup_SessionStarting();
-        removeClassFromDOM("session-starting");
-        break;
-      }
-      case GamePhase.SessionRunning: {
-        await this.cleanup_SessionRunning();
-        removeClassFromDOM("session-running");
-        break;
-      }
-      case GamePhase.SessionEnding: {
-        await this.cleanup_SessionEnding();
-        removeClassFromDOM("session-ending");
-        break;
-      }
-    }
-  }
-
-  // #region SessionClosed Methods
-  private async initialize_SessionClosed(): Promise<void> {
-    // If there are fewer than 15 minutes remaining, immediately switch to SessionLoading phase
-    // if (countdownUntil().totalSeconds <= PRE_SESSION.LOAD_SESSION) {
-    //   if (getUser().isGM) {
-    //     await setSetting("gamePhase", GamePhase.SessionLoading);
-    //   }
-    //   return;
-    // }
-    await this.initializeLoadingScreenItemRotation();
-    await Promise.all([
-      this.initializeCountdown(),
-      this.initializeAmbientAudio(),
-    ]);
-    // this.addCanvasMaskListeners();
-  }
-  async sync_SessionClosed() {
-    await this.initializeLoadingScreenItemRotation();
-    await Promise.all([
-      this.initializeCountdown(),
-      this.initializeAmbientAudio(),
-    ]);
-    // this.addCanvasMaskListeners();
-  }
-  private async cleanup_SessionClosed(): Promise<void> {
-
-  }
-  // #endregion SessionClosed Methods
-
-  // #region SessionLoading Methods
-  private async initialize_SessionLoading(): Promise<void> {
-    await Promise.all([
-      this.initializeCountdown(),
-      this.initializePreSessionSong()
-    ]);
-    this.initializeVideoPreloading();
-    addClassToDOM("session-loading");
-  }
-
-  async sync_SessionLoading() {
-    await this.initializeLoadingScreenItemRotation();
-    await Promise.all([
-      this.initializeCountdown(),
-      this.initializeAmbientAudio(),
-      this.preloadIntroVideo(),
-    ]);
-    addClassToDOM("session-loading");
-    // this.addStartVideoButtonListeners();
-  }
-
-  private async cleanup_SessionLoading(): Promise<void> {
-    this.killCountdown();
-    void this.killLoadingScreenItems();
-    this.killVideoStatusPanel();
-    if (getUser().isGM) {
-      void this.sessionStartingPlaylist.stopAll();
-    }
-  }
-
-  // #endregion SessionLoading Methods
-
-  // #region SessionStarting Methods
-  private async initialize_SessionStarting(
-    data?: Record<string, unknown>,
-  ): Promise<void> {
-    if (!getUser().isGM) return;
-
-    // GM triggers video playback for all clients
-    void EunosSockets.getInstance().call(
-      "startVideoPlayback",
-      UserTargetRef.all
-    );
-  }
-
-  async sync_SessionStarting(): Promise<void> {
-    addClassToDOM("session-starting");
-    if (getUser().isGM) {
-      // GM already has video preloaded
-      await this.playIntroVideo();
-    } else {
-      // Late-join handling for players
-      try {
-        await this.handleLateJoinSync();
-      } catch (error) {
-        kLog.error("Failed to sync video playback:", error);
-        // Fallback to normal playback if sync fails
-        await this.playIntroVideo();
-      }
-    }
-  }
-
-  private async cleanup_SessionStarting(): Promise<void> {
-    this.killCountdown();
-    this.killVideoStatusPanel();
-    await this.killIntroVideo();
-  }
-  // #endregion SessionStarting Methods
-
-  // #region SessionRunning Methods
-  private async initialize_SessionRunning(): Promise<void> {
-    kLog.log(
-      "Would initialize SessionRunning phase",
-      "Setting up stage and UI components",
-    );
-  }
-
-  async sync_SessionRunning() {
-    addClassToDOM("session-running");
-  }
-
-  private async cleanup_SessionRunning(): Promise<void> {
-
-  }
-
-  // #endregion SessionRunning Methods
-
-  // #region SessionEnding Methods
-  private async initialize_SessionEnding(): Promise<void> {
-    kLog.log(
-      "Would initialize SessionEnding phase",
-      "Setting up dramatic hook UI and session summary",
-    );
-  }
-
-  async sync_SessionEnding() {
-    addClassToDOM("session-ending");
-  }
-
-  private async cleanup_SessionEnding(): Promise<void> {
-    kLog.log(
-      "Would cleanup SessionEnding phase",
-      "Cleaning up dramatic hook UI and session summary",
-    );
-  }
-  // #endregion SessionEnding Methods
-
-  // #endregion PHASE LIFECYCLE METHODS
 }
+
+// #region DEBUGGING ~
+// Define the 3D_DEBUG_SETTINGS array
+const DEBUG_3D_SETTINGS: Array<{
+  selector: string;
+  property: string;
+  rangeMult: number;
+}> = [
+  {
+    selector: "#STAGE #SECTION-3D",
+    property: "perspective",
+    rangeMult: 1,
+  },
+  {
+    selector: "#STAGE #SECTION-3D .canvas-layer",
+    property: "x",
+    rangeMult: 2,
+  },
+  {
+    selector: "#STAGE #SECTION-3D .canvas-layer",
+    property: "y",
+    rangeMult: 2,
+  },
+  {
+    selector: "#STAGE #SECTION-3D .canvas-layer",
+    property: "z",
+    rangeMult: 2,
+  },
+  {
+    selector: "#STAGE #SECTION-3D .canvas-layer",
+    property: "rotationX",
+    rangeMult: 1,
+  },
+  {
+    selector: "#STAGE #SECTION-3D .canvas-layer",
+    property: "rotationY",
+    rangeMult: 1,
+  },
+  {
+    selector: "#STAGE #SECTION-3D .canvas-layer",
+    property: "rotationZ",
+    rangeMult: 1,
+  },
+  // Add more entries as needed
+];
+
+jQuery(function () {
+  // Function to create the debugging panel
+  function createDebugPanel() {
+    const panel = document.createElement("div");
+    panel.classList.add("debug-panel");
+    panel.style.position = "fixed";
+    panel.style.top = "10px";
+    panel.style.left = "10px"; // Move to the left side
+    panel.style.width = "400px"; // Double the width
+    panel.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+    panel.style.padding = "10px";
+    panel.style.borderRadius = "5px";
+    panel.style.zIndex = "10001";
+    panel.style.color = "white";
+    panel.style.fontFamily = "Arial, sans-serif";
+
+    const sliderValues: Record<string, number> = {};
+
+    // Add sliders for 3D settings
+    DEBUG_3D_SETTINGS.forEach((config) => {
+      const row = document.createElement("div");
+      row.style.marginBottom = "10px";
+      row.style.position = "relative";
+
+      const label = document.createElement("label");
+      label.textContent = `${config.property}: `;
+      label.style.marginRight = "5px";
+
+      const slider = document.createElement("input");
+      slider.type = "range";
+
+      const elements = document.querySelectorAll(config.selector);
+      const initialValue =
+        elements.length > 0
+          ? (gsap.getProperty(
+              elements[0] as Element,
+              config.property,
+            ) as number)
+          : 0;
+      console.log(`Initial value for ${config.property}: ${initialValue}`);
+
+      const range = config.rangeMult * Math.abs(initialValue);
+      slider.min = String(initialValue - range);
+      slider.max = String(initialValue + range);
+      slider.value = String(initialValue);
+
+      sliderValues[config.property] = initialValue;
+
+      const valueDisplay = document.createElement("span");
+      valueDisplay.textContent = String(Math.round(initialValue));
+      valueDisplay.style.marginLeft = "10px";
+      valueDisplay.style.cursor = "pointer";
+      valueDisplay.style.userSelect = "text";
+
+      const resetButton = document.createElement("i");
+      resetButton.className = "fas fa-undo";
+      resetButton.style.position = "absolute";
+      resetButton.style.right = "0";
+      resetButton.style.top = "0"; // Align with the top of the row
+      resetButton.style.transform = "translateY(0)"; // Remove vertical centering
+      resetButton.style.cursor = "pointer";
+      resetButton.style.color = "white";
+
+      resetButton.addEventListener("click", () => {
+        slider.value = String(initialValue);
+        valueDisplay.textContent = String(Math.round(initialValue));
+        elements.forEach((element) => {
+          gsap.to(element, { [config.property]: initialValue });
+        });
+        sliderValues[config.property] = initialValue;
+      });
+
+      slider.addEventListener("input", () => {
+        const value = parseFloat(slider.value);
+        valueDisplay.textContent = String(Math.round(value));
+        elements.forEach((element) => {
+          gsap.to(element, { [config.property]: value });
+        });
+        sliderValues[config.property] = value;
+      });
+
+      row.appendChild(label);
+      row.appendChild(slider);
+      row.appendChild(valueDisplay);
+      row.appendChild(resetButton);
+      panel.appendChild(row);
+    });
+
+    // Add sliders for gradient settings
+    const gradientSettings = [
+      {
+        label: "Circle Position X",
+        property: "circlePositionX",
+        initialValue: 25,
+      },
+      {
+        label: "Circle Position Y",
+        property: "circlePositionY",
+        initialValue: 0,
+      },
+      {
+        label: "Gradient Stop Percentage",
+        property: "gradientStopPercentage",
+        initialValue: 50,
+      },
+    ];
+
+    const gradientValues: Record<string, number> = {};
+
+    gradientSettings.forEach((setting) => {
+      const row = document.createElement("div");
+      row.style.marginBottom = "10px";
+      row.style.position = "relative";
+
+      const label = document.createElement("label");
+      label.textContent = `${setting.label}: `;
+      label.style.marginRight = "5px";
+
+      const slider = document.createElement("input");
+      slider.type = "range";
+      slider.min = "0";
+      slider.max = "100";
+      slider.value = String(setting.initialValue);
+
+      gradientValues[setting.property] = setting.initialValue;
+
+      const valueDisplay = document.createElement("span");
+      valueDisplay.textContent = `${setting.initialValue}%`;
+      valueDisplay.style.marginLeft = "10px";
+      valueDisplay.style.cursor = "pointer";
+      valueDisplay.style.userSelect = "text";
+
+      const resetButton = document.createElement("i");
+      resetButton.className = "fas fa-undo";
+      resetButton.style.position = "absolute";
+      resetButton.style.right = "0";
+      resetButton.style.top = "0"; // Align with the top of the row
+      resetButton.style.transform = "translateY(0)"; // Remove vertical centering
+      resetButton.style.cursor = "pointer";
+      resetButton.style.color = "white";
+
+      resetButton.addEventListener("click", () => {
+        slider.value = String(setting.initialValue);
+        valueDisplay.textContent = `${setting.initialValue}%`;
+        gradientValues[setting.property] = setting.initialValue;
+        updateGradient();
+      });
+
+      slider.addEventListener("input", () => {
+        const value = parseFloat(slider.value);
+        valueDisplay.textContent = `${value}%`;
+        gradientValues[setting.property] = value;
+        updateGradient();
+      });
+
+      row.appendChild(label);
+      row.appendChild(slider);
+      row.appendChild(valueDisplay);
+      row.appendChild(resetButton);
+      panel.appendChild(row);
+    });
+
+    const updateGradient = () => {
+      const { circlePositionX, circlePositionY, gradientStopPercentage } =
+        gradientValues;
+      const elements = document.querySelectorAll(
+        "#STAGE #SECTION-3D .canvas-layer.under-layer",
+      );
+      elements.forEach((element) => {
+        (element as HTMLElement).style.background =
+          `radial-gradient(circle at ${circlePositionX}% ${circlePositionY}%, transparent, rgba(0, 0, 0, 0.9) ${gradientStopPercentage}%)`;
+      });
+    };
+
+    const outputButton = document.createElement("button");
+    outputButton.textContent = "Output Values";
+    outputButton.style.marginTop = "10px";
+    outputButton.style.width = "100%";
+    outputButton.style.cursor = "pointer";
+
+    outputButton.addEventListener("click", () => {
+      const gradientString = `radial-gradient(circle at ${gradientValues["circlePositionX"]}% ${gradientValues["circlePositionY"]}%, transparent, rgba(0, 0, 0, 0.9) ${gradientValues["gradientStopPercentage"]}%)`;
+      console.log("GSAP Timeline Data:", sliderValues);
+      console.log("Gradient String:", gradientString);
+      alert(
+        `GSAP Timeline Data: ${JSON.stringify(sliderValues, null, 2)}\nGradient String: ${gradientString}`,
+      );
+    });
+
+    panel.appendChild(outputButton);
+    document.body.appendChild(panel);
+  }
+
+  setTimeout(() => {
+    // Call the function to create the panel
+    createDebugPanel();
+  }, 4000);
+});
+// #endregion DEBUGGING ~

@@ -85,11 +85,7 @@ declare global {
     "eunos-kult-hacks.videoReadyClients": string[];
     "eunos-kult-hacks.nextGameSession": string; // ISO date string in Toronto timezone
     "eunos-kult-hacks.npcSceneData": Record<"1"|"2"|"3"|"4"|"5"|"6", string|null>;
-    "eunos-kult-hacks.location": {
-      name: string;
-      img: string;
-      description?: string;
-    } | null;
+    "eunos-kult-hacks.location": string;
     "eunos-kult-hacks.pcsPresent": Record<"1"|"2"|"3"|"4"|"5", string|null>;
     "eunos-kult-hacks.sessionScribeID": string;
   }

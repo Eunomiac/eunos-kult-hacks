@@ -212,6 +212,7 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
       case "<=":
         return U.isNumber(param1) && U.isNumber(param2) && param1 <= param2;
       case "includes":
+        param1 = U.isList(param1) ? Object.values(param1) : param1;
         return Array.isArray(param1) && param1.includes(param2);
       case "in":
         if (Array.isArray(param2)) { return param2.includes(param1); }
