@@ -16,21 +16,10 @@
 </div>
 
 <div class="tokens-container">
-  {{#if canHaveHold}}
-  <label>Grants Hold?</label>
-  <input type="checkbox" name="system.hasHold" {{checked system.hasHold}} />
-  {{#if system.hasHold}}
-  <label>{{localize "k4lt.Counter"}}:</label>
-  <input class="tokens-counter" name="system.holdTokens" value="{{system.holdTokens}}" class="short-input"
-    type="number" />
-  {{/if}}
-  {{/if}}
-  {{#if canHaveEdges}}
-  <label>Has Edges?</label>
-  <input type="checkbox" name="system.hasTokens" {{checked system.hasTokens}} />
-  {{#if system.hasTokens}}
-  <label>{{localize "k4lt.Counter"}}:</label>
-  <input class="tokens-counter" name="system.tokens" value="{{system.tokens}}" class="short-input" type="number" />
-  {{/if}}
+  <label>Has Counter?</label>
+  <input type="checkbox" name="system.hasCounter" {{checked system.hasCounter}} />
+  {{#if system.hasCounter}}
+  <input class="tokens-name" name="system.counterName" value="{{system.counterName}}" class="short-input" type="text" placeholder="Name" />
+  <input class="tokens-counter" name="system.counterCount" value="{{system.counterCount}}" class="short-input" type="number" />
   {{/if}}
 </div>

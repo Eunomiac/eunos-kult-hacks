@@ -1,4 +1,4 @@
-import {type ItemDerivedFieldsBase, getHoldFields, getEdgeFields, getMoveFields} from "./fields/itemFields";
+import {type ItemDerivedFieldsBase, getMoveFields, getTokenFields} from "./fields/itemFields";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fields = foundry.data.fields;
 import TypeDataModel = foundry.abstract.TypeDataModel;
@@ -7,8 +7,7 @@ import type EunosItem from "../documents/EunosItem";
 
 
 const ItemSchemaDisadvantage = {
-  ...getEdgeFields(),
-  ...getHoldFields(),
+  ...getTokenFields(),
   ...getMoveFields()
 };
 

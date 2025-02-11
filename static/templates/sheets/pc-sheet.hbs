@@ -204,11 +204,20 @@
         </div>
         <div class="advantage-box">
 
-          {{#if occupations.length}}
-          <div class="section-label">{{localize "k4lt.Occupations"}}</div>
-          <div class="item-list occupation-list">
-            {{#each occupations as |occupation id|}}
-            {{> "modules/eunos-kult-hacks/templates/sheets/partials/occupation-card.hbs" this=occupation isGM=../isGM actorID=../actor._id}}
+          {{#if abilities.length}}
+          <div class="section-label">{{localize "k4lt.Abilities"}}</div>
+          <div class="item-list ability-list">
+            {{#each abilities as |ability id|}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=ability isGM=../isGM actorID=../actor._id}}
+            {{/each}}
+          </div>
+          {{/if}}
+
+          {{#if advantages.length}}
+          <div class="section-label">{{localize "k4lt.Advantages"}}</div>
+          <div class="item-list advantage-list">
+            {{#each advantages as |advantage id|}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=advantage isGM=../isGM actorID=../actor._id}}
             {{/each}}
           </div>
           {{/if}}
@@ -222,34 +231,16 @@
           </div>
           {{/if}}
 
-          {{#if disadvantages.length}}
-          <div class="section-label">{{localize "k4lt.Disadvantages"}}</div>
-          <div class="item-list disadvantage-list">
-            {{#each disadvantages as |disadvantage id|}}
-            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=disadvantage isGM=../isGM actorID=../actor._id}}
-            {{/each}}
-          </div>
-          {{/if}}
-
-          {{#if advantages.length}}
-          <div class="section-label">{{localize "k4lt.Advantages"}}</div>
-          <div class="item-list advantage-list">
-            {{#each advantages as |advantage id|}}
-            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=advantage isGM=../isGM actorID=../actor._id}}
+          {{#if relationships.length}}
+          <div class="section-label">{{localize "k4lt.Relationships"}}</div>
+          <div class="item-list relationship-list">
+            {{#each relationships as |relationship id|}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/relationship-card.hbs" this=relationship isGM=../isGM actorID=../actor._id strengthText=relationship.system.strengthText}}
             {{/each}}
           </div>
           {{/if}}
         </div>
         <div class="advantage-box">
-
-          {{#if abilities.length}}
-          <div class="section-label">{{localize "k4lt.Abilities"}}</div>
-          <div class="item-list ability-list">
-            {{#each abilities as |ability id|}}
-            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=ability isGM=../isGM actorID=../actor._id}}
-            {{/each}}
-          </div>
-          {{/if}}
 
           {{#if limitations.length}}
           <div class="section-label">{{localize "k4lt.Limitations"}}</div>
@@ -260,11 +251,11 @@
           </div>
           {{/if}}
 
-          {{#if relationships.length}}
-          <div class="section-label">{{localize "k4lt.Relationships"}}</div>
-          <div class="item-list relationship-list">
-            {{#each relationships as |relationship id|}}
-            {{> "modules/eunos-kult-hacks/templates/sheets/partials/relationship-card.hbs" this=relationship isGM=../isGM actorID=../actor._id strengthText=relationship.system.strengthText}}
+          {{#if disadvantages.length}}
+          <div class="section-label">{{localize "k4lt.Disadvantages"}}</div>
+          <div class="item-list disadvantage-list">
+            {{#each disadvantages as |disadvantage id|}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=disadvantage isGM=../isGM actorID=../actor._id}}
             {{/each}}
           </div>
           {{/if}}

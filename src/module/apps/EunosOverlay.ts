@@ -16,6 +16,7 @@ import { AlertType } from "./EunosAlerts";
 import ItemDataAdvantage from "../data-model/ItemDataAdvantage";
 import ItemDataDisadvantage from "../data-model/ItemDataDisadvantage";
 import type EunosItem from "../documents/EunosItem";
+// import AudioHelper from "../scripts/AudioHelper";
 // #endregion -- IMPORTS ~
 
 // #region Type Definitions ~
@@ -117,7 +118,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         body: getBody(),
       });
     },
-    async addHold(event: PointerEvent, target: HTMLElement) {
+    async addCounter(event: PointerEvent, target: HTMLElement) {
       const elem$ = $(target).closest("[data-item-id]");
       const itemId = elem$.attr("data-item-id");
       const actorId = elem$.attr("data-actor-id");
@@ -134,21 +135,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       const itemData = item.system as ItemDataAdvantage | ItemDataDisadvantage;
-      if (!itemData.hasHold) {
-        kLog.error("Item does not have hold", { itemId });
+      if (!itemData.hasCounter) {
+        kLog.error("Item does not have counter", { itemId });
         return;
       }
       await item.update({
-        system: { holdTokens: (itemData.holdTokens ?? 0) + 1 },
+        system: { counterCount: (itemData.counterCount ?? 0) + 1 },
       });
       void EunosOverlay.instance.render({ parts: ["pcs"] });
     },
-    async spendHold(event: PointerEvent, target: HTMLElement) {
+    async spendCounter(event: PointerEvent, target: HTMLElement) {
       const elem$ = $(target).closest("[data-item-id]");
       const itemId = elem$.attr("data-item-id");
       const actorId = elem$.attr("data-actor-id");
       if (!itemId || !actorId) {
-        kLog.error("No itemId or actorId found for spendHold", {
+        kLog.error("No itemId or actorId found for spendCounter", {
           itemId,
           actorId,
         });
@@ -160,15 +161,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       const itemData = item.system as ItemDataAdvantage | ItemDataDisadvantage;
-      if (!itemData.hasHold) {
-        kLog.error("Item does not have hold", { itemId });
+      if (!itemData.hasCounter) {
+        kLog.error("Item does not have counter", { itemId });
         return;
       }
-      if ((itemData.holdTokens ?? 0) <= 0) {
+      if ((itemData.counterCount ?? 0) <= 0) {
         return;
       }
       await item.update({
-        system: { holdTokens: (itemData.holdTokens ?? 0) - 1 },
+        system: { counterCount: (itemData.counterCount ?? 0) - 1 },
       });
       void EunosOverlay.instance.render({ parts: ["pcs"] });
     },
@@ -203,8 +204,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         EunosOverlay.ACTIONS.fadeToBlackClick.bind(EunosOverlay),
       conditionCardClick:
         EunosOverlay.ACTIONS.conditionCardClick.bind(EunosOverlay),
-      addHold: EunosOverlay.ACTIONS.addHold.bind(EunosOverlay),
-      spendHold: EunosOverlay.ACTIONS.spendHold.bind(EunosOverlay),
+      addCounter: EunosOverlay.ACTIONS.addCounter.bind(EunosOverlay),
+      spendCounter: EunosOverlay.ACTIONS.spendCounter.bind(EunosOverlay),
     },
   };
 
@@ -604,7 +605,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get sessionStartingSong(): PlaylistSound {
     this.#sessionStartingSong =
-      this.sessionStartingPlaylist.sounds.contents[0] ?? undefined;
+      this.sessionStartingPlaylist.sounds.get(this.sessionStartingPlaylist.playbackOrder[0] ?? "") ?? undefined;
     if (!this.#sessionStartingSong) {
       throw new Error("No songs in Pre-Session Tracks playlist");
     }
@@ -630,15 +631,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region ===== PRE-SESSION MANAGEMENT & GAME PHASE CONTROL =====
   // #region COUNTDOWN ~
   #countdownTimer: Maybe<number>;
-  #countdownTimeline: Maybe<gsap.core.Timeline>;
-  isCountdownContainerTimelineActive = false;
+  #glitchTimeline: Maybe<gsap.core.Timeline>;
+  #countdownContainerTimeline: Maybe<gsap.core.Timeline>;
+  #isCountdownContainerTimelinePlaying = false;
 
-  public get glitchRepeatDelay(): number {
-    const totalSeconds = 7 * 24 * 60 * 60;
-    const currentSeconds = countdownUntil().totalSeconds;
-    const progress = currentSeconds / totalSeconds;
-    const delay = gsap.utils.interpolate(20, 500, progress);
-    return delay;
+  public get glitchRepeatDelay(): number|false {
+    if (typeof this.timeRemaining !== "number") { return Infinity; }
+    const currentSeconds = this.timeRemaining;
+    if (currentSeconds <= (0.5 * PRE_SESSION.START_COUNTDOWN_TIMERS)) {
+      return PRE_SESSION.GLITCH_DELAY[1];
+    }
+    if (currentSeconds <= PRE_SESSION.START_COUNTDOWN_TIMERS) {
+      return PRE_SESSION.GLITCH_DELAY[0];
+    }
+    return false;
   }
   private get preSessionSongDuration(): number {
     const preSessionSong = this.sessionStartingSong;
@@ -650,48 +656,31 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return preSessionSong.sound.duration;
   }
 
-  private get countdownContainerTimeline(): gsap.core.Timeline {
-    const duration = countdownUntil().totalSeconds;
-    this.isCountdownContainerTimelineActive = true;
-    const self = this;
-    return gsap
-      .timeline({
-        onComplete() {
-          self.isCountdownContainerTimelineActive = false;
-        },
-      })
+  private buildCountdownContainerTimeline(): gsap.core.Timeline {
+    const duration = PRE_SESSION.START_COUNTDOWN_TIMERS;
+    const timeOffset = Math.max(0, duration - this.timeRemaining);
+    kLog.log("buildCountdownContainerTimeline", duration, timeOffset);
+    this.#countdownContainerTimeline = gsap
+      .timeline()
       .to(this.countdownContainer$, {
         top: "50%",
         scale: 3,
         duration,
-        ease: "power4.out",
-      })
-      .call(this.killLoadingScreenItems.bind(this), [], 0.5 * duration)
-      .fromTo(
-        [this.topZIndexMask$, this.introVideo$],
-        {
-          autoAlpha: 0,
-        },
-        {
-          autoAlpha: 1,
-          duration: 0.5,
-          ease: "power2.inOut",
-        },
-        duration - 0.5,
-      );
+        ease: "power4.inOut",
+      });
+    this.#isCountdownContainerTimelinePlaying = true;
+    return this.#countdownContainerTimeline.seek(timeOffset);
   }
 
-  private get countdownTimeline(): gsap.core.Timeline {
-    if (!this.#countdownTimeline) {
+  private buildGlitchTimeline(repeatDelay: number): gsap.core.Timeline {
       const glitchText$ = this.countdown$.find(".glitch-text");
       const glitchTop$ = this.countdown$.find(".glitch-top");
       const glitchBottom$ = this.countdown$.find(".glitch-bottom");
-      const self = this;
 
-      this.#countdownTimeline = gsap
+      this.#glitchTimeline = gsap
         .timeline({
           repeat: -1,
-          repeatDelay: this.glitchRepeatDelay,
+          repeatDelay,
         })
         .addLabel("glitch")
         .to(glitchText$, {
@@ -751,8 +740,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         .to(glitchBottom$, { duration: 0.2, x: 0, ease: "power4.inOut" })
         .to(glitchText$, { duration: 0.02, scaleY: 1.1, ease: "power4.inOut" })
         .to(glitchText$, { duration: 0.04, scaleY: 1, ease: "power4.inOut" });
-    }
-    return this.#countdownTimeline;
+
+      return this.#glitchTimeline.seek(0);
   }
 
   private async initializeCountdown(): Promise<void> {
@@ -770,20 +759,27 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }, 1000);
     // Show countdown & apply countdown timeline
     this.countdownContainer$.css("visibility", "visible");
-    this.countdownTimeline.seek(0).play();
     // Update countdown immediately
     kLog.log("initializeCountdown -> updateCountdown");
     await this.updateCountdown();
   }
 
-  private killCountdown() {
+  private async killCountdown(isStopping = false,isHiding = false) {
     kLog.log("killCountdown");
-    if (this.#countdownTimer) {
+    if (isStopping && this.#countdownTimer) {
       window.clearInterval(this.#countdownTimer);
       this.#countdownTimer = undefined;
     }
-    this.countdownContainer$.css("visibility", "hidden");
-    this.countdownTimeline.seek(0).kill();
+    await this.#countdownContainerTimeline?.seek(0).kill();
+    await this.#glitchTimeline?.seek(0).kill();
+    this.countdownContainer$.removeAttr("style"); // Remove style attribute from the container
+    this.countdownContainer$.find("*").removeAttr("style"); // Remove style attribute from all descendants
+    this.#isCountdownContainerTimelinePlaying = false;
+    if (!isHiding) {
+      this.countdownContainer$.css("visibility", "visible");
+    }
+    this.#countdownContainerTimeline = undefined;
+    this.#glitchTimeline = undefined;
   }
 
   private updateCountdownText() {
@@ -800,39 +796,85 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return timeLeft;
   }
 
+  #timeRemaining: Maybe<number> = undefined;
+  #isCountdownHidden = false;
+  #isCountdownLocked = false;
+  #areAppElementsFaded = false;
+  #areLoadingScreenImagesStopped = false;
+
+
+
+  get timeRemaining(): number {
+    if (typeof this.#timeRemaining !== "number") {
+      this.#timeRemaining = this.updateCountdownText().totalSeconds;
+    }
+    return this.#timeRemaining;
+  }
   /** Updates the countdown display and handles pre-session sequence */
   private async updateCountdown(): Promise<void> {
-    const timeLeft = this.updateCountdownText().totalSeconds;
+    this.#timeRemaining = this.updateCountdownText().totalSeconds;
 
-    if (timeLeft <= PRE_SESSION.COUNTDOWN_HIDE) {
-      kLog.log("updateCountdown -> killCountdown (COUNTDOWN HIDE)");
-      this.killCountdown();
-      return;
-    }
-
-    if (!this.countdownTimeline.isActive()) {
-      kLog.log("updateCountdown -> countdownTimeline.play('glitch')");
-      this.countdownTimeline.play("glitch");
-    }
-
-    if (
-      timeLeft <= (this.sessionStartingSong.sound?.duration ?? 0) &&
-      !this.isCountdownContainerTimelineActive
-    ) {
-      this.countdownContainerTimeline.play();
-      return;
-    }
-
-    if (
-      timeLeft <= PRE_SESSION.LOAD_SESSION &&
-      getSetting("gamePhase") === GamePhase.SessionClosed &&
-      getUser().isGM
+    // T-LOAD_SESSION time: Set gamePhase to SESSION LOADING
+    if (this.timeRemaining <= PRE_SESSION.LOAD_SESSION
+      && getSetting("gamePhase") === GamePhase.SessionClosed
     ) {
       kLog.log("updateCountdown -> set gamePhase to SESSION LOADING");
       await setSetting("gamePhase", GamePhase.SessionLoading);
-      kLog.log(`updateCountdown - set gamePhase to ${getSetting("gamePhase")}`);
       return;
     }
+
+    // T-0 secs: Hide Countdown, fade in topZIndexMask & video
+    if (this.timeRemaining <= PRE_SESSION.COUNTDOWN_HIDE && !this.#isCountdownHidden) {
+      kLog.log("updateCountdown -> killCountdown (COUNTDOWN HIDE)");
+      await this.killCountdown(true, true);
+      void this.fadeInIntroVideo();
+      this.#isCountdownHidden = true;
+      return;
+    }
+
+    // T-1 secs: Activate countdown lock and stop preSession song playback
+    if (this.timeRemaining <= PRE_SESSION.COUNTDOWN_LOCK && !this.#isCountdownLocked) {
+      this.#isCountdownLocked = true;
+      setTimeout(() => {
+        this.#isCountdownLocked = false;
+      }, 5 * 60 * 1000);
+      // void this.sessionStartingPlaylist.stopAll();
+      return;
+    }
+
+    // T-30 secs: Kill canvas mask listeners, fade out .app elements
+    if (this.timeRemaining <= PRE_SESSION.FREEZE_OVERLAY && !this.#areAppElementsFaded) {
+      kLog.log("updateCountdown -> freezeOverlay");
+      this.freezeOverlay();
+      this.#areAppElementsFaded = true;
+      return;
+    }
+
+    // T-60 secs: Stop loading screen images, decrease glitch delay
+    if (this.timeRemaining <= PRE_SESSION.HIDE_LOADING_SCREEN_IMAGES && !this.#areLoadingScreenImagesStopped) {
+      kLog.log("updateCountdown -> stopLoadingScreenImages");
+      this.killLoadingScreenItems();
+      this.#areLoadingScreenImagesStopped = true;
+      this.#glitchTimeline?.repeatDelay(this.glitchRepeatDelay as number);
+      // this.buildGlitchTimeline(this.glitchRepeatDelay as number).play();
+      return;
+    }
+
+    // T-120 secs: Begin glitch AND container timelines
+    if (this.timeRemaining <= PRE_SESSION.START_COUNTDOWN_TIMERS
+        && !this.#isCountdownContainerTimelinePlaying
+    ) {
+      kLog.log("updateCountdown -> beginGlitchAndContainerTimelines");
+      this.buildGlitchTimeline(this.glitchRepeatDelay as number).play();
+      this.buildCountdownContainerTimeline().play();
+      return;
+    } else if (this.timeRemaining > PRE_SESSION.START_COUNTDOWN_TIMERS
+      && (this.#glitchTimeline || this.#countdownContainerTimeline)
+    ) {
+      kLog.display("updateCountdown -> killCountdown");
+      void this.killCountdown(false, false);
+    }
+
   }
   // #endregion COUNTDOWN ~
 
@@ -845,7 +887,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // jQuery's trigger('play') doesn't handle this properly
       if (document.hasFocus() && !document.hidden) {
         // assert existence of element; if this fails, will throw an error that will be caught below
-        await this.sessionClosedAmbientAudio$[0]!.play();
+        const audio = this.sessionClosedAmbientAudio$[0];
+        if (!audio) {
+          kLog.error("Session closed ambient audio element not found");
+          return;
+        }
+        audio.volume = 0.5;
+        await audio.play();
         return;
       }
     } catch (error: unknown) {
@@ -892,16 +940,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Create a promise that resolves when the fade is complete
     return new Promise<void>((resolve) => {
       gsap.to(audio, {
-        volume: 0,
-        duration: 0.5,
-        ease: "power1.out",
+        volume: 0, // Animate the volume to 0
+        duration: 5, // Duration of the fade-out
+        ease: "power1.out", // Easing function for smooth transition
         onComplete: () => {
+          // Ensure the volume is set to 0
+          audio.volume = 0;
+          // Remove interaction event listeners
           PRE_SESSION.INTERACTION_EVENTS.forEach((event) => {
             document.removeEventListener(
               event,
               this.handleAudioInteraction.bind(this),
             );
           });
+          // Pause the audio and reset its time
           audio.pause();
           audio.currentTime = 0;
           resolve();
@@ -1195,7 +1247,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     kLog.log("initializePreSessionSong");
 
     await getGame().audio.unlock;
-    const timeRemaining = countdownUntil().totalSeconds;
+    const timeRemaining = this.timeRemaining;
     const preSessionSong = this.sessionStartingSong;
     await preSessionSong.load();
     const songDuration = preSessionSong.sound?.duration ?? 0;
@@ -1206,23 +1258,67 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
 
     if (timeRemaining <= songDuration) {
-      kLog.log("playing song IMMEDIATELY");
-      this.playPreSessionSong();
+      if (timeRemaining > (songDuration - 10)) {
+        kLog.log("playing song IMMEDIATELY (within 10 seconds of scheduled time)");
+        void this.playPreSessionSong();
+      } else {
+        kLog.log("Too late to play pre-session song, skipping.");
+        return;
+      }
     } else {
       const delay = timeRemaining - songDuration;
       kLog.log(`playing song in ${Math.floor(delay / 60)}:${delay % 60}`);
-      window.setTimeout(this.playPreSessionSong.bind(this), delay * 1000);
+      window.setTimeout(() => {
+        void this.playPreSessionSong();
+      }, delay * 1000);
     }
   }
   /** Plays the pre-session song */
-  private playPreSessionSong(): void {
+  private async playPreSessionSong(): Promise<void> {
     kLog.log("playing song");
-    this.countdownContainerTimeline.play();
     void this.killSessionClosedAmbientAudio();
-    void this.sessionStartingPlaylist.playAll();
+    // Start playback of the entire playlist.
+    const firstSound = this.sessionStartingPlaylist.sounds.get(this.sessionStartingPlaylist.playbackOrder[0] ?? "") ?? undefined;
+    if (!firstSound){
+      kLog.error("No first sound found in session starting playlist");
+      return;
+    }
+    await this.sessionStartingPlaylist.playSound(firstSound);
   }
 
   // #endregion PRE-SESSION SONG ~
+
+  // #region FREEZING OVERLAY ~
+  private freezeOverlay(): void {
+    $(document)
+      .off("mousemove.overlaySidebar")
+      .off("mouseleave.overlaySidebar");
+    const appElements: HTMLElement[] = $(".app").toArray();
+    gsap.timeline()
+      .set(appElements, {
+        pointerEvents: "none",
+      })
+      .to(appElements, {
+        autoAlpha: 0,
+        duration: 0.5,
+      });
+    this.sidebarTimeline.reverse();
+  }
+
+  private unfreezeOverlay(): void {
+    this.addCanvasMaskListeners();
+    const appElements: HTMLElement[] = $(".app").toArray();
+    gsap.timeline()
+      .set(appElements, {
+        pointerEvents: "auto", // Reset pointer events back to default
+      })
+      .to(appElements, {
+        autoAlpha: 1,
+        duration: 0.5,
+      });
+  }
+
+  // #endregion FREEZING OVERLAY ~
 
   // #region INTRO VIDEO ~
 
@@ -1353,6 +1449,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
   }
 
+  /** Fades in the topZIndexMask and the intro video */
+  private async fadeInIntroVideo(): Promise<void> {
+    await gsap.to([this.introVideo$[0], this.topZIndexMask$[0]], {
+      autoAlpha: 1,
+      duration: 1,
+    });
+  }
+
   /** Plays the intro video from the start */
   public async playIntroVideo(): Promise<void> {
     const video$ = this.introVideo$;
@@ -1372,11 +1476,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       },
       { once: true },
     );
-
-    await gsap.to(this.introVideo$, {
-      autoAlpha: 1,
-      duration: 0.5,
-    });
 
     await video.play();
   }
@@ -1635,7 +1734,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async cleanup_SessionLoading(): Promise<void> {
-    this.killCountdown();
+    await this.killCountdown(true);
     this.killLoadingScreenItems();
     if (getUser().isGM) {
       void this.sessionStartingPlaylist.stopAll();
@@ -1834,9 +1933,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 0.01,
           ease: "none",
         })
+        .set(this.midZIndexMask$, {zIndex: 50})
+        .set(this.uiRight$, {zIndex: 51})
         .to(this.uiRight$, {
           opacity: 1,
-          zIndex: 500,
           duration: 0.5,
           ease: "power2.out",
         });
@@ -1845,15 +1945,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private addCanvasMaskListeners() {
-    this.sessionClosedAmbientAudio$[0]!.volume = Number(
-      this.sessionClosedAmbientAudio$[0]?.dataset["volume"] ?? 0.5,
-    );
+    if (this.timeRemaining <= PRE_SESSION.FREEZE_OVERLAY
+        || ![GamePhase.SessionClosed, GamePhase.SessionLoading].includes(getSetting("gamePhase") as GamePhase)
+    ) {
+      return;
+    }
 
     $(document)
       // Handle cursor movement
-      .on("mousemove", (event) => {
+      .on("mousemove.overlaySidebar", (event) => {
         const isOverSidebar =
-          event.clientX >= (this.uiRight$.offset()?.left ?? 0);
+          event.clientX && event.clientX >= (this.uiRight$.offset()?.left ?? 0);
         if (isOverSidebar) {
           this.sidebarTimeline.play();
         } else {
@@ -1861,7 +1963,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         }
       })
       // Handle cursor leaving
-      .on("mouseleave", () => {
+      .on("mouseleave.overlaySidebar", () => {
         this.sidebarTimeline.reverse();
       });
   }

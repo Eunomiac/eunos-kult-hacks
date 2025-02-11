@@ -9,6 +9,41 @@ import type ItemDataDarkSecret from "../data-model/ItemDataDarkSecret";
 import type ItemDataRelationship from "../data-model/ItemDataRelationship";
 
 export default class EunosItem extends Item {
+
+  // static async MigrateTokenData(isSafe = true) {
+  //   const items: EunosItem[] = getItems();
+  //   const pcs: EunosActor[] = getActors().filter((actor) => actor.type === "pc");
+  //   const embeddedItems: EunosItem[] = pcs.flatMap((pc) => pc.items.contents);
+  //   let counter = 5;
+
+  //   await Promise.all([
+  //     ...items,
+  //     ...embeddedItems
+  //   ].map(async (item, i, items) => {
+  //     if (counter <= 0) {
+  //     kLog.error("Migration Interrupted: Test Migrated Items:", items.map((item) => item.name));
+  //     throw new Error("Interruption. See console for details.");
+  //   }
+  //     const system = item.system as ItemDataMove | ItemDataAdvantage | ItemDataDisadvantage | ItemDataAbility | ItemDataLimitation;
+  //     const updateData: {system: Record<string, string|number|boolean>} = {system: {}};
+  //     if ("hasHold" in system && system.hasHold) {
+  //       updateData.system["hasHold"] = false;
+  //       updateData.system["hasCounter"] = true;
+  //       updateData.system["counterName"] = "Hold";
+  //       updateData.system["counterCount"] = system.holdTokens ?? 0;
+  //     } else if ("hasTokens" in system && system.hasTokens) {
+  //       updateData.system["hasTokens"] = false;
+  //       updateData.system["hasCounter"] = true;
+  //       updateData.system["counterName"] = "Edges";
+  //       updateData.system["counterCount"] = system.tokens ?? 0;
+  //     }
+  //     await item.update(updateData);
+  //     counter--;
+
+  //   }));
+
+  // }
+
   isMechanicalItem(): this is EunosItem & {
     system:
       | ItemDataMove
@@ -77,7 +112,7 @@ export default class EunosItem extends Item {
       `<div class='move-name'>${this.name}</div>`,
       "</div>",
       "<div class='item-body'>",
-      `<div>${this.system.effect}</div>`
+      `<div class='item-effect'>${this.system.effect}</div>`
     ];
 
     if (this.system.type === "active") {
@@ -101,7 +136,7 @@ export default class EunosItem extends Item {
 
     if (this.system.options) {
       htmlStrings.push(
-        `<div>${this.system.options}</div>`
+        `<div class='item-options'>${this.system.options}</div>`
       );
     }
 

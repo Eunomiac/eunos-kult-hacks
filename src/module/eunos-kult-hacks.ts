@@ -14,9 +14,8 @@ import ItemDataRelationship from "./data-model/ItemDataRelationship.ts";
 import ItemDataWeapon from "./data-model/ItemDataWeapon.ts";
 import EunosOverlay from "./apps/EunosOverlay.ts";
 import EunosAlerts from "./apps/EunosAlerts.ts";
-import type EunosActor from "./documents/EunosActor.ts";
-import EunosItem from "./documents/EunosItem.ts";
 import overrideActor from "./documents/EunosActor.ts";
+import EunosItem from "./documents/EunosItem.ts";
 import overridePCSheet from "./documents/sheets/EunosPCSheet.ts";
 import overrideNPCSheet from "./documents/sheets/EunosNPCSheet.ts";
 import overrideItemSheet from "./documents/sheets/EunosItemSheet.ts";
@@ -111,36 +110,20 @@ function replaceBasicMovesHook() {
     }
   }
 
-  // Register your new implementation with the same function name
-  async function addBasicMovesToActor(actor: EunosActor) {
-    if (actor.type === "pc" && actor.items.size === 0) {
-      const pack = getPacks().get("eunos-kult-hacks.moves");
-      if (!pack) {
-        throw new Error("Moves pack not found");
-      }
-      const index = pack.indexed ? pack.index : await pack.getIndex();
-      const moves = index.map((move) =>
-        pack.getDocument(move._id).then((item) => item?.toObject()),
-      );
-      await Promise.all(moves).then(async (objects) => {
-        if (objects) {
-          await actor.createEmbeddedDocuments(
-            "Item",
-            objects.filter(Boolean) as foundry.documents.BaseItem.CreateData[],
-          );
-        }
-      });
-    }
-  }
 
   // Register the new hook
-  Hooks.on("createActor", addBasicMovesToActor);
+  Hooks.on("createActor", (actor: EunosActor) => {
+    if (actor.isPC()) {
+      void actor.addBasicMoves();
+    }
+  });
 }
 
 // #endregion
 
 assignGlobals({
   U,
+  EunosItem,
   EunosOverlay,
   EunosAlerts,
   EunosSockets,

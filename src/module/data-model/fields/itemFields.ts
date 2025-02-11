@@ -1,16 +1,24 @@
 import fields = foundry.data.fields;
 
-export function getEdgeFields() {
-  return {
-    hasTokens: new fields.BooleanField({initial: false}),
-    tokens: new fields.NumberField({initial: 0, min: 0, max: 5})
-  }
-}
+// export function getEdgeFields() {
+//   return {
+//     hasTokens: new fields.BooleanField({initial: false}),
+//     tokens: new fields.NumberField({initial: 0, min: 0, max: 5})
+//   }
+// }
 
-export function getHoldFields() {
+// export function getHoldFields() {
+//   return {
+//     hasHold: new fields.BooleanField({initial: false}),
+//     holdTokens: new fields.NumberField({initial: 0, min: 0, max: 10})
+//   }
+// }
+
+export function getTokenFields() {
   return {
-    hasHold: new fields.BooleanField({initial: false}),
-    holdTokens: new fields.NumberField({initial: 0, min: 0, max: 10})
+    hasCounter: new fields.BooleanField({initial: false}),
+    counterName: new fields.StringField({required: false, nullable: true, initial: null}),
+    counterCount: new fields.NumberField({initial: 0, min: 0, max: 10})
   }
 }
 

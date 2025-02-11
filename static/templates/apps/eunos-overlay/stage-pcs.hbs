@@ -1,7 +1,7 @@
 <div id="PCS" class="pcs-container {{#if isGM}}pcs-container-gm{{/if}}">
-  {{log "THIS" this}}
+  {{!-- {{log "THIS" this}} --}}
   {{#each pcsData as |pc|}}
-  {{log "PC DATA" pc}}
+  {{!-- {{log "PC DATA" pc}} --}}
   <div class="pc-container" data-pc-id="{{pc.id}}">
     <div class="pc-portrait-container {{#unless (test ../pcsPresent "includes" pc.id)}}pc-portrait-container-dimmed{{/unless}}" data-action="pcPortraitClick">
       <img class="pc-portrait" src="{{pc.img}}" alt="{{pc.name}}" />
@@ -67,7 +67,7 @@
         itemID=id
         pcID=pc.id
         }}
-        {{log "ADVANTAGE" this}}
+        {{!-- {{log "ADVANTAGE" this}} --}}
 
 
         <div class="trait-container advantage-container {{system.type}}-advantage">
@@ -108,7 +108,7 @@
         itemID=id
         pcID=pc.id
         }}
-        {{log "DISADVANTAGE" this}}
+        {{!-- {{log "DISADVANTAGE" this}} --}}
 
 
         <div class="trait-container disadvantage-container {{system.type}}-disadvantage">

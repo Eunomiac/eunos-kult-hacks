@@ -134,41 +134,50 @@ export default function overridePCSheet() {
       html
         .find(".stability-minus")
         .off("click")
-        .on("click", (event) => {
-          const stability_current = Number(actor.system.stability.value);
-          if (stability_current > 0) {
-            const stability_new = stability_current - 1;
-            actor
-              .update({ system: { stability: { value: stability_new } } })
-              .then(
-                () => {
-                  void EunosAlerts.Alert({
-                    type: AlertType.simple,
-                    header: `${actor.name} Loses Stability!`,
-                    body: `${actor.name} is now ${actor.stabilityState}.`,
-                    target: UserTargetRef.all,
-                  });
-                },
-                (error: unknown) => {
-                  getNotifier().warn("Unable to send alert to all users.");
-                },
-              );
-          } else {
+        .on("click", () => {
+          const stability_from = actor.system.stability.value;
+          if (stability_from <= (actor.system.stability.min ?? 0)) {
             getNotifier().warn(getLocalizer().localize("k4lt.PCIsBroken"));
+            return;
           }
+          const stabilityTier_from = actor.stabilityState;
+          const stability_new = Math.max(0, stability_from - 1);
+          if (stability_new === stability_from) { return; }
+          actor
+            .update({ system: { stability: { value: stability_new } } })
+            .then(
+              () => {
+                if (stabilityTier_from === actor.stabilityState) { return; }
+                void EunosAlerts.Alert({
+                  type: AlertType.simple,
+                  header: `${actor.name} Loses Stability!`,
+                  body: `${actor.name} is now ${actor.stabilityState}.`,
+                  target: UserTargetRef.all,
+                });
+              },
+              (error: unknown) => {
+                getNotifier().warn("Unable to send alert to all users.");
+              },
+            );
         });
 
       html
         .find(".stability-plus")
         .off("click")
-        .on("click", (event) => {
-          const stability_current = Number(actor.system.stability.value);
-          if (stability_current < Number(actor.system.stability.max)) {
-            const stability_new = stability_current + 1;
-            actor
-              .update({ system: { stability: { value: stability_new } } })
+        .on("click", () => {
+          const stability_from = actor.system.stability.value;
+          if (stability_from >= (actor.system.stability.max ?? 10)) {
+            getNotifier().warn(getLocalizer().localize("k4lt.PCIsComposed"));
+            return;
+          }
+          const stabilityTier_from = actor.stabilityState;
+          const stability_new = Math.min(actor.system.stability.max ?? 10, stability_from + 1);
+          if (stability_new === stability_from) { return; }
+          actor
+            .update({ system: { stability: { value: stability_new } } })
               .then(
                 () => {
+                  if (stabilityTier_from === actor.stabilityState) { return; }
                   void EunosAlerts.Alert({
                     type: AlertType.simple,
                     header: `${actor.name} Gains Stability!`,
@@ -179,10 +188,7 @@ export default function overridePCSheet() {
                 (error: unknown) => {
                   getNotifier().warn("Unable to send alert to all users.");
                 },
-              );
-          } else {
-            getNotifier().warn(getLocalizer().localize("k4lt.PCIsComposed"));
-          }
+            );
         });
 
       // Add equipped toggle listener

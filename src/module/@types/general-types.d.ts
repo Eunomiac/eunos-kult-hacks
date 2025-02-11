@@ -12,6 +12,7 @@
 // import K4Scene from "../documents/K4Scene.js";
 
 import type {Quench} from "@ethaks/fvtt-quench";
+import type EunosItem from "../documents/EunosItem";
 
 
 // import type {Socket, SocketLib} from "./socketlib";
@@ -172,7 +173,7 @@ declare global {
    * @returns A Collection of K4Item instances.
    * @throws Error if the Items collection is not ready.
    */
-  function getItems(): Collection<Item>;
+  function getItems(): EunosItem[];
 
   /**
    * Retrieves the collection of all K4ChatMessage instances in the game.

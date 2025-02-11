@@ -1,12 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fields = foundry.data.fields;
 import TypeDataModel = foundry.abstract.TypeDataModel;
-import {type ItemDerivedFieldsBase, getEdgeFields, getHoldFields, getMoveFields} from "./fields/itemFields";
+import {type ItemDerivedFieldsBase, getMoveFields, getTokenFields} from "./fields/itemFields";
 import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
 
 const ItemSchemaAbility = {
-  ...getEdgeFields(),
-  ...getHoldFields(),
+  ...getTokenFields(),
   ...getMoveFields()
 };
 

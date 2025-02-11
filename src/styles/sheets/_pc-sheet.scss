@@ -9,10 +9,30 @@
     .kult-sheet {
       padding-bottom: 0;
 
+      .section-label {
+        margin-bottom: 5px;
+        &:not(:first-of-type) {
+          margin-top: 10px;
+        }
+      }
       .item-list {
+        display: flex;
+        &:not(.two-column) {
+          flex-direction: column;
+        }
+        gap: 3px;
+        padding: 0;
+        // display: flex;
+        // flex-direction: column;
+        // gap: 3px;
+        // padding: 0;
+
         .move-card {
           position: relative;
-          // overflow: hidden;
+          background: var(--bg-color);
+          border-color: var(--fg-color);
+          margin: 0;
+          order: 1;
 
           &:hover {
             .item-controls {
@@ -22,10 +42,10 @@
             }
           }
 
-          &.has-tokens {
+          &.has-counter {
             height: 40px;
 
-            .advantage-column {
+            .counter-block {
               position: absolute;
               bottom: 2px;
               left: 30px;
@@ -37,12 +57,22 @@
             }
           }
 
+          img {
+            transform-origin: center center;
+            scale: 1.5;
+            padding: 0;
+            margin-left: 0;
+            margin-right: 4px;
+
+          }
+
           .item-name {
             display: flex;
             flex-wrap: nowrap;
             justify-content: stretch;
             align-items: flex-start;
             width: fit-content;
+            color: var(--fg-color);
           }
 
           .item-controls {
@@ -82,6 +112,7 @@
           &.weapon-card,
           &.gear-card {
             left: 15px;
+            width: calc(100% - 15px);
             .is-equipped-container {
               .item-toggle-equipped {
                 color: var(--color-text-light-highlight);
@@ -112,6 +143,30 @@
 
             .far.fa-hand {
               text-shadow: none;
+            }
+          }
+
+          &.passive-card {
+            background: rgb(from var(--bg-color) r g b / 0.25);
+            background: transparent;
+            --fg-color: var(--passive-color);
+            border: none;
+            padding: 0 5px;
+            order: 2;
+
+            .item-name, .item-name * {
+              font-weight: bold;
+              font-style: italic;
+              // pointer-events: none;
+              box-shadow: none !important;
+              text-shadow: none !important;
+              cursor: default !important;
+
+            }
+
+            img {
+              filter: drop-shadow(0 0 0px black);
+              scale: 1;
             }
           }
         }
@@ -149,17 +204,26 @@
           }
         }
 
-        .weapon-card + .weapon-attack-block {
-          margin-top: -5px;
+        .weapon-card {
+          margin-bottom: 0px;
+
+          + .weapon-attack-block {
+          // margin-top: -2px;
+          // background: color-mix(in srgb, var(--K4-ddRED) 50%, transparent);
+          border-top: none;
+          border-bottom: 2px solid var(--K4-RED);
+          // border-width: 3px;
+          // border-top: 3px solid var(--K4-RED);
+          }
         }
         .weapon-attack-block {
           // border-radius: 10px;
           // border: 2px outset var(--K4-bRED);
-          margin-left: 20px;
+          margin-left: 15px;
           padding: 0 5px;
-          width: calc(100%);
+          width: calc(100% - 15px);
           // margin-bottom: 3px;
-          border-bottom: 1px solid var(--K4-RED);
+          border-top: 1px solid var(--K4-RED);
 
           &:hover {
             background: color-mix(in srgb, var(--K4-ddRED) 25%, transparent);
@@ -207,7 +271,7 @@
               font-size: 16px;
               font-family: var(--font-primary);
               font-weight: 1000;
-              right: 10px;
+              right: 5px;
               // transform: none;
               // line-height: 16px;
               // place-self: flex-end;
@@ -231,6 +295,7 @@
               text-indent: 25px;
               margin-top: -2px;
               color: var(--K4-RED);
+              white-space: nowrap;
 
               .down-arrow {
                 position: relative;
@@ -242,36 +307,30 @@
           }
         }
 
-        &.disadvantage-list {
-          .move-card {
-            background: var(--K4-ddRED);
-            border-color: var(--K4-bRED);
+        &.move-list {
+          --fg-color: var(--K4-bGOLD);
+          --bg-color: var(--K4-BLACK);
+        }
 
-            .disadvantage-info.item-name {
-              color: var(--K4-bRED);
-            }
-          }
+        &.disadvantage-list {
+          --fg-color: var(--K4-bRED);
+          --bg-color: var(--K4-ddRED);
+          --passive-color: var(--K4-dRED);
         }
 
         &.advantage-list {
-          .move-card {
-            background: var(--K4-ddGOLD);
-            border-color: var(--K4-bGOLD);
-
-            .advantage-info.item-name {
-              color: var(--K4-bGOLD);
-            }
-          }
+          --fg-color: var(--K4-bGOLD);
+          --bg-color: var(--K4-ddGOLD);
+          --passive-color: var(--K4-dGOLD);
         }
 
         &.darksecret-list {
-          .move-card {
-            background: rgb(14, 14, 14);
-            border-color: rgb(200, 200, 200);
+          --fg-color: rgb(200, 200, 200);
+          --bg-color: rgb(14, 14, 14);
+          --passive-color: rgb(200, 200, 200);
 
-            .move-info.item-name {
-              color: rgb(200, 200, 200);
-            }
+          img {
+            filter: grayscale(100%) brightness(1.5);
           }
         }
 
@@ -282,6 +341,16 @@
             .move-info.item-name {
               color: var(--K4-bbBLUE);
             }
+          }
+        }
+
+        &.weapon-list {
+          --fg-color: var(--K4-bbGOLD);
+          --bg-color: var(--K4-ddRED);
+          gap: 0px;
+
+          > * {
+            order: 1;
           }
         }
       }
@@ -438,12 +507,12 @@
               flex-wrap: wrap;
               align-content: flex-start;
               justify-content: flex-start;
-              padding: 10px;
+              padding: 3px;
               margin-right: 20px;
               margin-bottom: -20px;
 
               .move-card {
-                width: calc(50% - 10px);
+                width: calc(50% - 2px);
                 padding: 3px;
                 &.has-tokens {
                   padding-bottom: 15px;

@@ -47,10 +47,13 @@ body.gm-user {
 
   #ui-bottom {
     bottom: unset;
-    top: 0;
-    left: 10px;
+    top: -10px;
+    left: -50px;
     position: absolute;
     display: block;
+    transform: translate(0%, 0);
+    // background: red;
+    scale: 0.8;
     // z-index: 100000;
     // right: 100px;
   }

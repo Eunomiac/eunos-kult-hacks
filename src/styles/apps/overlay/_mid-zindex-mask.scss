@@ -8,23 +8,24 @@
   z-index: 100;
 
   .loading-screen-item {
+    --shadow-blur: 8px;
     position: absolute;
     // z-index: 100;
     height: 100%;
     width: 100%;
     pointer-events: none;
+    text-shadow:
+      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+      0 0 var(--shadow-blur) rgba(0, 0, 0, 1);
 
     > * {
       position: absolute;
       pointer-events: none;
-      --shadow-blur: 8px;
-      text-shadow:
-        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-        0 0 var(--shadow-blur) rgba(0, 0, 0, 1);
+      filter: drop-shadow(0 0 var(--shadow-blur) rgba(0, 0, 0, 1));
       visibility: hidden;
     }
 
@@ -86,7 +87,6 @@
         transform-origin: center center;
         position: relative;
         border: none;
-        filter: drop-shadow(100px 150px 10px rgba(0, 0, 0, 1));
       }
     }
 

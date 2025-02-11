@@ -6,6 +6,7 @@ import type ActorDataPC from "../data-model/ActorDataPC";
 declare global {
   class EunosActor extends k4ltActor {
     isPC(): this is EunosActor & { system: ActorDataPC };
+    addBasicMoves(isReplacing?: boolean): Promise<void>;
     get numSeriousWounds(): number;
     get hasUnstabilizedCriticalWound(): boolean;
     get hasFieldTendedCriticalWound(): boolean;
@@ -36,6 +37,33 @@ export default function registerEunosActor(): void {
         this.system.stability.value = Math.min(this.system.stability.value, 6);
       }
     }
+
+      // Register your new implementation with the same function name
+    async addBasicMoves(isReplacing = false) {
+      if (!this.isPC()) { return; }
+      if (this.items.size > 0 && !isReplacing) { return; }
+      // First, remove any existing basic moves
+      const basicMoves = this.items.contents.filter((item) => item.type === "move");
+      await this.deleteEmbeddedDocuments("Item", basicMoves.map((move) => move._id ?? ""));
+
+      const pack = getPacks().get("eunos-kult-hacks.moves");
+      if (!pack) {
+        throw new Error("Moves pack not found");
+      }
+      const index = pack.indexed ? pack.index : await pack.getIndex();
+      const moves = index.map((move) =>
+        pack.getDocument(move._id).then((item) => item?.toObject()),
+      );
+      await Promise.all(moves).then(async (objects) => {
+        if (objects) {
+          await this.createEmbeddedDocuments(
+            "Item",
+            objects.filter(Boolean) as foundry.documents.BaseItem.CreateData[],
+          );
+        }
+      });
+    }
+
 
     get numSeriousWounds(): number {
       if (!this.isPC()) { return 0; }

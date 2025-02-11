@@ -45,6 +45,20 @@
       "type": "Item",
       "system": "k4lt",
       "path": "packs/moves"
+    },
+    {
+      "label": "CHARACTERS",
+      "name": "characters",
+      "type": "Actor",
+      "system": "k4lt",
+      "path": "packs/characters"
+    },
+    {
+      "label": "Custom Items",
+      "name": "custom-items",
+      "type": "Item",
+      "system": "k4lt",
+      "path": "packs/custom-items"
     }
   ],
   "relationships": {

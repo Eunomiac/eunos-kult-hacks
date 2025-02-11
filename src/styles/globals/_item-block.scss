@@ -1,0 +1,60 @@
+.item-block {
+  --bg-fade-color: color-mix(in srgb, var(--bg-color, transparent) 15%, transparent);
+  background: var(--bg-fade-color);
+  width: calc(100% + 2 * 5px);
+  margin-left: -5px;
+  padding: 0px 5px 10px 5px;
+  margin-bottom: -10px;
+
+  .item-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    background: var(--bg-color);
+    width: calc(100% + 2 * 5px);
+    margin-left: -5px;
+    padding: 5px;
+    border-top-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    img {
+      height: 48px;
+      width: 48px;
+     }
+    .move-name {
+      color: var(--fg-color);
+    }
+  }
+
+  .item-body, .item-body * {
+    hyphens: auto;
+  }
+
+  .roll-results-block {
+    > * {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 5px;
+
+      label {
+        margin-top: 10px;
+        white-space: nowrap;
+        font-weight: 1000;
+        color: var(--K4-RED);
+      }
+    }
+  }
+
+  &.item-block-disadvantage {
+    --bg-color: var(--K4-ddRED);
+    --fg-color: var(--K4-bRED);
+  }
+
+  &.item-block-advantage {
+    --bg-color: var(--K4-ddGOLD);
+    --fg-color: var(--K4-bGOLD);
+  }
+}

@@ -1,3 +1,4 @@
+import type EunosItem from "../documents/EunosItem";
 import { numberToWords, wordsToNumber } from "./utilities_old";
 import type {Quench} from "@ethaks/fvtt-quench";
 
@@ -51,6 +52,9 @@ const GLOBAL_VARIABLES = {
    */
   getActors: function getActors(): EunosActor[] {
     const actors = getGame().actors.contents;
+    if (!actors) {
+      throw new Error("Actors collection is not ready");
+    }
     return actors as EunosActor[];
   },
 
@@ -59,12 +63,12 @@ const GLOBAL_VARIABLES = {
    * @returns A Collection of K4Item instances.
    * @throws Error if the Items collection is not ready.
    */
-  getItems: function getItems(): Items {
-    const items = getGame().items as Maybe<Items>;
+  getItems: function getItems(): EunosItem[] {
+    const items = getGame().items.contents;
     if (!items) {
       throw new Error("Items collection is not ready");
     }
-    return items;
+    return items as EunosItem[];
   },
 
   /**
@@ -809,10 +813,21 @@ export const PRE_SESSION = {
   },
   /** Time in seconds before session start when SessionLoading phase begins */
   LOAD_SESSION: 900, // 15 minutes
-  /** Time in seconds before session start when UI elements fade out */
-  UI_FADE_OUT: 5,
+  /** Time in seconds before session start when countdown timers initiate */
+  START_COUNTDOWN_TIMERS: 120, // 2 minutes
+  /** Time in seconds before session start when loading screen images are hidden */
+  HIDE_LOADING_SCREEN_IMAGES: 80, // 1 minute 20 seconds
+  /** Repeat delays for glitch animation */
+  GLITCH_DELAY: [
+    20, // 20 seconds
+    5 // 10 seconds
+  ] as const,
+  /** Time in seconds before session start when overlay freezes */
+  FREEZE_OVERLAY: 5,
+  /** Time in seconds before session start when countdown lock is activated */
+  COUNTDOWN_LOCK: 1,
   /** Time in seconds before session start when countdown disappears */
-  COUNTDOWN_HIDE: 5,
+  COUNTDOWN_HIDE: 0,
   /** Default session day (5 = Friday) */
   DEFAULT_SESSION_DAY: 5,
   /** Default session hour in 24h format (19 = 7 PM) */

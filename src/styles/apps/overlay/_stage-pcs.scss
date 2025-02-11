@@ -5,10 +5,11 @@
   bottom: 0px;
   left: 0;
   width: calc(100vw - var(--sidebar-width));
-  height: 300px;
+  // height: 300px;
   display: flex;
   justify-content: space-around;
   // padding: 0 40px;
+  align-items: stretch;
   // z-index: 1000;
   pointer-events: all;
   // outline: 1px solid red;
@@ -16,15 +17,19 @@
 
   .pc-container {
     position: relative;
-    height: 100%;
+    height: auto;
     width: 20%;
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
     // outline: 1px solid blue;
 
     // Portrait container
     .pc-portrait-container {
       position: absolute;
-      bottom: 70px;
-      transform: translate(0%, 0);
+      top: unset;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 100px;
       height: 140px;
       margin: 0 auto;
@@ -33,13 +38,13 @@
       overflow: hidden;
       cursor: pointer;
       transition: all 0.3s ease;
-      transform-origin: 50% 100%;
+      transform-origin: 0% 100%;
       scale: 1.5;
 
 
       &:hover, &.pc-portrait-container-dimmed:hover {
         border-color: var(--K4-bGOLD);
-        transform: translate(0%, -2px);
+        transform: translate(-50%, calc(-50% - 2px));
         filter: none;
         scale: 2;
       }
@@ -54,6 +59,8 @@
         height: 100%;
         object-fit: cover;
         object-position: center top;
+        transform-origin: 50% 0%;
+        scale: 2;
       }
     }
 
@@ -125,10 +132,10 @@
 
     // Dramatic Hooks panel
     .dramatic-hooks-panel {
-      position: absolute;
-      bottom: calc(100% + 5px);
+      position: relative;
+      bottom: 0px;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, -100%);
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -262,10 +269,11 @@
 
     // Triggers and Holds panel
     .triggers-and-holds-panel {
-      position: absolute;
-      bottom: 50px;
-      left: 50%;
-      transform: translateX(-50%);
+      position: relative;
+      bottom: 0px;
+      margin-top: 125px;
+      // left: 50%;
+      // transform: translateX(-50%);
       width: 100%;
       background: rgba(0, 0, 0, 0.8);
       border: 1px solid var(--K4-GOLD);
@@ -408,16 +416,19 @@
   }
 
   &.pcs-container-gm {
+    background: rgba(255, 0, 0, 0.25);
+    bottom: 0;
     .pc-portrait-container {
       scale: 1;
       // transform: none;
-      bottom: unset;
+      // bottom: unset;
+      // bottom: ;
+      top: 70px;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%, -50%);
       transform-origin: 0% 100%;
 
       &:hover, &.pc-portrait-container-dimmed:hover {
-        transform: translate(-50%, -2px);
         scale: 1.25;
         z-index: 2;
       }

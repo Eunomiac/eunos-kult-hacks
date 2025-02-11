@@ -1,5 +1,5 @@
 <div
-  class="move-card {{type}}-card {{#if system.hasTokens}}has-tokens{{/if}} {{#if system.hasHold}}{{#if isGM}}has-tokens has-hold{{/if}}{{/if}}">
+  class="move-card {{type}}-card {{system.type}}-card  {{#if system.hasCounter}}has-counter {{#if (eq system.counterName "Edges")}}has-edges{{else if (eq system.counterName "Hold")}}{{#if isGM}}has-hold{{/if}}{{/if}}{{/if}}">
   {{#let
   anchorName=(getUniqueID "move-card-anchor")
   popoverID=(getUniqueID "move-card-popover")
@@ -13,15 +13,16 @@
       <a class="move-show">
         {{/if}}
         <img src="{{img}}" title="{{name}}" /> {{name}} </a>
-      {{#if system.hasTokens}}
-      <span class="advantage-column">Edges:
+      {{#if system.hasCounter}}
+      <span class="counter-block">
+        {{system.counterName}}:
         <a class="token-add" title="{{localize 'k4lt.AddEdge'}}"><i class="far fa-plus-square"></i></a>
-        {{#if system.tokens}}{{system.tokens}}{{else}}0{{/if}}
+        {{#if system.counterCount}}{{system.counterCount}}{{else}}0{{/if}}
         <a class="token-spend" title="{{localize 'k4lt.SpendEdge'}}"><i class="far fa-minus-square"></i></a>
       </span>
       {{/if}}
       {{#if system.hasHold}}{{#if isGM}}
-      <span class="advantage-column">Hold:
+      <span class="counter-block">Hold:
         <a class="token-add" title="Add Hold"><i class="far fa-plus-square"></i></a>
         {{#if system.holdTokens}}{{system.holdTokens}}{{else}}0{{/if}}
         <a class="token-spend" title="Spend Hold"><i class="far fa-minus-square"></i></a>

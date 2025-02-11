@@ -1,7 +1,7 @@
 #COUNTDOWN {
   position: absolute;
   transform: translate(-50%, -50%);
-  top: 100px;
+  top: 65px;
   transform-origin: center center;
   left: 50%;
   z-index: 101;
@@ -11,7 +11,7 @@
   width: fit-content;
   .loading-screen-countdown {
     position: relative;
-    transform: translate(-50%, 0%);
+    // transform: translate(-50%, 0%);
     top: 0px;
     left: 0%;
     z-index: 101;
