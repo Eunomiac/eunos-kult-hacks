@@ -19,6 +19,8 @@
   width: 35vw;
   overflow: hidden;
 
+  visibility: hidden !important;
+
   .location-name {
     font-family: var(--font-primary-smallcaps);
     font-size: 32px;

@@ -12,7 +12,10 @@ import ItemDataMove from "../data-model/ItemDataMove";
 import ItemDataOccupation from "../data-model/ItemDataOccupation";
 import ItemDataRelationship from "../data-model/ItemDataRelationship";
 import ItemDataWeapon from "../data-model/ItemDataWeapon";
-import { GamePhase } from "../../module/scripts/enums";
+import { GamePhase } from "../scripts/enums";
+import { LOCATIONS } from "../scripts/constants";
+import { UserTarget } from "../apps/EunosSockets";
+import { type LocationData } from "../scripts/constants";
 // import K4ActiveEffect from "../documents/K4ActiveEffect.js";
 // import Document = foundry.abstract.Document;
 // import K4PCSheet from "../documents/K4PCSheet.js";
@@ -77,16 +80,19 @@ declare global {
   //   }
   // }
 
+
+
   interface SettingConfig {
     "core.rollMods": string;
     "eunos-kult-hacks.gamePhase": GamePhase;
     "eunos-kult-hacks.debug": number;
     "eunos-kult-hacks.useStabilityVariant": boolean;
-    "eunos-kult-hacks.videoReadyClients": string[];
+    "eunos-kult-hacks.chapterTitle": string;
+    "eunos-kult-hacks.chapterNumber": number;
+    "eunos-kult-hacks.isPlottingLocations": boolean;
+    "eunos-kult-hacks.currentLocation": keyof typeof LOCATIONS;
+    "eunos-kult-hacks.locationData": Partial<Record<keyof typeof LOCATIONS, LocationData>>;
     "eunos-kult-hacks.nextGameSession": string; // ISO date string in Toronto timezone
-    "eunos-kult-hacks.npcSceneData": Record<"1"|"2"|"3"|"4"|"5"|"6", string|null>;
-    "eunos-kult-hacks.location": string;
-    "eunos-kult-hacks.pcsPresent": Record<"1"|"2"|"3"|"4"|"5", string|null>;
     "eunos-kult-hacks.sessionScribeID": string;
   }
 

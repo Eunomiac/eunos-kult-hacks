@@ -1,18 +1,21 @@
 // #region -- IMPORTS ~
 import ApplicationV2 = foundry.applications.api.ApplicationV2;
 import HandlebarsApplicationMixin = foundry.applications.api.HandlebarsApplicationMixin;
-import { countdownUntil, formatDateAsISO } from "../scripts/utilities";
+import { countdownUntil, tCase, verbalizeNum, objMap, ordinalizeNum, sortDocsByLastWord } from "../scripts/utilities";
 import {
   LOADING_SCREEN_DATA,
+  LOCATION_DEFAULT_DATA,
   PRE_SESSION,
   MEDIA_PATHS,
   LOCATIONS,
+  LOCATION_PLOTTING_SETTINGS,
+  type LocationData,
+  type LocationCharacterData,
 } from "../scripts/constants";
 import type { EmptyObject } from "fvtt-types/utils";
-import { GamePhase } from "../scripts/enums";
-import { type GSAPEffect, OverlayItemSide } from "../scripts/animations";
-import EunosSockets, { UserTargetRef, SocketState } from "./EunosSockets";
-import { AlertType } from "./EunosAlerts";
+import { GamePhase, UserTargetRef, AlertType } from "../scripts/enums";
+import EunosSockets from "./EunosSockets";
+import EunosAlerts from "./EunosAlerts";
 import ItemDataAdvantage from "../data-model/ItemDataAdvantage";
 import ItemDataDisadvantage from "../data-model/ItemDataDisadvantage";
 import type EunosItem from "../documents/EunosItem";
@@ -173,7 +176,197 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       });
       void EunosOverlay.instance.render({ parts: ["pcs"] });
     },
+    /**
+     * Saves current values as new defaults and updates ranges
+     */
+    saveDefaults(event: PointerEvent, target: HTMLElement): void {
+      void EunosOverlay.instance.render({ parts: ["locationPlottingPanel"] });
+    },
+
+    /**
+     * Outputs current values to console and alert
+     */
+    outputValues(event: PointerEvent, target: HTMLElement): void {
+      // Group settings by selector
+      const transformsBySelector: Record<string, {
+        selector: string;
+        properties: Record<string, string | number>;
+      }> = {};
+
+      // Collect transform values
+      LOCATION_PLOTTING_SETTINGS.SIMPLE.forEach((config) => {
+        const elements = document.querySelectorAll(config.selector);
+        if (elements.length > 0) {
+          if (!transformsBySelector[config.selector]) {
+            transformsBySelector[config.selector] = {
+              selector: config.selector,
+              properties: {}
+            };
+          }
+          transformsBySelector[config.selector]!.properties[config.property] =
+            gsap.getProperty(elements[0]!, config.property) as number;
+        }
+      });
+
+      // Collect gradient values
+      LOCATION_PLOTTING_SETTINGS.GRADIENT.forEach((config) => {
+        const elements = document.querySelectorAll(config.selector);
+        if (elements.length > 0) {
+          if (!transformsBySelector[config.selector]) {
+            transformsBySelector[config.selector] = {
+              selector: config.selector,
+              properties: {}
+            };
+          }
+          const element = elements[0] as HTMLElement;
+          transformsBySelector[config.selector]!.properties["background"] = element.style.background;
+        }
+      });
+
+      // Collect filter values
+      LOCATION_PLOTTING_SETTINGS.FILTER.forEach((config) => {
+        const elements = document.querySelectorAll(config.selector);
+        if (elements.length > 0) {
+          if (!transformsBySelector[config.selector]) {
+            transformsBySelector[config.selector] = {
+              selector: config.selector,
+              properties: {}
+            };
+          }
+          const element = elements[0] as HTMLElement;
+          transformsBySelector[config.selector]!.properties["filter"] = element.style.filter;
+        }
+      });
+
+      // Format the output
+      const output = `mapTransforms: [
+    ${Object.values(transformsBySelector).map(transform => `{
+      selector: "${transform.selector}",
+      properties: {
+        ${Object.entries(transform.properties)
+          .map(([key, value]) => typeof value === "string"
+            ? `${key}: "${value}"`
+            : `${key}: ${value.toFixed(1)}`)
+          .join(",\n      ")}
+      }
+    }`).join(",\n  ")}
+  ]`;
+      // Copy to clipboard
+      void navigator.clipboard.writeText(output).then(() => {
+        getNotifier().info("Location plotting values copied to clipboard");
+      }).catch((err: unknown) => {
+        console.error("Failed to copy to clipboard:", err);
+        getNotifier().warn("Failed to copy to clipboard");
+      });
+
+      // Send as whispered chat message
+      // @ts-expect-error Again, bad typing on this
+      void ChatMessage.create({
+        content: `<pre>${output}</pre>`,
+        whisper: [getUser().id]
+      });
+    },
+
+    /**
+     * Resets an individual control to its initial value
+     */
+    resetControl(event: PointerEvent, target: HTMLElement): void {
+      const control = EunosOverlay.instance.overlay$
+        .find(target)
+        .closest(".control-row");
+      const input = control.find("input[type='range']");
+      const controlType = input.attr("data-control-type");
+      const property = input.attr("data-property");
+
+      if (!controlType || !property) return;
+
+      let initialValue: number;
+      switch (controlType) {
+        case "transform":
+          initialValue =
+            EunosOverlay.instance.initialValues.transforms[property] ?? 0;
+          break;
+        case "background":
+          initialValue =
+            EunosOverlay.instance.initialValues.gradients[property] ?? 0;
+          break;
+        case "filter":
+          initialValue =
+            EunosOverlay.instance.initialValues.filters[property] ?? 0;
+          break;
+        default:
+          return;
+      }
+
+      if (typeof initialValue !== "number") return;
+
+      input.val(initialValue);
+      input.trigger("input"); // Trigger input event to update display and apply changes
+    },
+    refreshControl(event: PointerEvent, target: HTMLElement): void {
+      const control = EunosOverlay.instance.overlay$.find(target).closest(".control-row");
+      EunosOverlay.instance.refreshPlottingControl(control);
+    },
+    syncWithLocation(event: PointerEvent, target: HTMLElement): void {
+      const currentLocation = getSetting("currentLocation");
+      const locationData = LOCATIONS[currentLocation];
+
+      if (!locationData?.mapTransforms) {
+        ui.notifications?.warn(`No transform data found for location: ${currentLocation}`);
+        return;
+      }
+
+      // Update each control based on the mapTransforms data
+      locationData.mapTransforms.forEach(transform => {
+        const { selector, properties } = transform;
+
+        // Update transform controls
+        Object.entries(properties).forEach(([property, value]) => {
+          if (property === "background") {
+            // Handle gradient properties
+            const match = (value as string).match(/circle at (\d+)% (\d+)%.*?(\d+)%/);
+            if (match) {
+              const [, x, y, stop] = match;
+              EunosOverlay.instance.overlay$.find(`input[data-property='circlePositionX']`)
+                .val(x!)
+                .trigger("input");
+              EunosOverlay.instance.overlay$.find(`input[data-property='circlePositionY']`)
+                .val(y!)
+                .trigger("input");
+              EunosOverlay.instance.overlay$.find(`input[data-property='gradientStopPercentage']`)
+                .val(stop!)
+                .trigger("input");
+            }
+          } else if (property === "filter") {
+            // Handle filter properties
+            const hueMatch = (value as string).match(/hue-rotate\((\d+)deg\)/);
+            const saturateMatch = (value as string).match(/saturate\((\d+(?:\.\d+)?)\)/);
+
+            if (hueMatch) {
+              EunosOverlay.instance.overlay$.find(`input[data-property='hue-rotate']`)
+                .val(hueMatch[1]!)
+                .trigger("input");
+            }
+            if (saturateMatch) {
+              EunosOverlay.instance.overlay$.find(`input[data-property='saturate']`)
+                .val(saturateMatch[1]!)
+                .trigger("input");
+            }
+          } else {
+            // Handle transform properties
+            EunosOverlay.instance.overlay$
+              .find(`input[data-property='${property}'][data-selector='${selector}']`)
+              .val(value as number)
+              .trigger("input");
+          }
+        });
+      });
+
+      ui.notifications?.info(`Synced controls with location: ${currentLocation}`);
+    }
   };
+
+
   // #endregion ACTIONS
 
   // #region STATIC CONFIGURATION ~
@@ -206,6 +399,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         EunosOverlay.ACTIONS.conditionCardClick.bind(EunosOverlay),
       addCounter: EunosOverlay.ACTIONS.addCounter.bind(EunosOverlay),
       spendCounter: EunosOverlay.ACTIONS.spendCounter.bind(EunosOverlay),
+      saveDefaults: EunosOverlay.ACTIONS.saveDefaults.bind(EunosOverlay),
+      outputValues: EunosOverlay.ACTIONS.outputValues.bind(EunosOverlay),
+      resetControl: EunosOverlay.ACTIONS.resetControl.bind(EunosOverlay),
+      refreshControl: EunosOverlay.ACTIONS.refreshControl.bind(EunosOverlay),
     },
   };
 
@@ -245,6 +442,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         height: "auto",
       },
     },
+    locationPlottingPanel: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/location-plotting-panel.hbs",
+    },
     locations: {
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-locations.hbs",
@@ -267,57 +468,37 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Hooks.on(
       "preUpdateSetting",
       (setting: Setting, { value: newValue }: { value: unknown }) => {
-        if (
-          getUser().isGM &&
-          setting.key.endsWith("gamePhase") &&
-          typeof setting.value === "string" &&
-          setting.value in GamePhase
-        ) {
-          if (typeof newValue === "string") {
-            newValue = newValue.slice(1, -1) as GamePhase;
-          }
-          if (newValue === setting.value) {
-            return;
-          }
-          kLog.log("preUpdateSetting hook triggered", {
-            "setting.value": setting.value,
-            prevValue: newValue,
-            "typeof prevValue": typeof newValue,
-            "prevValue in GamePhase":
-              typeof newValue === "string" && newValue in GamePhase,
-            "setting.value in GamePhase": setting.value in GamePhase,
-            "setting.value !== prevValue": setting.value !== newValue,
-          });
-          if (setting.value === this.#lastPhaseChange) {
-            return;
-          }
-          this.#lastPhaseChange = setting.value as GamePhase;
-          void EunosSockets.getInstance().call(
-            "changePhase",
-            UserTargetRef.all,
-            {
-              prevPhase: setting.value as GamePhase,
-              newPhase: newValue as GamePhase,
-            },
-          );
-          // void EunosOverlay.instance.cleanupPhase(setting.value as GamePhase)
-          //   .then(() => {
-          //     kLog.log(`Initializing phase: ${String(newValue)}`);
-          //     return EunosOverlay.instance.initializePhase(newValue as GamePhase);
-          //   })
-          //   .catch((error: unknown) => {
-          //     kLog.error("Error initializing phase:", error);
-          //   });
+        if (!getUser().isGM) {
+          return;
         }
+        if (!setting.key.endsWith("gamePhase")) {
+          return;
+        }
+        if (typeof setting.value !== "string") {
+          return;
+        }
+        const curValue = (setting.value as string).replace(/[^a-zA-Z]/g, "");
+        if (!(curValue in GamePhase)) {
+          return;
+        }
+        if (typeof newValue === "string") {
+          newValue = newValue.replace(/[^a-zA-Z]/g, "") as GamePhase;
+        }
+        if (newValue === curValue) {
+          return;
+        }
+        kLog.log("preUpdateSetting hook triggered", { curValue, newValue });
+        if ((curValue as GamePhase) === this.#lastPhaseChange) {
+          return;
+        }
+        this.#lastPhaseChange = curValue as GamePhase;
+        void EunosSockets.getInstance().call("changePhase", UserTargetRef.all, {
+          prevPhase: curValue as GamePhase,
+          newPhase: newValue as GamePhase,
+        });
       },
     );
 
-    Hooks.on("updateSetting", (setting: Setting, data: unknown) => {
-      kLog.log("UpdateSetting hook triggered", {
-        setting: JSON.stringify(setting.toObject()),
-        data: JSON.stringify(data),
-      });
-    });
     // Register hook to re-render when any PC actor is updated
     Hooks.on("updateActor", (actor: Actor) => {
       if (actor.type === "pc") {
@@ -326,12 +507,27 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
 
     await this.instance.render({ force: true });
+
+    setTimeout(() => {
+      this.instance.goToLocation(getSetting("currentLocation"), true);
+    }, 500);
+
+    if (!getUser().isGM) {
+      return;
+    }
+    if (getSetting("isPlottingLocations")) {
+      EunosOverlay.instance.showPlottingPanel();
+    }
   }
 
   static async animateSessionTitle(
-    chapter: string,
-    title: string,
+    chapter?: string,
+    title?: string,
   ): Promise<void> {
+
+    chapter = chapter ?? tCase(verbalizeNum(getSetting("chapterNumber")));
+    title = title ?? getSetting("chapterTitle");
+
     const instance = EunosOverlay.instance;
     const chapterElem$ = instance.topZIndexMask$.find(".chapter-number");
     const horizRule$ = instance.topZIndexMask$.find(".horiz-rule");
@@ -440,7 +636,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
 
     setLocation: (data: { location: string }) => {
-      EunosOverlay.instance.goToLocation(data.location as KeyOf<typeof LOCATIONS>);
+      EunosOverlay.instance.goToLocation(
+        data.location as KeyOf<typeof LOCATIONS>,
+      );
     },
   };
   // #endregion SOCKET FUNCTIONS
@@ -458,7 +656,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #videoStatusPanel: Maybe<HTMLElement>;
   #sessionStartingSong?: PlaylistSound;
   #introVideo: Maybe<HTMLVideoElement>;
-
+  #locationPlottingPanel: Maybe<HTMLElement>;
+  #stage: Maybe<HTMLElement>;
   get overlay$() {
     return $(this.element);
   }
@@ -584,6 +783,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(this.#videoStatusPanel);
   }
 
+  get locationPlottingPanel$() {
+    if (!this.#locationPlottingPanel) {
+      this.#locationPlottingPanel = this.element.querySelector(
+        ".location-plotting-panel",
+      ) as Maybe<HTMLElement>;
+    }
+    if (!this.#locationPlottingPanel) {
+      throw new Error("Location plotting panel not found");
+    }
+    return $(this.#locationPlottingPanel);
+  }
+
+  get stage$() {
+    if (!this.#stage) {
+      this.#stage = this.element.querySelector(
+        "#STAGE",
+      ) as Maybe<HTMLElement>;
+    }
+    if (!this.#stage) {
+      throw new Error("Stage not found");
+    }
+    return $(this.#stage);
+  }
+
   /** Gets or creates the ambient audio element */
   get sessionClosedAmbientAudio$(): JQuery<HTMLAudioElement> {
     const audio = this.element.querySelector(
@@ -605,7 +828,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get sessionStartingSong(): PlaylistSound {
     this.#sessionStartingSong =
-      this.sessionStartingPlaylist.sounds.get(this.sessionStartingPlaylist.playbackOrder[0] ?? "") ?? undefined;
+      this.sessionStartingPlaylist.sounds.get(
+        this.sessionStartingPlaylist.playbackOrder[0] ?? "",
+      ) ?? undefined;
     if (!this.#sessionStartingSong) {
       throw new Error("No songs in Pre-Session Tracks playlist");
     }
@@ -635,10 +860,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #countdownContainerTimeline: Maybe<gsap.core.Timeline>;
   #isCountdownContainerTimelinePlaying = false;
 
-  public get glitchRepeatDelay(): number|false {
-    if (typeof this.timeRemaining !== "number") { return Infinity; }
+  public get glitchRepeatDelay(): number | false {
+    if (typeof this.timeRemaining !== "number") {
+      return Infinity;
+    }
     const currentSeconds = this.timeRemaining;
-    if (currentSeconds <= (0.5 * PRE_SESSION.START_COUNTDOWN_TIMERS)) {
+    if (currentSeconds <= 0.5 * PRE_SESSION.START_COUNTDOWN_TIMERS) {
       return PRE_SESSION.GLITCH_DELAY[1];
     }
     if (currentSeconds <= PRE_SESSION.START_COUNTDOWN_TIMERS) {
@@ -673,75 +900,71 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private buildGlitchTimeline(repeatDelay: number): gsap.core.Timeline {
-      const glitchText$ = this.countdown$.find(".glitch-text");
-      const glitchTop$ = this.countdown$.find(".glitch-top");
-      const glitchBottom$ = this.countdown$.find(".glitch-bottom");
+    const glitchText$ = this.countdown$.find(".glitch-text");
+    const glitchTop$ = this.countdown$.find(".glitch-top");
+    const glitchBottom$ = this.countdown$.find(".glitch-bottom");
 
-      this.#glitchTimeline = gsap
-        .timeline({
-          repeat: -1,
-          repeatDelay,
-        })
-        .addLabel("glitch")
-        .to(glitchText$, {
-          duration: 0.1,
-          skewX: "random([20,-20])",
-          ease: "power4.inOut",
-        })
-        .to(glitchText$, { duration: 0.04, skewX: 0, ease: "power4.inOut" })
+    this.#glitchTimeline = gsap
+      .timeline({
+        repeat: -1,
+        repeatDelay,
+      })
+      .addLabel("glitch")
+      .to(glitchText$, {
+        duration: 0.1,
+        skewX: "random([20,-20])",
+        ease: "power4.inOut",
+      })
+      .to(glitchText$, { duration: 0.04, skewX: 0, ease: "power4.inOut" })
 
-        .to(glitchText$, { duration: 0.04, opacity: 0 })
-        .to(glitchText$, { duration: 0.04, opacity: 1 })
+      .to(glitchText$, { duration: 0.04, opacity: 0 })
+      .to(glitchText$, { duration: 0.04, opacity: 1 })
 
-        .to(glitchText$, { duration: 0.04, x: "random([20,-20])" })
-        .to(glitchText$, { duration: 0.04, x: 0 })
+      .to(glitchText$, { duration: 0.04, x: "random([20,-20])" })
+      .to(glitchText$, { duration: 0.04, x: 0 })
 
-        .add("split", 0)
+      .add("split", 0)
 
-        .to(
-          glitchTop$,
-          { duration: 0.5, x: -30, ease: "power4.inOut" },
-          "split",
-        )
-        .to(
-          glitchBottom$,
-          { duration: 0.5, x: 30, ease: "power4.inOut" },
-          "split",
-        )
-        .to(
-          glitchText$,
-          { duration: 0.08, textShadow: "-13px -13px 0px var(--K4-dRED)" },
-          "split",
-        )
-        .to(this.countdown$, { duration: 0, scale: 1.2 }, "split")
-        .to(this.countdown$, { duration: 0, scale: 1 }, "+=0.02")
-        .to(
-          glitchText$,
-          { duration: 0.08, textShadow: "0px 0px 0px var(--K4-dRED)" },
-          "+=0.09",
-        )
-        .to(glitchText$, { duration: 0.02, color: "#FFF" }, "-=0.05")
-        .to(glitchText$, { duration: 0.02, color: "var(--K4-bGOLD)" })
-        .to(
-          glitchText$,
-          { duration: 0.03, textShadow: "13px 13px 0px #FFF" },
-          "split",
-        )
-        .to(
-          glitchText$,
-          {
-            duration: 0.08,
-            textShadow: "0px 0px 0px transparent",
-            clearProps: "textShadow",
-          },
-          "+=0.01",
-        )
-        .to(glitchTop$, { duration: 0.2, x: 0, ease: "power4.inOut" })
-        .to(glitchBottom$, { duration: 0.2, x: 0, ease: "power4.inOut" })
-        .to(glitchText$, { duration: 0.02, scaleY: 1.1, ease: "power4.inOut" })
-        .to(glitchText$, { duration: 0.04, scaleY: 1, ease: "power4.inOut" });
+      .to(glitchTop$, { duration: 0.5, x: -30, ease: "power4.inOut" }, "split")
+      .to(
+        glitchBottom$,
+        { duration: 0.5, x: 30, ease: "power4.inOut" },
+        "split",
+      )
+      .to(
+        glitchText$,
+        { duration: 0.08, textShadow: "-13px -13px 0px var(--K4-dRED)" },
+        "split",
+      )
+      .to(this.countdown$, { duration: 0, scale: 1.2 }, "split")
+      .to(this.countdown$, { duration: 0, scale: 1 }, "+=0.02")
+      .to(
+        glitchText$,
+        { duration: 0.08, textShadow: "0px 0px 0px var(--K4-dRED)" },
+        "+=0.09",
+      )
+      .to(glitchText$, { duration: 0.02, color: "#FFF" }, "-=0.05")
+      .to(glitchText$, { duration: 0.02, color: "var(--K4-bGOLD)" })
+      .to(
+        glitchText$,
+        { duration: 0.03, textShadow: "13px 13px 0px #FFF" },
+        "split",
+      )
+      .to(
+        glitchText$,
+        {
+          duration: 0.08,
+          textShadow: "0px 0px 0px transparent",
+          clearProps: "textShadow",
+        },
+        "+=0.01",
+      )
+      .to(glitchTop$, { duration: 0.2, x: 0, ease: "power4.inOut" })
+      .to(glitchBottom$, { duration: 0.2, x: 0, ease: "power4.inOut" })
+      .to(glitchText$, { duration: 0.02, scaleY: 1.1, ease: "power4.inOut" })
+      .to(glitchText$, { duration: 0.04, scaleY: 1, ease: "power4.inOut" });
 
-      return this.#glitchTimeline.seek(0);
+    return this.#glitchTimeline.seek(0);
   }
 
   private async initializeCountdown(): Promise<void> {
@@ -764,7 +987,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.updateCountdown();
   }
 
-  private async killCountdown(isStopping = false,isHiding = false) {
+  private async killCountdown(isStopping = false, isHiding = false) {
     kLog.log("killCountdown");
     if (isStopping && this.#countdownTimer) {
       window.clearInterval(this.#countdownTimer);
@@ -775,8 +998,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.countdownContainer$.removeAttr("style"); // Remove style attribute from the container
     this.countdownContainer$.find("*").removeAttr("style"); // Remove style attribute from all descendants
     this.#isCountdownContainerTimelinePlaying = false;
-    if (!isHiding) {
-      this.countdownContainer$.css("visibility", "visible");
+    if (isHiding) {
+      this.countdownContainer$.css("visibility", "hidden");
     }
     this.#countdownContainerTimeline = undefined;
     this.#glitchTimeline = undefined;
@@ -798,11 +1021,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   #timeRemaining: Maybe<number> = undefined;
   #isCountdownHidden = false;
-  #isCountdownLocked = false;
   #areAppElementsFaded = false;
   #areLoadingScreenImagesStopped = false;
-
-
 
   get timeRemaining(): number {
     if (typeof this.#timeRemaining !== "number") {
@@ -815,35 +1035,38 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.#timeRemaining = this.updateCountdownText().totalSeconds;
 
     // T-LOAD_SESSION time: Set gamePhase to SESSION LOADING
-    if (this.timeRemaining <= PRE_SESSION.LOAD_SESSION
-      && getSetting("gamePhase") === GamePhase.SessionClosed
+    if (
+      this.timeRemaining <= PRE_SESSION.LOAD_SESSION &&
+      getSetting("gamePhase") === GamePhase.SessionClosed
     ) {
       kLog.log("updateCountdown -> set gamePhase to SESSION LOADING");
       await setSetting("gamePhase", GamePhase.SessionLoading);
       return;
     }
 
-    // T-0 secs: Hide Countdown, fade in topZIndexMask & video
-    if (this.timeRemaining <= PRE_SESSION.COUNTDOWN_HIDE && !this.#isCountdownHidden) {
+    // T-3 secs: Hide Countdown, fade in topZIndexMask & video
+    if (
+      this.timeRemaining <= PRE_SESSION.COUNTDOWN_HIDE &&
+      !this.#isCountdownHidden
+    ) {
       kLog.log("updateCountdown -> killCountdown (COUNTDOWN HIDE)");
       await this.killCountdown(true, true);
       void this.fadeInIntroVideo();
       this.#isCountdownHidden = true;
-      return;
-    }
-
-    // T-1 secs: Activate countdown lock and stop preSession song playback
-    if (this.timeRemaining <= PRE_SESSION.COUNTDOWN_LOCK && !this.#isCountdownLocked) {
-      this.#isCountdownLocked = true;
-      setTimeout(() => {
-        this.#isCountdownLocked = false;
-      }, 5 * 60 * 1000);
-      // void this.sessionStartingPlaylist.stopAll();
+      setTimeout(
+        () => {
+          this.#isCountdownHidden = false;
+        },
+        5 * 60 * 1000,
+      );
       return;
     }
 
     // T-30 secs: Kill canvas mask listeners, fade out .app elements
-    if (this.timeRemaining <= PRE_SESSION.FREEZE_OVERLAY && !this.#areAppElementsFaded) {
+    if (
+      this.timeRemaining <= PRE_SESSION.FREEZE_OVERLAY &&
+      !this.#areAppElementsFaded
+    ) {
       kLog.log("updateCountdown -> freezeOverlay");
       this.freezeOverlay();
       this.#areAppElementsFaded = true;
@@ -851,9 +1074,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
 
     // T-60 secs: Stop loading screen images, decrease glitch delay
-    if (this.timeRemaining <= PRE_SESSION.HIDE_LOADING_SCREEN_IMAGES && !this.#areLoadingScreenImagesStopped) {
+    if (
+      this.timeRemaining <= PRE_SESSION.HIDE_LOADING_SCREEN_IMAGES &&
+      !this.#areLoadingScreenImagesStopped
+    ) {
       kLog.log("updateCountdown -> stopLoadingScreenImages");
-      this.killLoadingScreenItems();
+      void this.killLoadingScreenItems();
       this.#areLoadingScreenImagesStopped = true;
       this.#glitchTimeline?.repeatDelay(this.glitchRepeatDelay as number);
       // this.buildGlitchTimeline(this.glitchRepeatDelay as number).play();
@@ -861,20 +1087,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
 
     // T-120 secs: Begin glitch AND container timelines
-    if (this.timeRemaining <= PRE_SESSION.START_COUNTDOWN_TIMERS
-        && !this.#isCountdownContainerTimelinePlaying
+    if (
+      this.timeRemaining <= PRE_SESSION.START_COUNTDOWN_TIMERS &&
+      !this.#isCountdownContainerTimelinePlaying
     ) {
       kLog.log("updateCountdown -> beginGlitchAndContainerTimelines");
       this.buildGlitchTimeline(this.glitchRepeatDelay as number).play();
       this.buildCountdownContainerTimeline().play();
+      void this.killSessionClosedAmbientAudio();
       return;
-    } else if (this.timeRemaining > PRE_SESSION.START_COUNTDOWN_TIMERS
-      && (this.#glitchTimeline || this.#countdownContainerTimeline)
+    } else if (
+      this.timeRemaining > PRE_SESSION.START_COUNTDOWN_TIMERS &&
+      (this.#glitchTimeline || this.#countdownContainerTimeline)
     ) {
       kLog.display("updateCountdown -> killCountdown");
       void this.killCountdown(false, false);
     }
-
   }
   // #endregion COUNTDOWN ~
 
@@ -883,26 +1111,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   /** Initializes ambient audio playback with user interaction handling */
   private async initializeAmbientAudio(): Promise<void> {
     try {
-      // Use native play() method since it returns a Promise for autoplay handling
-      // jQuery's trigger('play') doesn't handle this properly
-      if (document.hasFocus() && !document.hidden) {
-        // assert existence of element; if this fails, will throw an error that will be caught below
         const audio = this.sessionClosedAmbientAudio$[0];
         if (!audio) {
-          kLog.error("Session closed ambient audio element not found");
-          return;
+            kLog.error("Session closed ambient audio element not found");
+            return;
         }
         audio.volume = 0.5;
         await audio.play();
         return;
-      }
     } catch (error: unknown) {
-      kLog.error("Failed to play ambient audio, setting up handlers", error);
-    } finally {
-      // Set up handlers if we couldn't play immediately or if playback failed
-      this.setupAudioInteractionHandlers();
+        // Only set up interaction handlers if we get a specific browser autoplay error
+        if (error instanceof Error && error.name === "NotAllowedError") {
+            kLog.error("Autoplay prevented, setting up interaction handlers", error);
+            this.setupAudioInteractionHandlers();
+        } else {
+            kLog.error("Failed to play ambient audio", error);
+        }
     }
-  }
+}
 
   private handleAudioInteraction(e: Event): void {
     // Ignore clicks on the start video button
@@ -934,31 +1160,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const audio = this.sessionClosedAmbientAudio$[0];
 
     if (!audio || audio.volume === 0) {
-      return;
+        return;
     }
 
-    // Create a promise that resolves when the fade is complete
     return new Promise<void>((resolve) => {
-      gsap.to(audio, {
-        volume: 0, // Animate the volume to 0
-        duration: 5, // Duration of the fade-out
-        ease: "power1.out", // Easing function for smooth transition
-        onComplete: () => {
-          // Ensure the volume is set to 0
-          audio.volume = 0;
-          // Remove interaction event listeners
-          PRE_SESSION.INTERACTION_EVENTS.forEach((event) => {
-            document.removeEventListener(
-              event,
-              this.handleAudioInteraction.bind(this),
-            );
-          });
-          // Pause the audio and reset its time
-          audio.pause();
-          audio.currentTime = 0;
-          resolve();
-        },
-      });
+        gsap.to(audio, {
+            volume: 0,
+            duration: 5,
+            ease: "power1.out",
+            onComplete: () => {
+                audio.volume = 0;
+                // Only remove handlers if we're actually stopping playback
+                if (audio.paused) {
+                    PRE_SESSION.INTERACTION_EVENTS.forEach((event) => {
+                        document.removeEventListener(
+                            event,
+                            this.handleAudioInteraction.bind(this),
+                        );
+                    });
+                }
+                audio.pause();
+                audio.currentTime = 0;
+                resolve();
+            },
+        });
     });
   }
   // #endregion SESSION CLOSED AMBIENT AUDIO ~
@@ -1187,7 +1412,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private async initializeLoadingScreenItemRotation(): Promise<void> {
     try {
       // Clear any existing loading screen timelines
-      this.killLoadingScreenItems();
+      await this.killLoadingScreenItems();
 
       // Caching loading screen items & build timelines
       this.cacheLoadingScreenItems();
@@ -1212,7 +1437,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
   }
 
-  private killLoadingScreenItems(): void {
+  private async killLoadingScreenItems(): Promise<void> {
     // Kill the rotation interval
     window.clearInterval(this.#loadScreenRotationTimer);
 
@@ -1221,9 +1446,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.#currentLoadingScreenItem ?? "",
     );
     if (currentTimeline?.isActive()) {
-      void currentTimeline.timeScale(5).then(() => {
-        currentTimeline.seek(0).kill();
-      });
+      await currentTimeline.timeScale(5);
+      currentTimeline.seek(0).kill();
     }
 
     this.#loadingScreenItemTimelines.forEach((timeline) => {
@@ -1250,7 +1474,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const timeRemaining = this.timeRemaining;
     const preSessionSong = this.sessionStartingSong;
     await preSessionSong.load();
-    const songDuration = preSessionSong.sound?.duration ?? 0;
+    const songDuration = (preSessionSong.sound?.duration ?? 0) + 10;
 
     kLog.display("Initializing pre-session song");
     kLog.log(
@@ -1258,8 +1482,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
 
     if (timeRemaining <= songDuration) {
-      if (timeRemaining > (songDuration - 10)) {
-        kLog.log("playing song IMMEDIATELY (within 10 seconds of scheduled time)");
+      if (timeRemaining > songDuration - 10) {
+        kLog.log(
+          "playing song IMMEDIATELY (within 10 seconds of scheduled time)",
+        );
         void this.playPreSessionSong();
       } else {
         kLog.log("Too late to play pre-session song, skipping.");
@@ -1278,8 +1504,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     kLog.log("playing song");
     void this.killSessionClosedAmbientAudio();
     // Start playback of the entire playlist.
-    const firstSound = this.sessionStartingPlaylist.sounds.get(this.sessionStartingPlaylist.playbackOrder[0] ?? "") ?? undefined;
-    if (!firstSound){
+    const firstSound =
+      this.sessionStartingPlaylist.sounds.get(
+        this.sessionStartingPlaylist.playbackOrder[0] ?? "",
+      ) ?? undefined;
+    if (!firstSound) {
       kLog.error("No first sound found in session starting playlist");
       return;
     }
@@ -1294,7 +1523,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .off("mousemove.overlaySidebar")
       .off("mouseleave.overlaySidebar");
     const appElements: HTMLElement[] = $(".app").toArray();
-    gsap.timeline()
+    gsap
+      .timeline()
       .set(appElements, {
         pointerEvents: "none",
       })
@@ -1308,7 +1538,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private unfreezeOverlay(): void {
     this.addCanvasMaskListeners();
     const appElements: HTMLElement[] = $(".app").toArray();
-    gsap.timeline()
+    gsap
+      .timeline()
       .set(appElements, {
         pointerEvents: "auto", // Reset pointer events back to default
       })
@@ -1326,52 +1557,54 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private async preloadIntroVideo(): Promise<void> {
     const video$ = this.introVideo$;
     const reportStatus = (status: VideoLoadStatus) => {
-      if (!getUser().isGM) {
-        void EunosSockets.getInstance().call("reportPreloadStatus", "gm", {
-          userId: getUser().id ?? "",
-          status,
-        });
-      } else {
-        this.updateVideoStatusPanel(getUser().id ?? "", status);
-      }
+        if (!getUser().isGM) {
+            void EunosSockets.getInstance().call("reportPreloadStatus", "gm", {
+                userId: getUser().id ?? "",
+                status,
+            });
+        } else {
+            this.updateVideoStatusPanel(getUser().id ?? "", status);
+        }
     };
 
     try {
-      // Try to preload if page is focused and visible
-      if (document.hasFocus() && !document.hidden) {
         reportStatus(VideoLoadStatus.Loading);
-
         const video = video$[0]!;
 
         // Restore video attributes if they were cleared
         if (!video.hasAttribute("src")) {
-          video.src = MEDIA_PATHS.INTRO_VIDEO;
-          video.preload = "auto";
+            video.src = MEDIA_PATHS.INTRO_VIDEO;
+            video.preload = "auto";
         }
 
         // Check if video is already loaded
         if (video.readyState >= 4) {
-          // HAVE_ENOUGH_DATA
-          reportStatus(VideoLoadStatus.Ready);
-        } else {
-          video.addEventListener(
-            "canplaythrough",
-            () => {
-              reportStatus(VideoLoadStatus.Ready);
-            },
-            { once: true },
-          );
-          video.load();
+            reportStatus(VideoLoadStatus.Ready);
+            return;
         }
-        return;
-      }
 
-      // If we can't load immediately, report pending status
-      reportStatus(VideoLoadStatus.LoadPending);
-    } finally {
-      this.setupVideoPreloadHandlers();
+        await new Promise<void>((resolve, reject) => {
+            video.addEventListener("canplaythrough", () => {
+                reportStatus(VideoLoadStatus.Ready);
+                resolve();
+            }, { once: true });
+            video.addEventListener("error", (e) => {
+                // Create a proper Error object from the event error
+                const error = e.error instanceof Error ? e.error : new Error("Video loading failed");
+                reject(error);
+            }, { once: true });
+
+            video.load();
+        });
+    } catch (error) {
+        kLog.error("Failed to preload video:", error);
+        reportStatus(VideoLoadStatus.LoadPending);
+        // Only set up interaction handlers if we get a specific browser autoplay error
+        if (error instanceof Error && error.name === "NotAllowedError") {
+            this.setupVideoPreloadHandlers();
+        }
     }
-  }
+}
 
   /** Sets up event listeners to handle video preloading after user interaction */
   private setupVideoPreloadHandlers(): void {
@@ -1447,11 +1680,46 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       "preloadIntroVideo",
       UserTargetRef.all,
     );
+    this.confirmChapterTitle();
+  }
+
+  private confirmChapterTitle(): void {
+    const chapterTitle = getSetting("chapterTitle")
+    const chapterNum = getSetting("chapterNumber")
+
+    new Dialog({
+        title: "Confirm Chapter",
+        content: `
+            <div class="form-group">
+                <label>Chapter:</label>
+                <input type="number" name="chapter" value="${chapterNum}">
+            </div>
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" name="title" value="${chapterTitle}">
+            </div>
+        `,
+        buttons: {
+            ok: {
+                label: "Ok",
+                callback: (html) => {
+                    const chapter = $(html).find("[name=chapter]").val() as number;
+                    const title = $(html).find("[name=title]").val() as string;
+                    if (chapter !== chapterNum) {
+                      void setSetting("chapterNumber", chapter);
+                    }
+                    if (title !== chapterTitle) {
+                      void setSetting("chapterTitle", title);
+                    }
+                }
+            }
+        }
+    }).render(true);
   }
 
   /** Fades in the topZIndexMask and the intro video */
   private async fadeInIntroVideo(): Promise<void> {
-    await gsap.to([this.introVideo$[0], this.topZIndexMask$[0]], {
+    await gsap.to(this.topZIndexMask$, {
       autoAlpha: 1,
       duration: 1,
     });
@@ -1478,6 +1746,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
 
     await video.play();
+
+    // Schedule animation of the title
+    const videoDuration = video.duration;
+    const titleDisplayOffset = PRE_SESSION.CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET;
+    const titleDisplayTime = videoDuration - titleDisplayOffset;
+    setTimeout(() => {
+      void EunosOverlay.animateSessionTitle();
+    }, titleDisplayTime * 1000);
   }
 
   /** Handles late-join video synchronization */
@@ -1551,8 +1827,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             resolve();
           },
         })
-        .to(video, {
-          volume: 0,
+        .to(this.topZIndexMask$, {
+          autoAlpha: 0,
           duration: 0.5,
           ease: "power1.out",
         });
@@ -1735,7 +2011,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async cleanup_SessionLoading(): Promise<void> {
     await this.killCountdown(true);
-    this.killLoadingScreenItems();
+    void this.killLoadingScreenItems();
     if (getUser().isGM) {
       void this.sessionStartingPlaylist.stopAll();
     }
@@ -1777,6 +2053,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async cleanup_SessionStarting(): Promise<void> {
     await this.killIntroVideo();
+    this.unfreezeOverlay();
     removeClassFromDOM("session-starting");
   }
   // #endregion SessionStarting Methods
@@ -1830,6 +2107,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region ===== STAGE CONTROL =====
 
+  // #region LOCATIONS ~
+
   get locationContainer(): JQuery {
     return this.overlay$.find("#LOCATIONS");
   }
@@ -1844,7 +2123,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   public initializeLocation() {
-    const location = getSetting("location");
+    const location = getSetting("currentLocation");
     if (!location || !(location in LOCATIONS)) {
       kLog.error(`Location ${location} not found`);
       return;
@@ -1853,9 +2132,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   public async setLocation(location: KeyOf<typeof LOCATIONS>) {
-    if (!getUser().isGM) { return; }
-    await setSetting("location", location);
-    void EunosSockets.getInstance().call("setLocation", UserTargetRef.all, { location });
+    if (!getUser().isGM) {
+      return;
+    }
+    await setSetting("currentLocation", location);
+    void EunosSockets.getInstance().call("setLocation", UserTargetRef.all, {
+      location,
+    });
   }
 
   public goToLocation(location: KeyOf<typeof LOCATIONS>, isInstant = false) {
@@ -1865,11 +2148,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return;
     }
 
-    const {image, description,mapTransforms} = locationData;
+    const { name, image, description, mapTransforms } = locationData;
 
     // Construct a timeline that will animate all of the map transforms smoothly and simultaneously
 
-    const timeline = gsap.timeline({paused: true})
+    const timeline = gsap
+      .timeline({ paused: true })
       .to(
         this.locationContainer,
         {
@@ -1879,38 +2163,44 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           opacity: 0,
           duration: 0.5,
           ease: "power2.out",
-        }, 0)
+        },
+        0,
+      )
       .call(() => {
-        this.locationName.text(location);
+        this.locationName.text(name);
         this.locationImage.attr("src", image ?? "");
         this.locationDescription.html(description ?? "");
       })
-      .to(
-        this.locationContainer,
-        {
-          y: 0,
-          x: 0,
-          filter: "blur(0)",
-          duration: 0,
-          ease: "none"
-        }
-      )
+      .to(this.locationContainer, {
+        y: 0,
+        x: 0,
+        filter: "blur(0)",
+        duration: 0,
+        ease: "none",
+      })
       .addLabel("startMoving");
 
-    mapTransforms.forEach(({selector, properties}) => {
-      timeline.to(selector, {
-        ...properties,
-        duration: 3,
-        ease: "power3.inOut"
-      }, "startMoving");
+    mapTransforms.forEach(({ selector, properties }) => {
+      timeline.to(
+        selector,
+        {
+          ...properties,
+          duration: 3,
+          ease: "back.out(1.7)",
+        },
+        "startMoving",
+      );
     });
 
-    timeline
-      .to(this.locationContainer, {
+    timeline.to(
+      this.locationContainer,
+      {
         opacity: 1,
         duration: 1,
         ease: "power3.inOut",
-      }, "-=0.5");
+      },
+      "-=0.5",
+    );
 
     if (isInstant) {
       timeline.progress(1);
@@ -1919,7 +2209,229 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
   }
 
-  // #endregion
+  // #region Location Plotting ~
+  private initialValues: {
+    transforms: Record<string, number>;
+    gradients: Record<string, number>;
+    filters: Record<string, number>;
+  } = {
+    transforms: {},
+    gradients: {},
+    filters: {},
+  };
+
+  public togglePlottingPanel(): void {
+    void setSetting("isPlottingLocations", !getSetting("isPlottingLocations"));
+  }
+
+  /** Creates and displays the debug panel */
+  public showPlottingPanel(): void {
+    this.locationPlottingPanel$.css("visibility", "visible");
+    this.refreshPlottingPanel();
+    this.addPlottingControlListeners();
+  }
+
+  private getGradientValues(): {
+    circlePositionX: number;
+    circlePositionY: number;
+    gradientStopPercentage: number;
+  } {
+    const underLayer = this.stage$.find(".canvas-layer.under-layer");
+    const gradientString = window.getComputedStyle(underLayer[0]!).background;
+    const match = gradientString.match(/circle at (\d+)% (\d+)%.*?(\d+)%/);
+    if (!match) {
+      return {
+        circlePositionX: 0,
+        circlePositionY: 0,
+        gradientStopPercentage: 0,
+      };
+    }
+    const [, x, y, stop] = match;
+    return {
+      circlePositionX: parseInt(x ?? "0"),
+      circlePositionY: parseInt(y ?? "0"),
+      gradientStopPercentage: parseInt(stop ?? "0"),
+    };
+  }
+  public resetPlottingPanel(): void {
+    // Reset 3D transform values
+    LOCATION_PLOTTING_SETTINGS.SIMPLE.forEach((config) => {
+      const elements = document.querySelectorAll(config.selector);
+      const initialValue = this.initialValues.transforms[config.property];
+      if (typeof initialValue === "number") {
+        elements.forEach((element) => {
+          gsap.to(element, { [config.property]: initialValue });
+        });
+      }
+    });
+
+    // Reset gradient values
+    const elements = document.querySelectorAll(
+      "#STAGE #SECTION-3D .canvas-layer.under-layer",
+    );
+    const { circlePositionX, circlePositionY, gradientStopPercentage } =
+      this.initialValues.gradients;
+    elements.forEach((element) => {
+      (element as HTMLElement).style.background =
+        `radial-gradient(circle at ${circlePositionX}% ${circlePositionY}%, transparent, rgba(0, 0, 0, 0.9) ${gradientStopPercentage}%)`;
+    });
+
+    // Reset filter values
+    LOCATION_PLOTTING_SETTINGS.FILTER.forEach((config) => {
+      const elements = document.querySelectorAll(config.selector);
+      const filterString = config.filters
+        .map((filter) => {
+          const initialValue = this.initialValues.filters[filter.property];
+          if (!initialValue) {
+            return "";
+          }
+          return `${filter.property}(${this.getFilterValue(filter.property, initialValue)})`;
+        })
+        .join(" ");
+
+      elements.forEach((element) => {
+        (element as HTMLElement).style.filter = filterString;
+      });
+    });
+  }
+
+  refreshPlottingControl(control: JQuery): void {
+    const input = control.find("input[type='range']");
+    const valueDisplay = control.find(".value-display");
+    const controlType = input.attr("data-control-type");
+    const property = input.attr("data-property");
+    const selector = input.attr("data-selector");
+
+    if (!controlType || !property) return;
+
+    if (controlType === "transform" && selector) {
+      const elements = document.querySelectorAll(selector);
+      if (elements.length > 0) {
+        const currentValue = gsap.getProperty(elements[0]!, property) as number;
+        const rangeMult = parseFloat(input.attr("data-range-mult") ?? "1");
+        const range = EunosOverlay.instance.getSliderRange(property, currentValue, rangeMult);
+
+        input
+          .attr("min", String(range.min))
+          .attr("max", String(range.max))
+          .val(currentValue)
+          .trigger("input");
+
+        valueDisplay.text(EunosOverlay.instance.formatControlValue(controlType, property, currentValue));
+      }
+    } else if (controlType === "background") {
+
+      const currentValue = this.getGradientValues()[property as keyof ReturnType<typeof this.getGradientValues>];
+      input.val(currentValue).trigger("input");
+      valueDisplay.text(EunosOverlay.instance.formatControlValue(controlType, property, currentValue));
+
+    } else if (controlType === "filter" && selector) {
+      const element = document.querySelector(selector);
+      if (!element) return;
+
+      const style = window.getComputedStyle(element);
+      const filterRegex = new RegExp(`${property}\\((\\d+(?:\\.\\d+)?(?:deg|%|)?)\\)`);
+      const match = style.filter.match(filterRegex);
+      if (match) {
+        const currentValue = parseFloat(match[1] ?? "0");
+        input.val(currentValue).trigger("input");
+        valueDisplay.text(EunosOverlay.instance.formatControlValue(controlType, property, currentValue));
+      }
+    }
+  }
+
+  public refreshPlottingPanel(): void {
+    // Refresh all transform controls
+    this.overlay$.find(".transform-controls .control-row").each((_, row) => {
+      const input = $(row).find("input[type='range']");
+      const controlType = input.attr("data-control-type");
+      const property = input.attr("data-property");
+      const selector = input.attr("data-selector");
+      const valueDisplay = $(row).find(".value-display");
+
+      if (controlType === "transform" && selector) {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length > 0) {
+          const currentValue = gsap.getProperty(elements[0]!, property!) as number;
+          const rangeMult = parseFloat(input.attr("data-range-mult") ?? "1");
+          const range = EunosOverlay.instance.getSliderRange(property!, currentValue, rangeMult);
+
+          input
+            .attr("min", String(range.min))
+            .attr("max", String(range.max))
+            .val(currentValue)
+            .trigger("input");
+
+          valueDisplay.text(this.formatControlValue(controlType, property!, currentValue));
+        }
+      }
+    });
+
+    // Refresh all gradient controls
+    this.overlay$.find(".gradient-controls .control-row").each((_, row) => {
+      const input = $(row).find("input[type='range']");
+      const controlType = input.attr("data-control-type");
+      const property = input.attr("data-property");
+      const selector = input.attr("data-selector");
+      const valueDisplay = $(row).find(".value-display");
+
+      if (selector) {
+        const element = document.querySelector(selector) as HTMLElement;
+        if (!element) return;
+
+        const value = this.getGradientValues()[property as keyof ReturnType<typeof this.getGradientValues>];
+
+        input.val(value).trigger("input");
+        valueDisplay.text(this.formatControlValue(controlType!, property!, value));
+      }
+    });
+
+    // Refresh all filter controls
+    this.overlay$.find(".filter-controls .control-row").each((_, row) => {
+      const input = $(row).find("input[type='range']");
+      const controlType = input.attr("data-control-type");
+      const property = input.attr("data-property");
+      const selector = input.attr("data-selector");
+      const valueDisplay = $(row).find(".value-display");
+
+      if (property && selector) {
+        const element = document.querySelector(selector) as HTMLElement;
+        if (!element) return;
+
+        const style = window.getComputedStyle(element);
+        const filterRegex = new RegExp(`${property}\\((\\d+(?:\\.\\d+)?(?:deg|%|)?)\\)`);
+        const match = style.filter.match(filterRegex);
+
+        if (match) {
+          const value = parseFloat(match[1] ?? "0");
+          input.val(value).trigger("input");
+          valueDisplay.text(this.formatControlValue(controlType!, property, value));
+        }
+      }
+    });
+  }
+
+  public hidePlottingPanel(): void {
+    this.locationPlottingPanel$.css("visibility", "hidden");
+    this.removePlottingControlListeners();
+  }
+
+  /** Gets the CSS value for a filter property */
+  private getFilterValue(property: string, value: number): string {
+    switch (property) {
+      case "hue-rotate":
+        return `${value}deg`;
+      case "saturate":
+        return String(value);
+      default:
+        return String(value);
+    }
+  }
+  // #endregion Location Plotting ~
+
+  // #endregion LOCATIONS
+
+  // #endregion STAGE CONTROL
 
   // #region LISTENERS ~
 
@@ -1933,8 +2445,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 0.01,
           ease: "none",
         })
-        .set(this.midZIndexMask$, {zIndex: 50})
-        .set(this.uiRight$, {zIndex: 51})
+        .set(this.midZIndexMask$, { zIndex: 50 })
+        .set(this.uiRight$, { zIndex: 51 })
         .to(this.uiRight$, {
           opacity: 1,
           duration: 0.5,
@@ -1945,8 +2457,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private addCanvasMaskListeners() {
-    if (this.timeRemaining <= PRE_SESSION.FREEZE_OVERLAY
-        || ![GamePhase.SessionClosed, GamePhase.SessionLoading].includes(getSetting("gamePhase") as GamePhase)
+    if (
+      this.timeRemaining <= PRE_SESSION.FREEZE_OVERLAY ||
+      ![GamePhase.SessionClosed, GamePhase.SessionLoading].includes(
+        getSetting("gamePhase") as GamePhase,
+      )
     ) {
       return;
     }
@@ -1995,33 +2510,105 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const context = await super._prepareContext(options);
 
     // Prepare location data for stage
-    const location = getSetting("location");
+    const location = getSetting("currentLocation");
+    const {pcData, npcData, playlists} = getSetting("locationData")[location as keyof typeof LOCATIONS] ?? LOCATION_DEFAULT_DATA;
 
     // Prepare NPC data for stage
-    const npcSceneData = getSetting("npcSceneData");
-    const npcsData = Object.fromEntries(
-      Object.entries<string | null>(npcSceneData ?? {}).map(
-        ([sceneIndex, npcId]) => [
-          parseInt(sceneIndex, 10),
-          npcId ? getActors().find((actor) => actor.id === npcId) : null,
-        ],
-      ),
-    );
+    const npcContextData = objMap(npcData, (data) => {
+      if (data && typeof data === "object" && "id" in data && data.id && typeof data.id === "string") {
+        const actor = getGame().actors.get(data.id) as Maybe<EunosActor>;
+        if (actor) {
+          (data as LocationCharacterData).actor = actor;
+        }
+        return data;
+      }
+    })
 
     // Prepare PC data for stage
-    const pcsData = getActors().filter((actor) => actor.type === "pc");
-    const pcsPresent = getSetting("pcsPresent");
+    const pcContextData: Partial<Record<"1"|"2"|"3"|"4"|"5", LocationCharacterData>> = {};
+
+    // Get all PCs controlled by non-GM users
+    const pcsAndUsers: Map<EunosActor, User> = new Map(
+      getUsers()
+        .filter((user) => !user.isGM)
+        .map((user) => {
+          const pc = user.character;
+          if (!pc?.isPC()) {
+            kLog.error(`Unable to find the character assigned to '${user.name}'`);
+            return [] as unknown as [EunosActor, User];
+          }
+          return [pc, user];
+        })
+        .filter((entry): entry is [EunosActor, User] => entry.length > 0)
+    );
+
+    // Sort PCs by last word in name, and limit to 5.
+    const sortedPCs = sortDocsByLastWord(Array.from(pcsAndUsers.keys())).slice(0, 5);
+
+    // Iterate through slots "1" through "5" and assign PC actor to 'actor', performing the following checks:
+    // - add the ownerID to the pcData object
+    // - if the character's controlling user is not connected, set "isMasked" to true
+    // - if the slot is not contained in the location data's 'pcData' object, set "isHidden" to true
+    // - set 'isDimmed' and 'isSpotlit' to the respective location data values.
+    for (let i = 1; i <= 5; i++) {
+      const slot = `${i}` as "1" | "2" | "3" | "4" | "5";
+      const actor = sortedPCs[i - 1];
+
+      if (!actor) {
+        pcContextData[slot] = {
+          slot,
+          id: "",
+          isSpotlit: false,
+          isDimmed: false,
+          isMasked: false,
+          isHidden: true,
+        }
+        continue;
+      }
+      const owner = pcsAndUsers.get(actor);
+      if (!owner) {
+        pcContextData[slot] = {
+          slot,
+          id: "",
+          isSpotlit: false,
+          isDimmed: false,
+          isMasked: false,
+          isHidden: true,
+        }
+        continue;
+      }
+
+      if (!actor.id) {
+        kLog.error(`Unable to find the ID for '${actor.name}'`);
+      }
+
+      pcContextData[slot] = {
+        slot,
+        actor,
+        id: actor.id ?? "",
+        isSpotlit: pcData[slot]?.isSpotlit ?? false,
+        isDimmed: pcData[slot]?.isDimmed ?? false,
+        isMasked: !owner.active,
+        isHidden: !(slot in pcData),
+      }
+    }
+
+    // Now, iterate again through pcContextData: If ALL slots are hidden, set 'isHidden' to false for all slots.
+    const allHidden = Object.values(pcContextData).every((pc) => pc.isHidden);
+    if (allHidden) {
+      Object.values(pcContextData).forEach((pc) => {
+        pc.isHidden = false;
+      });
+    }
 
     // Prepare loading screen item data
-
     Object.assign(context, {
       location,
-      npcsData,
-      pcsData,
-      pcsPresent,
+      npcData: npcContextData,
+      pcData: pcContextData,
       LOADING_SCREEN_DATA,
       sessionScribeID: getSetting("sessionScribeID"),
-      isGM: getUser().isGM,
+      isGM: getUser().isGM
     });
 
     if (!getUser().isGM) {
@@ -2065,15 +2652,56 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       isGM: true,
     });
 
+    // Prepare location plotting panel
+    // Transform controls data
+    const transformControls = LOCATION_PLOTTING_SETTINGS.SIMPLE.map(
+      (config) => {
+        const elements = document.querySelectorAll(config.selector);
+        const initialValue =
+          elements.length > 0
+            ? (gsap.getProperty(
+                elements[0] as Element,
+                config.property,
+              ) as number)
+            : 0;
+        return {
+          ...config,
+          initialValue,
+          ...this.getSliderRange(config.property, initialValue, config.rangeMult),
+        };
+      },
+    );
+
+    // Gradient controls data
+    const gradientControls = LOCATION_PLOTTING_SETTINGS.GRADIENT.map(
+      (setting) => ({
+        ...setting,
+      }),
+    );
+
+    // Filter controls data
+    const filterControls = LOCATION_PLOTTING_SETTINGS.FILTER.map((config) => ({
+      selector: config.selector,
+      filters: config.filters.map((filter) => ({
+        ...filter,
+      })),
+    }));
+
+    Object.assign(context, {
+      transformControls,
+      gradientControls,
+      filterControls,
+    });
+
     return context;
   }
   // #endregion OVERRIDE: PREPARE CONTEXT ~
 
   // #region OVERRIDE: ON RENDER ~
-  override _onRender(
+  protected override _onRender(
     context: EmptyObject,
     options: ApplicationV2.RenderOptions,
-  ) {
+  ): void {
     super._onRender(context, options);
 
     if (options.isFirstRender) {
@@ -2087,251 +2715,102 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.addCanvasMaskListeners();
     }
     this.addStartVideoButtonListeners();
+    this.addPlottingControlListeners();
+  }
+
+  private formatControlValue(controlType: string, property: string, value: number): string {
+    switch (property) {
+      case "hue-rotate":
+      case "rotationX":
+      case "rotationY":
+      case "rotationZ":
+        return `${Math.round(value)}°`;
+      case "saturate":
+        return value.toFixed(2);
+      case "circlePositionX":
+      case "circlePositionY":
+      case "gradientStopPercentage":
+        return `${Math.round(value)}%`;
+      default:
+        return String(value);
+    }
+  }
+
+  private addPlottingControlListeners(): void {
+    $(document).on("input.plottingControls", "#LOCATION-PLOTTING-PANEL input[type='range']", (event) => {
+      const input = $(event.currentTarget);
+      const controlType = input.attr("data-control-type");
+      const property = input.attr("data-property");
+      const selector = input.attr("data-selector");
+      const value = parseFloat(input.val() as string);
+
+      if (!controlType || !property) return;
+
+      // Update value display using the shared formatting method
+      const valueDisplay = input.closest(".control-row").find(".value-display");
+      valueDisplay.text(this.formatControlValue(controlType, property, value));
+
+      // Apply the value based on control type
+      if (controlType === "transform" && selector) {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach((element) => {
+          gsap.set(element, { [property]: value });
+        });
+      } else if (controlType === "background" && selector) {
+        const controls = this.overlay$.find(".gradient-controls");
+        const xInput = controls.find("input[data-property='circlePositionX']");
+        const yInput = controls.find("input[data-property='circlePositionY']");
+        const stopInput = controls.find("input[data-property='gradientStopPercentage']");
+
+        const xVal = parseInt(xInput.val() as string);
+        const yVal = parseInt(yInput.val() as string);
+        const stopVal = parseInt(stopInput.val() as string);
+
+        const gradientString = `radial-gradient(circle at ${xVal}% ${yVal}%, transparent, rgba(0, 0, 0, 0.9) ${stopVal}%)`;
+
+        kLog.log("GRADIENT CHANGE", { xVal, yVal, stopVal, gradientString });
+
+        const elements = document.querySelectorAll(selector);
+        elements.forEach((element) => {
+          (element as HTMLElement).style.background = gradientString;
+        });
+      } else if (controlType === "filter" && selector) {
+        const controls = this.overlay$.find(".filter-controls");
+        const filterInputs = controls.find("input[type='range']");
+
+        const filterString = Array.from(filterInputs).map(input => {
+          const filterProperty = $(input).attr("data-property");
+          const filterValue = $(input).val() as string;
+          return `${filterProperty}(${filterValue}${filterProperty === "hue-rotate" ? "deg" : ""})`;
+        }).join(" ");
+
+        const elements = document.querySelectorAll(selector);
+        elements.forEach((element) => {
+          (element as HTMLElement).style.filter = filterString;
+        });
+      }
+    });
+  }
+
+  private removePlottingControlListeners(): void {
+    $(document).off(".plottingControls");
   }
   // #endregion OVERRIDE: ON RENDER ~
+
+  private getSliderRange(property: string, initialValue: number, rangeMult: number): { min: number; max: number } {
+    const isAngle = ["rotationX", "rotationY", "rotationZ"].includes(property);
+
+    if (isAngle) {
+      return { min: -360, max: 360 };
+    }
+
+    const range = rangeMult * Math.abs(initialValue);
+    return {
+      min: initialValue - range,
+      max: initialValue + range
+    };
+  }
 }
 
 // #region DEBUGGING ~
-// Define the 3D_DEBUG_SETTINGS array
-const DEBUG_3D_SETTINGS: Array<{
-  selector: string;
-  property: string;
-  rangeMult: number;
-}> = [
-  {
-    selector: "#STAGE #SECTION-3D",
-    property: "perspective",
-    rangeMult: 1,
-  },
-  {
-    selector: "#STAGE #SECTION-3D .canvas-layer",
-    property: "x",
-    rangeMult: 2,
-  },
-  {
-    selector: "#STAGE #SECTION-3D .canvas-layer",
-    property: "y",
-    rangeMult: 2,
-  },
-  {
-    selector: "#STAGE #SECTION-3D .canvas-layer",
-    property: "z",
-    rangeMult: 2,
-  },
-  {
-    selector: "#STAGE #SECTION-3D .canvas-layer",
-    property: "rotationX",
-    rangeMult: 1,
-  },
-  {
-    selector: "#STAGE #SECTION-3D .canvas-layer",
-    property: "rotationY",
-    rangeMult: 1,
-  },
-  {
-    selector: "#STAGE #SECTION-3D .canvas-layer",
-    property: "rotationZ",
-    rangeMult: 1,
-  },
-  // Add more entries as needed
-];
-
-jQuery(function () {
-  // Function to create the debugging panel
-  function createDebugPanel() {
-    const panel = document.createElement("div");
-    panel.classList.add("debug-panel");
-    panel.style.position = "fixed";
-    panel.style.top = "10px";
-    panel.style.left = "10px"; // Move to the left side
-    panel.style.width = "400px"; // Double the width
-    panel.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-    panel.style.padding = "10px";
-    panel.style.borderRadius = "5px";
-    panel.style.zIndex = "10001";
-    panel.style.color = "white";
-    panel.style.fontFamily = "Arial, sans-serif";
-
-    const sliderValues: Record<string, number> = {};
-
-    // Add sliders for 3D settings
-    DEBUG_3D_SETTINGS.forEach((config) => {
-      const row = document.createElement("div");
-      row.style.marginBottom = "10px";
-      row.style.position = "relative";
-
-      const label = document.createElement("label");
-      label.textContent = `${config.property}: `;
-      label.style.marginRight = "5px";
-
-      const slider = document.createElement("input");
-      slider.type = "range";
-
-      const elements = document.querySelectorAll(config.selector);
-      const initialValue =
-        elements.length > 0
-          ? (gsap.getProperty(
-              elements[0] as Element,
-              config.property,
-            ) as number)
-          : 0;
-      console.log(`Initial value for ${config.property}: ${initialValue}`);
-
-      const range = config.rangeMult * Math.abs(initialValue);
-      slider.min = String(initialValue - range);
-      slider.max = String(initialValue + range);
-      slider.value = String(initialValue);
-
-      sliderValues[config.property] = initialValue;
-
-      const valueDisplay = document.createElement("span");
-      valueDisplay.textContent = String(Math.round(initialValue));
-      valueDisplay.style.marginLeft = "10px";
-      valueDisplay.style.cursor = "pointer";
-      valueDisplay.style.userSelect = "text";
-
-      const resetButton = document.createElement("i");
-      resetButton.className = "fas fa-undo";
-      resetButton.style.position = "absolute";
-      resetButton.style.right = "0";
-      resetButton.style.top = "0"; // Align with the top of the row
-      resetButton.style.transform = "translateY(0)"; // Remove vertical centering
-      resetButton.style.cursor = "pointer";
-      resetButton.style.color = "white";
-
-      resetButton.addEventListener("click", () => {
-        slider.value = String(initialValue);
-        valueDisplay.textContent = String(Math.round(initialValue));
-        elements.forEach((element) => {
-          gsap.to(element, { [config.property]: initialValue });
-        });
-        sliderValues[config.property] = initialValue;
-      });
-
-      slider.addEventListener("input", () => {
-        const value = parseFloat(slider.value);
-        valueDisplay.textContent = String(Math.round(value));
-        elements.forEach((element) => {
-          gsap.to(element, { [config.property]: value });
-        });
-        sliderValues[config.property] = value;
-      });
-
-      row.appendChild(label);
-      row.appendChild(slider);
-      row.appendChild(valueDisplay);
-      row.appendChild(resetButton);
-      panel.appendChild(row);
-    });
-
-    // Add sliders for gradient settings
-    const gradientSettings = [
-      {
-        label: "Circle Position X",
-        property: "circlePositionX",
-        initialValue: 25,
-      },
-      {
-        label: "Circle Position Y",
-        property: "circlePositionY",
-        initialValue: 0,
-      },
-      {
-        label: "Gradient Stop Percentage",
-        property: "gradientStopPercentage",
-        initialValue: 50,
-      },
-    ];
-
-    const gradientValues: Record<string, number> = {};
-
-    gradientSettings.forEach((setting) => {
-      const row = document.createElement("div");
-      row.style.marginBottom = "10px";
-      row.style.position = "relative";
-
-      const label = document.createElement("label");
-      label.textContent = `${setting.label}: `;
-      label.style.marginRight = "5px";
-
-      const slider = document.createElement("input");
-      slider.type = "range";
-      slider.min = "0";
-      slider.max = "100";
-      slider.value = String(setting.initialValue);
-
-      gradientValues[setting.property] = setting.initialValue;
-
-      const valueDisplay = document.createElement("span");
-      valueDisplay.textContent = `${setting.initialValue}%`;
-      valueDisplay.style.marginLeft = "10px";
-      valueDisplay.style.cursor = "pointer";
-      valueDisplay.style.userSelect = "text";
-
-      const resetButton = document.createElement("i");
-      resetButton.className = "fas fa-undo";
-      resetButton.style.position = "absolute";
-      resetButton.style.right = "0";
-      resetButton.style.top = "0"; // Align with the top of the row
-      resetButton.style.transform = "translateY(0)"; // Remove vertical centering
-      resetButton.style.cursor = "pointer";
-      resetButton.style.color = "white";
-
-      resetButton.addEventListener("click", () => {
-        slider.value = String(setting.initialValue);
-        valueDisplay.textContent = `${setting.initialValue}%`;
-        gradientValues[setting.property] = setting.initialValue;
-        updateGradient();
-      });
-
-      slider.addEventListener("input", () => {
-        const value = parseFloat(slider.value);
-        valueDisplay.textContent = `${value}%`;
-        gradientValues[setting.property] = value;
-        updateGradient();
-      });
-
-      row.appendChild(label);
-      row.appendChild(slider);
-      row.appendChild(valueDisplay);
-      row.appendChild(resetButton);
-      panel.appendChild(row);
-    });
-
-    const updateGradient = () => {
-      const { circlePositionX, circlePositionY, gradientStopPercentage } =
-        gradientValues;
-      const elements = document.querySelectorAll(
-        "#STAGE #SECTION-3D .canvas-layer.under-layer",
-      );
-      elements.forEach((element) => {
-        (element as HTMLElement).style.background =
-          `radial-gradient(circle at ${circlePositionX}% ${circlePositionY}%, transparent, rgba(0, 0, 0, 0.9) ${gradientStopPercentage}%)`;
-      });
-    };
-
-    const outputButton = document.createElement("button");
-    outputButton.textContent = "Output Values";
-    outputButton.style.marginTop = "10px";
-    outputButton.style.width = "100%";
-    outputButton.style.cursor = "pointer";
-
-    outputButton.addEventListener("click", () => {
-      const gradientString = `radial-gradient(circle at ${gradientValues["circlePositionX"]}% ${gradientValues["circlePositionY"]}%, transparent, rgba(0, 0, 0, 0.9) ${gradientValues["gradientStopPercentage"]}%)`;
-      console.log("GSAP Timeline Data:", sliderValues);
-      console.log("Gradient String:", gradientString);
-      alert(
-        `GSAP Timeline Data: ${JSON.stringify(sliderValues, null, 2)}\nGradient String: ${gradientString}`,
-      );
-    });
-
-    panel.appendChild(outputButton);
-    document.body.appendChild(panel);
-  }
-
-  setTimeout(() => {
-    // Call the function to create the panel
-    createDebugPanel();
-  }, 4000);
-});
-// #endregion DEBUGGING ~
+/** Settings for 3D debug controls */

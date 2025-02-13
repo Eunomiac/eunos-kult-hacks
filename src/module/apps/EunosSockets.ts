@@ -1,19 +1,8 @@
 import { SYSTEM_ID } from "../scripts/constants";
-import { GamePhase } from "../scripts/enums";
+import { GamePhase, UserTargetRef } from "../scripts/enums";
 import * as U from "../scripts/utilities";
 import EunosAlerts from "./EunosAlerts";
-import { socketLogger } from "../scripts/socket-logger";
 import { VideoLoadStatus } from "./EunosOverlay";
-
-/** Enum for user targeting in socket operations */
-export enum UserTargetRef {
-  gm = "gm", // The alert is shown to the GM.
-  self = "self", // The alert is shown to the current user.
-  all = "all", // The alert is shown to all connected users.
-  players = "players", // The alert is shown to all users except the GM.
-  other = "other", // The alert is shown to all users except the current user.
-  otherPlayers = "otherPlayers", // The alert is shown to all users except the current user and the GM.
-}
 
 export type UserTarget = UserTargetRef | IDString | UUIDString;
 
@@ -76,66 +65,32 @@ export default class EunosSockets {
   private readonly debugMode = true; // Set to false in production
 
   private constructor() {
-    this.logDebug("[EunosSockets] Constructor called");
     this.socket = EunosSockets.registeredSocket ?? this.getSocket();
-    this.logDebug("[EunosSockets] Socket obtained:", this.socket);
   }
 
   /** Initialize the socket system */
   public static initializeSocketSystem(): void {
     if (this.isInitialized) {
-      this.getInstance().logDebug(
-        "[EunosSockets] Already initialized, skipping",
-      );
       return;
     }
-    this.getInstance().logDebug("[EunosSockets] Initializing socket system");
+    kLog.log("[EunosSockets] Initializing socket system");
 
     try {
       // Register the module with socketlib
       this.registeredSocket = socketlib.registerModule(SYSTEM_ID);
-      this.getInstance().logDebug(
-        "[EunosSockets] Registered with socketlib:",
-        this.registeredSocket,
-      );
-
-      const instance = this.getInstance();
-      instance.logDebug("[EunosSockets] Initialize called");
 
       // Register socket functions from initializable classes
       this.RegisterSockets(InitializableClasses);
 
-      // Setup basic connection monitoring
-      // instance.setupConnectionMonitoring();
-
       this.isInitialized = true;
     } catch (error) {
-      this.getInstance().logError("Failed to initialize socket system:", error);
-      ui.notifications?.error("Failed to initialize socket system. Please refresh the page.");
-    }
-  }
-
-  /** Debug logging */
-  private logDebug(...args: unknown[]): void {
-    if ("kLog" in globalThis && this.debugMode) {
-      kLog.log("[EunosSockets]", ...args);
-    } else {
-      console.log("[EunosSockets]", ...args);
-    }
-  }
-
-  /** Error logging */
-  private logError(...args: unknown[]): void {
-    if ("kLog" in globalThis) {
-      kLog.error("[EunosSockets]", ...args);
-    } else {
-      console.error("[EunosSockets]", ...args);
+      kLog.error("[EunosSockets] Failed to initialize socket system:", error);
+      getNotifier().error("Failed to initialize socket system. Please refresh the page.");
     }
   }
 
   public static getInstance(): EunosSockets {
     if (!EunosSockets.instance) {
-      console.log("[EunosSockets] Creating new instance");
       EunosSockets.instance = new EunosSockets();
     }
     return EunosSockets.instance;
@@ -143,13 +98,9 @@ export default class EunosSockets {
 
   /** Gets the appropriate socket for the module */
   private getSocket(): Socket {
-    this.logDebug("Getting socket");
-    this.logDebug("socketlib.system:", socketlib.system);
-    this.logDebug("socketlib.modules:", socketlib.modules);
 
     let socket: Maybe<Socket> = socketlib.system;
     if (!socket) {
-      this.logDebug("No system socket, trying module socket");
       socket = socketlib.modules.get(SYSTEM_ID);
       if (!socket) {
         socket = socketlib.registerModule(SYSTEM_ID);
@@ -159,10 +110,9 @@ export default class EunosSockets {
       const error = new Error(
         `[EunosSockets.getSocket] No Socket Found for ${SYSTEM_ID}`,
       );
-      this.logError(error);
+      kLog.error("[EunosSockets] Failed to get socket:", error);
       throw error;
     }
-    this.logDebug("Returning socket:", socket);
     return socket;
   }
 
@@ -170,10 +120,6 @@ export default class EunosSockets {
   public static RegisterSockets(
     initializableClasses: Record<string, unknown>,
   ): void {
-    console.log(
-      "[EunosSockets] RegisterSockets called with:",
-      initializableClasses,
-    );
     const instance = EunosSockets.getInstance();
 
     const classesWithSockets = Object.values(initializableClasses).filter(
@@ -184,22 +130,14 @@ export default class EunosSockets {
       } => typeof doc === "function" && "SocketFunctions" in doc,
     );
 
-    console.log(
-      "[EunosSockets] Classes with socket functions:",
-      classesWithSockets,
-    );
-
     classesWithSockets.forEach((Class) => {
-      console.log("[EunosSockets] Registering functions from:", Class.name);
       instance.registerSocketFunctions(Class.SocketFunctions);
     });
   }
 
   /** Register socket functions */
   public registerSocketFunctions(funcs: Record<string, SocketFunction>): void {
-    console.log("[EunosSockets] Registering functions:", Object.keys(funcs));
     for (const [fName, func] of Object.entries(funcs)) {
-      console.log(`[EunosSockets] Registering function: ${fName}`);
       this.socket.register(fName, async (data: unknown) => {
         await this.executeSocketFunction(fName as SocketEventName, data as SocketEvents[SocketEventName]["data"]);
       });
@@ -319,29 +257,21 @@ export default class EunosSockets {
       // Validate the data before sending
       this.validateEventData(event, data);
 
-      socketLogger.logEvent(
-        target === (UserTargetRef.gm as string) ? "GM-Targeted Call" : "Broadcast Call",
-        event,
-        data,
-        users.map((user: User) => user.name ?? user.id!),
-      );
+      kLog.socketCall(`[SOCKET CALL] ${getUser().name} to ${U.uCase(target)}`, {event, data});
 
       // Use executeAsGM for GM-targeted calls that expect returns
       if (target === UserTargetRef.gm as string) {
         const result = await socket.executeAsGM(event, data);
-        const duration = performance.now() - startTime;
-        socketLogger.logResult("GM-Targeted Call", event, duration, data, result);
+        kLog.socketResponse(`[AWAITED RESPONSE RECEIVED] ${getUser().name} from ${U.uCase(target)}`, {event, data, result});
         return result as R;
       }
 
       // Use executeForUsers for broadcast-style calls
       const userIds = users.map((user: User) => user.id!);
       await socket.executeForUsers(event, userIds, data);
-      const duration = performance.now() - startTime;
-      socketLogger.logResult("Broadcast Call", event, duration, data, undefined);
       return undefined as R;
     } catch (error: unknown) {
-      socketLogger.logError(event, error);
+      kLog.error(`[SOCKET CALL ERROR] ${getUser().name} to ${U.uCase(target)}`, {event, data, error});
       throw error;
     }
   }
@@ -356,16 +286,15 @@ export default class EunosSockets {
 
     if (!func || typeof func !== "function") {
       const error = new Error(`Socket function not found or invalid: ${event}`);
-      socketLogger.logError(event, error, data);
+      kLog.error(`[SOCKET EXECUTION ERROR] ${getUser().name} failed to execute ${event}`, {event, data, error});
       throw error;
     }
 
     try {
       await Promise.resolve(func(data));
-      const duration = performance.now() - startTime;
-      socketLogger.logResult("Socket Function Call", event, duration, data);
+      kLog.socketResponse(`[SOCKET RESPONSE] ${getUser().name} executed ${event}`, {event, data});
     } catch (error: unknown) {
-      socketLogger.logError(event, error, data);
+      kLog.error(`[SOCKET EXECUTION ERROR] ${getUser().name} failed to execute ${event}`, {event, data, error});
       throw error;
     }
   }
@@ -389,12 +318,10 @@ if (
   "ready" in window.socketlib &&
   window.socketlib.ready
 ) {
-  console.log("Socketlib already ready, initializing immediately");
   EunosSockets.initializeSocketSystem();
 }
 
 // Register hook as fallback
 Hooks.once("socketlib.ready", () => {
-  console.log("Socketlib ready hook fired");
   EunosSockets.initializeSocketSystem();
 });

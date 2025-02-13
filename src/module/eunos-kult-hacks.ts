@@ -201,16 +201,4 @@ Hooks.on("ready", () => {
   });
 
   replaceBasicMovesHook();
-
-  // If ALL values of the "pcsPresent" setting are null, iterate through all PCs and set the first 5 to their id
-  const pcsPresent = getSetting("pcsPresent");
-  kLog.log("Extracted pcsPresent", pcsPresent);
-  if (Object.values(pcsPresent).every((value) => value === null)) {
-    const pcs = getActors().filter((actor) => actor.isPC());
-    for (let i = 0; i < 5; i++) {
-      pcsPresent[`${i + 1}` as keyof typeof pcsPresent] = pcs[i]?.id ?? null;
-    }
-    kLog.log("Setting pcsPresent to", pcsPresent);
-    void setSetting("pcsPresent", pcsPresent);
-  }
 });

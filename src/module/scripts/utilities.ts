@@ -1,5 +1,6 @@
 // import {gsap, MotionPathPlugin} from "../libraries";
 import { PRE_SESSION } from "./constants";
+import Document = foundry.abstract.Document;
 
 // #region ▒▒▒▒▒▒▒ [HELPERS] Internal Functions, Data & References Used by Utility Functions ▒▒▒▒▒▒▒ ~
 
@@ -382,6 +383,42 @@ const getKey = <T>(key: Key, obj: Record<Key, T>): Maybe<T> => {
   return undefined;
 };
 
+/**
+ * Sorts an array of strings by their last word, returning a new array
+ * @param items - Array of strings to sort
+ * @returns A new sorted array
+ */
+const sortByLastWord = (items: string[]): string[] => {
+  return items.toSorted((a, b) => {
+    if (/ /u.test(a)) {
+      a = a.split(" ").pop() as string;
+    }
+    if (/ /u.test(b)) {
+      b = b.split(" ").pop() as string;
+    }
+    return a.localeCompare(b);
+  });
+};
+
+/**
+ * Sorts an array of Document instances by the last word in their name
+ * @param docs - Array of Document instances to sort
+ * @returns A new sorted array
+ */
+const sortDocsByLastWord = <T extends EunosDocument = EunosDocument>(docs: T[]): T[] => {
+  return docs.toSorted((a, b) => {
+    let aName = a.name;
+    let bName = b.name;
+    if (/ /u.test(aName)) {
+      aName = aName.split(" ").pop() as string;
+    }
+    if (/ /u.test(bName)) {
+      bName = bName.split(" ").pop() as string;
+    }
+    return aName.localeCompare(bName);
+  });
+};
+
 const FILTERS = {
   IsInstance: ((classRef: unknown) => ((item: unknown) => typeof classRef === "function" && item instanceof classRef))
 };
@@ -554,7 +591,6 @@ const stringifyNum = (num: number | string): NumString => {
     finalDecs
   ].join("") as NumString;
 };
-
 
 /**
  * Converts a number into its word representation
@@ -2865,6 +2901,8 @@ export {
   assertNonNullType,
 
   FILTERS,
+
+  sortByLastWord, sortDocsByLastWord,
 
   // ████████ BOOLEAN: Combining & Manipulating Boolean Tests ████████
   checkAll, checkAny, checkAllFail,

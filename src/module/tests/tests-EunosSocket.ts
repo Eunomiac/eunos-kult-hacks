@@ -1,11 +1,9 @@
 import type { Quench, QuenchBatchContext } from "@ethaks/fvtt-quench";
-import EunosSockets, {
-  UserTargetRef,
-  type SocketEventName,
-} from "../apps/EunosSockets";
+import EunosSockets from "../apps/EunosSockets";
 import EunosOverlay, { VideoLoadStatus } from "../apps/EunosOverlay";
 import EunosAlerts, { AlertType } from "../apps/EunosAlerts";
 import { convertTorontoTime, countdownUntil } from "../scripts/utilities";
+import { UserTargetRef } from "../scripts/enums";
 interface TestResult {
   fullTitle: string;
   passed: boolean;

@@ -14,19 +14,20 @@
     height: 100%;
     width: 100%;
     pointer-events: none;
-    text-shadow:
-      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-      0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
-      0 0 var(--shadow-blur) rgba(0, 0, 0, 1);
 
     > * {
       position: absolute;
       pointer-events: none;
-      filter: drop-shadow(0 0 var(--shadow-blur) rgba(0, 0, 0, 1));
+      // filter: drop-shadow(0 0 var(--shadow-blur) rgba(0, 0, 0, 1));
       visibility: hidden;
+      text-shadow:
+        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+        0 0 var(--shadow-blur) rgba(0, 0, 0, 1),
+        100px 100px 6px rgba(0, 0, 0, 0.75);
     }
 
     &.item-home-metropolis {
@@ -87,6 +88,7 @@
         transform-origin: center center;
         position: relative;
         border: none;
+        filter: drop-shadow(100px 100px 5px rgba(0, 0, 0, 0.55));
       }
     }
 

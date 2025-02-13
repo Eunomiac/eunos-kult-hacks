@@ -1,0 +1,95 @@
+<div id="LOCATION-PLOTTING-PANEL" class="location-plotting-panel gm-only">
+
+  {{!-- 3D Transform Controls --}}
+  <div class="control-section transform-controls">
+    <div class="section-header">3D Transform Controls</div>
+    {{#each transformControls}}
+    <div class="control-row">
+      <label>
+        {{property}}: <span class="value-display">{{initialValue}}</span>
+      </label>
+      <input
+        type="range"
+        data-control-type="transform"
+        data-property="{{property}}"
+        data-selector="{{selector}}"
+        data-range-mult="{{rangeMult}}"
+        min="{{min}}"
+        max="{{max}}"
+        value="{{initialValue}}"
+      >
+      <i class="fas fa-undo reset-button" data-action="resetControl"></i>
+      <i class="fas fa-save refresh-button" data-action="refreshControl"></i>
+    </div>
+    {{/each}}
+  </div>
+
+  {{!-- Gradient Controls --}}
+  <div class="control-section gradient-controls"
+       data-current-gradient="{{constructGradientString
+         (lookup gradientValues 'circlePositionX')
+         (lookup gradientValues 'circlePositionY')
+         (lookup gradientValues 'gradientStopPercentage')
+       }}"
+  >
+    <div class="section-header">Gradient Controls</div>
+    {{#each gradientControls}}
+    <div class="control-row">
+      <label>
+        {{label}}: <span class="value-display">{{formatValue "background" property initialValue}}</span>
+      </label>
+      <input
+        type="range"
+        data-control-type="background"
+        data-property="{{property}}"
+        data-selector="{{selector}}"
+        min="0"
+        max="100"
+        value="{{initialValue}}"
+      >
+      <i class="fas fa-undo reset-button" data-action="resetControl"></i>
+      <i class="fas fa-save refresh-button" data-action="refreshControl"></i>
+    </div>
+    {{/each}}
+  </div>
+
+  {{!-- Filter Controls --}}
+  {{#each filterControls}}
+  <div class="control-section filter-controls"
+       data-current-filters="{{constructFilterString filters}}"
+  >
+    <div class="section-header">Filter Controls</div>
+    {{#each filters}}
+    <div class="control-row">
+      <label>
+        {{name}}: <span class="value-display">{{formatValue "filter" property initialValue}}</span>
+      </label>
+      <input
+        type="range"
+        data-control-type="filter"
+        data-property="{{property}}"
+        data-selector="{{../selector}}"
+        min="{{min}}"
+        max="{{max}}"
+        step="{{step}}"
+        value="{{initialValue}}"
+      >
+      <i class="fas fa-undo reset-button" data-action="resetControl"></i>
+      <i class="fas fa-save refresh-button" data-action="refreshControl"></i>
+    </div>
+    {{/each}}
+  </div>
+  {{/each}}
+
+<div class="panel-buttons">
+  <button data-action="outputValues">Output Values</button>
+  <button data-action="saveDefaults">
+    <i class="fas fa-save"></i>
+    Save As Defaults
+  </button>
+  <button data-action="syncWithLocation">
+    <i class="fas fa-sync"></i>
+    Sync With Location
+  </button>
+</div>
+</div>

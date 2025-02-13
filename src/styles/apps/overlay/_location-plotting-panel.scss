@@ -1,0 +1,162 @@
+.location-plotting-panel {
+  position: fixed;
+  visibility: hidden;
+  top: 100px;
+  left: 10px;
+  width: 400px;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 0 10px 5px 10px;
+  border-radius: 5px;
+  z-index: 30;
+  color: white;
+  font-family: Arial, sans-serif;
+  pointer-events: all;
+
+  .control-section {
+    // margin-bottom: 15px;
+
+    &:not(:first-child) {
+      // border-top: 2px solid var(--K4-bGOLD);
+      padding-top: 5px;
+    }
+
+    .section-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+      width: calc(100% + 20px);
+      margin-left: -10px;
+      padding-left: 10px;
+      background: black;
+      color: var(--K4-bGOLD);
+      border-top: 1px solid var(--K4-bGOLD);
+      border-bottom: 1px solid var(--K4-bGOLD);
+    }
+  }
+
+  .control-row {
+    display: flex;
+    flex-direction: column;
+    // gap: 4px;
+    margin-bottom: 5px;
+    // padding-bottom: 10px;
+    // border-bottom: 1px solid var(--bGOLD);
+    position: relative;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    label {
+      font-size: 0.9em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    input[type="range"] {
+      width: calc(100% - 40px);
+      margin: 0;
+      margin-top: -5px;
+
+      // Custom styling for the range input
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: #ffffff;
+        cursor: pointer;
+        margin-top: -6px;
+      }
+
+      &::-webkit-slider-runnable-track {
+        width: calc(100% - 30px);
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+      }
+
+      &:focus {
+        outline: none;
+
+        &::-webkit-slider-thumb {
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+      }
+    }
+
+    .value-display {
+      font-family: monospace;
+      font-size: 1.2em;
+      min-width: 50px;
+      font-weight: 1000;
+      color: var(--K4-bbGOLD);
+      cursor: pointer;
+      user-select: text;
+    }
+
+    .refresh-button {
+      cursor: pointer;
+      position: absolute;
+      right: 20px;
+      padding: 5px;
+      transition: filter 0.2s;
+      color: yellow;
+      pointer-events: all;
+
+      &:hover {
+        filter: brightness(1.5);
+      }
+    }
+
+    .reset-button {
+      cursor: pointer;
+      position: absolute;
+      right: 0;
+      padding: 5px;
+      transition: filter 0.2s;
+      pointer-events: all;
+      color: var(--K4-bbRED);
+
+      &:hover {
+        filter: brightness(1.5);
+      }
+    }
+  }
+
+  .panel-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+
+    button {
+      padding: 8px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      &:active {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+
+      i {
+        font-size: 0.9em;
+      }
+    }
+  }
+}

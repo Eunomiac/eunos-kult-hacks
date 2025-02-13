@@ -4,7 +4,7 @@
 @use "overlay/stage";
 @use "overlay/mid-zindex-mask";
 @use "overlay/top-zindex-mask";
-
+@use "overlay/location-plotting-panel";
 html {
 	position: absolute;
 	transform-origin: center center;
@@ -17,6 +17,7 @@ html {
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    background: black;
     margin: 0;
 
     &:not(.interface-ready)::before {
@@ -51,7 +52,7 @@ html {
       #PCS,
       #STAGE,
       #VIDEO-STATUS-PANEL {
-        visibility: hidden;
+        visibility: hidden !important;
       }
     }
 
@@ -96,7 +97,7 @@ html {
       // #PCS,
       // #STAGE,
       #VIDEO-STATUS-PANEL {
-        visibility: hidden !important;
+        visibility: hidden;
       }
     }
 
@@ -130,11 +131,6 @@ html {
 body:not(.gm-user) .gm-only {
   display: none !important;
 }
-
-.debug-panel {
-  display: none;
-}
-
 
 
 @keyframes pulse {

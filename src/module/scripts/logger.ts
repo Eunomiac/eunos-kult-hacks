@@ -35,6 +35,18 @@ const STYLES = {
     "margin-left": "-100px",
     "padding": "0 100px"
   },
+  socketCall: {
+    "color": "rgb(0, 255, 0)",
+    "background": "rgb(0, 70, 0)"
+  },
+  socketReceived: {
+    "color": "rgb(255, 255, 0)",
+    "background": "rgb(70, 70, 0)"
+  },
+  socketResponse: {
+    "color": "rgb(0, 255, 255)",
+    "background": "rgb(0, 70, 70)"
+  },
   error: {
     "color": C.Colors.RED9,
     "background": C.Colors.RED1,
@@ -182,6 +194,9 @@ const k4Logger = (type: KeyOf<typeof STYLES> = "base", ...content: [string, ...u
 const kLog = {
   display: (...content: [string, ...unknown[]]) => { k4Logger("display", ...content); },
   log: (...content: [string, ...unknown[]]) => { k4Logger("base", ...content); },
+  socketCall: (...content: [string, ...unknown[]]) => { k4Logger("socketCall", ...content); },
+  socketReceived: (...content: [string, ...unknown[]]) => { k4Logger("socketReceived", ...content); },
+  socketResponse: (...content: [string, ...unknown[]]) => { k4Logger("socketResponse", ...content); },
   error: (...content: [string, ...unknown[]]) => { k4Logger("error", ...content); },
   hbsLog: (...content: [string, ...unknown[]]) => { k4Logger("handlebars", ...content); }
 };

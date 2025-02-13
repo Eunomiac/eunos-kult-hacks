@@ -1,7 +1,9 @@
 // #region IMPORTS ~
 import {getSetting, formatDateAsISO} from "./utilities.ts";
-import {GamePhase} from "./enums.ts";
+import {GamePhase, PCTargetRef} from "./enums.ts";
+import EunosOverlay from "../apps/EunosOverlay";
 import fields = foundry.data.fields;
+import {LOCATIONS} from "./constants.ts";
 // #endregion
 
 
@@ -65,29 +67,66 @@ export default function registerSettings() {
       return true;
     }
   });
-  getSettings().register("eunos-kult-hacks", "npcSceneData", {
-    name: "NPCs in Scene",
-    hint: "The IDs of the NPCs in the current scene.",
+
+  getSettings().register("eunos-kult-hacks", "chapterTitle", {
+    name: "Chapter Title",
+    hint: "The title of the current chapter.",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "",
+  });
+  getSettings().register("eunos-kult-hacks", "chapterNumber", {
+    name: "Chapter Number",
+    hint: "The number of the current chapter.",
+    scope: "world",
+    config: true,
+    type: Number,
+    default: 0,
+  });
+  getSettings().register("eunos-kult-hacks", "isPlottingLocations", {
+    name: "Plotting Locations",
+    hint: "Whether the GM is plotting locations.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false,
+    onChange: (value) => {
+      if (!getUser().isGM) { return; }
+      if (value) {
+        EunosOverlay.instance.showPlottingPanel();
+      } else {
+        EunosOverlay.instance.hidePlottingPanel();
+      }
+    }
+  });
+  getSettings().register("eunos-kult-hacks", "currentLocation", {
+    name: "Current Location",
+    hint: "The name of the current location.",
+    scope: "world",
+    choices: Object.fromEntries(
+      Object.keys(LOCATIONS).map(key => [key, key])
+    ) as { [K in keyof typeof LOCATIONS]?: string },
+    config: true,
+    type: String,
+    default: "Willow's Wending" as keyof typeof LOCATIONS,
+  });
+  getSettings().register("eunos-kult-hacks", "locationData", {
+    name: "Location Data",
+    hint: "Data for all configured locations.",
     scope: "world",
     config: false,
     type: Object,
     default: {
-      1: null,
-      2: null,
-      3: null,
-      4: null,
-      5: null,
-      6: null,
+      "Willow's Wending Entry": {
+        isPromoted: true,
+        isHidden: false,
+        pcData: {},
+        npcData: {},
+        playlists: []
+      }
     }
-  });
-  getSettings().register("eunos-kult-hacks", "location", {
-    name: "Location",
-    hint: "The name and image of the current location.",
-    scope: "world",
-    config: false,
-    type: String,
-    default: "",
-  });
+  })
   getSettings().register("eunos-kult-hacks", "sessionScribeID", {
     name: "Session Scribe",
     hint: "The ID of the player who is the session scribe.",
@@ -95,20 +134,6 @@ export default function registerSettings() {
     config: false,
     type: String,
     default: "",
-  });
-  getSettings().register("eunos-kult-hacks", "pcsPresent", {
-    name: "PCs Present",
-    hint: "The IDs of the players who are present in the scene.",
-    scope: "world",
-    config: false,
-    type: Object,
-    default: {
-      1: null,
-      2: null,
-      3: null,
-      4: null,
-      5: null
-    },
   });
 }
 

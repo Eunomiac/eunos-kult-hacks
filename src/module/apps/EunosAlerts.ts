@@ -1,20 +1,15 @@
 // #region IMPORTS ~
 // import C, {K4Influence} from "../scripts/constants.js";
-import * as U from "../scripts/utilities.js";
+  import {getTemplatePath} from "../scripts/utilities.js";
 import EunosActor from "../documents/EunosActor.js";
 import {AlertPaths, type SVGPathData} from "../scripts/svgdata.js";
 import * as Sounds from "../scripts/sounds.js";
-import EunosSockets, {UserTargetRef} from "../apps/EunosSockets.js";
+import EunosSockets from "../apps/EunosSockets.js";
+import {AlertType, UserTargetRef} from "../scripts/enums.js";
 // #endregion
 
 // #region === TYPES, ENUMS, INTERFACE AUGMENTATION === ~
-// #region -- ENUMS ~
-enum AlertType {
-  simple = "simple",
-  gmNotice = "gmNotice"
-};
 
-// #endregion
 // #region -- TYPES ~
 declare namespace EunosAlerts {
 
@@ -514,7 +509,7 @@ class EunosAlerts {
     if (!this.hasElement()) {
       kLog.log("No element, creating");
       const elementCode: string = await renderTemplate(
-        U.getTemplatePath("alerts", `alert-${this.type}`),
+        getTemplatePath("alerts", `alert-${this.type}`),
         this.context
       );
       this._element = $(elementCode).appendTo(EunosAlerts.Overlay$);

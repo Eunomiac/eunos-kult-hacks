@@ -12,7 +12,9 @@
 // import K4Scene from "../documents/K4Scene.js";
 
 import type {Quench} from "@ethaks/fvtt-quench";
+import type EunosActor from "../documents/EunosActor";
 import type EunosItem from "../documents/EunosItem";
+import type {UserTargetRef, PCTargetRef} from "../scripts/enums";
 
 
 // import type {Socket, SocketLib} from "./socketlib";
@@ -62,7 +64,13 @@ declare global {
 
   const InitializableClasses: Record<string, Constructor>;
 
-  type AudioHelper = Exclude<typeof game.audio, undefined>;
+  const AudioHelper: Exclude<typeof game.audio, undefined>;
+
+  type PCTarget = PCTargetRef | IDString | UUIDString;
+
+  type UserTarget = UserTargetRef | IDString | UUIDString;
+
+  type EunosDocument = EunosActor | EunosItem;
 
   // type EffectChangeData = import("@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/documents/_types.d.mts").EffectChangeData;
   // type EffectChangeData = import("fvtt-types/_types").EffectChangeData;
@@ -215,7 +223,7 @@ declare global {
    * @returns The current AudioHelper instance.
    * @throws Error if the AudioHelper is not ready.
    */
-  function getAudioHelper(): AudioHelper;
+  function getAudioHelper(): typeof AudioHelper;
 
   /**
    * Retrieves the collection of all CompendiumPacks instances in the game.
@@ -231,6 +239,9 @@ declare global {
   const kLog: {
     display: (...content: [string, ...unknown[]]) => void,
     log: (...content: [string, ...unknown[]]) => void,
+    socketCall: (...content: [string, ...unknown[]]) => void,
+    socketResponse: (...content: [string, ...unknown[]]) => void,
+    socketReceived: (...content: [string, ...unknown[]]) => void,
     error: (...content: [string, ...unknown[]]) => void,
     hbsLog: (...content: [string, ...unknown[]]) => void,
     openReport: (name: string, title?: string, dbLevel?: number) => void,

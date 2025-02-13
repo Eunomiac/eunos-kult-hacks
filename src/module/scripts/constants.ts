@@ -1,14 +1,125 @@
 import type EunosItem from "../documents/EunosItem";
-import { numberToWords, wordsToNumber } from "./utilities_old";
-import type {Quench} from "@ethaks/fvtt-quench";
-
+import { verbalizeNum, deverbalizeNum, tCase } from "./utilities";
+import type { Quench } from "@ethaks/fvtt-quench";
+import { PCTargetRef } from "./enums";
 export const SYSTEM_ID = "eunos-kult-hacks";
 
 export const MEDIA_PATHS = {
-  PRESESSION_AMBIENT_AUDIO: "modules/eunos-kult-hacks/assets/sounds/session-closed-ambiance.flac",
-  INTRO_VIDEO: "modules/eunos-kult-hacks/assets/video/something-unholy-intro.webm",
-  LOADING_SCREEN_ITEM: "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs"
-}
+  PRESESSION_AMBIENT_AUDIO:
+    "modules/eunos-kult-hacks/assets/sounds/session-closed-ambiance.flac",
+  INTRO_VIDEO:
+    "modules/eunos-kult-hacks/assets/video/something-unholy-intro.webm",
+  LOADING_SCREEN_ITEM:
+    "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs",
+};
+
+// #region CONFIGURATION
+export const LOCATION_PLOTTING_SETTINGS: {
+  SIMPLE: Array<{
+    selector: string;
+    property: string;
+    rangeMult: number;
+  }>;
+  GRADIENT: Array<{
+    selector: string;
+    label: string;
+    property: string;
+    initialValue: number;
+  }>;
+  FILTER: Array<{
+    selector: string;
+    filters: Array<{
+      name: string;
+      property: string;
+      initialValue: number;
+      min: number;
+      max: number;
+      step: number;
+    }>;
+  }>;
+} = {
+  SIMPLE: [
+    {
+      selector: "#STAGE #SECTION-3D",
+      property: "perspective",
+      rangeMult: 2,
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "x",
+      rangeMult: 2,
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "y",
+      rangeMult: 2,
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "z",
+      rangeMult: 2,
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "rotationX",
+      rangeMult: 1,
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "rotationY",
+      rangeMult: 1,
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "rotationZ",
+      rangeMult: 1,
+    },
+  ],
+  GRADIENT: [
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+      label: "Circle Position X",
+      property: "circlePositionX",
+      initialValue: 25,
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+      label: "Circle Position Y",
+      property: "circlePositionY",
+      initialValue: 0,
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+      label: "Gradient Stop Percentage",
+      property: "gradientStopPercentage",
+      initialValue: 50,
+    },
+  ],
+  FILTER: [
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+      filters: [
+        {
+          name: "hue",
+          property: "hue-rotate",
+          initialValue: 0,
+          min: 0,
+          max: 360,
+          step: 1,
+        },
+        {
+          name: "saturation",
+          property: "saturate",
+          initialValue: 1,
+          min: 0,
+          max: 1,
+          step: 0.01,
+        },
+      ],
+    },
+  ],
+};
+// #endregion CONFIGURATION
 
 // #region Global Variables ~
 const GLOBAL_VARIABLES = {
@@ -142,6 +253,9 @@ const GLOBAL_VARIABLES = {
     value: ClientSettings.SettingAssignmentType<ClientSettings.Namespace, K>,
     namespace: ClientSettings.Namespace = "eunos-kult-hacks",
   ) {
+    if (!getUser().isGM) {
+      return;
+    }
     return getSettings().set(namespace, setting, value);
   },
 
@@ -206,7 +320,7 @@ const GLOBAL_VARIABLES = {
    * @returns The audio helper.
    * @throws Error if the audio helper is not ready.
    */
-  getAudioHelper: function getAudioHelper(): AudioHelper {
+  getAudioHelper: function getAudioHelper(): typeof AudioHelper {
     const audioHelper = getGame().audio;
     if (!audioHelper) {
       throw new Error("AudioHelper is not ready");
@@ -237,7 +351,7 @@ const GLOBAL_VARIABLES = {
       return globalThis.quench;
     }
     throw new Error("Quench is not ready");
-  }
+  },
 };
 // #endregion
 
@@ -364,85 +478,312 @@ export const Colors = {
 // #endregion
 
 // #region LOCATIONS ~
-export const LOCATIONS = {
-  "Willow's Wending": {
-    image: "",
-    description: "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
-    mapTransforms: [
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          perspective: 800
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer",
-        properties: {
-          x: -4857.6,
-          y: -3370.7,
-          z: -1500,
-          rotationX: 41.7,
-          rotationY: -18.9,
-          rotationZ: 16.9,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          background: "radial-gradient(circle at 67% 85%, transparent, rgba(0, 0, 0, 0.9) 13%)"
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          filter: "hue-rotate(130deg) saturate(0.5)"
-        }
+export interface LocationCharacterData<slot extends "1"|"2"|"3"|"4"|"5"|"6" = "1"|"2"|"3"|"4"|"5"> {
+  slot: slot;
+  actor?: EunosActor;
+  id: IDString;
+  isSpotlit: boolean;
+  isDimmed: boolean;
+  isMasked: boolean;
+  isHidden: boolean;
+}
+export interface LocationData {
+  isPromoted: boolean;
+  isHidden: boolean;
+  pcData: Partial<Record<"1"|"2"|"3"|"4"|"5", LocationCharacterData>>;
+  npcData: Partial<Record<"1"|"2"|"3"|"4"|"5"|"6", LocationCharacterData<"1"|"2"|"3"|"4"|"5"|"6">>>;
+  playlists: IDString[];
+}
+
+export const LOCATION_DEFAULT_DATA: LocationData = {
+  isPromoted: false,
+  isHidden: false,
+  get pcData() {
+    // Get all PCs controlled by non-GM users
+    const pcs = getUsers().filter((user) => !user.isGM).map((user) => {
+      const pc = user.character;
+      if (!pc || !pc.isPC()) {
+        throw new Error(`Unable to find the character assigned to '${user.name}'`);
       }
-    ],
+      return pc;
+    });
+    return pcs.reduce<Record<IDString, {
+      id: IDString;
+      isSpotlit: boolean;
+      isDimmed: boolean;
+      isMasked: boolean;
+      isHidden: boolean;
+    }>>((acc, pc) => {
+      if (pc.id) {
+        acc[pc.id] = {
+          id: pc.id,
+          isSpotlit: false,
+          isDimmed: false,
+          isMasked: false,
+          isHidden: false
+        };
+      }
+      return acc;
+    }, {});
   },
-  "Ranger Station #1": {
+  npcData: {},
+  playlists: [],
+}
+export const LOCATIONS = {
+  "Willow's Wending Entry": {
+    name: "Willow's Wending",
     image: "",
     description: "",
     mapTransforms: [
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          perspective: 446
+          perspective: 478.0
         }
       },
-      {
+    {
         selector: "#STAGE #SECTION-3D .canvas-layer",
         properties: {
-          x: -3689.8,
-          y: -976,
-          z: 451,
-          rotationX: 24,
-          rotationY: -3.8,
-          rotationZ: 4,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          background: "radial-gradient(circle at 44% 20%, transparent, rgba(0, 0, 0, 0.9) 8%)"
+          x: -5707.6,
+        y: -3903.7,
+        z: -1467.0,
+        rotationX: 38.0,
+        rotationY: -9.0,
+        rotationZ: 11.0
         }
       },
-      {
+    {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          background: "radial-gradient(circle at 75% 93%, transparent, rgba(0, 0, 0, 0.9) 10%)"
+        }
+      },
+    {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          filter: "hue-rotate(0deg) saturate(1)"
+          filter: "hue-rotate(183deg) saturate(0.62)"
         }
       }
     ]
-  }
+  },
+  "Willow's Wending #1": {
+    name: "Willow's Wending",
+    image: "",
+    description:
+      "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
+      mapTransforms: [
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            perspective: 800.0
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer",
+          properties: {
+            x: -4857.4,
+          y: -3371.3,
+          z: -1500.0,
+          rotationX: 42.0,
+          rotationY: -19.0,
+          rotationZ: 17.0
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            background: "radial-gradient(circle at 67% 76%, transparent, rgba(0, 0, 0, 0.9) 9%)"
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            filter: "hue-rotate(183deg) saturate(0.62)"
+          }
+        }
+      ]
+    //   mapTransforms: [
+    //   {
+    //     selector: "#STAGE #SECTION-3D",
+    //     properties: {
+    //       perspective: 800,
+    //     },
+    //   },
+    //   {
+    //     selector: "#STAGE #SECTION-3D .canvas-layer",
+    //     properties: {
+    //       x: -4857.6,
+    //       y: -3370.7,
+    //       z: -1500,
+    //       rotationX: 41.7,
+    //       rotationY: -18.9,
+    //       rotationZ: 16.9,
+    //     },
+    //   },
+    //   {
+    //     selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+    //     properties: {
+    //       background:
+    //         "radial-gradient(circle at 67% 85%, transparent, rgba(0, 0, 0, 0.9) 13%)",
+    //     },
+    //   },
+    //   {
+    //     selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+    //     properties: {
+    //       filter: "hue-rotate(130deg) saturate(0.5)",
+    //     },
+    //   },
+    // ],
+  },
+  "Willow's Wending #2": {
+    name: "Willow's Wending",
+    image: "",
+    description:
+      "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
+      mapTransforms: [
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            perspective: 790.0
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer",
+          properties: {
+            x: -4435.2,
+          y: -2323.9,
+          z: -457.0,
+          rotationX: 42.0,
+          rotationY: -19.0,
+          rotationZ: 17.0
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            background: "radial-gradient(circle at 56% 53%, transparent, rgba(0, 0, 0, 0.9) 8%)"
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            filter: "hue-rotate(226deg) saturate(0.55)"
+          }
+        }
+      ]
+  },
+  "Willow's Wending #3": {
+    name: "Willow's Wending",
+    image: "",
+    description:
+      "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
+      mapTransforms: [
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            perspective: 1158.0
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer",
+          properties: {
+            x: -4073.2,
+          y: -1486.9,
+          z: 755.0,
+          rotationX: 42.0,
+          rotationY: -19.0,
+          rotationZ: 17.0
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            background: "radial-gradient(circle at 47% 28%, transparent, rgba(0, 0, 0, 0.9) 7%)"
+          }
+        },
+      {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            filter: "hue-rotate(104deg) saturate(0.53)"
+          }
+        }
+      ]
+  },
+  "Ranger Station #1": {
+    name: "Ranger Station #1",
+    image: "",
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          perspective: 629.0
+        }
+      },
+    {
+        selector: "#STAGE #SECTION-3D .canvas-layer",
+        properties: {
+          x: -3414.4,
+        y: -976.0,
+        z: 451.0,
+        rotationX: 22.0,
+        rotationY: 4.0,
+        rotationZ: -2.0
+        }
+      },
+    {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          background: "radial-gradient(circle at 44% 20%, transparent, rgba(0, 0, 0, 0.9) 6%)"
+        }
+      },
+    {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          filter: "hue-rotate(34deg) saturate(1)"
+        }
+      }
+    ],
+    // mapTransforms: [
+    //   {
+    //     selector: "#STAGE #SECTION-3D",
+    //     properties: {
+    //       perspective: 446,
+    //     },
+    //   },
+    //   {
+    //     selector: "#STAGE #SECTION-3D .canvas-layer",
+    //     properties: {
+    //       x: -3689.8,
+    //       y: -976,
+    //       z: 451,
+    //       rotationX: 24,
+    //       rotationY: -3.8,
+    //       rotationZ: 4,
+    //     },
+    //   },
+    //   {
+    //     selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+    //     properties: {
+    //       background:
+    //         "radial-gradient(circle at 44% 20%, transparent, rgba(0, 0, 0, 0.9) 8%)",
+    //     },
+    //   },
+    //   {
+    //     selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+    //     properties: {
+    //       filter: "hue-rotate(0deg) saturate(1)",
+    //     },
+    //   },
+    // ],
+  },
 } as const;
-
 
 // #endregion
 
 // #region LOADING SCREENS ~
 export const LOADING_SCREEN_DATA = {
-  "Azghoul": {
+  Azghoul: {
     prefix: "",
     title: "Azghouls",
     subtitle: "Our Forgotten Thralls",
@@ -450,15 +791,16 @@ export const LOADING_SCREEN_DATA = {
     body: "The azghouls were once exquisite beings with a proud civilization, until we conquered their world and grafted exoskeletal parasites to their bodies to compel their servitude. They haunt the barren streets of Metropolis to this day, but we have forgotten how to make them obey.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/azghoul.webp",
   },
-  "Gynachid": {
+  Gynachid: {
     prefix: "",
     title: "Gynachids",
     subtitle: "Mothers No More",
     home: "Metropolis",
     body: "Solitary carnivores, gynachids hunt in Metropolis and other worlds beyond the Illusion. Once enslaved to our rule, we took their ability to create offspring as a means of control. In the eons since, they have adapted, and now implant their fetuses in human hosts to grow.",
-    image: "modules/eunos-kult-hacks/assets/images/loading-screen/gynachid.webp",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/gynachid.webp",
   },
-  "Tekron": {
+  Tekron: {
     prefix: "",
     title: "Tekrons",
     subtitle: "Caretakers of the Machine City",
@@ -472,9 +814,10 @@ export const LOADING_SCREEN_DATA = {
     subtitle: "Dream Princess of the Crimson Delirium",
     home: "Limbo",
     body: "Once a geisha, now a Dream Princess of Limbo, Yōko Sakai rules a realm of opium haze and whispered desires. Here, courtesans offer tea alongside syringes of heroin and the crystallized blood of angels. Those who fail to bow before her beauty are woven into the rice-paper walls of her palace, forever part of her domain. Yet, those who earn her favor may receive whispered secrets of Limbo or passage through the shifting dreamways.",
-    image: "modules/eunos-kult-hacks/assets/images/loading-screen/dream-princess.webp",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/dream-princess.webp",
   },
-  "Lictor": {
+  Lictor: {
     prefix: "",
     title: "Lictors",
     subtitle: "Our Jailers",
@@ -482,23 +825,25 @@ export const LOADING_SCREEN_DATA = {
     body: "The Lictors are the veiled wardens of our prison, shaping laws, faith, and industry to keep us blind. They are the unyielding judges, the priests who mold sin into chains, the executives who barter away futures, the police chiefs who dictate law with iron resolve. They rarely kill—unless we try to escape. Beneath the Illusion they are bloated, translucent monsters over eight feet tall, with prehensile, barbed tongues a meter long.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/lictor.webp",
   },
-  "Nepharite": {
+  Nepharite: {
     prefix: "",
     title: "Nepharites",
     subtitle: "Priests of Pain",
     home: "Inferno",
     body: "Nepharites are Inferno's high priests of suffering, torturers and prophets who flay souls to nourish the Death Angels. They weave pacts, shape agony into worship, and slip into Elysium through cracks in the Illusion, draped in robes of flayed flesh and adorned with gleaming knives. Where they walk, the air is thick with the scent of blood and incense.",
-    image: "modules/eunos-kult-hacks/assets/images/loading-screen/nepharite.webp",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/nepharite.webp",
   },
-  "Purgatide": {
+  Purgatide: {
     prefix: "",
     title: "Purgatides",
     subtitle: "The Mutilated Damned",
     home: "Inferno",
     body: "Purgatides are the discarded remnants of Inferno's endless tortures, little more than torn flesh held together by rusted clamps and thread. Their butchered bodies leak blood and pus, concealed beneath tattered coats. Mindless and fanatical, they shuffle through Elysium as hollow servants of razides and nepharites, their fevered eyes betraying the agony they no longer recognize as their own.",
-    image: "modules/eunos-kult-hacks/assets/images/loading-screen/purgatide.webp",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/purgatide.webp",
   },
-  "Razide": {
+  Razide: {
     prefix: "",
     title: "Razides",
     subtitle: "Horrors of Flesh and Steel",
@@ -512,7 +857,8 @@ export const LOADING_SCREEN_DATA = {
     subtitle: "Whisperer of Dreams",
     home: "Limbo",
     body: "The Moth Child is a tragic dream being, its naked, ash-grey body covered in moths that emerge from its flesh. It haunts solitary victims, whispering in dreams and feeding on their blood in Elysium. As it intrudes upon dreams, the fluttering of moth wings becomes a constant presence, and the victim begins to attract moths in the waking world.",
-    image: "modules/eunos-kult-hacks/assets/images/loading-screen/the-moth-child.webp",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/the-moth-child.webp",
   },
   "The Seamstress": {
     prefix: "the",
@@ -520,9 +866,10 @@ export const LOADING_SCREEN_DATA = {
     subtitle: "Stitcher of Dreams",
     home: "Limbo",
     body: "The Seamstress is a dream being who disassembles and reassembles her victims, demanding stories from their waking lives as payment. Her realm is a French suburb filled with reanimated corpses, stitched together and controlled by her will. In her sewing chamber, she hoards the organs of dreamers, promising their return for further services.",
-    image: "modules/eunos-kult-hacks/assets/images/loading-screen/the-seamstress.webp",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/the-seamstress.webp",
   },
-  "Ferals": {
+  Ferals: {
     prefix: "",
     title: "Ferals",
     subtitle: "Survivors, Twisted",
@@ -530,7 +877,7 @@ export const LOADING_SCREEN_DATA = {
     body: "Once human, ferals have become abominations lurking in Metropolis's shadows. Distorted by contagion and poison, they are grey-skinned, hollow-eyed, and move with an animalistic gait. Living in ruins, they are cannibals, preying on wanderers and scavenging for sustenance. Their sole objective is survival.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/feral.webp",
   },
-  "Jackals": {
+  Jackals: {
     prefix: "",
     title: "Jackals",
     subtitle: "Mad Predators",
@@ -538,15 +885,16 @@ export const LOADING_SCREEN_DATA = {
     body: "Jackals are distorted humans, bound to the Death Angels' principles, living on society's fringes. They are wild, cannibalistic, and lack empathy outside their pack. Recognizable by their animal musk, they blend into extremist groups. Each pack varies by the Death Angel they follow, preying on the vulnerable, reveling in terror, and driven by primal instincts.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/jackal.webp",
   },
-  "Mancipia": {
+  Mancipia: {
     prefix: "",
     title: "Mancipia",
     subtitle: "Built for Pleasure",
     home: "Metropolis",
     body: "Mancipia are eyeless, hairless beings with serpentine tongues, hidden by the Illusion to appear human. They exude an intoxicating allure, inciting obsession and desire, their bodies a perfect symbiosis of male and female. Used by Archons to manipulate and lead astray those who threaten secrets, they can also inspire creativity and reveal humanity's divinity through art.",
-    image: "modules/eunos-kult-hacks/assets/images/loading-screen/mancipia.webp",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/mancipia.webp",
   },
-  "Cairath": {
+  Cairath: {
     prefix: "",
     title: "Cairath",
     subtitle: "Underworld Abominations",
@@ -554,13 +902,14 @@ export const LOADING_SCREEN_DATA = {
     body: "Cairath are grotesque, bloated abominations dwelling in sewers and catacombs. They meld their victims to their rotting bodies, drawing worship from those on the brink of madness. These creatures influence their surroundings, forming cults that offer sacrifices. As they grow in power, they can transform into something even more terrifying: gransangthir.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/cairath.webp",
   },
-  "Azadaevae": {
+  Azadaevae: {
     prefix: "",
     title: "Azadaevae",
     subtitle: "Who Would Be Azghouls",
     home: "the Underworld",
     body: "The azadaevae are long and slender beings with delicate features and surrounded by a scintillating veil of dust that weaves illusions. Remnants of the civilization we enslaved and transformed into the azghouls, their ability to see true souls makes them both revered and hunted to this day, leaving few of them in existence. Only in the depths of the Underworld can they find reprieve from those who hunt them.",
-    image: "modules/eunos-kult-hacks/assets/images/loading-screen/azadaevae.webp",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/azadaevae.webp",
   },
 } as const;
 // #endregion
@@ -722,13 +1071,16 @@ export const WOUND_MODIFIERS_GRITTED_TEETH = {
 
 // #region SESSION DATA~
 
-export function assignGlobals(...newGlobals: Array<Record<string, unknown>>): void {
+export function assignGlobals(
+  ...newGlobals: Array<Record<string, unknown>>
+): void {
   const mergedNewGlobals = newGlobals.reduce((acc, curr) => {
     return { ...acc, ...curr };
   }, {});
   Object.assign(globalThis, {
     ...GLOBAL_VARIABLES,
-    ...mergedNewGlobals
+    LOCATIONS,
+    ...mergedNewGlobals,
   });
 }
 
@@ -743,22 +1095,25 @@ export function getChapterString(
   isGettingNext = false,
 ): string {
   // Convert input to number
-  num = typeof num === "string" ? wordsToNumber(num) : num;
+  if (typeof num === "string") {
+    num = num.toLowerCase();
+    if (num === "preamble") {
+      num = 0;
+    } else {
+      num = deverbalizeNum(num.replace(/chapter\s+/i, ""));
+    }
+  }
 
   if (isGettingNext) {
     num = num + 1;
   }
 
   if (num === 0) return "Preamble";
-  return `Chapter ${numberToWords(num)}`;
+  return `Chapter ${tCase(verbalizeNum(num))}`;
 }
 
 export function getNextChapter(current: number | string): string {
-  // Convert input to number
-  const currentNum =
-    typeof current === "string" ? wordsToNumber(current) : current;
-
-  return getChapterString(currentNum + 1);
+  return getChapterString(current, true);
 }
 // #endregion
 
@@ -766,7 +1121,7 @@ export function getNextChapter(current: number | string): string {
 export const WEAPON_CLASSES = [
   { value: "Melee Weapon", label: "Melee Weapon" },
   { value: "Thrown Weapon", label: "Thrown Weapon" },
-  { value: "Firearm", label: "Firearm" }
+  { value: "Firearm", label: "Firearm" },
 ] as const;
 
 export const WEAPON_SUBCLASSES = {
@@ -775,13 +1130,13 @@ export const WEAPON_SUBCLASSES = {
     { value: "Edged Weapon", label: "Edged Weapon" },
     { value: "Crushing Weapon", label: "Crushing Weapon" },
     { value: "Chopping Weapon", label: "Chopping Weapon" },
-    { value: "Other", label: "Other" }
+    { value: "Other", label: "Other" },
   ],
   "Thrown Weapon": [
     { value: "Explosive", label: "Explosive" },
-    { value: "Other", label: "Other" }
+    { value: "Other", label: "Other" },
   ],
-  "Firearm": [
+  Firearm: [
     { value: "Handgun", label: "Handgun" },
     { value: "Magnum Handgun", label: "Magnum Handgun" },
     { value: "Submachine Gun", label: "Submachine Gun" },
@@ -789,8 +1144,8 @@ export const WEAPON_SUBCLASSES = {
     { value: "Machine Gun", label: "Machine Gun" },
     { value: "Rifle", label: "Rifle" },
     { value: "Combat Shotgun", label: "Combat Shotgun" },
-    { value: "Other", label: "Other" }
-  ]
+    { value: "Other", label: "Other" },
+  ],
 } as const;
 // #endregion
 
@@ -802,14 +1157,14 @@ export const PRE_SESSION = {
     "touchstart",
     "keydown",
     "mousedown",
-    "pointerdown"
+    "pointerdown",
   ],
   /** Duration data for display and animation of loading screen items */
   LOADING_SCREEN_ITEM_DURATION: {
     ENTRY: 10,
     DISPLAY: 20,
     EXIT: 5,
-    DELAY: 3
+    DELAY: 3,
   },
   /** Time in seconds before session start when SessionLoading phase begins */
   LOAD_SESSION: 900, // 15 minutes
@@ -820,18 +1175,18 @@ export const PRE_SESSION = {
   /** Repeat delays for glitch animation */
   GLITCH_DELAY: [
     20, // 20 seconds
-    5 // 10 seconds
+    5, // 10 seconds
   ] as const,
   /** Time in seconds before session start when overlay freezes */
   FREEZE_OVERLAY: 5,
-  /** Time in seconds before session start when countdown lock is activated */
-  COUNTDOWN_LOCK: 1,
   /** Time in seconds before session start when countdown disappears */
-  COUNTDOWN_HIDE: 0,
+  COUNTDOWN_HIDE: 3,
+  /** Time in seconds before the end of the video when the chapter title is displayed */
+  CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET: 3,
   /** Default session day (5 = Friday) */
   DEFAULT_SESSION_DAY: 5,
   /** Default session hour in 24h format (19 = 7 PM) */
   DEFAULT_SESSION_HOUR: 19,
   /** Default session minute */
-  DEFAULT_SESSION_MINUTE: 30
+  DEFAULT_SESSION_MINUTE: 30,
 } as const;
