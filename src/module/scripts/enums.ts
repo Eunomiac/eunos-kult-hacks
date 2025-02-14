@@ -30,5 +30,10 @@ export enum UserTargetRef {
 
 export enum AlertType {
   simple = "simple",
-  gmNotice = "gmNotice"
+  seriousWound = "seriousWound",
+  criticalWound = "criticalWound",
+  stability = "stability",
+  shatterIllusion = "shatterIllusion",
+  gmNotice = "gmNotice",
+  test = "test"
 };

@@ -98,12 +98,6 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
   "getUniqueID"(base: string) {
     return `${base}-${getID()}`.replace(/\s+/g, "_");
   },
-  "getDropCap"(content: Maybe<string>): string {
-    if (!content?.length) {
-      return "";
-    }
-    return `systems/${C.SYSTEM_ID}/assets/chat/dropcaps/${content.slice(0, 1).toUpperCase()}.png`;
-  },
   "getRestCaps"(content: string): string {
     return content.slice(1);
   },

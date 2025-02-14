@@ -116,10 +116,46 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       };
 
       void EunosSockets.getInstance().call("Alert", UserTargetRef.all, {
-        type: AlertType.simple,
+        type: AlertType.stability,
         header: `${pc.name} is ${conditionName}`,
         body: getBody(),
       });
+    },
+    criticalWoundClick(event: PointerEvent, target: HTMLElement) {
+      const elem$ = $(target);
+      const actorName = elem$.attr("data-actor-name");
+      const woundName = elem$.attr("data-wound-name");
+      if (!woundName) {
+        getNotifier().error("No wound name found for criticalWoundClick");
+        return;
+      }
+      if (!actorName) {
+        throw new Error("No actor name found for criticalWoundClick");
+      }
+      void EunosSockets.getInstance().call("Alert", UserTargetRef.all, {
+        type: AlertType.criticalWound,
+        header: `${actorName} has Suffered a CRITICAL WOUND!`,
+        body: `${actorName} has suffered a CRITICAL WOUND (${woundName}). Without immediate treatment, death is certain!`,
+      });
+
+    },
+    seriousWoundClick(event: PointerEvent, target: HTMLElement) {
+      const elem$ = $(target);
+      const actorName = elem$.attr("data-actor-name");
+      const woundName = elem$.attr("data-wound-name");
+      if (!woundName) {
+        getNotifier().error("No wound name found for seriousWoundClick");
+        return;
+      }
+      if (!actorName) {
+        throw new Error("No actor name found for seriousWoundClick");
+      }
+      void EunosSockets.getInstance().call("Alert", UserTargetRef.all, {
+        type: AlertType.criticalWound,
+        header: `${actorName} has Suffered a Serious Wound`,
+        body: `${actorName} has suffered a Serious Wound (${woundName}), hampering their every action until it is tended to.`,
+      });
+
     },
     async addCounter(event: PointerEvent, target: HTMLElement) {
       const elem$ = $(target).closest("[data-item-id]");
@@ -403,6 +439,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       outputValues: EunosOverlay.ACTIONS.outputValues.bind(EunosOverlay),
       resetControl: EunosOverlay.ACTIONS.resetControl.bind(EunosOverlay),
       refreshControl: EunosOverlay.ACTIONS.refreshControl.bind(EunosOverlay),
+      seriousWoundClick: EunosOverlay.ACTIONS.seriousWoundClick.bind(EunosOverlay),
+      criticalWoundClick: EunosOverlay.ACTIONS.criticalWoundClick.bind(EunosOverlay),
     },
   };
 
@@ -502,7 +540,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Register hook to re-render when any PC actor is updated
     Hooks.on("updateActor", (actor: Actor) => {
       if (actor.type === "pc") {
-        void EunosOverlay.instance.render({ parts: ["stage"] });
+        void EunosOverlay.instance.render({parts: ["pcs"]});
       }
     });
 

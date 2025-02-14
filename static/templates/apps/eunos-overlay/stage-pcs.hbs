@@ -6,7 +6,7 @@
     data-pc-id="{{id}}" data-slot="{{slot}}">
     {{#if isSpotlit}}
     <div class="pc-spotlight-container">
-      <img class="pc-spotlight" src="/systems/eunos-kult-hacks/assets/images/spotlight.webp" />
+      <img class="pc-spotlight" src="/systems/eunos-kult-hacks/assets/images/stage/spotlight.webp" />
     </div>
     {{/if}}
 
@@ -72,27 +72,27 @@
       </div>
       <div class="wounds-panel">
         {{#unless (eq actor.system.criticalwound.state "none")}}
-        <div class="critical-wound critical-wound-{{actor.system.criticalwound.state}}">
+        <div class="critical-wound critical-wound-{{actor.system.criticalwound.state}}" data-action="criticalWoundClick", data-wound-name="{{actor.system.criticalwound.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.criticalwound.value}}
         </div>
         {{/unless}}
         {{#unless (eq actor.system.majorwound1.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound1.state}}">
+        <div class="major-wound major-wound-{{actor.system.majorwound1.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound1.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.majorwound1.value}}
         </div>
         {{/unless}}
         {{#unless (eq actor.system.majorwound2.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound2.state}}">
+        <div class="major-wound major-wound-{{actor.system.majorwound2.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound2.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.majorwound2.value}}
         </div>
         {{/unless}}
         {{#unless (eq actor.system.majorwound3.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound3.state}}">
+        <div class="major-wound major-wound-{{actor.system.majorwound3.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound3.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.majorwound3.value}}
         </div>
         {{/unless}}
         {{#unless (eq actor.system.majorwound4.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound4.state}}">
+        <div class="major-wound major-wound-{{actor.system.majorwound4.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound4.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.majorwound4.value}}
         </div>
         {{/unless}}

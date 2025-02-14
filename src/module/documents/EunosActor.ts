@@ -431,11 +431,11 @@ export default function registerEunosActor(): void {
       }
     }
 
-    override _onUpdate(...args: Parameters<Actor["_onUpdate"]>): void {
-      super._onUpdate(...args);
-      if (!this.isPC()) { return; }
-      void EunosOverlay.instance.render({parts: ["pcs"]});
-    }
+    // override _onUpdate(...args: Parameters<Actor["_onUpdate"]>): void {
+    //   super._onUpdate(...args);
+    //   if (!this.isPC()) { return; }
+    //   void EunosOverlay.instance.render({parts: ["pcs"]});
+    // }
   }
 
   // Replace the default Actor class with our extended version
