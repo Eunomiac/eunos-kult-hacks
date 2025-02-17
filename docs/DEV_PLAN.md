@@ -30,7 +30,7 @@
 ## Overview
 This document outlines the implementation requirements for the Session Phase Control system, a comprehensive feature set for managing game sessions in the Kult VTT module.
 
-<!-- This system manages the transition between four distinct game phases, handling everything from pre-session countdown and ambiance, through session start video playback, to end-of-session activities. The system is designed for a fixed group of five players meeting weekly on Fridays at 7:30 PM Toronto time. -->
+<!-- This system manages the transition between four distinct game phases, handling everything from pre-session countdown and ambience, through session start video playback, to end-of-session activities. The system is designed for a fixed group of five players meeting weekly on Fridays at 7:30 PM Toronto time. -->
 
 ## Game Phases
 The system uses the existing `GamePhase` enum:

@@ -9,6 +9,7 @@ import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
 import EunosItem from "../documents/EunosItem";
 import ItemDataAdvantage from "./ItemDataAdvantage";
 import ItemDataDisadvantage from "./ItemDataDisadvantage";
+import { GMID } from "../scripts/utilities";
 import { STABILITY_VALUES, STABILITY_MODIFIERS, STABILITY_STATES, WOUND_MODIFIERS, WOUND_MODIFIERS_GRITTED_TEETH } from "../scripts/constants";
 
 
@@ -131,6 +132,8 @@ interface ActorDerivedSchemaPC {
   woundModifiers: string[];
   advantages: Array<EunosItem & {system: ItemDataAdvantage}>;
   disadvantages: Array<EunosItem & {system: ItemDataDisadvantage}>;
+  owner: User | null;
+  isOnline: boolean;
 }
 
 export default class ActorDataPC extends TypeDataModel<
@@ -170,5 +173,11 @@ export default class ActorDataPC extends TypeDataModel<
       .filter((item): item is EunosItem & {system: ItemDataAdvantage} => item.isAdvantage());
     this.disadvantages = this.parent.items
       .filter((item): item is EunosItem & {system: ItemDataDisadvantage} => item.isDisadvantage());
+
+    const {ownership} = this.parent;
+    const gmID = GMID();
+    const ownerID = Object.keys(ownership).find((userId) => userId !== gmID && ownership[userId] && ownership[userId] >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER);
+    this.owner = ownerID ? getUser(ownerID) : null;
+    this.isOnline = this.owner?.active ?? false;
   }
 }

@@ -6,8 +6,8 @@
 #STAGE {
   position: fixed;
   margin: 0;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   top: 0;
   left: 0;
 
@@ -42,7 +42,7 @@
       width: 100%;
       pointer-events: none;
       transform-style: preserve-3d;
-      transform: translate(-50%, -50%) translate3d(-3vw, -120vh, -1500px)
+      transform: translate(-50%, -50%) translate3d(-3%, -120%, -1500px)
         rotateY(-3deg) rotateX(45deg) rotateZ(23deg);
 
       * {

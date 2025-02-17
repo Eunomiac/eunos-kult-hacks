@@ -13,21 +13,9 @@ import ItemDataOccupation from "../data-model/ItemDataOccupation";
 import ItemDataRelationship from "../data-model/ItemDataRelationship";
 import ItemDataWeapon from "../data-model/ItemDataWeapon";
 import { GamePhase } from "../scripts/enums";
-import { LOCATIONS } from "../scripts/constants";
 import { UserTarget } from "../apps/EunosSockets";
-import { type LocationData } from "../scripts/constants";
-// import K4ActiveEffect from "../documents/K4ActiveEffect.js";
-// import Document = foundry.abstract.Document;
-// import K4PCSheet from "../documents/K4PCSheet.js";
-// import K4NPCSheet from "../documents/K4NPCSheet.js";
-// import K4ChatMessage from "../documents/K4ChatMessage.js";
-// import K4Dialog from "../documents/K4Dialog.js";
-// import K4Item from "../documents/K4Item.js";
-// import K4Roll, {K4RollResult} from "../documents/K4Roll.js";
-// import K4Scene from "../documents/K4Scene.js";
+import { type Location } from "../scripts/constants";
 
-// import K4Config from "../scripts/config";
-export {};
 declare global {
 
   interface DocumentClassConfig {
@@ -55,30 +43,13 @@ declare global {
     }
   }
 
-  // interface FlagConfig {
-  //   ActiveEffect: {
-  //     kult4th: Record<string, unknown> & {
-  //       // data: Maybe<K4ActiveEffect.FlagData>
-  //     };
-  //   };
-  //   Actor: {
-  //     kult4th: {
-  //       sheetTab: string;
-  //     }
-  //   };
-  //   ChatMessage: {
-  //     kult4th: {
-  //       cssClasses: string[];
-  //       isSummary: boolean;
-  //       isAnimated: boolean;
-  //       isRoll: boolean;
-  //       isTrigger: boolean;
-  //       // rollOutcome: Maybe<K4RollResult>;
-  //       isEdge: boolean;
-  //       // rollData: K4Roll.Serialized.Base;
-  //     }
-  //   }
-  // }
+  interface FlagConfig {
+    Actor: {
+      ["eunos-kult-hacks"]: {
+        sheetTab: string;
+      }
+    };
+  }
 
 
 
@@ -90,8 +61,8 @@ declare global {
     "eunos-kult-hacks.chapterTitle": string;
     "eunos-kult-hacks.chapterNumber": number;
     "eunos-kult-hacks.isPlottingLocations": boolean;
-    "eunos-kult-hacks.currentLocation": keyof typeof LOCATIONS;
-    "eunos-kult-hacks.locationData": Partial<Record<keyof typeof LOCATIONS, LocationData>>;
+    "eunos-kult-hacks.currentLocation": string;
+    "eunos-kult-hacks.locationData": Partial<Record<string, Location.Data|Location.StaticData>>;
     "eunos-kult-hacks.nextGameSession": string; // ISO date string in Toronto timezone
     "eunos-kult-hacks.sessionScribeID": string;
   }

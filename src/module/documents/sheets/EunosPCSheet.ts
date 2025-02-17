@@ -1,6 +1,12 @@
 import type ActorDataPC from "../../data-model/ActorDataPC";
 import EunosAlerts, { AlertType } from "../../apps/EunosAlerts";
 import { UserTargetRef } from "../../scripts/enums";
+import EunosOverlay from "../../apps/EunosOverlay";
+import type ItemDataAdvantage from "../../data-model/ItemDataAdvantage";
+import type ItemDataDisadvantage from "../../data-model/ItemDataDisadvantage";
+import type EunosItem from "../EunosItem";
+import EunosSockets from "../../apps/EunosSockets";
+
 export default function overridePCSheet() {
   const pcSheet: typeof k4ltPCsheet = CONFIG.Actor.sheetClasses.pc[
     "k4lt.k4ltPCsheet"
@@ -95,13 +101,16 @@ export default function overridePCSheet() {
                   if (attack) {
                     // @ts-expect-error Not sure why this is throwing an error.
                     void ChatMessage.create({
-                      content: item.getAttackChatMessage(attack as {
-                        name: string;
-                        harm: number;
-                        ammoCost: number;
-                        special: string;
-                        isDefault: boolean;
-                      }, item),
+                      content: item.getAttackChatMessage(
+                        attack as {
+                          name: string;
+                          harm: number;
+                          ammoCost: number;
+                          special: string;
+                          isDefault: boolean;
+                        },
+                        item,
+                      ),
                       speaker: ChatMessage.getSpeaker({ alias: actor.name }),
                     });
                     return;
@@ -142,12 +151,16 @@ export default function overridePCSheet() {
           }
           const stabilityTier_from = actor.stabilityState;
           const stability_new = Math.max(0, stability_from - 1);
-          if (stability_new === stability_from) { return; }
+          if (stability_new === stability_from) {
+            return;
+          }
           actor
             .update({ system: { stability: { value: stability_new } } })
             .then(
               () => {
-                if (stabilityTier_from === actor.stabilityState) { return; }
+                if (stabilityTier_from === actor.stabilityState) {
+                  return;
+                }
                 void EunosAlerts.Alert({
                   type: AlertType.simple,
                   header: `${actor.name} Loses Stability!`,
@@ -171,23 +184,30 @@ export default function overridePCSheet() {
             return;
           }
           const stabilityTier_from = actor.stabilityState;
-          const stability_new = Math.min(actor.system.stability.max ?? 10, stability_from + 1);
-          if (stability_new === stability_from) { return; }
+          const stability_new = Math.min(
+            actor.system.stability.max ?? 10,
+            stability_from + 1,
+          );
+          if (stability_new === stability_from) {
+            return;
+          }
           actor
             .update({ system: { stability: { value: stability_new } } })
-              .then(
-                () => {
-                  if (stabilityTier_from === actor.stabilityState) { return; }
-                  void EunosAlerts.Alert({
-                    type: AlertType.simple,
-                    header: `${actor.name} Gains Stability!`,
-                    body: `${actor.name} is now ${actor.stabilityState}.`,
-                    target: UserTargetRef.all,
-                  });
-                },
-                (error: unknown) => {
-                  getNotifier().warn("Unable to send alert to all users.");
-                },
+            .then(
+              () => {
+                if (stabilityTier_from === actor.stabilityState) {
+                  return;
+                }
+                void EunosAlerts.Alert({
+                  type: AlertType.simple,
+                  header: `${actor.name} Gains Stability!`,
+                  body: `${actor.name} is now ${actor.stabilityState}.`,
+                  target: UserTargetRef.all,
+                });
+              },
+              (error: unknown) => {
+                getNotifier().warn("Unable to send alert to all users.");
+              },
             );
         });
 
@@ -215,6 +235,88 @@ export default function overridePCSheet() {
               isEquipped: !(item.system as { isEquipped: boolean }).isEquipped,
             },
           });
+        });
+
+      // Add counter listeners
+
+      html
+        .find(".token-add")
+        .off("click")
+        .on("click", (event) => {
+          const elem$ = $(event.currentTarget).closest("[data-item-id]");
+          const itemId = elem$.attr("data-item-id");
+          const actorId = elem$.attr("data-actor-id");
+          if (!itemId || !actorId) {
+            kLog.error("No itemId or actorId found for addHold", {
+              itemId,
+              actorId,
+            });
+            return;
+          }
+          const item = fromUuidSync(
+            `Actor.${actorId}.Item.${itemId}`,
+          ) as EunosItem;
+          if (!item) {
+            kLog.error("No item found for itemId", { itemId });
+            return;
+          }
+          const itemData = item.system as
+            | ItemDataAdvantage
+            | ItemDataDisadvantage;
+          if (!itemData.hasCounter) {
+            kLog.error("Item does not have counter", { itemId });
+            return;
+          }
+          void item
+            .update({
+              system: { counterCount: (itemData.counterCount ?? 0) + 1 },
+            })
+            .then(() => {
+              this.render();
+              void EunosSockets.getInstance().call("refreshPCs", UserTargetRef.gm);
+              void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
+            });
+        });
+
+      html
+        .find(".token-spend")
+        .off("click")
+        .on("click", (event) => {
+          const elem$ = $(event.currentTarget).closest("[data-item-id]");
+          const itemId = elem$.attr("data-item-id");
+          const actorId = elem$.attr("data-actor-id");
+          if (!itemId || !actorId) {
+            kLog.error("No itemId or actorId found for spendCounter", {
+              itemId,
+              actorId,
+            });
+            return;
+          }
+          const item = fromUuidSync(
+            `Actor.${actorId}.Item.${itemId}`,
+          ) as EunosItem;
+          if (!item) {
+            kLog.error("No item found for itemId", { itemId });
+            return;
+          }
+          const itemData = item.system as
+            | ItemDataAdvantage
+            | ItemDataDisadvantage;
+          if (!itemData.hasCounter) {
+            kLog.error("Item does not have counter", { itemId });
+            return;
+          }
+          if ((itemData.counterCount ?? 0) <= 0) {
+            return;
+          }
+          void item
+            .update({
+              system: { counterCount: (itemData.counterCount ?? 0) - 1 },
+            })
+            .then(() => {
+              this.render();
+              void EunosSockets.getInstance().call("refreshPCs", UserTargetRef.gm);
+            });
         });
     }
   }

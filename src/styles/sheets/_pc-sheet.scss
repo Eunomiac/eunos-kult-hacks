@@ -42,7 +42,7 @@
             }
           }
 
-          &.has-counter {
+          &[class*="counter-"] {
             height: 40px;
 
             .counter-block {

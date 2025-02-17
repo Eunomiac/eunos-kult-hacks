@@ -434,7 +434,7 @@ export default function registerEunosActor(): void {
     // override _onUpdate(...args: Parameters<Actor["_onUpdate"]>): void {
     //   super._onUpdate(...args);
     //   if (!this.isPC()) { return; }
-    //   void EunosOverlay.instance.render({parts: ["pcs"]});
+    //   void EunosOverlay.instance.render({parts: ["pcs", "pcsGM", "npcs", "npcsGM"]});
     // }
   }
 

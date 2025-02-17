@@ -12,10 +12,24 @@ export enum InitializerMethod {
   PostInitialize = "PostInitialize"
 }
 
+export enum EunosMediaTypes {
+  audio = "audio",
+  video = "video"
+}
+
 export enum PCTargetRef {
   all = "all",
   self = "self",
   others = "others"
+}
+
+export enum MediaLoadStatus {
+  NotConnected = "NotConnected",
+  NotStarted = "NotStarted",
+  Loading = "Loading",
+  Ready = "Ready",
+  LoadPending = "LoadPending",
+  PreloadNotRequested = "PreloadNotRequested",
 }
 
 /** Enum for user targeting in socket operations */

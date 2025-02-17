@@ -21,7 +21,7 @@ import overrideNPCSheet from "./documents/sheets/EunosNPCSheet.ts";
 import overrideItemSheet from "./documents/sheets/EunosItemSheet.ts";
 import * as U from "./scripts/utilities.ts";
 import EunosSockets from "./apps/EunosSockets.ts";
-import * as EunosSounds from "./scripts/sounds.ts";
+import EunosMedia from "./apps/EunosMedia.ts";
 import { assignGlobals } from "./scripts/constants.ts";
 import { GamePhase, InitializerMethod } from "./scripts/enums.ts";
 import { registerHandlebarHelpers } from "./scripts/helpers.ts";
@@ -127,12 +127,12 @@ assignGlobals({
   EunosOverlay,
   EunosAlerts,
   EunosSockets,
-  EunosSounds,
+  EunosMedia,
   kLog,
   InitializableClasses: {
     EunosSockets,
     EunosAlerts,
-    EunosSounds,
+    EunosMedia,
     EunosOverlay
   } as const
 });
@@ -198,6 +198,7 @@ Hooks.on("ready", () => {
     if (getUser().isGM) {
       addClassToDOM("gm-user");
     }
+    await RunInitializer(InitializerMethod.PostInitialize);
   });
 
   replaceBasicMovesHook();

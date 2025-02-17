@@ -1,4 +1,4 @@
-#PCS {
+#PCS, #PCS-GM {
   position: absolute;
   bottom: 0px;
   left: 0;
@@ -223,6 +223,10 @@
           &.critical-wound.critical-wound-unstabilized {
             background: var(--K4-bRED);
             animation: pulse-color 2s infinite;
+            width: fit-content;
+            padding: 2px 3px;
+            // margin-left: -3px;
+            border-radius: 3px;
             @keyframes pulse-color {
               0% {
                 color: black;
@@ -234,10 +238,6 @@
                 color: black;
               }
             }
-            width: fit-content;
-            padding: 2px 3px;
-            // margin-left: -3px;
-            border-radius: 3px;
           }
         }
       }

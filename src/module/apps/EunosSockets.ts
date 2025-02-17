@@ -1,8 +1,7 @@
 import { SYSTEM_ID } from "../scripts/constants";
-import { GamePhase, UserTargetRef } from "../scripts/enums";
+import { GamePhase, UserTargetRef, MediaLoadStatus } from "../scripts/enums";
 import * as U from "../scripts/utilities";
 import EunosAlerts from "./EunosAlerts";
-import { VideoLoadStatus } from "./EunosOverlay";
 
 export type UserTarget = UserTargetRef | IDString | UUIDString;
 
@@ -15,6 +14,14 @@ export interface SocketEvents {
       newPhase: GamePhase;
     };
   };
+  /** GM triggers audio preloading for all clients */
+  preloadPreSessionSong: {
+    data?: never;
+  };
+  /** GM triggers audio playback for all clients */
+  playPreSessionSong: {
+    data?: never;
+  };
   /** GM triggers video preloading for all clients */
   preloadIntroVideo: {
     data?: never;
@@ -23,7 +30,7 @@ export interface SocketEvents {
   reportPreloadStatus: {
     data: {
       userId: string;
-      status: VideoLoadStatus;
+      status: MediaLoadStatus;
     };
   };
   /** GM manually triggers video playback for all clients */
@@ -31,9 +38,23 @@ export interface SocketEvents {
     data?: never;
   };
   /** Request current video timestamp from GM */
-  requestVideoSync: {
-    data?: never;
+  requestMediaSync: {
+    data: {
+      userId: string;
+      mediaName: string;
+    },
     return: number; // Add return type for Promise resolution
+  };
+  /** Sends notice to GM to refresh PCs overlay */
+  refreshPCs: {
+    data?: never;
+  };
+  /** GM syncs media timestamp to requesting client */
+  syncMedia: {
+    data: {
+      mediaName: string;
+      timestamp: number;
+    };
   };
   Alert: {
     data: Partial<EunosAlerts.Data>;
@@ -204,6 +225,18 @@ export default class EunosSockets {
         }
         break;
       }
+      case "preloadPreSessionSong": {
+        if (data !== undefined) {
+          throw new Error("preloadPreSessionSong event does not accept any data");
+        }
+        break;
+      }
+      case "playPreSessionSong": {
+        if (data !== undefined) {
+          throw new Error("playPreSessionSong event does not accept any data");
+        }
+        break;
+      }
       case "preloadIntroVideo": {
         break;
       }
@@ -214,7 +247,7 @@ export default class EunosSockets {
         if (!("userId" in data) || typeof data.userId !== "string") {
           throw new Error(`reportPreloadStatus event requires a userId string, got ${typeof data}`);
         }
-        if (!("status" in data) || typeof data.status !== "string" || !(data.status in VideoLoadStatus)) {
+        if (!("status" in data) || typeof data.status !== "string" || !(data.status in MediaLoadStatus)) {
           throw new Error(`reportPreloadStatus event requires a status enum, got ${typeof data}`);
         }
         break;
@@ -225,9 +258,33 @@ export default class EunosSockets {
         }
         break;
       }
-      case "requestVideoSync": {
+      case "requestMediaSync": {
+        if (typeof data !== "object" || data === null) {
+          throw new Error(`requestMediaSync event requires an object with userId string and mediaName string, got ${typeof data}`);
+        }
+        if (!("mediaName" in data) || typeof data.mediaName !== "string") {
+          throw new Error(`requestMediaSync event requires a mediaName string, got ${typeof data}`);
+        }
+        if (!("userId" in data) || typeof data.userId !== "string") {
+          throw new Error(`requestMediaSync event requires a userId string, got ${typeof data}`);
+        }
+        break;
+      }
+      case "refreshPCs": {
         if (data !== undefined) {
-          throw new Error("requestVideoSync event does not accept any data");
+          throw new Error("refreshPCs event does not accept any data");
+        }
+        break;
+      }
+      case "syncMedia": {
+        if (typeof data !== "object" || data === null) {
+          throw new Error(`syncMedia event requires an object with mediaName string and timestamp number, got ${typeof data}`);
+        }
+        if (!("mediaName" in data) || typeof data.mediaName !== "string") {
+          throw new Error(`syncMedia event requires a mediaName string, got ${typeof data}`);
+        }
+        if (!("timestamp" in data) || typeof data.timestamp !== "number") {
+          throw new Error(`syncMedia event requires a timestamp number, got ${typeof data}`);
         }
         break;
       }
@@ -248,21 +305,21 @@ export default class EunosSockets {
     event: E,
     target: UserTarget = UserTargetRef.all,
     data?: SocketEvents[E]["data"],
+    expectResponse = false
   ): Promise<R> {
     const socket = this.getSocket();
     const users: User[] = this.getUsersFromTarget(target);
-    const startTime = performance.now();
 
     try {
       // Validate the data before sending
       this.validateEventData(event, data);
 
-      kLog.socketCall(`[SOCKET CALL] ${getUser().name} to ${U.uCase(target)}`, {event, data});
+      kLog.socketCall(`[I CALLED] ${U.uCase(target)}: "${event}"`, data);
 
       // Use executeAsGM for GM-targeted calls that expect returns
-      if (target === UserTargetRef.gm as string) {
+      if (target === UserTargetRef.gm as string && expectResponse) {
         const result = await socket.executeAsGM(event, data);
-        kLog.socketResponse(`[AWAITED RESPONSE RECEIVED] ${getUser().name} from ${U.uCase(target)}`, {event, data, result});
+        kLog.socketCall(`[THEY ANSWERED] "${event}" with "${String(result)}"`, data);
         return result as R;
       }
 
@@ -271,7 +328,7 @@ export default class EunosSockets {
       await socket.executeForUsers(event, userIds, data);
       return undefined as R;
     } catch (error: unknown) {
-      kLog.error(`[SOCKET CALL ERROR] ${getUser().name} to ${U.uCase(target)}`, {event, data, error});
+      kLog.error(`[... CALL FAILED] ${U.uCase(target)}: "${event}"`, {...data, error});
       throw error;
     }
   }
@@ -281,20 +338,19 @@ export default class EunosSockets {
     event: E,
     data: SocketEvents[E]["data"],
   ): Promise<void> {
-    const startTime = performance.now();
     const func = this.socketFunctions[event];
 
     if (!func || typeof func !== "function") {
       const error = new Error(`Socket function not found or invalid: ${event}`);
-      kLog.error(`[SOCKET EXECUTION ERROR] ${getUser().name} failed to execute ${event}`, {event, data, error});
+      kLog.error(`[I HEARD] "${event}" BUT FAILED TO EXECUTE`, {...data, error});
       throw error;
     }
 
     try {
+      kLog.socketResponse(`[I HEARD] "${event}": Executing "${func.name}"`, data);
       await Promise.resolve(func(data));
-      kLog.socketResponse(`[SOCKET RESPONSE] ${getUser().name} executed ${event}`, {event, data});
     } catch (error: unknown) {
-      kLog.error(`[SOCKET EXECUTION ERROR] ${getUser().name} failed to execute ${event}`, {event, data, error});
+      kLog.error(`[I HEARD] "${event}" BUT "${func.name}" EXECUTION FAILED`, {...data, error});
       throw error;
     }
   }

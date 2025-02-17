@@ -1,9 +1,12 @@
 <div
-  class="move-card {{type}}-card {{system.type}}-card  {{#if system.hasCounter}}has-counter {{#if (eq system.counterName "Edges")}}has-edges{{else if (eq system.counterName "Hold")}}{{#if isGM}}has-hold{{/if}}{{/if}}{{/if}}">
+  class="move-card {{type}}-card {{system.type}}-card {{#if system.hasCounter}}{{#if (eq system.counterName "Hold")}}{{#if isGM}}counter-hold{{/if}}{{else}}counter-{{case "
+          lower" system.counterName}}{{/if}}{{/if}}">
   {{#let
   anchorName=(getUniqueID "move-card-anchor")
   popoverID=(getUniqueID "move-card-popover")
   tooltip=(getTooltip actorID _id)
+  itemID=itemID
+  pcID=actorID
   }}
   <div class="item-draggable {{type}}-info item-name" data-item-id="{{_id}}" {{#if
     tooltip}}popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}" {{/if}}>
@@ -13,21 +16,16 @@
       <a class="move-show">
         {{/if}}
         <img src="{{img}}" title="{{name}}" /> {{name}} </a>
+
       {{#if system.hasCounter}}
-      <span class="counter-block">
-        {{system.counterName}}:
-        <a class="token-add" title="{{localize 'k4lt.AddEdge'}}"><i class="far fa-plus-square"></i></a>
+      <span class="counter-block {{#if (eq system.counterName "Hold")}}gm-only{{/if}}">{{system.counterName}}:
+        <a class="token-add" title="Add {{system.counterName}}" data-action="addCounter" data-item-id="{{_id}}"
+          data-actor-id="{{pcID}}"><i class="far fa-plus-square"></i></a>
         {{#if system.counterCount}}{{system.counterCount}}{{else}}0{{/if}}
-        <a class="token-spend" title="{{localize 'k4lt.SpendEdge'}}"><i class="far fa-minus-square"></i></a>
+        <a class="token-spend" title="Spend {{system.counterName}}" data-action="spendCounter"
+          data-item-id="{{_id}}" data-actor-id="{{pcID}}"><i class="far fa-minus-square"></i></a>
       </span>
       {{/if}}
-      {{#if system.hasHold}}{{#if isGM}}
-      <span class="counter-block">Hold:
-        <a class="token-add" title="Add Hold"><i class="far fa-plus-square"></i></a>
-        {{#if system.holdTokens}}{{system.holdTokens}}{{else}}0{{/if}}
-        <a class="token-spend" title="Spend Hold"><i class="far fa-minus-square"></i></a>
-      </span>
-      {{/if}}{{/if}}
 
 
   </div>

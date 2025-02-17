@@ -1,37 +1,48 @@
 // #region -- IMPORTS ~
 import ApplicationV2 = foundry.applications.api.ApplicationV2;
 import HandlebarsApplicationMixin = foundry.applications.api.HandlebarsApplicationMixin;
-import { countdownUntil, tCase, verbalizeNum, objMap, ordinalizeNum, sortDocsByLastWord } from "../scripts/utilities";
+import {
+  countdownUntil,
+  tCase,
+  verbalizeNum,
+  objMap,
+  padNum,
+  isDocID,
+  isDocUUID,
+  sortDocsByLastWord,
+} from "../scripts/utilities";
 import {
   LOADING_SCREEN_DATA,
-  LOCATION_DEFAULT_DATA,
+  getLocationDefaultDynamicData,
   PRE_SESSION,
   MEDIA_PATHS,
   LOCATIONS,
+  type Location,
   LOCATION_PLOTTING_SETTINGS,
-  type LocationData,
-  type LocationCharacterData,
+  Sounds,
 } from "../scripts/constants";
 import type { EmptyObject } from "fvtt-types/utils";
-import { GamePhase, UserTargetRef, AlertType } from "../scripts/enums";
+import {
+  GamePhase,
+  UserTargetRef,
+  AlertType,
+  MediaLoadStatus,
+  EunosMediaTypes,
+  PCTargetRef,
+} from "../scripts/enums";
 import EunosSockets from "./EunosSockets";
 import EunosAlerts from "./EunosAlerts";
 import ItemDataAdvantage from "../data-model/ItemDataAdvantage";
 import ItemDataDisadvantage from "../data-model/ItemDataDisadvantage";
 import type EunosItem from "../documents/EunosItem";
+import EunosMedia from "./EunosMedia";
+import type ActorDataPC from "../data-model/ActorDataPC";
 // import AudioHelper from "../scripts/AudioHelper";
 // #endregion -- IMPORTS ~
 
 // #region Type Definitions ~
 /** Status of video loading for each user */
-export enum VideoLoadStatus {
-  NotConnected = "NotConnected",
-  NotStarted = "NotStarted",
-  Loading = "Loading",
-  Ready = "Ready",
-  LoadPending = "LoadPending",
-  PreloadNotRequested = "PreloadNotRequested",
-}
+
 // #endregion Type Definitions
 export default class EunosOverlay extends HandlebarsApplicationMixin(
   ApplicationV2,
@@ -137,7 +148,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         header: `${actorName} has Suffered a CRITICAL WOUND!`,
         body: `${actorName} has suffered a CRITICAL WOUND (${woundName}). Without immediate treatment, death is certain!`,
       });
-
     },
     seriousWoundClick(event: PointerEvent, target: HTMLElement) {
       const elem$ = $(target);
@@ -155,7 +165,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         header: `${actorName} has Suffered a Serious Wound`,
         body: `${actorName} has suffered a Serious Wound (${woundName}), hampering their every action until it is tended to.`,
       });
-
     },
     async addCounter(event: PointerEvent, target: HTMLElement) {
       const elem$ = $(target).closest("[data-item-id]");
@@ -181,7 +190,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       await item.update({
         system: { counterCount: (itemData.counterCount ?? 0) + 1 },
       });
-      void EunosOverlay.instance.render({ parts: ["pcs"] });
+      void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
     },
     async spendCounter(event: PointerEvent, target: HTMLElement) {
       const elem$ = $(target).closest("[data-item-id]");
@@ -210,7 +219,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       await item.update({
         system: { counterCount: (itemData.counterCount ?? 0) - 1 },
       });
-      void EunosOverlay.instance.render({ parts: ["pcs"] });
+      void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
     },
     /**
      * Saves current values as new defaults and updates ranges
@@ -224,10 +233,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
      */
     outputValues(event: PointerEvent, target: HTMLElement): void {
       // Group settings by selector
-      const transformsBySelector: Record<string, {
-        selector: string;
-        properties: Record<string, string | number>;
-      }> = {};
+      const transformsBySelector: Record<
+        string,
+        {
+          selector: string;
+          properties: Record<string, string | number>;
+        }
+      > = {};
 
       // Collect transform values
       LOCATION_PLOTTING_SETTINGS.SIMPLE.forEach((config) => {
@@ -236,7 +248,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           if (!transformsBySelector[config.selector]) {
             transformsBySelector[config.selector] = {
               selector: config.selector,
-              properties: {}
+              properties: {},
             };
           }
           transformsBySelector[config.selector]!.properties[config.property] =
@@ -251,11 +263,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           if (!transformsBySelector[config.selector]) {
             transformsBySelector[config.selector] = {
               selector: config.selector,
-              properties: {}
+              properties: {},
             };
           }
           const element = elements[0] as HTMLElement;
-          transformsBySelector[config.selector]!.properties["background"] = element.style.background;
+          transformsBySelector[config.selector]!.properties["background"] =
+            element.style.background;
         }
       });
 
@@ -266,40 +279,50 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           if (!transformsBySelector[config.selector]) {
             transformsBySelector[config.selector] = {
               selector: config.selector,
-              properties: {}
+              properties: {},
             };
           }
           const element = elements[0] as HTMLElement;
-          transformsBySelector[config.selector]!.properties["filter"] = element.style.filter;
+          transformsBySelector[config.selector]!.properties["filter"] =
+            element.style.filter;
         }
       });
 
       // Format the output
       const output = `mapTransforms: [
-    ${Object.values(transformsBySelector).map(transform => `{
+    ${Object.values(transformsBySelector)
+      .map(
+        (transform) => `{
       selector: "${transform.selector}",
       properties: {
         ${Object.entries(transform.properties)
-          .map(([key, value]) => typeof value === "string"
-            ? `${key}: "${value}"`
-            : `${key}: ${value.toFixed(1)}`)
+          .map(([key, value]) =>
+            typeof value === "string"
+              ? `${key}: "${value}"`
+              : `${key}: ${value.toFixed(1)}`,
+          )
           .join(",\n      ")}
       }
-    }`).join(",\n  ")}
+    }`,
+      )
+      .join(",\n  ")}
   ]`;
       // Copy to clipboard
-      void navigator.clipboard.writeText(output).then(() => {
-        getNotifier().info("Location plotting values copied to clipboard");
-      }).catch((err: unknown) => {
-        console.error("Failed to copy to clipboard:", err);
-        getNotifier().warn("Failed to copy to clipboard");
-      });
+      void navigator.clipboard
+        .writeText(output)
+        .then(() => {
+          getNotifier().info("Location plotting values copied to clipboard");
+        })
+        .catch((err: unknown) => {
+          console.error("Failed to copy to clipboard:", err);
+          getNotifier().warn("Failed to copy to clipboard");
+        });
 
       // Send as whispered chat message
       // @ts-expect-error Again, bad typing on this
       void ChatMessage.create({
         content: `<pre>${output}</pre>`,
-        whisper: [getUser().id]
+        whisper: [getUser().id],
       });
     },
 
@@ -340,68 +363,105 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       input.trigger("input"); // Trigger input event to update display and apply changes
     },
     refreshControl(event: PointerEvent, target: HTMLElement): void {
-      const control = EunosOverlay.instance.overlay$.find(target).closest(".control-row");
+      const control = EunosOverlay.instance.overlay$
+        .find(target)
+        .closest(".control-row");
       EunosOverlay.instance.refreshPlottingControl(control);
     },
     syncWithLocation(event: PointerEvent, target: HTMLElement): void {
       const currentLocation = getSetting("currentLocation");
-      const locationData = LOCATIONS[currentLocation];
+      const locationData = EunosOverlay.instance.getLocationData(currentLocation);
 
       if (!locationData?.mapTransforms) {
-        ui.notifications?.warn(`No transform data found for location: ${currentLocation}`);
+        ui.notifications?.warn(
+          `No transform data found for location: ${currentLocation}`,
+        );
         return;
       }
 
       // Update each control based on the mapTransforms data
-      locationData.mapTransforms.forEach(transform => {
+      locationData.mapTransforms.forEach((transform) => {
         const { selector, properties } = transform;
 
         // Update transform controls
         Object.entries(properties).forEach(([property, value]) => {
           if (property === "background") {
             // Handle gradient properties
-            const match = (value as string).match(/circle at (\d+)% (\d+)%.*?(\d+)%/);
+            const match = (value as string).match(
+              /circle at (\d+)% (\d+)%.*?(\d+)%/,
+            );
             if (match) {
               const [, x, y, stop] = match;
-              EunosOverlay.instance.overlay$.find(`input[data-property='circlePositionX']`)
+              EunosOverlay.instance.overlay$
+                .find(`input[data-property='circlePositionX']`)
                 .val(x!)
                 .trigger("input");
-              EunosOverlay.instance.overlay$.find(`input[data-property='circlePositionY']`)
+              EunosOverlay.instance.overlay$
+                .find(`input[data-property='circlePositionY']`)
                 .val(y!)
                 .trigger("input");
-              EunosOverlay.instance.overlay$.find(`input[data-property='gradientStopPercentage']`)
+              EunosOverlay.instance.overlay$
+                .find(`input[data-property='gradientStopPercentage']`)
                 .val(stop!)
                 .trigger("input");
             }
           } else if (property === "filter") {
             // Handle filter properties
             const hueMatch = (value as string).match(/hue-rotate\((\d+)deg\)/);
-            const saturateMatch = (value as string).match(/saturate\((\d+(?:\.\d+)?)\)/);
+            const saturateMatch = (value as string).match(
+              /saturate\((\d+(?:\.\d+)?)\)/,
+            );
 
             if (hueMatch) {
-              EunosOverlay.instance.overlay$.find(`input[data-property='hue-rotate']`)
+              EunosOverlay.instance.overlay$
+                .find(`input[data-property='hue-rotate']`)
                 .val(hueMatch[1]!)
                 .trigger("input");
             }
             if (saturateMatch) {
-              EunosOverlay.instance.overlay$.find(`input[data-property='saturate']`)
+              EunosOverlay.instance.overlay$
+                .find(`input[data-property='saturate']`)
                 .val(saturateMatch[1]!)
                 .trigger("input");
             }
           } else {
             // Handle transform properties
             EunosOverlay.instance.overlay$
-              .find(`input[data-property='${property}'][data-selector='${selector}']`)
+              .find(
+                `input[data-property='${property}'][data-selector='${selector}']`,
+              )
               .val(value as number)
               .trigger("input");
           }
         });
       });
 
-      ui.notifications?.info(`Synced controls with location: ${currentLocation}`);
-    }
+      ui.notifications?.info(
+        `Synced controls with location: ${currentLocation}`,
+      );
+    },
+    togglePCSpotlight(event: PointerEvent, target: HTMLElement): void {
+      const pcID = target.dataset["actorId"];
+      if (!pcID) {
+        return;
+      }
+      void EunosOverlay.instance.togglePCSpotlight(pcID);
+    },
+    togglePCDimmed(event: PointerEvent, target: HTMLElement): void {
+      const pcID = target.dataset["actorId"];
+      if (!pcID) {
+        return;
+      }
+      void EunosOverlay.instance.togglePCDimmed(pcID);
+    },
+    togglePCHidden(event: PointerEvent, target: HTMLElement): void {
+      const pcID = target.dataset["actorId"];
+      if (!pcID) {
+        return;
+      }
+      void EunosOverlay.instance.togglePCHide(pcID);
+    },
   };
-
 
   // #endregion ACTIONS
 
@@ -439,8 +499,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       outputValues: EunosOverlay.ACTIONS.outputValues.bind(EunosOverlay),
       resetControl: EunosOverlay.ACTIONS.resetControl.bind(EunosOverlay),
       refreshControl: EunosOverlay.ACTIONS.refreshControl.bind(EunosOverlay),
-      seriousWoundClick: EunosOverlay.ACTIONS.seriousWoundClick.bind(EunosOverlay),
-      criticalWoundClick: EunosOverlay.ACTIONS.criticalWoundClick.bind(EunosOverlay),
+      seriousWoundClick:
+        EunosOverlay.ACTIONS.seriousWoundClick.bind(EunosOverlay),
+      criticalWoundClick:
+        EunosOverlay.ACTIONS.criticalWoundClick.bind(EunosOverlay),
+      togglePCSpotlight:
+        EunosOverlay.ACTIONS.togglePCSpotlight.bind(EunosOverlay),
+      togglePCDimmed:
+        EunosOverlay.ACTIONS.togglePCDimmed.bind(EunosOverlay),
+      togglePCHidden:
+        EunosOverlay.ACTIONS.togglePCHidden.bind(EunosOverlay),
     },
   };
 
@@ -452,6 +520,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     topZIndexMask: {
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/top-zindex-mask.hbs",
+    },
+    maxZIndexBars: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/max-zindex-bars.hbs",
     },
     safetyButtons: {
       template:
@@ -492,9 +564,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-npcs.hbs",
     },
+    npcsGM: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-npcs-gm.hbs",
+    },
     pcs: {
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-pcs.hbs",
+    },
+    pcsGM: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-pcs-gm.hbs",
+    },
+    mediaContainer: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/media-container.hbs",
     },
   };
   // #endregion STATIC CONFIGURATION
@@ -540,7 +624,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Register hook to re-render when any PC actor is updated
     Hooks.on("updateActor", (actor: Actor) => {
       if (actor.type === "pc") {
-        void EunosOverlay.instance.render({parts: ["pcs"]});
+        void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
       }
     });
 
@@ -557,75 +641,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       EunosOverlay.instance.showPlottingPanel();
     }
   }
-
-  static async animateSessionTitle(
-    chapter?: string,
-    title?: string,
-  ): Promise<void> {
-
-    chapter = chapter ?? tCase(verbalizeNum(getSetting("chapterNumber")));
-    title = title ?? getSetting("chapterTitle");
-
-    const instance = EunosOverlay.instance;
-    const chapterElem$ = instance.topZIndexMask$.find(".chapter-number");
-    const horizRule$ = instance.topZIndexMask$.find(".horiz-rule");
-    const titleElem$ = instance.topZIndexMask$.find(".chapter-title");
-
-    chapterElem$.text(`Chapter ${chapter}`);
-    titleElem$.text(title);
-
-    return new Promise((resolve) => {
-      const tl = gsap.timeline({
-        onComplete: resolve,
-      });
-
-      tl.fromTo(
-        chapterElem$,
-        {
-          scale: 0.9,
-          autoAlpha: 0,
-          // y: "-=20"
-        },
-        {
-          scale: 1,
-          autoAlpha: 1,
-          // y: 0,
-          duration: 5,
-          ease: "none",
-        },
-      )
-        .fromTo(
-          horizRule$,
-          {
-            scaleX: 0,
-            autoAlpha: 0,
-          },
-          {
-            scaleX: 1,
-            autoAlpha: 1,
-            duration: 1,
-            ease: "none",
-          },
-          0.2,
-        )
-        .fromTo(
-          titleElem$,
-          {
-            scale: 0.9,
-            autoAlpha: 0,
-            // y: "+=20"
-          },
-          {
-            scale: 1,
-            autoAlpha: 1,
-            // y: 0,
-            duration: 5,
-            ease: "none",
-          },
-          0.4,
-        );
-    });
-  }
   // #endregion STATIC METHODS
 
   // #region SOCKET FUNCTIONS ~
@@ -641,6 +656,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         });
     },
 
+    preloadPreSessionSong: () => {
+      void EunosOverlay.instance.sessionStartingSong.preload();
+    },
+
+    playPreSessionSong: () => {
+      void EunosOverlay.instance.playPreSessionSong();
+    },
+
     preloadIntroVideo: () => {
       void EunosOverlay.instance.preloadIntroVideo();
     },
@@ -650,33 +673,62 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       status,
     }: {
       userId: string;
-      status: VideoLoadStatus;
+      status: MediaLoadStatus;
     }) => {
       if (!getUser().isGM) return;
       kLog.log("reportPreloadStatus", { userId, status });
       EunosOverlay.instance.updateVideoStatusPanel(userId, status);
     },
 
-    startVideoPlayback: () => {
-      EunosOverlay.instance.playIntroVideo().catch((error: unknown) => {
-        kLog.error("Failed to play intro video:", error);
-      });
+    refreshPCs: () => {
+      void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
     },
 
-    requestVideoSync: (userId: string) => {
-      // GM returns the current timestamp
-      if (getUser().isGM) {
-        const timestamp =
-          EunosOverlay.instance.introVideo$[0]?.currentTime ?? 0;
-        kLog.log("GM returning video timestamp:", timestamp);
-        return timestamp;
+    startVideoPlayback: async () => {
+      await EunosOverlay.instance.playIntroVideo();
+    },
+
+    requestMediaSync: async ({
+      userId,
+      mediaName,
+    }: {
+      userId: string;
+      mediaName: string;
+    }) => {
+      const media = EunosMedia.GetMedia(mediaName);
+      const timestamp = media.currentTime;
+      kLog.log(`GM returning media timestamp: ${timestamp} for ${mediaName}`);
+      void EunosSockets.getInstance().call("syncMedia", userId, {
+        mediaName,
+        timestamp,
+      });
+      return timestamp;
+    },
+
+    syncMedia: async ({
+      mediaName,
+      timestamp,
+    }: {
+      mediaName: string;
+      timestamp: number;
+    }) => {
+      const media = EunosMedia.GetMedia(mediaName);
+      const currentTime = media.currentTime;
+      const timeDelta = Math.abs(timestamp - currentTime);
+      if (timeDelta > 5) {
+        kLog.log(
+          `Setting media timestamp: ${timestamp} for ${mediaName} (timeDelta: ${timeDelta})`,
+        );
+        media.currentTime = timestamp;
+      } else {
+        kLog.log(
+          `Media timestamp already synced: ${timestamp} for ${mediaName} (timeDelta: ${timeDelta})`,
+        );
       }
     },
 
     setLocation: (data: { location: string }) => {
-      EunosOverlay.instance.goToLocation(
-        data.location as KeyOf<typeof LOCATIONS>,
-      );
+      EunosOverlay.instance.goToLocation(data.location);
     },
   };
   // #endregion SOCKET FUNCTIONS
@@ -687,13 +739,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #canvasMask: Maybe<HTMLElement>;
   #canvasBars: Maybe<HTMLElement>;
   #topZIndexMask: Maybe<HTMLElement>;
+  #maxZIndexBars: Maybe<HTMLElement>;
   #safetyButtons: Maybe<HTMLElement>;
   #alerts: Maybe<HTMLElement>;
   #countdownContainer: Maybe<HTMLElement>;
   #countdown: Maybe<HTMLElement>;
   #videoStatusPanel: Maybe<HTMLElement>;
-  #sessionStartingSong?: PlaylistSound;
-  #introVideo: Maybe<HTMLVideoElement>;
   #locationPlottingPanel: Maybe<HTMLElement>;
   #stage: Maybe<HTMLElement>;
   get overlay$() {
@@ -756,6 +807,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       throw new Error("Transition to top not found");
     }
     return $(this.#topZIndexMask);
+  }
+
+  get maxZIndexBars$() {
+    if (!this.#maxZIndexBars) {
+      this.#maxZIndexBars = this.element.querySelector(
+        ".max-zindex-bars",
+      ) as Maybe<HTMLElement>;
+    }
+    if (!this.#maxZIndexBars) {
+      throw new Error("Max z-index bars not found");
+    }
+    return $(this.#maxZIndexBars);
   }
 
   get safetyButtons$() {
@@ -835,9 +898,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get stage$() {
     if (!this.#stage) {
-      this.#stage = this.element.querySelector(
-        "#STAGE",
-      ) as Maybe<HTMLElement>;
+      this.#stage = this.element.querySelector("#STAGE") as Maybe<HTMLElement>;
     }
     if (!this.#stage) {
       throw new Error("Stage not found");
@@ -845,51 +906,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(this.#stage);
   }
 
-  /** Gets or creates the ambient audio element */
-  get sessionClosedAmbientAudio$(): JQuery<HTMLAudioElement> {
-    const audio = this.element.querySelector(
-      ".session-closed-ambiance",
-    ) as Maybe<HTMLAudioElement>;
-    if (!audio) {
-      return $();
-    }
-    return $(audio);
-  }
-
-  get sessionStartingPlaylist(): Playlist {
-    const playlist = getGame().playlists?.getName("Pre-Session Tracks");
-    if (!playlist) {
-      throw new Error("Pre-Session Tracks playlist not found");
-    }
-    return playlist as Playlist;
-  }
-
-  get sessionStartingSong(): PlaylistSound {
-    this.#sessionStartingSong =
-      this.sessionStartingPlaylist.sounds.get(
-        this.sessionStartingPlaylist.playbackOrder[0] ?? "",
-      ) ?? undefined;
-    if (!this.#sessionStartingSong) {
-      throw new Error("No songs in Pre-Session Tracks playlist");
-    }
-    return this.#sessionStartingSong;
-  }
-
-  /** Gets or creates the intro video element */
-  get introVideo$() {
-    if (!this.#introVideo) {
-      // First try to find existing element
-      this.#introVideo = this.element.querySelector(
-        ".intro-video",
-      ) as Maybe<HTMLVideoElement>;
-    }
-
-    if (!this.#introVideo) {
-      throw new Error("Intro video not found");
-    }
-    return $(this.#introVideo);
-  }
   // #endregion DOM ELEMENT GETTERS
+
+  // #region MEDIA GETTERS ~
+
+  // #endregion MEDIA GETTERS
 
   // #region ===== PRE-SESSION MANAGEMENT & GAME PHASE CONTROL =====
   // #region COUNTDOWN ~
@@ -898,41 +919,42 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #countdownContainerTimeline: Maybe<gsap.core.Timeline>;
   #isCountdownContainerTimelinePlaying = false;
 
-  public get glitchRepeatDelay(): number | false {
-    if (typeof this.timeRemaining !== "number") {
-      return Infinity;
+  public async getGlitchRepeatDelay(): Promise<number> {
+    const songDuration = await this.getPreSessionSongDuration();
+    const timeRemaining = this.timeRemaining;
+    const maxDur = PRE_SESSION.GLITCH_REPEAT_DELAY_MAX;
+    const minDur = PRE_SESSION.GLITCH_REPEAT_DELAY_MIN;
+
+    // If presession song has not started playing, return max delay
+    if (timeRemaining > songDuration) {
+      return maxDur;
     }
-    const currentSeconds = this.timeRemaining;
-    if (currentSeconds <= 0.5 * PRE_SESSION.START_COUNTDOWN_TIMERS) {
-      return PRE_SESSION.GLITCH_DELAY[1];
-    }
-    if (currentSeconds <= PRE_SESSION.START_COUNTDOWN_TIMERS) {
-      return PRE_SESSION.GLITCH_DELAY[0];
-    }
-    return false;
-  }
-  private get preSessionSongDuration(): number {
-    const preSessionSong = this.sessionStartingSong;
-    if (!preSessionSong.sound) {
-      throw new Error(
-        "Attempt to access pre-session song duration before song is loaded.",
-      );
-    }
-    return preSessionSong.sound.duration;
+
+    // Otherwise, interpolate between min and max delay based on time remaining
+    const delay = Math.min(
+      maxDur,
+      minDur + (maxDur - minDur) * (timeRemaining / songDuration),
+    );
+    return delay;
   }
 
-  private buildCountdownContainerTimeline(): gsap.core.Timeline {
-    const duration = PRE_SESSION.START_COUNTDOWN_TIMERS;
+  private async buildCountdownContainerTimeline(): Promise<gsap.core.Timeline> {
+    const duration = await this.getPreSessionSongDuration();
     const timeOffset = Math.max(0, duration - this.timeRemaining);
     kLog.log("buildCountdownContainerTimeline", duration, timeOffset);
-    this.#countdownContainerTimeline = gsap
-      .timeline()
-      .to(this.countdownContainer$, {
+    this.#countdownContainerTimeline = gsap.timeline().fromTo(
+      this.countdownContainer$,
+      {
+        filter: "drop-shadow(rgba(0, 0, 0, 0.55) 0px 0px 0px)",
+      },
+      {
         top: "50%",
+        filter: "drop-shadow(rgba(0, 0, 0, 0.55) 100px 100px 5px)",
         scale: 3,
         duration,
         ease: "power4.inOut",
-      });
+      },
+    );
     this.#isCountdownContainerTimelinePlaying = true;
     return this.#countdownContainerTimeline.seek(timeOffset);
   }
@@ -1058,9 +1080,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   #timeRemaining: Maybe<number> = undefined;
+  #durationOfSong: Maybe<number> = undefined;
   #isCountdownHidden = false;
   #areAppElementsFaded = false;
   #areLoadingScreenImagesStopped = false;
+  #isCountdownContainerTimelineSynced = false;
+  #isPreSessionSongPlaying = false;
+  #isPreSessionSongSynced = false;
 
   get timeRemaining(): number {
     if (typeof this.#timeRemaining !== "number") {
@@ -1068,9 +1094,41 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     return this.#timeRemaining;
   }
+  async getPreSessionSongDuration(): Promise<number> {
+    if (typeof this.#durationOfSong !== "number") {
+      this.#durationOfSong = await this.sessionStartingSong.getDuration();
+    }
+    return this.#durationOfSong;
+  }
   /** Updates the countdown display and handles pre-session sequence */
   private async updateCountdown(): Promise<void> {
     this.#timeRemaining = this.updateCountdownText().totalSeconds;
+    const preSessionSongDuration = await this.getPreSessionSongDuration();
+
+    if (
+      this.#isCountdownContainerTimelinePlaying &&
+      !this.#isCountdownContainerTimelineSynced
+    ) {
+      const countdownProgress =
+        1 - this.#timeRemaining / preSessionSongDuration;
+      kLog.log(`Countdown progress: ${countdownProgress}`);
+      this.#countdownContainerTimeline?.progress(countdownProgress);
+      this.#isCountdownContainerTimelineSynced = true;
+    }
+    if (this.#isPreSessionSongPlaying && !this.#isPreSessionSongSynced) {
+      const preSessionSongCurrentTime =
+        preSessionSongDuration - this.#timeRemaining;
+      kLog.log(`Pre-session song current time: ${preSessionSongCurrentTime}`);
+      this.sessionStartingSong.currentTime = preSessionSongCurrentTime;
+      this.#isPreSessionSongSynced = true;
+    }
+    if (this.#isPreSessionSongSynced && this.#glitchTimeline?.isActive()) {
+      const newRepeatDelay = await this.getGlitchRepeatDelay();
+      if (Math.abs(newRepeatDelay - (this.#glitchTimeline?.repeatDelay() ?? Infinity)) > 2) {
+        kLog.log(`updateCountdown -> newRepeatDelay: ${newRepeatDelay}`);
+        this.#glitchTimeline.repeatDelay(newRepeatDelay);
+      }
+    }
 
     // T-LOAD_SESSION time: Set gamePhase to SESSION LOADING
     if (
@@ -1082,20 +1140,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return;
     }
 
-    // T-3 secs: Hide Countdown, fade in topZIndexMask & video
+    // T-1 secs: Hide Countdown, fade in topZIndexMask & video
     if (
       this.timeRemaining <= PRE_SESSION.COUNTDOWN_HIDE &&
       !this.#isCountdownHidden
     ) {
       kLog.log("updateCountdown -> killCountdown (COUNTDOWN HIDE)");
-      await this.killCountdown(true, true);
-      void this.fadeInIntroVideo();
+      setTimeout(() => {
+        void this.killCountdown(true, true).then(() => {
+          void this.fadeInIntroVideo();
+        });
+      }, 1000);
       this.#isCountdownHidden = true;
       setTimeout(
         () => {
           this.#isCountdownHidden = false;
         },
-        5 * 60 * 1000,
+        5 * 60 * 1000, // 5 minutes
       );
       return;
     }
@@ -1113,29 +1174,34 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // T-60 secs: Stop loading screen images, decrease glitch delay
     if (
-      this.timeRemaining <= PRE_SESSION.HIDE_LOADING_SCREEN_IMAGES &&
+      (this.#countdownContainerTimeline?.progress() ?? 0) >= 0.45 &&
       !this.#areLoadingScreenImagesStopped
     ) {
       kLog.log("updateCountdown -> stopLoadingScreenImages");
       void this.killLoadingScreenItems();
       this.#areLoadingScreenImagesStopped = true;
-      this.#glitchTimeline?.repeatDelay(this.glitchRepeatDelay as number);
-      // this.buildGlitchTimeline(this.glitchRepeatDelay as number).play();
+      this.#glitchTimeline?.repeatDelay(
+        0.5 * (this.#glitchTimeline?.repeatDelay() ?? Infinity),
+      );
       return;
     }
 
     // T-120 secs: Begin glitch AND container timelines
     if (
-      this.timeRemaining <= PRE_SESSION.START_COUNTDOWN_TIMERS &&
+      this.timeRemaining <= preSessionSongDuration &&
       !this.#isCountdownContainerTimelinePlaying
     ) {
       kLog.log("updateCountdown -> beginGlitchAndContainerTimelines");
-      this.buildGlitchTimeline(this.glitchRepeatDelay as number).play();
-      this.buildCountdownContainerTimeline().play();
+      this.buildGlitchTimeline(await this.getGlitchRepeatDelay()).play();
+      ((await this.buildCountdownContainerTimeline()) as gsap.core.Timeline)[
+        "play"
+      ]();
+      this.#isCountdownContainerTimelinePlaying = true;
       void this.killSessionClosedAmbientAudio();
       return;
     } else if (
-      this.timeRemaining > PRE_SESSION.START_COUNTDOWN_TIMERS &&
+      this.timeRemaining > preSessionSongDuration &&
+      this.timeRemaining < 1000 &&
       (this.#glitchTimeline || this.#countdownContainerTimeline)
     ) {
       kLog.display("updateCountdown -> killCountdown");
@@ -1146,83 +1212,41 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region SESSION CLOSED AMBIENT AUDIO ~
 
-  /** Initializes ambient audio playback with user interaction handling */
-  private async initializeAmbientAudio(): Promise<void> {
-    try {
-        const audio = this.sessionClosedAmbientAudio$[0];
-        if (!audio) {
-            kLog.error("Session closed ambient audio element not found");
-            return;
-        }
-        audio.volume = 0.5;
-        await audio.play();
-        return;
-    } catch (error: unknown) {
-        // Only set up interaction handlers if we get a specific browser autoplay error
-        if (error instanceof Error && error.name === "NotAllowedError") {
-            kLog.error("Autoplay prevented, setting up interaction handlers", error);
-            this.setupAudioInteractionHandlers();
-        } else {
-            kLog.error("Failed to play ambient audio", error);
-        }
-    }
-}
+  #ambientAudio?: EunosMedia<EunosMediaTypes.audio>;
 
-  private handleAudioInteraction(e: Event): void {
-    // Ignore clicks on the start video button
-    if (
-      e.target instanceof Element &&
-      (e.target.classList.contains("start-video") ||
-        e.target.closest(".start-video"))
-    ) {
-      return;
+  getAmbientAudio(isCreating = true): EunosMedia<EunosMediaTypes.audio> {
+    if (!this.#ambientAudio) {
+      this.#ambientAudio = EunosMedia.Sounds.get("session-closed-ambience");
     }
-
-    try {
-      void this.sessionClosedAmbientAudio$[0]!.play();
-    } catch (error: unknown) {
-      console.warn("Handler failed to play ambient audio:", error);
+    if (!this.#ambientAudio && isCreating) {
+      this.#ambientAudio = new EunosMedia("session-closed-ambience", {
+        type: EunosMediaTypes.audio,
+        path: MEDIA_PATHS.PRESESSION_AMBIENT_AUDIO,
+        volume: 0.5,
+        autoplay: true,
+        loop: true,
+        alwaysPreload: false,
+        reportPreloadStatus: false,
+      });
     }
+    if (!this.#ambientAudio) {
+      throw new Error("Ambient audio not found, not instructed to create it.");
+    }
+    return this.#ambientAudio;
   }
 
-  /** Sets up event listeners to handle audio autoplay after user interaction */
-  private setupAudioInteractionHandlers(): void {
-    PRE_SESSION.INTERACTION_EVENTS.forEach((event) => {
-      document.addEventListener(event, this.handleAudioInteraction.bind(this), {
-        once: true,
-      });
-    });
+  private async initializeAmbientAudio(): Promise<void> {
+    try {
+      await this.getAmbientAudio().play();
+    } catch (error: unknown) {
+      kLog.error("Failed to play ambient audio", error);
+    }
   }
 
   private async killSessionClosedAmbientAudio(): Promise<void> {
-    const audio = this.sessionClosedAmbientAudio$[0];
-
-    if (!audio || audio.volume === 0) {
-        return;
-    }
-
-    return new Promise<void>((resolve) => {
-        gsap.to(audio, {
-            volume: 0,
-            duration: 5,
-            ease: "power1.out",
-            onComplete: () => {
-                audio.volume = 0;
-                // Only remove handlers if we're actually stopping playback
-                if (audio.paused) {
-                    PRE_SESSION.INTERACTION_EVENTS.forEach((event) => {
-                        document.removeEventListener(
-                            event,
-                            this.handleAudioInteraction.bind(this),
-                        );
-                    });
-                }
-                audio.pause();
-                audio.currentTime = 0;
-                resolve();
-            },
-        });
-    });
+    // if (!this.#ambientAudio) { return; }
+    await this.getAmbientAudio(false).kill();
+    // this.#ambientAudio = undefined;
   }
   // #endregion SESSION CLOSED AMBIENT AUDIO ~
 
@@ -1479,6 +1503,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Kill the rotation interval
     window.clearInterval(this.#loadScreenRotationTimer);
 
+    // Fade out current loading screen item
+    const currentItem = this.#loadingScreenItems.get(this.#currentLoadingScreenItem ?? "");
+    if (currentItem?.[0]) {
+      gsap.to(currentItem[0], {
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: "power2.inOut",
+      });
+      setTimeout(() => {
+        currentItem.attr("style", "");
+      }, 15000);
+    }
+
     // Wait for any currently-running timeline to complete
     const currentTimeline = this.#loadingScreenItemTimelines.get(
       this.#currentLoadingScreenItem ?? "",
@@ -1499,60 +1536,85 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion LOADING SCREEN
 
   // #region PRE-SESSION SONG ~
-  /** Schedules playing of the pre-session song based on its duration */
-
-  private async initializePreSessionSong(): Promise<void> {
-    if (!getUser().isGM) {
-      return;
+  #sessionStartingSong: Maybe<EunosMedia<EunosMediaTypes.audio>>;
+  #sessionStartingSongTimeout: Maybe<number>;
+  get sessionStartingSong(): EunosMedia<EunosMediaTypes.audio> {
+    if (!this.#sessionStartingSong) {
+      const songIndex = (getSetting("chapterNumber") ?? 1) - 1;
+      const songName = Object.keys(Sounds.PreSessionSongs)[songIndex] as Maybe<
+        KeyOf<typeof Sounds.PreSessionSongs>
+      >;
+      if (!songName) {
+        throw new Error(
+          `No song defined for Chapter ${getSetting("chapterNumber")} in Pre-Session Tracks playlist`,
+        );
+      }
+      this.#sessionStartingSong = new EunosMedia(songName, {
+        ...Sounds.PreSessionSongs[songName],
+        type: EunosMediaTypes.audio,
+        alwaysPreload: true,
+      });
     }
+    return this.#sessionStartingSong;
+  }
 
-    kLog.log("initializePreSessionSong");
-
-    await getGame().audio.unlock;
+  /** Schedules playing of the pre-session song based on its duration */
+  private async initializePreSessionSong(): Promise<void> {
     const timeRemaining = this.timeRemaining;
     const preSessionSong = this.sessionStartingSong;
-    await preSessionSong.load();
-    const songDuration = (preSessionSong.sound?.duration ?? 0) + 10;
+    const duration = await preSessionSong.getDuration();
 
-    kLog.display("Initializing pre-session song");
     kLog.log(
-      `timeRemaining: ${Math.floor(timeRemaining / 60)}:${timeRemaining % 60}, songDuration: ${Math.floor(songDuration / 60)}:${songDuration % 60}`,
+      `Initializing Pre-Session Song: timeRemaining: ${padNum(timeRemaining / 60, 0)}:${padNum(timeRemaining % 60, 0)}, songDuration: ${padNum(duration / 60, 0)}:${padNum(duration % 60, 0)}`,
     );
 
-    if (timeRemaining <= songDuration) {
-      if (timeRemaining > songDuration - 10) {
-        kLog.log(
-          "playing song IMMEDIATELY (within 10 seconds of scheduled time)",
-        );
+    if (timeRemaining <= duration) {
+      if (!getUser().isGM) {
         void this.playPreSessionSong();
+        return;
       } else {
-        kLog.log("Too late to play pre-session song, skipping.");
+        void EunosSockets.getInstance().call(
+          "playPreSessionSong",
+          UserTargetRef.all,
+        );
         return;
       }
     } else {
-      const delay = timeRemaining - songDuration;
-      kLog.log(`playing song in ${Math.floor(delay / 60)}:${delay % 60}`);
-      window.setTimeout(() => {
-        void this.playPreSessionSong();
+      if (!getUser().isGM) {
+        void this.sessionStartingSong.preload();
+        return;
+      }
+      void EunosSockets.getInstance().call(
+        "preloadPreSessionSong",
+        UserTargetRef.all,
+      );
+      const delay = timeRemaining - duration;
+      kLog.log(
+        `playing song in ${padNum(delay / 60, 0)}:${padNum(delay % 60, 0)}`,
+      );
+      this.#sessionStartingSongTimeout = window.setTimeout(() => {
+        void EunosSockets.getInstance().call(
+          "playPreSessionSong",
+          UserTargetRef.all,
+        );
       }, delay * 1000);
     }
   }
   /** Plays the pre-session song */
-  private async playPreSessionSong(): Promise<void> {
-    kLog.log("playing song");
+  async playPreSessionSong(): Promise<void> {
     void this.killSessionClosedAmbientAudio();
-    // Start playback of the entire playlist.
-    const firstSound =
-      this.sessionStartingPlaylist.sounds.get(
-        this.sessionStartingPlaylist.playbackOrder[0] ?? "",
-      ) ?? undefined;
-    if (!firstSound) {
-      kLog.error("No first sound found in session starting playlist");
-      return;
-    }
-    await this.sessionStartingPlaylist.playSound(firstSound);
+    void this.sessionStartingSong.play();
+    this.#isPreSessionSongPlaying = true;
   }
 
+  async killPreSessionSong(): Promise<void> {
+    if (this.#sessionStartingSongTimeout) {
+      window.clearTimeout(this.#sessionStartingSongTimeout);
+      this.#sessionStartingSongTimeout = undefined;
+    }
+    this.#isPreSessionSongPlaying = false;
+    return this.sessionStartingSong.kill();
+  }
   // #endregion PRE-SESSION SONG ~
 
   // #region FREEZING OVERLAY ~
@@ -1590,125 +1652,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion FREEZING OVERLAY ~
 
   // #region INTRO VIDEO ~
-
+  #introVideo: Maybe<EunosMedia<EunosMediaTypes.video>>;
+  get introVideo(): EunosMedia<EunosMediaTypes.video> {
+    if (!this.#introVideo) {
+      this.#introVideo = new EunosMedia("intro-video", {
+        path: "modules/eunos-kult-hacks/assets/video/something-unholy-intro.webm",
+        type: EunosMediaTypes.video,
+        parentSelector: "#TOP-ZINDEX-MASK",
+        autoplay: false,
+        loop: false,
+        mute: false,
+        volume: 1,
+        alwaysPreload: true,
+        reportPreloadStatus: true,
+      });
+    }
+    return this.#introVideo;
+  }
   /** Initializes video preloading with user interaction handling */
   private async preloadIntroVideo(): Promise<void> {
-    const video$ = this.introVideo$;
-    const reportStatus = (status: VideoLoadStatus) => {
-        if (!getUser().isGM) {
-            void EunosSockets.getInstance().call("reportPreloadStatus", "gm", {
-                userId: getUser().id ?? "",
-                status,
-            });
-        } else {
-            this.updateVideoStatusPanel(getUser().id ?? "", status);
-        }
-    };
-
     try {
-        reportStatus(VideoLoadStatus.Loading);
-        const video = video$[0]!;
-
-        // Restore video attributes if they were cleared
-        if (!video.hasAttribute("src")) {
-            video.src = MEDIA_PATHS.INTRO_VIDEO;
-            video.preload = "auto";
-        }
-
-        // Check if video is already loaded
-        if (video.readyState >= 4) {
-            reportStatus(VideoLoadStatus.Ready);
-            return;
-        }
-
-        await new Promise<void>((resolve, reject) => {
-            video.addEventListener("canplaythrough", () => {
-                reportStatus(VideoLoadStatus.Ready);
-                resolve();
-            }, { once: true });
-            video.addEventListener("error", (e) => {
-                // Create a proper Error object from the event error
-                const error = e.error instanceof Error ? e.error : new Error("Video loading failed");
-                reject(error);
-            }, { once: true });
-
-            video.load();
-        });
+      await this.introVideo.preload();
     } catch (error) {
-        kLog.error("Failed to preload video:", error);
-        reportStatus(VideoLoadStatus.LoadPending);
-        // Only set up interaction handlers if we get a specific browser autoplay error
-        if (error instanceof Error && error.name === "NotAllowedError") {
-            this.setupVideoPreloadHandlers();
-        }
+      kLog.error("Failed to preload intro video:", error);
     }
-}
-
-  /** Sets up event listeners to handle video preloading after user interaction */
-  private setupVideoPreloadHandlers(): void {
-    const interactionEvents = [
-      "click",
-      "touchstart",
-      "keydown",
-      "mousedown",
-      "pointerdown",
-    ];
-
-    const handleVideoPreload = (e: Event) => {
-      // Ignore clicks on the start video button
-      if (
-        e.target instanceof Element &&
-        (e.target.classList.contains("start-video") ||
-          e.target.closest(".start-video"))
-      ) {
-        return;
-      }
-
-      const video = this.introVideo$[0]!;
-
-      // Restore video attributes if they were cleared
-      if (!video.hasAttribute("src")) {
-        video.src = MEDIA_PATHS.INTRO_VIDEO;
-        video.preload = "auto";
-      }
-
-      // Update status to Loading once user interacts
-      if (!getUser().isGM) {
-        void EunosSockets.getInstance().call("reportPreloadStatus", "gm", {
-          userId: getUser().id ?? "",
-          status: VideoLoadStatus.Loading,
-        });
-      } else {
-        this.updateVideoStatusPanel(
-          getUser().id ?? "",
-          VideoLoadStatus.Loading,
-        );
-      }
-
-      video.addEventListener(
-        "canplaythrough",
-        () => {
-          if (!getUser().isGM) {
-            void EunosSockets.getInstance().call("reportPreloadStatus", "gm", {
-              userId: getUser().id ?? "",
-              status: VideoLoadStatus.Ready,
-            });
-          } else {
-            this.updateVideoStatusPanel(
-              getUser().id ?? "",
-              VideoLoadStatus.Ready,
-            );
-          }
-        },
-        { once: true },
-      );
-
-      video.load();
-    };
-
-    interactionEvents.forEach((event) => {
-      document.addEventListener(event, handleVideoPreload, { once: true });
-    });
   }
 
   /** Initiates video preloading for all users */
@@ -1722,12 +1689,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private confirmChapterTitle(): void {
-    const chapterTitle = getSetting("chapterTitle")
-    const chapterNum = getSetting("chapterNumber")
+    const chapterTitle = getSetting("chapterTitle");
+    const chapterNum = getSetting("chapterNumber");
 
     new Dialog({
-        title: "Confirm Chapter",
-        content: `
+      title: "Confirm Chapter",
+      content: `
             <div class="form-group">
                 <label>Chapter:</label>
                 <input type="number" name="chapter" value="${chapterNum}">
@@ -1737,153 +1704,226 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
                 <input type="text" name="title" value="${chapterTitle}">
             </div>
         `,
-        buttons: {
-            ok: {
-                label: "Ok",
-                callback: (html) => {
-                    const chapter = $(html).find("[name=chapter]").val() as number;
-                    const title = $(html).find("[name=title]").val() as string;
-                    if (chapter !== chapterNum) {
-                      void setSetting("chapterNumber", chapter);
-                    }
-                    if (title !== chapterTitle) {
-                      void setSetting("chapterTitle", title);
-                    }
-                }
+      buttons: {
+        ok: {
+          label: "Ok",
+          callback: (html) => {
+            const chapter = $(html).find("[name=chapter]").val() as number;
+            const title = $(html).find("[name=title]").val() as string;
+            if (chapter !== chapterNum) {
+              void setSetting("chapterNumber", chapter);
             }
-        }
+            if (title !== chapterTitle) {
+              void setSetting("chapterTitle", title);
+            }
+          },
+        },
+      },
     }).render(true);
+  }
+
+  async animateOutBlackBars() {
+    const topBar$ = this.maxZIndexBars$.find(".canvas-mask-bar-top");
+    const bottomBar$ = this.maxZIndexBars$.find(".canvas-mask-bar-bottom");
+
+    const tl = gsap.timeline();
+
+    tl.to(
+      topBar$,
+      {
+        height: 0,
+        duration: 5,
+        ease: "none",
+      },
+      0,
+    ).to(
+      bottomBar$,
+      {
+        height: 0,
+        duration: 5,
+        ease: "none",
+      },
+      0,
+    );
+
+    return tl;
+  }
+
+  async animateSessionTitle(
+    chapter?: string,
+    title?: string,
+  ): Promise<gsap.core.Timeline> {
+    chapter = chapter ?? tCase(verbalizeNum(getSetting("chapterNumber")));
+    title = title ?? getSetting("chapterTitle");
+
+    const instance = EunosOverlay.instance;
+    const chapterElem$ = instance.topZIndexMask$.find(".chapter-number");
+    const horizRule$ = instance.topZIndexMask$.find(".horiz-rule");
+    const titleElem$ = instance.topZIndexMask$.find(".chapter-title");
+
+    chapterElem$.text(`Chapter ${chapter}`);
+    titleElem$.text(title);
+
+    const tl = gsap.timeline();
+
+    tl.fromTo(
+      chapterElem$,
+      {
+        scale: 0.9,
+        autoAlpha: 0,
+        // y: "-=20"
+      },
+      {
+        scale: 1,
+        autoAlpha: 1,
+        // y: 0,
+        duration: 5,
+        ease: "none",
+      },
+    )
+      .fromTo(
+        horizRule$,
+        {
+          scaleX: 0,
+          autoAlpha: 0,
+        },
+        {
+          scaleX: 1,
+          autoAlpha: 1,
+          duration: 1,
+          ease: "none",
+        },
+        0.2,
+      )
+      .fromTo(
+        titleElem$,
+        {
+          scale: 0.9,
+          autoAlpha: 0,
+          // y: "+=20"
+        },
+        {
+          scale: 1,
+          autoAlpha: 1,
+          // y: 0,
+          duration: 5,
+          ease: "none",
+        },
+        0.4,
+      )
+      .to(
+        [
+          instance.topZIndexMask$[0],
+          instance.maxZIndexBars$[0],
+          instance.midZIndexMask$[0],
+        ],
+        {
+          autoAlpha: 0,
+          duration: 1,
+          ease: "none",
+        },
+        "-=1",
+      );
+
+    return tl;
   }
 
   /** Fades in the topZIndexMask and the intro video */
   private async fadeInIntroVideo(): Promise<void> {
-    await gsap.to(this.topZIndexMask$, {
-      autoAlpha: 1,
-      duration: 1,
-    });
+    kLog.log("Fading in intro video");
+    await gsap
+      .timeline()
+      .set(this.maxZIndexBars$, { zIndex: 10001 })
+      .to(this.topZIndexMask$, {
+        autoAlpha: 1,
+        duration: 1,
+      })
+      .to(this.midZIndexMask$, {
+        autoAlpha: 0,
+        duration: 0.25,
+      });
   }
 
   /** Plays the intro video from the start */
   public async playIntroVideo(): Promise<void> {
-    const video$ = this.introVideo$;
-    const video = video$[0]!;
-
     // Reset volume in case it was faded out
-    video.volume = 1;
+    this.introVideo.volume = 1;
 
     // Add ended event listener before playing
-    video.addEventListener(
+    this.introVideo.element.addEventListener(
       "ended",
-      () => {
-        kLog.log("Video playback complete");
-        if (getUser().isGM) {
-          void setSetting("gamePhase", GamePhase.SessionRunning);
-        }
-      },
+      () =>
+        void (async () => {
+          kLog.log("Video playback complete");
+          // await this.fadeOutIntroVideo();
+          if (getUser().isGM) {
+            void setSetting("gamePhase", GamePhase.SessionRunning);
+          }
+        })(),
       { once: true },
     );
 
-    await video.play();
+    void this.animateOutBlackBars();
+
+    await this.introVideo.play();
+    if (!getUser().isGM) {
+      void EunosSockets.getInstance().call(
+        "requestMediaSync",
+        UserTargetRef.gm,
+        {
+          mediaName: "intro-video",
+          userId: getUser().id!,
+        },
+      );
+    }
+
+    // Schedule playback of session quote
+    const sessionQuoteName = `quote-session-${getSetting("chapterNumber")}`;
+    const sessionQuote = EunosMedia.GetMedia(sessionQuoteName);
+    if (sessionQuote) {
+      setTimeout(() => {
+        void sessionQuote.play();
+      }, 2000);
+    }
 
     // Schedule animation of the title
-    const videoDuration = video.duration;
+    const videoDuration = await this.introVideo.getDuration();
+    const currentVideoTime = this.introVideo.currentTime;
     const titleDisplayOffset = PRE_SESSION.CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET;
-    const titleDisplayTime = videoDuration - titleDisplayOffset;
+    const titleDisplayTime =
+      videoDuration - titleDisplayOffset - currentVideoTime;
     setTimeout(() => {
-      void EunosOverlay.animateSessionTitle();
+      void this.animateSessionTitle().then(() => {
+        if (getUser().isGM) {
+          void setSetting("gamePhase", GamePhase.SessionRunning);
+        }
+      });
     }, titleDisplayTime * 1000);
   }
 
-  /** Handles late-join video synchronization */
-  private async handleLateJoinSync(): Promise<void> {
-    gsap.to([this.introVideo$, this.topZIndexMask$], {
-      autoAlpha: 1,
-      duration: 0.5,
-    });
-
-    const syncRequestTime = Date.now();
-    const gmTimestamp = await EunosSockets.getInstance().call<number>(
-      "requestVideoSync",
-      UserTargetRef.gm,
-    );
-    const latency = (Date.now() - syncRequestTime) / 2;
-
-    // Calculate where video should be now, including network delay
-    const targetTimestamp = gmTimestamp + latency / 1000;
-
-    const video$ = this.introVideo$;
-    const video = video$[0]!;
-    const bufferOffset = 2; // seconds
-
-    // Start loading from slightly before target time
-    video.currentTime = Math.max(0, targetTimestamp - bufferOffset);
-
-    await new Promise<void>((resolve) => {
-      const handleCanPlay = () => {
-        const totalTimePassed = (Date.now() - syncRequestTime) / 1000;
-        video.currentTime = gmTimestamp + totalTimePassed;
-        video.play().catch(console.error);
-        video.removeEventListener("canplay", handleCanPlay);
-        resolve();
-      };
-
-      video.addEventListener("canplay", handleCanPlay);
-      video.load();
-    });
-  }
-
   private async killIntroVideo(): Promise<void> {
-    const video$ = this.introVideo$;
-    const video = video$[0]!;
-
-    // Create a promise that resolves when the fade is complete
-    return new Promise<void>((resolve) => {
-      // Create a timeline to handle both video and container fade
-      gsap
-        .timeline({
-          onComplete: () => {
-            // Stop playback
-            video.pause();
-
-            // Reset playback position
-            video.currentTime = 0;
-
-            // Clear source buffer
-            video.removeAttribute("src");
-            video.load();
-
-            // Reset properties that might prevent garbage collection
-            video.preload = "none";
-
-            // Clear any media keys or encrypted media data
-            if (video.mediaKeys) {
-              video.setMediaKeys(null).catch(() => {
-                // Ignore errors, this is just cleanup
-              });
-            }
-
-            resolve();
-          },
-        })
-        .to(this.topZIndexMask$, {
-          autoAlpha: 0,
-          duration: 0.5,
-          ease: "power1.out",
-        });
-    });
+    await gsap.to(
+      [this.topZIndexMask$[0], this.maxZIndexBars$[0], this.midZIndexMask$[0]],
+      {
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: "power1.out",
+      },
+    );
+    await this.introVideo.kill();
   }
 
   // #region GM Video Status Panel ~
 
   /** Updates the video status panel */
-  public videoLoadStatus: Map<string, VideoLoadStatus> = new Map<
+  public videoLoadStatus: Map<string, MediaLoadStatus> = new Map<
     string,
-    VideoLoadStatus
+    MediaLoadStatus
   >();
 
   private updateVideoStatusPanel(
     userId: string,
-    status: VideoLoadStatus,
+    status: MediaLoadStatus,
   ): void {
     if (!getUser().isGM) return;
 
@@ -1892,7 +1932,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (user.id === userId) {
         this.videoLoadStatus.set(user.id, status);
       } else if (!this.videoLoadStatus.has(user.id!)) {
-        this.videoLoadStatus.set(user.id!, VideoLoadStatus.PreloadNotRequested);
+        this.videoLoadStatus.set(user.id!, MediaLoadStatus.PreloadNotRequested);
       }
     }
 
@@ -1909,6 +1949,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   async initializePhase(gamePhase?: GamePhase) {
     gamePhase = gamePhase ?? getSetting("gamePhase");
     kLog.log(`Initializing phase: ${gamePhase}`);
+    setTimeout(() => {
+      addClassToDOM("interface-ready");
+    }, 1000);
     switch (gamePhase) {
       case GamePhase.SessionClosed: {
         await this.initialize_SessionClosed();
@@ -1931,9 +1974,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         break;
       }
     }
-    setTimeout(() => {
-      addClassToDOM("interface-ready");
-    }, 1000);
   }
 
   async syncPhase() {
@@ -1941,6 +1981,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const gamePhase = getSetting("gamePhase");
     kLog.log(`Syncing phase: ${gamePhase}`);
     // Add the appropriate class based on the game phase.
+    setTimeout(() => {
+      addClassToDOM("interface-ready");
+    }, 1000);
     switch (gamePhase) {
       case GamePhase.SessionClosed: {
         await this.sync_SessionClosed();
@@ -1963,9 +2006,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         break;
       }
     }
-    setTimeout(() => {
-      addClassToDOM("interface-ready");
-    }, 1000);
   }
 
   async cleanupPhase(gamePhase?: GamePhase) {
@@ -2041,7 +2081,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      this.initializeAmbientAudio(),
+      this.initializePreSessionSong(),
       this.preloadIntroVideo(),
     ]);
     // this.addStartVideoButtonListeners();
@@ -2050,9 +2090,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private async cleanup_SessionLoading(): Promise<void> {
     await this.killCountdown(true);
     void this.killLoadingScreenItems();
-    if (getUser().isGM) {
-      void this.sessionStartingPlaylist.stopAll();
-    }
+    void this.killPreSessionSong();
     removeClassFromDOM("session-loading");
   }
 
@@ -2074,19 +2112,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   async sync_SessionStarting(): Promise<void> {
     addClassToDOM("session-starting");
-    if (getUser().isGM) {
-      // GM already has video preloaded
-      await this.playIntroVideo();
-    } else {
-      // Late-join handling for players
-      try {
-        await this.handleLateJoinSync();
-      } catch (error) {
-        kLog.error("Failed to sync video playback:", error);
-        // Fallback to normal playback if sync fails
-        await this.playIntroVideo();
-      }
-    }
+    await this.playIntroVideo();
   }
 
   private async cleanup_SessionStarting(): Promise<void> {
@@ -2147,30 +2173,196 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region LOCATIONS ~
 
-  get locationContainer(): JQuery {
+  get locationContainer$(): JQuery {
     return this.overlay$.find("#LOCATIONS");
   }
-  get locationName(): JQuery {
-    return this.locationContainer.find(".location-name");
+  get locationName$(): JQuery {
+    return this.locationContainer$.find(".location-name");
   }
-  get locationImage(): JQuery {
-    return this.locationContainer.find(".location-image");
+  get locationImage$(): JQuery {
+    return this.locationContainer$.find(".location-image");
   }
-  get locationDescription(): JQuery {
-    return this.locationContainer.find(".location-description");
+  get locationDescription$(): JQuery {
+    return this.locationContainer$.find(".location-description");
+  }
+
+  private addActorsToLocationData(locationData: Location.Data): Location.FullData {
+    const { pcData, npcData } = locationData;
+    const actors = getActors();
+    Object.values(pcData).forEach((data) => {
+      const actor = actors.find((a) => a.id === data.id) as Maybe<EunosActor & {system: ActorDataPC}>;
+      if (actor) {
+        data.actor = actor;
+        // Check if actor is online; if not, set isMasked to true
+        if (!actor.system.isOnline) {
+          data.isMasked = true;
+        }
+      } else {
+        throw new Error(`PC Actor '${data.id}' for slot '${data.slot}' not found`);
+      }
+    });
+    Object.values(npcData).forEach((data) => {
+      const actor = actors.find((a) => a.id === data.id);
+      if (actor) {
+        data.actor = actor;
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete npcData[data.slot];
+      }
+    });
+    return locationData as Location.FullData;
+  }
+
+  public getLocationData(location: string): Maybe<Location.FullData> {
+    const settingData = getSettings().get("eunos-kult-hacks", "locationData");
+    if (!(location in settingData) || !settingData[location]) {
+      if (!(location in LOCATIONS && LOCATIONS[location as KeyOf<typeof LOCATIONS>])) {
+        kLog.error(
+          `Location ${location} not found in settingData or in LOCATIONS constant`,
+        );
+        return undefined;
+      }
+
+      const staticData: Location.StaticData = LOCATIONS[location as KeyOf<typeof LOCATIONS>];
+      const fullData: Location.Data = {
+        ...getLocationDefaultDynamicData(),
+        ...staticData,
+      };
+      settingData[location] = fullData;
+    } else {
+      const fullData: Location.Data = {
+        ...getLocationDefaultDynamicData(),
+        ...settingData[location]
+      };
+      settingData[location] = fullData;
+    }
+    this.addActorsToLocationData(settingData[location] as Location.Data);
+    return settingData[location] as Location.FullData;
+  }
+
+  private async setLocationData(location: string, data: Location.Data) {
+    const curData = getSetting("locationData");
+    curData[location] = data;
+    await setSetting("locationData", curData);
+    void this.render({ parts: ["pcs", "pcsGM", "npcs", "npcsGM", "locations"] });
+  }
+
+  public async setLocationValue(
+    location: string,
+    dotKey: string,
+    value: unknown,
+  ) {
+    const locationData = this.getLocationData(location);
+    if (!locationData) {
+      throw new Error(`Location ${location} not found`);
+    }
+    const curVal: unknown = foundry.utils.getProperty(locationData, dotKey);
+    if (curVal === value) {
+      return;
+    }
+    foundry.utils.setProperty(locationData, dotKey, value);
+    await this.setLocationData(location, locationData);
+  }
+
+  private getLocationPCData(
+    location: string,
+    pcRef: number | string | EunosActor,
+  ): Maybe<Location.CharacterData & {actor: EunosActor}> {
+    let charData: Maybe<Location.CharacterData & {actor: EunosActor}>;
+    const locationPCData = this.getLocationData(location)?.pcData;
+    if (!locationPCData) {
+      kLog.error(`Location ${location} has no PC data`);
+      return undefined;
+    }
+    if (typeof pcRef === "number") {
+      pcRef = `${pcRef}`;
+    }
+    if (typeof pcRef === "string") {
+      if (["1", "2", "3", "4", "5"].includes(pcRef)) {
+        charData = locationPCData[pcRef as "1" | "2" | "3" | "4" | "5"];
+      } else {
+        if (isDocUUID(pcRef)) {
+          const actor = fromUuidSync<EunosActor>(pcRef) as Maybe<EunosActor>;
+          if (!(actor instanceof Actor)) {
+            kLog.error(`Invalid PC reference: ${pcRef}`);
+            return undefined;
+          }
+          if (!actor.id) {
+            kLog.error(`Actor ${actor.name} has no ID`);
+            return undefined;
+          }
+          pcRef = actor.id;
+        }
+        if (isDocID(pcRef)) {
+          const actor = getActors().find((a) => a.id === pcRef);
+          if (!(actor instanceof Actor)) {
+            kLog.error(`Invalid PC reference: ${pcRef}`);
+            return undefined;
+          }
+          charData = Object.values(locationPCData).find(
+            (data) => data.id === pcRef,
+          );
+        }
+      }
+    } else if (pcRef instanceof Actor) {
+      charData = Object.values(locationPCData).find(
+        (data) => data.id === (pcRef as EunosActor).id,
+      );
+    }
+    if (!charData) {
+      kLog.error(
+        `Character data not found for ${pcRef instanceof Actor ? (pcRef.name ?? "") : String(pcRef)}`,
+      );
+      return undefined;
+    }
+    return charData;
+  }
+
+  private async setLocationPCData(
+    location: string,
+    fullData: Location.CharacterData,
+  ) {
+    const { actor, ...data } = fullData;
+    await this.setLocationValue(location, `pcData.${data.slot}`, data);
+  }
+
+  public async setLocationPCValue(
+    location: string,
+    pcRef: number | string | EunosActor,
+    dotKey: string,
+    value: unknown,
+  ) {
+    const locationPCData = this.getLocationPCData(location, pcRef);
+    if (!locationPCData) {
+      throw new Error(
+        `Character data not found for ${pcRef instanceof Actor ? (pcRef.name ?? "") : String(pcRef)}`,
+      );
+    }
+    const curVal: unknown = foundry.utils.getProperty(locationPCData, dotKey);
+    if (curVal === value) {
+      return;
+    }
+    foundry.utils.setProperty(locationPCData, dotKey, value);
+    await this.setLocationPCData(location, locationPCData);
   }
 
   public initializeLocation() {
     const location = getSetting("currentLocation");
-    if (!location || !(location in LOCATIONS)) {
+    const locationData = this.getLocationData(location);
+    if (!locationData) {
       kLog.error(`Location ${location} not found`);
       return;
     }
-    this.goToLocation(location as KeyOf<typeof LOCATIONS>, true);
+    this.goToLocation(location, true);
   }
 
-  public async setLocation(location: KeyOf<typeof LOCATIONS>) {
+  public async setLocation(location: string) {
     if (!getUser().isGM) {
+      return;
+    }
+    const locationData = this.getLocationData(location);
+    if (!locationData) {
+      kLog.error(`Location ${location} not found`);
       return;
     }
     await setSetting("currentLocation", location);
@@ -2179,21 +2371,34 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
   }
 
-  public goToLocation(location: KeyOf<typeof LOCATIONS>, isInstant = false) {
-    const locationData = LOCATIONS[location];
+  public goToLocation(location: string, isInstant = false) {
+    const locationData = this.getLocationData(location);
     if (!locationData) {
       kLog.error("Location not found", { location });
       return;
     }
 
-    const { name, image, description, mapTransforms } = locationData;
+    const {
+      name,
+      image,
+      description,
+      mapTransforms,
+      pcData,
+      npcData,
+      playlists,
+    } = locationData;
 
     // Construct a timeline that will animate all of the map transforms smoothly and simultaneously
 
     const timeline = gsap
-      .timeline({ paused: true })
+      .timeline({
+        paused: true,
+        onComplete: () => {
+          void this.render({ parts: ["pcs", "pcsGM", "npcs", "npcsGM", "locations"] });
+        },
+      })
       .to(
-        this.locationContainer,
+        this.locationContainer$,
         {
           y: "-=200",
           x: "-=100",
@@ -2205,11 +2410,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         0,
       )
       .call(() => {
-        this.locationName.text(name);
-        this.locationImage.attr("src", image ?? "");
-        this.locationDescription.html(description ?? "");
+        this.locationName$.text(name);
+        this.locationImage$.attr("src", image ?? "");
+        this.locationDescription$.html(description ?? "");
       })
-      .to(this.locationContainer, {
+      .to(this.locationContainer$, {
         y: 0,
         x: 0,
         filter: "blur(0)",
@@ -2231,7 +2436,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
 
     timeline.to(
-      this.locationContainer,
+      this.locationContainer$,
       {
         opacity: 1,
         duration: 1,
@@ -2241,11 +2446,43 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
 
     if (isInstant) {
-      timeline.progress(1);
+      timeline.progress(0.9).play();
     } else {
       timeline.play();
     }
   }
+
+  public async togglePCSpotlight(pcID: IDString, isSpotlit?: boolean) {
+    const pcData = this.getLocationPCData(getSetting("currentLocation"), pcID);
+    if (!pcData) {
+      kLog.error(`PC ${pcID} not found`);
+      return;
+    }
+    pcData.isSpotlit = isSpotlit ?? !pcData.isSpotlit;
+    await this.setLocationPCData(getSetting("currentLocation"), pcData);
+  }
+
+  public async togglePCHide(pcID: IDString, isHidden?: boolean) {
+    const pcData = this.getLocationPCData(getSetting("currentLocation"), pcID);
+    if (!pcData) {
+      kLog.error(`PC ${pcID} not found`);
+      return;
+    }
+    pcData.isHidden = isHidden ?? !pcData.isHidden;
+    await this.setLocationPCData(getSetting("currentLocation"), pcData);
+  }
+
+  public async togglePCDimmed(pcID: IDString, isDimmed?: boolean) {
+    const pcData = this.getLocationPCData(getSetting("currentLocation"), pcID);
+    if (!pcData) {
+      kLog.error(`PC ${pcID} not found`);
+      return;
+    }
+    pcData.isDimmed = isDimmed ?? !pcData.isDimmed;
+    await this.setLocationPCData(getSetting("currentLocation"), pcData);
+  }
+
+
 
   // #region Location Plotting ~
   private initialValues: {
@@ -2347,7 +2584,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (elements.length > 0) {
         const currentValue = gsap.getProperty(elements[0]!, property) as number;
         const rangeMult = parseFloat(input.attr("data-range-mult") ?? "1");
-        const range = EunosOverlay.instance.getSliderRange(property, currentValue, rangeMult);
+        const range = EunosOverlay.instance.getSliderRange(
+          property,
+          currentValue,
+          rangeMult,
+        );
 
         input
           .attr("min", String(range.min))
@@ -2355,25 +2596,46 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           .val(currentValue)
           .trigger("input");
 
-        valueDisplay.text(EunosOverlay.instance.formatControlValue(controlType, property, currentValue));
+        valueDisplay.text(
+          EunosOverlay.instance.formatControlValue(
+            controlType,
+            property,
+            currentValue,
+          ),
+        );
       }
     } else if (controlType === "background") {
-
-      const currentValue = this.getGradientValues()[property as keyof ReturnType<typeof this.getGradientValues>];
+      const currentValue =
+        this.getGradientValues()[
+          property as keyof ReturnType<typeof this.getGradientValues>
+        ];
       input.val(currentValue).trigger("input");
-      valueDisplay.text(EunosOverlay.instance.formatControlValue(controlType, property, currentValue));
-
+      valueDisplay.text(
+        EunosOverlay.instance.formatControlValue(
+          controlType,
+          property,
+          currentValue,
+        ),
+      );
     } else if (controlType === "filter" && selector) {
       const element = document.querySelector(selector);
       if (!element) return;
 
       const style = window.getComputedStyle(element);
-      const filterRegex = new RegExp(`${property}\\((\\d+(?:\\.\\d+)?(?:deg|%|)?)\\)`);
+      const filterRegex = new RegExp(
+        `${property}\\((\\d+(?:\\.\\d+)?(?:deg|%|)?)\\)`,
+      );
       const match = style.filter.match(filterRegex);
       if (match) {
         const currentValue = parseFloat(match[1] ?? "0");
         input.val(currentValue).trigger("input");
-        valueDisplay.text(EunosOverlay.instance.formatControlValue(controlType, property, currentValue));
+        valueDisplay.text(
+          EunosOverlay.instance.formatControlValue(
+            controlType,
+            property,
+            currentValue,
+          ),
+        );
       }
     }
   }
@@ -2390,9 +2652,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (controlType === "transform" && selector) {
         const elements = document.querySelectorAll(selector);
         if (elements.length > 0) {
-          const currentValue = gsap.getProperty(elements[0]!, property!) as number;
+          const currentValue = gsap.getProperty(
+            elements[0]!,
+            property!,
+          ) as number;
           const rangeMult = parseFloat(input.attr("data-range-mult") ?? "1");
-          const range = EunosOverlay.instance.getSliderRange(property!, currentValue, rangeMult);
+          const range = EunosOverlay.instance.getSliderRange(
+            property!,
+            currentValue,
+            rangeMult,
+          );
 
           input
             .attr("min", String(range.min))
@@ -2400,7 +2669,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             .val(currentValue)
             .trigger("input");
 
-          valueDisplay.text(this.formatControlValue(controlType, property!, currentValue));
+          valueDisplay.text(
+            this.formatControlValue(controlType, property!, currentValue),
+          );
         }
       }
     });
@@ -2417,10 +2688,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         const element = document.querySelector(selector) as HTMLElement;
         if (!element) return;
 
-        const value = this.getGradientValues()[property as keyof ReturnType<typeof this.getGradientValues>];
+        const value =
+          this.getGradientValues()[
+            property as keyof ReturnType<typeof this.getGradientValues>
+          ];
 
         input.val(value).trigger("input");
-        valueDisplay.text(this.formatControlValue(controlType!, property!, value));
+        valueDisplay.text(
+          this.formatControlValue(controlType!, property!, value),
+        );
       }
     });
 
@@ -2437,13 +2713,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         if (!element) return;
 
         const style = window.getComputedStyle(element);
-        const filterRegex = new RegExp(`${property}\\((\\d+(?:\\.\\d+)?(?:deg|%|)?)\\)`);
+        const filterRegex = new RegExp(
+          `${property}\\((\\d+(?:\\.\\d+)?(?:deg|%|)?)\\)`,
+        );
         const match = style.filter.match(filterRegex);
 
         if (match) {
           const value = parseFloat(match[1] ?? "0");
           input.val(value).trigger("input");
-          valueDisplay.text(this.formatControlValue(controlType!, property, value));
+          valueDisplay.text(
+            this.formatControlValue(controlType!, property, value),
+          );
         }
       }
     });
@@ -2483,7 +2763,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 0.01,
           ease: "none",
         })
-        .set(this.midZIndexMask$, { zIndex: 50 })
+        .set([this.midZIndexMask$, this.maxZIndexBars$], { zIndex: 50 })
         .set(this.uiRight$, { zIndex: 51 })
         .to(this.uiRight$, {
           opacity: 1,
@@ -2549,104 +2829,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Prepare location data for stage
     const location = getSetting("currentLocation");
-    const {pcData, npcData, playlists} = getSetting("locationData")[location as keyof typeof LOCATIONS] ?? LOCATION_DEFAULT_DATA;
-
-    // Prepare NPC data for stage
-    const npcContextData = objMap(npcData, (data) => {
-      if (data && typeof data === "object" && "id" in data && data.id && typeof data.id === "string") {
-        const actor = getGame().actors.get(data.id) as Maybe<EunosActor>;
-        if (actor) {
-          (data as LocationCharacterData).actor = actor;
-        }
-        return data;
-      }
-    })
-
-    // Prepare PC data for stage
-    const pcContextData: Partial<Record<"1"|"2"|"3"|"4"|"5", LocationCharacterData>> = {};
-
-    // Get all PCs controlled by non-GM users
-    const pcsAndUsers: Map<EunosActor, User> = new Map(
-      getUsers()
-        .filter((user) => !user.isGM)
-        .map((user) => {
-          const pc = user.character;
-          if (!pc?.isPC()) {
-            kLog.error(`Unable to find the character assigned to '${user.name}'`);
-            return [] as unknown as [EunosActor, User];
-          }
-          return [pc, user];
-        })
-        .filter((entry): entry is [EunosActor, User] => entry.length > 0)
-    );
-
-    // Sort PCs by last word in name, and limit to 5.
-    const sortedPCs = sortDocsByLastWord(Array.from(pcsAndUsers.keys())).slice(0, 5);
-
-    // Iterate through slots "1" through "5" and assign PC actor to 'actor', performing the following checks:
-    // - add the ownerID to the pcData object
-    // - if the character's controlling user is not connected, set "isMasked" to true
-    // - if the slot is not contained in the location data's 'pcData' object, set "isHidden" to true
-    // - set 'isDimmed' and 'isSpotlit' to the respective location data values.
-    for (let i = 1; i <= 5; i++) {
-      const slot = `${i}` as "1" | "2" | "3" | "4" | "5";
-      const actor = sortedPCs[i - 1];
-
-      if (!actor) {
-        pcContextData[slot] = {
-          slot,
-          id: "",
-          isSpotlit: false,
-          isDimmed: false,
-          isMasked: false,
-          isHidden: true,
-        }
-        continue;
-      }
-      const owner = pcsAndUsers.get(actor);
-      if (!owner) {
-        pcContextData[slot] = {
-          slot,
-          id: "",
-          isSpotlit: false,
-          isDimmed: false,
-          isMasked: false,
-          isHidden: true,
-        }
-        continue;
-      }
-
-      if (!actor.id) {
-        kLog.error(`Unable to find the ID for '${actor.name}'`);
-      }
-
-      pcContextData[slot] = {
-        slot,
-        actor,
-        id: actor.id ?? "",
-        isSpotlit: pcData[slot]?.isSpotlit ?? false,
-        isDimmed: pcData[slot]?.isDimmed ?? false,
-        isMasked: !owner.active,
-        isHidden: !(slot in pcData),
-      }
+    const locationData = this.getLocationData(location);
+    if (!locationData) {
+      kLog.error(`Location ${location} not found`);
+      return context;
     }
-
-    // Now, iterate again through pcContextData: If ALL slots are hidden, set 'isHidden' to false for all slots.
-    const allHidden = Object.values(pcContextData).every((pc) => pc.isHidden);
-    if (allHidden) {
-      Object.values(pcContextData).forEach((pc) => {
-        pc.isHidden = false;
-      });
-    }
+    const { pcData, npcData, playlists } = locationData;
 
     // Prepare loading screen item data
     Object.assign(context, {
       location,
-      npcData: npcContextData,
-      pcData: pcContextData,
+      locationData,
+      npcData,
+      pcData,
       LOADING_SCREEN_DATA,
       sessionScribeID: getSetting("sessionScribeID"),
-      isGM: getUser().isGM
+      isGM: getUser().isGM,
     });
 
     if (!getUser().isGM) {
@@ -2666,10 +2864,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const users = getUsers().map((user: User) => {
       const status =
         !user.active ||
-        this.videoLoadStatus.get(user.id ?? "") === VideoLoadStatus.NotConnected
-          ? VideoLoadStatus.NotConnected
+        this.videoLoadStatus.get(user.id ?? "") === MediaLoadStatus.NotConnected
+          ? MediaLoadStatus.NotConnected
           : (this.videoLoadStatus.get(user.id ?? "") ??
-            VideoLoadStatus.PreloadNotRequested);
+            MediaLoadStatus.PreloadNotRequested);
 
       return {
         id: user.id,
@@ -2677,11 +2875,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         active: user.active,
         status,
         statusClass: status.toLowerCase(),
-        isNotConnected: status === VideoLoadStatus.NotConnected,
-        isPreloadNotRequested: status === VideoLoadStatus.PreloadNotRequested,
-        isLoadPending: status === VideoLoadStatus.LoadPending,
-        isLoading: status === VideoLoadStatus.Loading,
-        isReady: status === VideoLoadStatus.Ready,
+        isNotConnected: status === MediaLoadStatus.NotConnected,
+        isPreloadNotRequested: status === MediaLoadStatus.PreloadNotRequested,
+        isLoadPending: status === MediaLoadStatus.LoadPending,
+        isLoading: status === MediaLoadStatus.Loading,
+        isReady: status === MediaLoadStatus.Ready,
       };
     });
 
@@ -2705,7 +2903,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return {
           ...config,
           initialValue,
-          ...this.getSliderRange(config.property, initialValue, config.rangeMult),
+          ...this.getSliderRange(
+            config.property,
+            initialValue,
+            config.rangeMult,
+          ),
         };
       },
     );
@@ -2756,7 +2958,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.addPlottingControlListeners();
   }
 
-  private formatControlValue(controlType: string, property: string, value: number): string {
+  private formatControlValue(
+    controlType: string,
+    property: string,
+    value: number,
+  ): string {
     switch (property) {
       case "hue-rotate":
       case "rotationX":
@@ -2775,59 +2981,75 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private addPlottingControlListeners(): void {
-    $(document).on("input.plottingControls", "#LOCATION-PLOTTING-PANEL input[type='range']", (event) => {
-      const input = $(event.currentTarget);
-      const controlType = input.attr("data-control-type");
-      const property = input.attr("data-property");
-      const selector = input.attr("data-selector");
-      const value = parseFloat(input.val() as string);
+    $(document).on(
+      "input.plottingControls",
+      "#LOCATION-PLOTTING-PANEL input[type='range']",
+      (event) => {
+        const input = $(event.currentTarget);
+        const controlType = input.attr("data-control-type");
+        const property = input.attr("data-property");
+        const selector = input.attr("data-selector");
+        const value = parseFloat(input.val() as string);
 
-      if (!controlType || !property) return;
+        if (!controlType || !property) return;
 
-      // Update value display using the shared formatting method
-      const valueDisplay = input.closest(".control-row").find(".value-display");
-      valueDisplay.text(this.formatControlValue(controlType, property, value));
+        // Update value display using the shared formatting method
+        const valueDisplay = input
+          .closest(".control-row")
+          .find(".value-display");
+        valueDisplay.text(
+          this.formatControlValue(controlType, property, value),
+        );
 
-      // Apply the value based on control type
-      if (controlType === "transform" && selector) {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach((element) => {
-          gsap.set(element, { [property]: value });
-        });
-      } else if (controlType === "background" && selector) {
-        const controls = this.overlay$.find(".gradient-controls");
-        const xInput = controls.find("input[data-property='circlePositionX']");
-        const yInput = controls.find("input[data-property='circlePositionY']");
-        const stopInput = controls.find("input[data-property='gradientStopPercentage']");
+        // Apply the value based on control type
+        if (controlType === "transform" && selector) {
+          const elements = document.querySelectorAll(selector);
+          elements.forEach((element) => {
+            gsap.set(element, { [property]: value });
+          });
+        } else if (controlType === "background" && selector) {
+          const controls = this.overlay$.find(".gradient-controls");
+          const xInput = controls.find(
+            "input[data-property='circlePositionX']",
+          );
+          const yInput = controls.find(
+            "input[data-property='circlePositionY']",
+          );
+          const stopInput = controls.find(
+            "input[data-property='gradientStopPercentage']",
+          );
 
-        const xVal = parseInt(xInput.val() as string);
-        const yVal = parseInt(yInput.val() as string);
-        const stopVal = parseInt(stopInput.val() as string);
+          const xVal = parseInt(xInput.val() as string);
+          const yVal = parseInt(yInput.val() as string);
+          const stopVal = parseInt(stopInput.val() as string);
 
-        const gradientString = `radial-gradient(circle at ${xVal}% ${yVal}%, transparent, rgba(0, 0, 0, 0.9) ${stopVal}%)`;
+          const gradientString = `radial-gradient(circle at ${xVal}% ${yVal}%, transparent, rgba(0, 0, 0, 0.9) ${stopVal}%)`;
 
-        kLog.log("GRADIENT CHANGE", { xVal, yVal, stopVal, gradientString });
+          kLog.log("GRADIENT CHANGE", { xVal, yVal, stopVal, gradientString });
 
-        const elements = document.querySelectorAll(selector);
-        elements.forEach((element) => {
-          (element as HTMLElement).style.background = gradientString;
-        });
-      } else if (controlType === "filter" && selector) {
-        const controls = this.overlay$.find(".filter-controls");
-        const filterInputs = controls.find("input[type='range']");
+          const elements = document.querySelectorAll(selector);
+          elements.forEach((element) => {
+            (element as HTMLElement).style.background = gradientString;
+          });
+        } else if (controlType === "filter" && selector) {
+          const controls = this.overlay$.find(".filter-controls");
+          const filterInputs = controls.find("input[type='range']");
 
-        const filterString = Array.from(filterInputs).map(input => {
-          const filterProperty = $(input).attr("data-property");
-          const filterValue = $(input).val() as string;
-          return `${filterProperty}(${filterValue}${filterProperty === "hue-rotate" ? "deg" : ""})`;
-        }).join(" ");
+          const filterString = Array.from(filterInputs)
+            .map((input) => {
+              const filterProperty = $(input).attr("data-property");
+              const filterValue = $(input).val() as string;
+              return `${filterProperty}(${filterValue}${filterProperty === "hue-rotate" ? "deg" : ""})`;
+            })
+            .join(" ");
 
-        const elements = document.querySelectorAll(selector);
-        elements.forEach((element) => {
-          (element as HTMLElement).style.filter = filterString;
-        });
-      }
-    });
+          const elements = document.querySelectorAll(selector);
+          elements.forEach((element) => {
+            (element as HTMLElement).style.filter = filterString;
+          });
+        }
+      },
+    );
   }
 
   private removePlottingControlListeners(): void {
@@ -2835,7 +3057,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
   // #endregion OVERRIDE: ON RENDER ~
 
-  private getSliderRange(property: string, initialValue: number, rangeMult: number): { min: number; max: number } {
+  private getSliderRange(
+    property: string,
+    initialValue: number,
+    rangeMult: number,
+  ): { min: number; max: number } {
     const isAngle = ["rotationX", "rotationY", "rotationZ"].includes(property);
 
     if (isAngle) {
@@ -2845,7 +3071,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const range = rangeMult * Math.abs(initialValue);
     return {
       min: initialValue - range,
-      max: initialValue + range
+      max: initialValue + range,
     };
   }
 }

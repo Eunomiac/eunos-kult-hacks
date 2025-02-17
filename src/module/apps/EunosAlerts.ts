@@ -1,11 +1,12 @@
 // #region IMPORTS ~
 // import C, {K4Influence} from "../scripts/constants.js";
   import {getTemplatePath} from "../scripts/utilities.js";
+  import {Sounds} from "../scripts/constants.js";
 import EunosActor from "../documents/EunosActor.js";
 import {AlertPaths, type SVGPathData} from "../scripts/svgdata.js";
-import * as Sounds from "../scripts/sounds.js";
-import EunosSockets from "../apps/EunosSockets.js";
-import {AlertType, UserTargetRef} from "../scripts/enums.js";
+import EunosMedia from "./EunosMedia";
+import EunosSockets from "./EunosSockets.js";
+import {AlertType, UserTargetRef, EunosMediaTypes} from "../scripts/enums.js";
 // #endregion
 
 // #region === TYPES, ENUMS, INTERFACE AUGMENTATION === ~
@@ -21,7 +22,7 @@ declare namespace EunosAlerts {
     interface Base {
       type: AlertType;
       target: UserTargetRef|IDString|UUIDString;
-      soundName?: string;
+      soundName: string;
       soundDelay?: number;
       duration?: number;
       skipQueue?: boolean;
@@ -167,7 +168,6 @@ const GSAPEFFECTS: Record<string, GSAPEffectDefinition> = {
     effect: (target, config) => {
       const {duration, ease, height, soundName} = config;
       return gsap.timeline()
-        .add(() => { Sounds.play(soundName as string); })
         .fromTo(target,
           {
             height: 0
@@ -239,34 +239,30 @@ const ALERTANIMATIONS: Record<AlertType, {
     in: {
       name: "testAlertIn",
       effect: (target, config) => {
-        let {duration,  ease, soundName, soundDelay} = config;
-        soundDelay ??= Sounds.SoundDelays[soundName as keyof typeof Sounds.SoundDelays] ?? 0;
+        const {duration, ease} = config;
         const target$ = $(target as HTMLElement);
         const container$ = target$.find(".alert-frame-body");
         const containerHeight = container$.height() ?? 0;
         const imgLogo$ = target$.find("img.k4-alert-logo");
         const heading$ = target$.find("h2");
-        // const hr$ = target$.find("hr");
+        const hr$ = target$.find("hr");
         const body$ = target$.find("p");
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         const tl = gsap.timeline()
           ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
           ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
-          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease: "power2.in", soundName}, soundDelay)
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, 0.5)
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
-          // ["spreadOut"](hr$, {endWidth: 500})
+          ["spreadOut"](hr$, {endWidth: 500})
           ["fadeIn"](body$, {}, "<50%")
-          // .add(() => { Sounds.play("subsonic-stinger"); }, 0.25)
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
       defaults: {
         duration: 1,
         stagger: 0.25,
-        ease: "power3.in",
-        soundName: "slow-hit",
-        soundDelay: null
+        ease: "power3.in"
       },
       extendTimeline: true
     },
@@ -289,34 +285,30 @@ const ALERTANIMATIONS: Record<AlertType, {
     in: {
       name: "seriousWoundAlertIn",
       effect: (target, config) => {
-        let {duration,  ease, soundName, soundDelay} = config;
-        soundDelay ??= Sounds.SoundDelays[soundName as keyof typeof Sounds.SoundDelays] ?? 0;
+        const {duration,  ease} = config;
         const target$ = $(target as HTMLElement);
         const container$ = target$.find(".alert-frame-body");
         const containerHeight = container$.height() ?? 0;
         const imgLogo$ = target$.find("img.k4-alert-logo");
         const heading$ = target$.find("h2");
-        // const hr$ = target$.find("hr");
+        const hr$ = target$.find("hr");
         const body$ = target$.find("p");
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         const tl = gsap.timeline()
           ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
           ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
-          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease: "power2.in", soundName}, soundDelay)
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
-          // ["spreadOut"](hr$, {endWidth: 500})
+          ["spreadOut"](hr$, {endWidth: 500})
           ["fadeIn"](body$, {}, "<50%")
-          // .add(() => { Sounds.play("subsonic-stinger"); }, 0.25)
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
       defaults: {
         duration: 1,
         stagger: 0.25,
-        ease: "power3.in",
-        soundName: "alert-hit-wound-1",
-        soundDelay: null
+        ease: "power3.in"
       },
       extendTimeline: true
     },
@@ -339,34 +331,30 @@ const ALERTANIMATIONS: Record<AlertType, {
     in: {
       name: "criticalWoundAlertIn",
       effect: (target, config) => {
-        let {duration,  ease, soundName, soundDelay} = config;
-        soundDelay ??= Sounds.SoundDelays[soundName as keyof typeof Sounds.SoundDelays] ?? 0;
+        const {duration, ease} = config;
         const target$ = $(target as HTMLElement);
         const container$ = target$.find(".alert-frame-body");
         const containerHeight = container$.height() ?? 0;
         const imgLogo$ = target$.find("img.k4-alert-logo");
         const heading$ = target$.find("h2");
-        // const hr$ = target$.find("hr");
+        const hr$ = target$.find("hr");
         const body$ = target$.find("p");
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         const tl = gsap.timeline()
           ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
           ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
-          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease: "power2.in", soundName}, soundDelay)
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
-          // ["spreadOut"](hr$, {endWidth: 500})
+          ["spreadOut"](hr$, {endWidth: 500})
           ["fadeIn"](body$, {}, "<50%")
-          .add(() => { Sounds.play("subsonic-stinger"); }, 0.25)
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
       defaults: {
         duration: 1,
         stagger: 0.25,
-        ease: "power3.in",
-        soundName: "alert-hit-wound-2",
-        soundDelay: null
+        ease: "power3.in"
       },
       extendTimeline: true
     },
@@ -389,34 +377,30 @@ const ALERTANIMATIONS: Record<AlertType, {
     in: {
       name: "stabilityAlertIn",
       effect: (target, config) => {
-        let {duration,  ease, soundName, soundDelay} = config;
-        soundDelay ??= Sounds.SoundDelays[soundName as keyof typeof Sounds.SoundDelays] ?? 0;
+        const {duration, ease} = config;
         const target$ = $(target as HTMLElement);
         const container$ = target$.find(".alert-frame-body");
         const containerHeight = container$.height() ?? 0;
         const imgLogo$ = target$.find("img.k4-alert-logo");
         const heading$ = target$.find("h2");
-        // const hr$ = target$.find("hr");
+        const hr$ = target$.find("hr");
         const body$ = target$.find("p");
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         const tl = gsap.timeline()
           ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
           ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
-          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease: "power2.in", soundName}, soundDelay)
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
-          // ["spreadOut"](hr$, {endWidth: 500})
+          ["spreadOut"](hr$, {endWidth: 500})
           ["fadeIn"](body$, {}, "<50%")
-          // .add(() => { Sounds.play("subsonic-stinger"); }, 0.25)
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
       defaults: {
         duration: 1,
         stagger: 0.25,
-        ease: "power3.in",
-        soundName: "alert-hit-stability",
-        soundDelay: null
+        ease: "power3.in"
       },
       extendTimeline: true
     },
@@ -439,34 +423,30 @@ const ALERTANIMATIONS: Record<AlertType, {
     in: {
       name: "shatterIllusionAlertIn",
       effect: (target, config) => {
-        let {duration,  ease, soundName, soundDelay} = config;
-        soundDelay ??= Sounds.SoundDelays[soundName as keyof typeof Sounds.SoundDelays] ?? 0;
+        const {duration, ease} = config;
         const target$ = $(target as HTMLElement);
         const container$ = target$.find(".alert-frame-body");
         const containerHeight = container$.height() ?? 0;
         const imgLogo$ = target$.find("img.k4-alert-logo");
         const heading$ = target$.find("h2");
-        // const hr$ = target$.find("hr");
+        const hr$ = target$.find("hr");
         const body$ = target$.find("p");
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         const tl = gsap.timeline()
           ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
           ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
-          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease: "power2.in", soundName}, soundDelay)
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
-          // ["spreadOut"](hr$, {endWidth: 500})
+          ["spreadOut"](hr$, {endWidth: 500})
           ["fadeIn"](body$, {}, "<50%")
-          // .add(() => { Sounds.play("subsonic-stinger"); }, 0.25)
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
       defaults: {
         duration: 1,
         stagger: 0.25,
-        ease: "power3.in",
-        soundName: "alert-hit-shatter-illusion",
-        soundDelay: null
+        ease: "power3.in"
       },
       extendTimeline: true
     },
@@ -495,18 +475,17 @@ const ALERTANIMATIONS: Record<AlertType, {
         const containerHeight = container$.height() ?? 0;
         const imgLogo$ = target$.find("img.k4-alert-logo");
         const heading$ = target$.find("h2");
-        // const hr$ = target$.find("hr");
+        const hr$ = target$.find("hr");
         const body$ = target$.find("p");
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
         const tl = gsap.timeline()
           ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
           ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
-          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease: "power2.in"}, "<50%")
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
-          // ["spreadOut"](hr$, {endWidth: 500})
+          ["spreadOut"](hr$, {endWidth: 500})
           ["fadeIn"](body$, {}, "<50%")
-          .add(() => { Sounds.play("subsonic-stinger"); }, 0.25)
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -689,12 +668,14 @@ class EunosAlerts {
   }
   static readonly AlertQueue: OrderedSet<EunosAlerts> = new OrderedSet<EunosAlerts>();
 
-  static Alert(fullData: Partial<EunosAlerts.Data>, soundIndex = 1) {
-    const {target, ...data} = fullData;
-    data.soundName ??= `alert-hit-${soundIndex < 10 ? `0${soundIndex}` : soundIndex}.ogg`;
+  static Alert(fullData: Partial<EunosAlerts.Data>) {
+    const type = fullData.type ?? AlertType.simple;
+    const {target, ...data} = {
+      ...EunosAlerts.GetDefaultData(type),
+      ...fullData
+    };
     const sockets = EunosSockets.getInstance();
     const userTargets = sockets.getUsersFromTarget(target);
-    kLog.log(`target: ${target} -> Users: ${userTargets.map((user) => user.name).join(", ")}`,0);
     return Promise.all(userTargets.map((user) => user.id && sockets.call(
         "Alert",
         user.id,
@@ -754,7 +735,7 @@ class EunosAlerts {
           header: "",
           body: "",
           soundName: defaultSoundName,
-          // displayDuration: 5,
+          displayDuration: 5,
           svgPaths: AlertPaths,
           logoImg: "modules/eunos-kult-hacks/assets/images/logo-bird.webp"
         } as EunosAlerts.Data.Simple & EunosAlerts.TypedData<T>;
@@ -796,7 +777,7 @@ class EunosAlerts {
   // #endregion
 
   // #region CONSTRUCTOR
-  soundName: string|null = null;
+  sound: EunosMedia<EunosMediaTypes.audio>|null = null;
   soundDelay: number|null = null;
   constructor(data: Partial<EunosAlerts.Data>) {
     this._type = data.type ?? AlertType.simple;
@@ -804,10 +785,10 @@ class EunosAlerts {
       ...EunosAlerts.GetDefaultData(this._type),
       ...data
     };
-    this.soundName = soundName ?? null;
-    this.soundDelay = soundDelay ?? Sounds.SoundDelays[soundName as keyof typeof Sounds.SoundDelays]?.delay ?? null;
+    this.sound = EunosMedia.Sounds.get(soundName) ?? null;
+    this.soundDelay = soundDelay ?? this.sound?.delay ?? null;
     this._context = contextData as EunosAlerts.Context;
-    this._displayDuration = displayDuration ?? Sounds.SoundDelays[soundName as keyof typeof Sounds.SoundDelays]?.displayDuration ?? 5;
+    this._displayDuration = displayDuration ?? this.sound?.displayDuration ?? 5;
   }
   // #endregion
 
@@ -824,6 +805,9 @@ class EunosAlerts {
     }
     // return;
     if (!this.hasTimeline()) {
+      if (!this.sound) {
+        kLog.log("No sound, creating");
+      }
       const animations = ALERTANIMATIONS[this.type];
       kLog.log("No timeline, creating");
       const self = this;
@@ -836,8 +820,9 @@ class EunosAlerts {
           }
         }
       )
-        .add(animations.in.effect(this._element!, {...animations.in.defaults, soundName: this.soundName, soundDelay: this.soundDelay}))
-        .add(animations.out.effect(this._element!, animations.out.defaults), `>+=${this.displayDuration}`);
+        .add(animations.in.effect(this._element!, animations.in.defaults))
+        .add(animations.out.effect(this._element!, animations.out.defaults), `>+=${this.displayDuration}`)
+        .add(() => { void this.sound?.play(); }, this.soundDelay ?? 0.5);
       kLog.log("Timeline created", this._timeline);
     }
     kLog.log("Alert ready");

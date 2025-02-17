@@ -119,11 +119,8 @@ export default function registerSettings() {
     type: Object,
     default: {
       "Willow's Wending Entry": {
-        isPromoted: true,
-        isHidden: false,
-        pcData: {},
-        npcData: {},
-        playlists: []
+        name: "Willow's Wending",
+        mapTransforms: []
       }
     }
   })

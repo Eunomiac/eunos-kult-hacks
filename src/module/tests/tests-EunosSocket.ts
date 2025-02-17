@@ -1,9 +1,9 @@
 import type { Quench, QuenchBatchContext } from "@ethaks/fvtt-quench";
 import EunosSockets from "../apps/EunosSockets";
-import EunosOverlay, { VideoLoadStatus } from "../apps/EunosOverlay";
+import EunosOverlay from "../apps/EunosOverlay";
 import EunosAlerts, { AlertType } from "../apps/EunosAlerts";
 import { convertTorontoTime, countdownUntil } from "../scripts/utilities";
-import { UserTargetRef } from "../scripts/enums";
+import { UserTargetRef, MediaLoadStatus } from "../scripts/enums";
 interface TestResult {
   fullTitle: string;
   passed: boolean;
@@ -406,7 +406,7 @@ function registerSocketCallTests(quench: Quench): void {
             UserTargetRef.gm,
             {
               userId,
-              status: VideoLoadStatus.Ready,
+              status: MediaLoadStatus.Ready,
             },
           );
           void expect(promise).to.be.instanceOf(Promise);
@@ -623,7 +623,7 @@ function registerMultiUserTests(quench: Quench): void {
                     (u) =>
                       u.id &&
                       overlay.videoLoadStatus.get(u.id) ===
-                        VideoLoadStatus.Ready,
+                        MediaLoadStatus.Ready,
                   );
 
                   // Log progress
@@ -721,7 +721,7 @@ function registerMultiUserTests(quench: Quench): void {
                 UserTargetRef.gm,
                 {
                   userId,
-                  status: VideoLoadStatus.Ready,
+                  status: MediaLoadStatus.Ready,
                 },
               );
 
@@ -860,7 +860,7 @@ function registerMultiUserTests(quench: Quench): void {
                 UserTargetRef.gm,
                 {
                   userId,
-                  status: VideoLoadStatus.Ready,
+                  status: MediaLoadStatus.Ready,
                 },
               );
 

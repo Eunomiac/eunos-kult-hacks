@@ -145,9 +145,8 @@ const Initialize = () => {
 // #endregion ▄▄▄▄▄ INITIALIZATION ▄▄▄▄▄
 
 // #region ████████ GETTERS: Basic Data Lookup & Retrieval ████████ ~
-// @ts-expect-error League of foundry developers is wrong about user not being on game.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-const GMID = (): string | false => getUser().find((user) => user.isGM)?.id ?? false;
+const GMID = (): string | false => getGame().users.find((user) => user.isGM)?.id ?? false;
 // #endregion ▄▄▄▄▄ GETTERS ▄▄▄▄▄
 
 // #region ████████ TYPES: Type Checking, Validation, Conversion, Casting ████████ ~
@@ -1800,6 +1799,92 @@ const objFlatten = <ST>(obj: Index<ST>): Record<string, ST> => {
   }
   return flatObj;
 };
+type DeepFlattenOptions = {
+  isKeepingLastObject?: boolean;
+};
+
+/**
+ * Deeply flattens an object literal into an array of [key, value] tuples
+ * @param obj - The object to flatten
+ * @param options - Configuration options
+ * @param options.isKeepingLastObject - If true, keeps the last level of objects intact. If false, breaks them into their component key/value pairs
+ * @returns Array of [key, value] tuples
+ */
+type DeepKeys<T> = T extends Record<Key, unknown>
+  ? { [K in keyof T]: K | DeepKeys<T[K]> }[keyof T]
+  : never;
+
+type DeepLeafValue<T> = T extends Record<Key, unknown>
+  ? { [K in keyof T]: DeepLeafValue<T[K]> }[keyof T]
+  : T;
+
+type LastObjectKeys<T> = T extends Record<Key, unknown>
+  ? { [K in keyof T]: T[K] extends Record<Key, unknown>
+      ? LastObjectKeys<T[K]>
+      : K
+    }[keyof T]
+  : never;
+
+type LastObjects<T> = T extends Record<Key, unknown>
+  ? T[keyof T] extends Record<Key, unknown>
+    ? { [K in keyof T]: LastObjects<T[K]> }[keyof T]
+    : T
+  : T;
+
+/**
+ * Deeply flattens an object literal into an array of [key, value] tuples, breaking down to primitive values
+ * @param obj - The object to flatten
+ * @param options - Configuration options with isKeepingLastObject: false
+ */
+function objDeepFlatten<T extends Record<Key, unknown>>(
+  obj: T,
+  options: { isKeepingLastObject: false }
+): [DeepKeys<T>, DeepLeafValue<T>][];
+
+/**
+ * Deeply flattens an object literal into an array of [key, value] tuples, stopping at object literals that don't contain nested objects
+ * @param obj - The object to flatten
+ * @param options - Configuration options with isKeepingLastObject: true
+ */
+function objDeepFlatten<T extends Record<Key, unknown>>(
+  obj: T,
+  options: { isKeepingLastObject: true }|{ isKeepingLastObject: undefined }|undefined
+): [LastObjectKeys<T>, LastObjects<T>][];
+
+/**
+ * Implementation signature
+ */
+function objDeepFlatten<T extends Record<Key, unknown>>(
+  obj: T,
+  options: { isKeepingLastObject: boolean|undefined } = { isKeepingLastObject: true }
+): [Key, unknown][] {
+  const { isKeepingLastObject = true } = options;
+
+  function isNestedObject(value: unknown): value is Record<string, unknown> {
+    if (!value || typeof value !== "object") return false;
+    // Don't consider arrays or null as nested objects
+    if (Array.isArray(value) || value === null) return false;
+    // If keeping last objects, check if this object contains other objects
+    if (isKeepingLastObject) {
+      return Object.values(value).some(v => v && typeof v === "object" && !Array.isArray(v) && v !== null);
+    }
+    // If not keeping last objects, all objects should be flattened
+    return true;
+  }
+
+  return Object.entries(obj).reduce<[Key, unknown][]>((acc, [key, value]) => {
+    if (isNestedObject(value)) {
+      // Recursively flatten nested objects
+      return [
+        ...acc,
+        ...(isKeepingLastObject
+            ? objDeepFlatten(value, {...options, isKeepingLastObject: true})
+            : objDeepFlatten(value, {...options, isKeepingLastObject: false}))
+      ];
+    }
+    return [...acc, [key, value]];
+  }, []);
+}
 
 /**
  * This function nullifies all properties of an object or elements of an array.
@@ -2947,7 +3032,7 @@ export {
   // ████████ OBJECTS: Manipulation of Simple Key/Val Objects ████████
   remove, replace, partition, zip,
   objClean, objSize, objMap, objFindKey, objFilter, objForEach, objCompact,
-  objClone, objMerge, objDiff, objExpand, objFlatten, objNullify,
+  objClone, objMerge, objDiff, objExpand, objFlatten, objDeepFlatten,objNullify,
   objFreezeProps,
 
   // ████████ FUNCTIONS: Function Wrapping, Queuing, Manipulation ████████

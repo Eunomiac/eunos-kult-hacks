@@ -5,13 +5,14 @@
 @use "overlay/mid-zindex-mask";
 @use "overlay/top-zindex-mask";
 @use "overlay/location-plotting-panel";
+@use "overlay/max-zindex-bars";
 html {
-	position: absolute;
+	position: static;
 	transform-origin: center center;
 	background: rgb(0, 0, 0);
 
   body {
-    position: relative;
+    position: static;
     background: black;
     margin: 0;
 
@@ -20,17 +21,17 @@ html {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       background-color: black;
-      z-index: 10000;
+      z-index: 20000;
       pointer-events: all;
     }
 
     #EUNOS_OVERLAY {
       position: static;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
       margin-right: -100%;
       margin-bottom: -100%;
@@ -41,13 +42,16 @@ html {
       // #COUNTDOWN,
       // #MID-ZINDEX-MASK,
       #TOP-ZINDEX-MASK,
+      // #MAX-ZINDEX-BARS,
       #SAFETY-BUTTONS,
       #LOCATIONS,
       #NPCS,
       #PCS,
+      #PCS-GM,
+      #NPCS-GM,
       #STAGE,
       #VIDEO-STATUS-PANEL {
-        visibility: hidden !important;
+        visibility: hidden;
       }
     }
 
@@ -56,10 +60,13 @@ html {
       // #COUNTDOWN,
       // #MID-ZINDEX-MASK,
       #TOP-ZINDEX-MASK,
+      // #MAX-ZINDEX-BARS,
       #SAFETY-BUTTONS,
       #LOCATIONS,
       #NPCS,
+      #NPCS-GM,
       #PCS,
+      #PCS-GM,
       #STAGE/* ,
       #VIDEO-STATUS-PANEL */ {
         visibility: hidden;
@@ -69,12 +76,15 @@ html {
     &.session-starting {
       #ALERTS,
       #COUNTDOWN,
-      // #MID-ZINDEX-MASK,
+      #MID-ZINDEX-MASK,
       // #TOP-ZINDEX-MASK,
+      // #MAX-ZINDEX-BARS,
       #SAFETY-BUTTONS,
       // #LOCATIONS,
       // #NPCS,
       // #PCS,
+      // #PCS-GM,
+      // #NPCS-GM,
       // #STAGE,
       #VIDEO-STATUS-PANEL {
         visibility: hidden;
@@ -86,10 +96,13 @@ html {
       #COUNTDOWN,
       #MID-ZINDEX-MASK,
       #TOP-ZINDEX-MASK,
+      #MAX-ZINDEX-BARS,
       // #SAFETY-BUTTONS,
       // #LOCATIONS,
       // #NPCS,
       // #PCS,
+      // #PCS-GM,
+      // #NPCS-GM,
       // #STAGE,
       #VIDEO-STATUS-PANEL {
         visibility: hidden;
@@ -105,6 +118,8 @@ html {
       #LOCATIONS,
       #NPCS,
       // #PCS,
+      // #PCS-GM,
+      #NPCS-GM,
       // #STAGE,
       #VIDEO-STATUS-PANEL {
         visibility: hidden;

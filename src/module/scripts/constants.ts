@@ -6,7 +6,7 @@ export const SYSTEM_ID = "eunos-kult-hacks";
 
 export const MEDIA_PATHS = {
   PRESESSION_AMBIENT_AUDIO:
-    "modules/eunos-kult-hacks/assets/sounds/session-closed-ambiance.flac",
+    "modules/eunos-kult-hacks/assets/sounds/session-closed-ambience.flac",
   INTRO_VIDEO:
     "modules/eunos-kult-hacks/assets/video/something-unholy-intro.webm",
   LOADING_SCREEN_ITEM:
@@ -477,58 +477,703 @@ export const Colors = {
 };
 // #endregion
 
-// #region LOCATIONS ~
-export interface LocationCharacterData<slot extends "1"|"2"|"3"|"4"|"5"|"6" = "1"|"2"|"3"|"4"|"5"> {
-  slot: slot;
-  actor?: EunosActor;
-  id: IDString;
-  isSpotlit: boolean;
-  isDimmed: boolean;
-  isMasked: boolean;
-  isHidden: boolean;
+// #region SOUNDS ~
+
+export interface EunosMediaData {
+  path?: string;
+  element?: HTMLVideoElement | HTMLAudioElement;
+  alwaysPreload?: boolean;
+  delay?: number;
+  displayDuration?: number;
+  duration?: number; // Duration of the sound in seconds
+  parentSelector?: string;
+  loop?: boolean;
+  mute?: boolean;
+  sync?: boolean;
+  volume?: number;
+  autoplay?: boolean;
+  reportPreloadStatus?: boolean;
 }
-export interface LocationData {
-  isPromoted: boolean;
-  isHidden: boolean;
-  pcData: Partial<Record<"1"|"2"|"3"|"4"|"5", LocationCharacterData>>;
-  npcData: Partial<Record<"1"|"2"|"3"|"4"|"5"|"6", LocationCharacterData<"1"|"2"|"3"|"4"|"5"|"6">>>;
-  playlists: IDString[];
+/**
+ * Map of sound names to their HTMLAudioElement instances
+ */
+export const Sounds = {
+  PreSessionSongs: {
+    "mad-hatter": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 209,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    home: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: true,
+      duration: 229,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "world-on-fire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 146,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "hells-comin-with-me": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-hells-comin-with-me.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 126,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "guns-for-hire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 224,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    playground: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 226,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "how-villains-are-made": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-how-villains-are-made.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 197,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "arsonists-lulluby": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-arsonists-lullaby.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 263,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "broken-crown": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-broken-crown.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 229,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    sucker: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 220,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "to-ashes-and-blood": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-to-ashes-and-blood.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 243,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    twelve: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-twelve.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 153,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "way-down-we-go": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 214,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+  },
+  Ambient: {
+    "session-closed-ambience": {
+      path: "modules/eunos-kult-hacks/assets/sounds/session-closed-ambience.flac",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    }
+  },
+  Effects: {
+    "quote-session-1": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/c01/quote-session-1.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+    },
+    "effect-car-crash": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/c01/effect-car-crash.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 1,
+      autoplay: false,
+    },
+    "record-dust-loop": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/record-dust-loop.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 1,
+      autoplay: false,
+    }
+  },
+  Alerts: {
+    "alert-hit-wound-1": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-wound-1.ogg",
+      alwaysPreload: true,
+      delay: 0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-wound-2": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-wound-2.ogg",
+      alwaysPreload: true,
+      delay: 0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-stability": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-stability.ogg",
+      alwaysPreload: true,
+      delay: -1.5,
+      displayDuration: 6.5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-shatter-illusion": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-shatter-illusion.ogg",
+      alwaysPreload: true,
+      delay: -1.75,
+      displayDuration: 7,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-01": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-01.ogg",
+      alwaysPreload: false,
+      delay: 0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-03": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-03.ogg",
+      alwaysPreload: false,
+      delay: 0.75,
+      displayDuration: 7,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-04": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-04.ogg",
+      alwaysPreload: false,
+      delay: 0.25,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-05": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-05.ogg",
+      alwaysPreload: false,
+      delay: 0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-07": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-07.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-08": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-08.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-09": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-09.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-10": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-10.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-11": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-11.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-13": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-13.ogg", // Creepy child laugh
+      alwaysPreload: false,
+      delay: 0.5,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-14": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-14.ogg", // Eerie nature sounds
+      alwaysPreload: false,
+      delay: 0.5,
+      displayDuration: 7.5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-15": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-15.ogg", // Great jump scare
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 9,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-16": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-16.ogg", // Cool quick effect
+      alwaysPreload: false,
+      delay: 0.5,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-17": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-17.ogg", // High-pitched tone
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 6,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-18": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-18.ogg", // Great piano slam
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-20": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-20.ogg", // Short strings
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-21": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-21.ogg", // Strings & Breathing
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-23": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-23.ogg",
+      alwaysPreload: false,
+      delay: -0.5,
+      displayDuration: 7,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-25": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-25.ogg", // Cool techy sound
+      alwaysPreload: false,
+      delay: -0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-26": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-26.ogg", // Skittering insect sound
+      alwaysPreload: false,
+      delay: -1.75,
+      displayDuration: 7,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-27": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-27.ogg", // Skittering lead-in
+      alwaysPreload: false,
+      delay: -1.8,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-29": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-29.ogg", // Lead in slam
+      alwaysPreload: false,
+      delay: 0.25,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-30": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-30.ogg", // Long and ominous
+      alwaysPreload: false,
+      delay: 1,
+      displayDuration: 10,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-31": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-31.ogg", // Subtle heartbeat
+      alwaysPreload: false,
+      delay: 0.5,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-32": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-32.ogg", // Quick slam
+      alwaysPreload: false,
+      delay: 0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-35": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-35.ogg",
+      alwaysPreload: false,
+      delay: -1.5,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-36": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-36.ogg", // Breaking glass
+      alwaysPreload: false,
+      delay: 0.25,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-37": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-37.ogg",
+      alwaysPreload: false,
+      delay: -1.8,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-38": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-38.ogg", // quick mechanical sound
+      alwaysPreload: false,
+      delay: -1,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-40": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-40.ogg", // Sovereign-like tone
+      alwaysPreload: false,
+      delay: 0,
+      displayDuration: 7,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-41": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-41.ogg", // Cool lead in
+      alwaysPreload: false,
+      delay: -0.5,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-43": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-43.ogg",
+      alwaysPreload: false,
+      delay: -1.6,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-46": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-46.ogg", // throbbing drum beat
+      alwaysPreload: false,
+      delay: 1,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-47": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-47.ogg", // shorter drum beat
+      alwaysPreload: false,
+      delay: 0.5,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-48": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-48.ogg", // great stability heartbeat
+      alwaysPreload: false,
+      delay: -1.5,
+      displayDuration: 6.5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "alert-hit-50": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-50.ogg", // sharp pitchy lead-in
+      alwaysPreload: false,
+      delay: -1.5,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "slow-hit": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit.ogg",
+      alwaysPreload: true,
+      delay: 0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "subsonic-stinger": {
+      path: "modules/eunos-kult-hacks/assets/sounds/subsonic-stinger.ogg",
+      alwaysPreload: true,
+      delay: 0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+  },
+} as const;
+// #endregion SOUNDS
+
+// #region LOCATIONS ~
+export declare namespace Location {
+
+  export interface CharacterData<
+  slot extends "1" | "2" | "3" | "4" | "5" | "6" = "1" | "2" | "3" | "4" | "5",
+> {
+    slot: slot;
+    id: IDString;
+    actor?: EunosActor;
+    isSpotlit: boolean;
+    isDimmed: boolean;
+    isMasked: boolean;
+    isHidden: boolean;
+  }
+
+  export interface StaticData {
+    name: string;
+    image?: string;
+    description?: string;
+    mapTransforms: Array<{
+      selector: string;
+      properties: Record<string, number|string|undefined>;
+    }>;
+  }
+
+  export interface DynamicData {
+    pcData: Partial<Record<"1" | "2" | "3" | "4" | "5", CharacterData>>;
+    npcData: Partial<Record<"1" | "2" | "3" | "4" | "5" | "6", CharacterData>>;
+    playlists: IDString[];
+  }
+
+  export interface Data extends StaticData, DynamicData {}
+
+  export interface FullData extends StaticData, DynamicData {
+    pcData: Record<"1" | "2" | "3" | "4" | "5", Required<CharacterData>>;
+    npcData: Partial<Record<"1" | "2" | "3" | "4" | "5" | "6", Required<CharacterData>>>;
+  }
 }
 
-export const LOCATION_DEFAULT_DATA: LocationData = {
-  isPromoted: false,
-  isHidden: false,
-  get pcData() {
-    // Get all PCs controlled by non-GM users
-    const pcs = getUsers().filter((user) => !user.isGM).map((user) => {
-      const pc = user.character;
-      if (!pc || !pc.isPC()) {
-        throw new Error(`Unable to find the character assigned to '${user.name}'`);
-      }
-      return pc;
-    });
-    return pcs.reduce<Record<IDString, {
-      id: IDString;
-      isSpotlit: boolean;
-      isDimmed: boolean;
-      isMasked: boolean;
-      isHidden: boolean;
-    }>>((acc, pc) => {
-      if (pc.id) {
-        acc[pc.id] = {
-          id: pc.id,
-          isSpotlit: false,
-          isDimmed: false,
-          isMasked: false,
-          isHidden: false
-        };
-      }
-      return acc;
-    }, {});
-  },
-  npcData: {},
-  playlists: [],
-}
+export const getLocationDefaultDynamicData = (): Location.DynamicData => ({
+    pcData: getUsers()
+      .filter((user) => !user.isGM)
+      .map((user) => {
+          const pc = user.character;
+          if (!pc || !pc.isPC()) {
+            throw new Error(
+              `Unable to find the character assigned to '${user.name}'`,
+            );
+          }
+          return pc;
+        })
+      .reduce<
+        Record<
+          IDString,
+          {
+            id: IDString;
+            isSpotlit: boolean;
+            isDimmed: boolean;
+            isMasked: boolean;
+            isHidden: boolean;
+          }
+        >
+      >((acc, pc) => {
+        if (pc.id) {
+          acc[pc.id] = {
+            id: pc.id,
+            isSpotlit: false,
+            isDimmed: false,
+            isMasked: false,
+            isHidden: false,
+          };
+        }
+        return acc;
+      }, {}),
+    npcData: {},
+    playlists: [],
+});
+
+
 export const LOCATIONS = {
   "Willow's Wending Entry": {
     name: "Willow's Wending",
@@ -538,70 +1183,72 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          perspective: 478.0
-        }
+          perspective: 478.0,
+        },
       },
-    {
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer",
         properties: {
           x: -5707.6,
-        y: -3903.7,
-        z: -1467.0,
-        rotationX: 38.0,
-        rotationY: -9.0,
-        rotationZ: 11.0
-        }
+          y: -3903.7,
+          z: -1467.0,
+          rotationX: 38.0,
+          rotationY: -9.0,
+          rotationZ: 11.0,
+        },
       },
-    {
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          background: "radial-gradient(circle at 75% 93%, transparent, rgba(0, 0, 0, 0.9) 10%)"
-        }
+          background:
+            "radial-gradient(circle at 75% 93%, transparent, rgba(0, 0, 0, 0.9) 10%)",
+        },
       },
-    {
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          filter: "hue-rotate(183deg) saturate(0.62)"
-        }
-      }
-    ]
+          filter: "hue-rotate(183deg) saturate(0.62)",
+        },
+      },
+    ],
   },
   "Willow's Wending #1": {
     name: "Willow's Wending",
     image: "",
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
-      mapTransforms: [
-        {
-          selector: "#STAGE #SECTION-3D",
-          properties: {
-            perspective: 800.0
-          }
-        },
+    mapTransforms: [
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer",
-          properties: {
-            x: -4857.4,
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          perspective: 800.0,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer",
+        properties: {
+          x: -4857.4,
           y: -3371.3,
           z: -1500.0,
           rotationX: 42.0,
           rotationY: -19.0,
-          rotationZ: 17.0
-          }
+          rotationZ: 17.0,
         },
+      },
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-          properties: {
-            background: "radial-gradient(circle at 67% 76%, transparent, rgba(0, 0, 0, 0.9) 9%)"
-          }
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          background:
+            "radial-gradient(circle at 67% 76%, transparent, rgba(0, 0, 0, 0.9) 9%)",
         },
+      },
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-          properties: {
-            filter: "hue-rotate(183deg) saturate(0.62)"
-          }
-        }
-      ]
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          filter: "hue-rotate(183deg) saturate(0.62)",
+        },
+      },
+    ],
     //   mapTransforms: [
     //   {
     //     selector: "#STAGE #SECTION-3D",
@@ -640,74 +1287,76 @@ export const LOCATIONS = {
     image: "",
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
-      mapTransforms: [
-        {
-          selector: "#STAGE #SECTION-3D",
-          properties: {
-            perspective: 790.0
-          }
-        },
+    mapTransforms: [
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer",
-          properties: {
-            x: -4435.2,
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          perspective: 790.0,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer",
+        properties: {
+          x: -4435.2,
           y: -2323.9,
           z: -457.0,
           rotationX: 42.0,
           rotationY: -19.0,
-          rotationZ: 17.0
-          }
+          rotationZ: 17.0,
         },
+      },
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-          properties: {
-            background: "radial-gradient(circle at 56% 53%, transparent, rgba(0, 0, 0, 0.9) 8%)"
-          }
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          background:
+            "radial-gradient(circle at 56% 53%, transparent, rgba(0, 0, 0, 0.9) 8%)",
         },
+      },
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-          properties: {
-            filter: "hue-rotate(226deg) saturate(0.55)"
-          }
-        }
-      ]
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          filter: "hue-rotate(226deg) saturate(0.55)",
+        },
+      },
+    ],
   },
   "Willow's Wending #3": {
     name: "Willow's Wending",
     image: "",
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
-      mapTransforms: [
-        {
-          selector: "#STAGE #SECTION-3D",
-          properties: {
-            perspective: 1158.0
-          }
-        },
+    mapTransforms: [
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer",
-          properties: {
-            x: -4073.2,
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          perspective: 1158.0,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer",
+        properties: {
+          x: -4073.2,
           y: -1486.9,
           z: 755.0,
           rotationX: 42.0,
           rotationY: -19.0,
-          rotationZ: 17.0
-          }
+          rotationZ: 17.0,
         },
+      },
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-          properties: {
-            background: "radial-gradient(circle at 47% 28%, transparent, rgba(0, 0, 0, 0.9) 7%)"
-          }
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          background:
+            "radial-gradient(circle at 47% 28%, transparent, rgba(0, 0, 0, 0.9) 7%)",
         },
+      },
       {
-          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-          properties: {
-            filter: "hue-rotate(104deg) saturate(0.53)"
-          }
-        }
-      ]
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          filter: "hue-rotate(104deg) saturate(0.53)",
+        },
+      },
+    ],
   },
   "Ranger Station #1": {
     name: "Ranger Station #1",
@@ -717,32 +1366,33 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          perspective: 629.0
-        }
+          perspective: 629.0,
+        },
       },
-    {
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer",
         properties: {
           x: -3414.4,
-        y: -976.0,
-        z: 451.0,
-        rotationX: 22.0,
-        rotationY: 4.0,
-        rotationZ: -2.0
-        }
+          y: -976.0,
+          z: 451.0,
+          rotationX: 22.0,
+          rotationY: 4.0,
+          rotationZ: -2.0,
+        },
       },
-    {
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          background: "radial-gradient(circle at 44% 20%, transparent, rgba(0, 0, 0, 0.9) 6%)"
-        }
+          background:
+            "radial-gradient(circle at 44% 20%, transparent, rgba(0, 0, 0, 0.9) 6%)",
+        },
       },
-    {
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          filter: "hue-rotate(34deg) saturate(1)"
-        }
-      }
+          filter: "hue-rotate(34deg) saturate(1)",
+        },
+      },
     ],
     // mapTransforms: [
     //   {
@@ -777,7 +1427,7 @@ export const LOCATIONS = {
     //   },
     // ],
   },
-} as const;
+};
 
 // #endregion
 
@@ -1168,21 +1818,17 @@ export const PRE_SESSION = {
   },
   /** Time in seconds before session start when SessionLoading phase begins */
   LOAD_SESSION: 900, // 15 minutes
-  /** Time in seconds before session start when countdown timers initiate */
-  START_COUNTDOWN_TIMERS: 120, // 2 minutes
-  /** Time in seconds before session start when loading screen images are hidden */
-  HIDE_LOADING_SCREEN_IMAGES: 80, // 1 minute 20 seconds
+  /** Progress value of countdown timer at which loading screen images should be stopped.*/
+  HIDE_LOADING_SCREEN_IMAGES: 0.4,
   /** Repeat delays for glitch animation */
-  GLITCH_DELAY: [
-    20, // 20 seconds
-    5, // 10 seconds
-  ] as const,
+  GLITCH_REPEAT_DELAY_MIN: 1,
+  GLITCH_REPEAT_DELAY_MAX: 7,
   /** Time in seconds before session start when overlay freezes */
-  FREEZE_OVERLAY: 5,
+  FREEZE_OVERLAY: 15,
   /** Time in seconds before session start when countdown disappears */
-  COUNTDOWN_HIDE: 3,
+  COUNTDOWN_HIDE: 1,
   /** Time in seconds before the end of the video when the chapter title is displayed */
-  CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET: 3,
+  CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET: 7,
   /** Default session day (5 = Friday) */
   DEFAULT_SESSION_DAY: 5,
   /** Default session hour in 24h format (19 = 7 PM) */
