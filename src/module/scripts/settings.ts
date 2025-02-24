@@ -90,15 +90,7 @@ export default function registerSettings() {
     scope: "world",
     config: false,
     type: Boolean,
-    default: false,
-    onChange: (value) => {
-      if (!getUser().isGM) { return; }
-      if (value) {
-        EunosOverlay.instance.showPlottingPanel();
-      } else {
-        EunosOverlay.instance.hidePlottingPanel();
-      }
-    }
+    default: false
   });
   getSettings().register("eunos-kult-hacks", "currentLocation", {
     name: "Current Location",
@@ -120,7 +112,10 @@ export default function registerSettings() {
     default: {
       "Willow's Wending Entry": {
         name: "Willow's Wending",
-        mapTransforms: []
+        mapTransforms: [],
+        pcData: {},
+        npcData: {},
+        playlists: []
       }
     }
   })

@@ -1,7 +1,9 @@
 import type EunosItem from "../documents/EunosItem";
-import { verbalizeNum, deverbalizeNum, tCase } from "./utilities";
+import { verbalizeNum, deverbalizeNum, tCase, roundNum } from "./utilities";
 import type { Quench } from "@ethaks/fvtt-quench";
 import { PCTargetRef } from "./enums";
+import type ActorDataPC from "../data-model/ActorDataPC";
+import type ActorDataNPC from "../data-model/ActorDataNPC";
 export const SYSTEM_ID = "eunos-kult-hacks";
 
 export const MEDIA_PATHS = {
@@ -14,108 +16,369 @@ export const MEDIA_PATHS = {
 };
 
 // #region CONFIGURATION
+export const CONTROL_SLIDER_PANELS = {
+  LOCATION_PLOTTING: [
+    {
+      label: "Perspective",
+      min: 0,
+      max: 2000,
+      initValue: () => {
+        const element = $("#STAGE")[0];
+        if (!element) { return 1000; }
+        return (gsap.getProperty(element, "perspective") ?? 1000) as number;
+      },
+      actionFunction: (value: number) => {
+        const element = $("#STAGE")[0];
+        if (!element) { return; }
+        if (gsap.getTweensOf(element).length > 0) {
+          gsap.killTweensOf(element, "perspective");
+        }
+        gsap.to(element, {
+          duration: 0.5,
+          perspective: value,
+        });
+      },
+      formatForDisplay: (value: number) => {
+        return `${roundNum(value)}px`;
+      }
+    },
+    {
+      label: "Z-Height",
+      min: -10000,
+      max: 100,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D")[0];
+        if (!element) { return 0; }
+        return (gsap.getProperty(element, "z") ?? 0) as number;
+      },
+      actionFunction: (value: number) => {
+        const element = $("#STAGE #SECTION-3D")[0];
+        if (!element) { return; }
+        if (gsap.getTweensOf(element).length > 0) {
+          gsap.killTweensOf(element, "transform");
+        }
+        gsap.to(element, { duration: 0.5, z: value });
+      },
+      formatForDisplay: (value: number) => {
+        return `${roundNum(value)}px`;
+      }
+    },
+    {
+      label: "Background Position X",
+      min: -3500,
+      max: 3500,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return 0; }
+        return (gsap.getProperty(element, "background-position-x") ?? 0) as number;
+      },
+      actionFunction: (value: number) => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return; }
+        if (gsap.getTweensOf(element).length > 0) {
+          gsap.killTweensOf(element, "background-position-x,background-position-y");
+        }
+        gsap.to(element, { duration: 0.5, backgroundPositionX: value });
+      },
+      formatForDisplay: (value: number) => {
+        return `${roundNum(value)}px`;
+      }
+    },
+    {
+      label: "Background Position Y",
+      min: -3500,
+      max: 3500,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return 0; }
+        return (gsap.getProperty(element, "background-position-y") ?? 0) as number;
+      },
+      actionFunction: (value: number) => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return; }
+        if (gsap.getTweensOf(element).length > 0) {
+          gsap.killTweensOf(element, "background-position-x,background-position-y");
+        }
+        gsap.to(element, { duration: 0.5, backgroundPositionY: value });
+      },
+      formatForDisplay: (value: number) => {
+        return `${roundNum(value)}px`;
+      }
+    },
+    {
+      label: "Hue",
+      min: -360,
+      max: 360,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return 0; }
+        const filterString = (gsap.getProperty(element, "filter") ?? "") as string;
+        const hueRotate = filterString.match(/hue-rotate\(([-.\d]+)(?:\s?deg)?\)/)?.[1];
+        return hueRotate ? parseFloat(hueRotate) : 0;
+      },
+      actionFunction: (value: number) => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return; }
+        const filterString = (gsap.getProperty(element, "filter") ?? "") as string;
+        let saturation = Number(filterString.match(/saturate\(([.\d]*)(?:%)?\)/)?.[1] ?? "100");
+        if (saturation < 1) {
+          saturation *= 100;
+        }
+        if (gsap.getTweensOf(element).length > 0) {
+          gsap.killTweensOf(element, "filter");
+        }
+        gsap.to(element, { duration: 0.5, filter: `hue-rotate(${value}deg) saturate(${saturation}%)` });
+      },
+      formatForDisplay: (value: number) => {
+        return `${roundNum(value, 2)}deg`;
+      }
+    },
+    {
+      label: "Saturation",
+      min: 0,
+      max: 100,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return 100; }
+        const filterString = (gsap.getProperty(element, "filter") ?? "") as string;
+        let saturation = Number(filterString.match(/saturate\(([.\d]*)(?:%)?\)/)?.[1] ?? "100");
+        if (saturation < 1) {
+          saturation *= 100;
+        }
+        return saturation;
+      },
+      actionFunction: (value: number) => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return; }
+        const filterString = (gsap.getProperty(element, "filter") ?? "") as string;
+        const hueRotate = Number(filterString.match(/hue-rotate\(([.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0");
+        if (gsap.getTweensOf(element).length > 0) {
+          gsap.killTweensOf(element, "filter");
+        }
+        gsap.to(element, { duration: 0.5, filter: `hue-rotate(${hueRotate}deg) saturate(${value}%)` });
+      },
+      formatForDisplay: (value: number) => {
+        return `${value}%`;
+      }
+    },
+    {
+      label: "Rotation X",
+      min: -360,
+      max: 360,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return 0; }
+        const transformString = (gsap.getProperty(element, "transform") ?? "") as string;
+        const rotationX = Number(transformString.match(/rotateX\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0");
+        return rotationX;
+      },
+      actionFunction: (value: number) => {
+        const elements = [
+          $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0],
+          $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0],
+        ].filter(Boolean) as Array<HTMLElement>;
+        if (elements.length !== 2) { return; }
+        const element = elements[0]!;
+        const rotationX = Number(gsap.getProperty(element, "rotationX") ?? 0);
+        const rotationY = Number(gsap.getProperty(element, "rotationY") ?? 0);
+        const rotationZ = Number(gsap.getProperty(element, "rotationZ") ?? 0);
+        if (gsap.getTweensOf(elements).length > 0) {
+          gsap.killTweensOf(elements, "transform");
+        }
+        const transformString = `translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(${rotationZ}deg) rotateY(${rotationY}deg) rotateX(${value}deg)`;
+        gsap.to(elements, { duration: 0.5, transform: transformString });
+      },
+      formatForDisplay: (value: number) => {
+        return `${roundNum(value, 2)}deg`;
+      }
+    },
+    {
+      label: "Rotation Y",
+      min: -360,
+      max: 360,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return 0; }
+        const transformString = (gsap.getProperty(element, "transform") ?? "") as string;
+        const rotationY = Number(transformString.match(/rotateY\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0");
+        return rotationY;
+      },
+      actionFunction: (value: number) => {
+        const elements = [
+          $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0],
+          $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0],
+        ].filter(Boolean) as Array<HTMLElement>;
+        if (elements.length !== 2) { return; }
+        const element = elements[0]!;
+        const rotationX = Number(gsap.getProperty(element, "rotationX") ?? 0);
+        const rotationY = Number(gsap.getProperty(element, "rotationY") ?? 0);
+        const rotationZ = Number(gsap.getProperty(element, "rotationZ") ?? 0);
+        if (gsap.getTweensOf(elements).length > 0) {
+          gsap.killTweensOf(elements, "transform");
+        }
+        const transformString = `translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(${rotationZ}deg) rotateY(${value}deg) rotateX(${rotationX}deg)`;
+        gsap.to(elements, { duration: 0.5, transform: transformString });
+      },
+      formatForDisplay: (value: number) => {
+        return `${roundNum(value, 2)}deg`;
+      }
+    },
+    {
+      label: "Rotation Z",
+      min: -360,
+      max: 360,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
+        if (!element) { return 0; }
+        const transformString = (gsap.getProperty(element, "transform") ?? "") as string;
+        const rotationZ = Number(transformString.match(/rotate\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0");
+        return rotationZ;
+      },
+      actionFunction: (value: number) => {
+        const elements = [
+          $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0],
+          $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0],
+        ].filter(Boolean) as Array<HTMLElement>;
+        if (elements.length !== 2) { return; }
+        const element = elements[0]!;
+        const rotationX = Number(gsap.getProperty(element, "rotationX") ?? 0);
+        const rotationY = Number(gsap.getProperty(element, "rotationY") ?? 0);
+        const rotationZ = Number(gsap.getProperty(element, "rotationZ") ?? 0);
+        if (gsap.getTweensOf(elements).length > 0) {
+          gsap.killTweensOf(elements, "transform");
+        }
+        const transformString = `translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(${value}deg) rotateY(${rotationY}deg) rotateX(${rotationX}deg)`;
+        gsap.to(elements, { duration: 0.5, transform: transformString });
+      },
+      formatForDisplay: (value: number) => {
+        return `${roundNum(value, 2)}deg`;
+      }
+    },
+    {
+      label: "Inner Stop",
+      min: 0,
+      max: 100,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0];
+        if (!element) { return 0; }
+        const backgroundString = (gsap.getProperty(element, "background") ?? "") as string;
+        const innerStop = Number(backgroundString.match(/rgba?\([^)]+\)\s+(\d+)%/)?.[1] ?? "0");
+        return innerStop;
+      },
+      actionFunction: (value: number) => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0];
+        if (!element) { return; }
+        const backgroundString = (gsap.getProperty(element, "background") ?? "") as string;
+        const outerStop = Number(backgroundString.match(/rgba?\([^)]+\)\s+([-.\d]+)%/g)?.[1]?.match(/([-.\d]+)%/)?.[1] ?? "0");
+        kLog.log(`Inner Stop: ${value}%, Outer Stop: ${outerStop}%\nBackground String: ${backgroundString}`);
+        if (gsap.getTweensOf(element).length > 0) {
+          gsap.killTweensOf(element, "background");
+        }
+        if (value > (outerStop - 5)) {
+          value = outerStop - 5;
+        }
+        const newBackgroundString = `radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) ${value}%, rgb(0, 0, 0) ${outerStop}%)`;
+        gsap.to(element, { duration: 0.5, background: newBackgroundString });
+      },
+      formatForDisplay: (value: number) => {
+        return `${value}%`;
+      }
+    },
+    {
+      label: "Outer Stop",
+      min: 0,
+      max: 100,
+      initValue: () => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0];
+        if (!element) { return 0; }
+        const backgroundString = (gsap.getProperty(element, "background") ?? "") as string;
+        const outerStop = Number(backgroundString.match(/rgba?\([^)]+\)\s+([-.\d]+)%/g)?.[1]?.match(/([-.\d]+)%/)?.[1] ?? "0");
+        return outerStop;
+      },
+      actionFunction: (value: number) => {
+        const element = $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0];
+        if (!element) { return; }
+        const backgroundString = (gsap.getProperty(element, "background") ?? "") as string;
+        const innerStop = Number(backgroundString.match(/rgba?\([^)]+\)\s+(\d+)%/)?.[1] ?? "0");
+        kLog.log(`Inner Stop: ${innerStop}%, Outer Stop: ${value}%\nBackground String: ${backgroundString}`);
+        if (gsap.getTweensOf(element).length > 0) {
+          gsap.killTweensOf(element, "background");
+        }
+        if (value < (innerStop + 5)) {
+          value = innerStop + 5;
+        }
+        const newBackgroundString = `radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) ${innerStop}%, rgb(0, 0, 0) ${value}%)`;
+        gsap.to(element, { duration: 0.5, background: newBackgroundString });
+      },
+      formatForDisplay: (value: number) => {
+        return `${value}%`;
+      }
+    }
+  ],
+}
+
+
 export const LOCATION_PLOTTING_SETTINGS: {
   SIMPLE: Array<{
     selector: string;
     property: string;
-    rangeMult: number;
-  }>;
-  GRADIENT: Array<{
-    selector: string;
-    label: string;
-    property: string;
-    initialValue: number;
-  }>;
-  FILTER: Array<{
-    selector: string;
-    filters: Array<{
-      name: string;
-      property: string;
-      initialValue: number;
-      min: number;
-      max: number;
-      step: number;
-    }>;
+    outputProperty?: string;
+    range: number | "angle" | "percent";
+    unit?: string;
   }>;
 } = {
   SIMPLE: [
     {
       selector: "#STAGE #SECTION-3D",
       property: "perspective",
-      rangeMult: 2,
+      range: 1000,
     },
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer",
-      property: "x",
-      rangeMult: 2,
-    },
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer",
-      property: "y",
-      rangeMult: 2,
-    },
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer",
-      property: "z",
-      rangeMult: 2,
-    },
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer",
-      property: "rotationX",
-      rangeMult: 1,
-    },
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer",
-      property: "rotationY",
-      rangeMult: 1,
-    },
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer",
-      property: "rotationZ",
-      rangeMult: 1,
-    },
-  ],
-  GRADIENT: [
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-      label: "Circle Position X",
-      property: "circlePositionX",
-      initialValue: 25,
-    },
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-      label: "Circle Position Y",
-      property: "circlePositionY",
-      initialValue: 0,
-    },
-    {
-      selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-      label: "Gradient Stop Percentage",
-      property: "gradientStopPercentage",
-      initialValue: 50,
-    },
-  ],
-  FILTER: [
     {
       selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-      filters: [
-        {
-          name: "hue",
-          property: "hue-rotate",
-          initialValue: 0,
-          min: 0,
-          max: 360,
-          step: 1,
-        },
-        {
-          name: "saturation",
-          property: "saturate",
-          initialValue: 1,
-          min: 0,
-          max: 1,
-          step: 0.01,
-        },
-      ],
+      property: "background-position-x",
+      range: 3000,
+      unit: "px",
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+      property: "background-position-y",
+      range: 3000,
+      unit: "px",
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "--rotationX",
+      range: "angle",
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "--rotationY",
+      range: "angle",
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer",
+      property: "--rotationZ",
+      range: "angle",
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+      property: "--inner-stop",
+      range: "percent",
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+      property: "--outer-stop",
+      range: "percent",
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+      property: "--hue-rotate",
+      range: "angle",
+    },
+    {
+      selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+      property: "--saturation",
+      range: "percent",
     },
   ],
 };
@@ -478,7 +741,6 @@ export const Colors = {
 // #endregion
 
 // #region SOUNDS ~
-
 export interface EunosMediaData {
   path?: string;
   element?: HTMLVideoElement | HTMLAudioElement;
@@ -499,41 +761,11 @@ export interface EunosMediaData {
  */
 export const Sounds = {
   PreSessionSongs: {
-    "mad-hatter": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
+    "panic-room": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-panic-room.ogg",
       alwaysPreload: false,
       delay: 0,
-      duration: 209,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    home: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      loop: false,
-      sync: true,
-      duration: 229,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "world-on-fire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 146,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "hells-comin-with-me": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-hells-comin-with-me.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 126,
+      duration: 199,
       loop: false,
       sync: true,
       volume: 0.5,
@@ -559,6 +791,16 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
+    "hells-comin-with-me": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-hells-comin-with-me.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 126,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
     "how-villains-are-made": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-how-villains-are-made.ogg",
       alwaysPreload: false,
@@ -566,6 +808,46 @@ export const Sounds = {
       duration: 197,
       loop: false,
       sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "to-ashes-and-blood": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-to-ashes-and-blood.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 243,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "world-on-fire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 146,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "mad-hatter": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 209,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    home: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: true,
+      duration: 229,
       volume: 0.5,
       autoplay: false,
     },
@@ -594,16 +876,6 @@ export const Sounds = {
       alwaysPreload: false,
       delay: 0,
       duration: 220,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "to-ashes-and-blood": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-to-ashes-and-blood.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 243,
       loop: false,
       sync: true,
       volume: 0.5,
@@ -639,7 +911,7 @@ export const Sounds = {
       sync: false,
       volume: 0.5,
       autoplay: false,
-    }
+    },
   },
   Effects: {
     "quote-session-1": {
@@ -668,7 +940,7 @@ export const Sounds = {
       sync: false,
       volume: 1,
       autoplay: false,
-    }
+    },
   },
   Alerts: {
     "alert-hit-wound-1": {
@@ -1095,119 +1367,171 @@ export const Sounds = {
 } as const;
 // #endregion SOUNDS
 
+// #region CHARACTERS ~
+
+export declare namespace PCs {
+  export interface GlobalSettingsData {
+    actorID: IDString;
+    ownerID: IDString;
+  }
+  export interface GlobalData extends GlobalSettingsData {
+    slot: "1" | "2" | "3" | "4" | "5";
+    actor: EunosActor & {system: ActorDataPC};
+    owner: User;
+    isOwner: boolean;
+    isMasked: boolean;
+  }
+
+  export interface LocationSettingsData extends GlobalSettingsData {
+    isSpotlit: boolean;
+    isDimmed: boolean;
+    isHidden: boolean;
+  }
+}
+
+export declare namespace NPCs {
+
+  export interface GlobalSettingsData {
+    actorID: IDString;
+  }
+  export interface GlobalData extends GlobalSettingsData {
+    actor: EunosActor & {system: ActorDataNPC};
+  }
+  export interface LocationSettingsData extends GlobalSettingsData {
+    slot: "1"|"2"|"3"|"4"|"5"|"6";
+    isSpotlit: boolean;
+    isDimmed: boolean;
+    isHidden: boolean;
+    isMasked: boolean;
+  }
+}
+
+// #endregion CHARACTERS
+
 // #region LOCATIONS ~
 export declare namespace Location {
 
-  export interface CharacterData<
-  slot extends "1" | "2" | "3" | "4" | "5" | "6" = "1" | "2" | "3" | "4" | "5",
-> {
-    slot: slot;
-    id: IDString;
-    actor?: EunosActor;
-    isSpotlit: boolean;
-    isDimmed: boolean;
-    isMasked: boolean;
-    isHidden: boolean;
+  export namespace PCData {
+    export interface SettingsData extends PCs.LocationSettingsData { }
+    export interface FullData extends PCs.GlobalData, SettingsData { }
   }
 
-  export interface StaticData {
+  export namespace NPCData {
+    export interface SettingsData extends NPCs.LocationSettingsData { }
+    export interface FullData extends NPCs.GlobalData, SettingsData { }
+  }
+
+  interface StaticSettingsData {
     name: string;
     image?: string;
     description?: string;
     mapTransforms: Array<{
       selector: string;
-      properties: Record<string, number|string|undefined>;
+      properties: Record<string, number | string | undefined>;
     }>;
   }
 
-  export interface DynamicData {
-    pcData: Partial<Record<"1" | "2" | "3" | "4" | "5", CharacterData>>;
-    npcData: Partial<Record<"1" | "2" | "3" | "4" | "5" | "6", CharacterData>>;
+  interface DynamicSettingsData {
+    pcData: Record<IDString, PCData.SettingsData>;
+    npcData: Record<IDString, NPCData.SettingsData>;
     playlists: IDString[];
   }
 
-  export interface Data extends StaticData, DynamicData {}
+  export interface SettingsData extends StaticSettingsData, DynamicSettingsData {}
 
-  export interface FullData extends StaticData, DynamicData {
-    pcData: Record<"1" | "2" | "3" | "4" | "5", Required<CharacterData>>;
-    npcData: Partial<Record<"1" | "2" | "3" | "4" | "5" | "6", Required<CharacterData>>>;
+  interface DynamicFullData {
+    pcData: Record<"1" | "2" | "3" | "4" | "5", PCData.FullData>;
+    npcData: Partial<Record<"1" | "2" | "3" | "4" | "5" | "6", NPCData.FullData>>;
+    playlists: Playlist[];
   }
+
+  export interface FullData extends StaticSettingsData, DynamicFullData {}
 }
 
-export const getLocationDefaultDynamicData = (): Location.DynamicData => ({
-    pcData: getUsers()
-      .filter((user) => !user.isGM)
-      .map((user) => {
-          const pc = user.character;
-          if (!pc || !pc.isPC()) {
-            throw new Error(
-              `Unable to find the character assigned to '${user.name}'`,
-            );
-          }
-          return pc;
-        })
-      .reduce<
-        Record<
-          IDString,
-          {
-            id: IDString;
-            isSpotlit: boolean;
-            isDimmed: boolean;
-            isMasked: boolean;
-            isHidden: boolean;
-          }
-        >
-      >((acc, pc) => {
-        if (pc.id) {
-          acc[pc.id] = {
-            id: pc.id,
-            isSpotlit: false,
-            isDimmed: false,
-            isMasked: false,
-            isHidden: false,
-          };
-        }
-        return acc;
-      }, {}),
-    npcData: {},
-    playlists: [],
-});
-
-
 export const LOCATIONS = {
+  "Fire Access Trail South": {
+    name: "Fire Access Trail",
+    image: "",
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: -2565,
+          backgroundPositionY: -2913,
+          filter: "hue-rotate(130deg) saturate(100%) brightness(1) brightness(1)",
+          transform: "matrix3d(0.962375, -0.222178, -0.156431, 0, 0.270295, 0.723792, 0.634874, 0, -0.0278317, -0.65327, 0.756614, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.962375, -0.222178, -0.156431, 0, 0.270295, 0.723792, 0.634874, 0, -0.0278317, -0.65327, 0.756614, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+        },
+      },
+    ]
+  },
+  "Fire Access Trail North": {
+    name: "Fire Access Trail",
+    image: "",
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: -2978,
+          backgroundPositionY: 1478,
+          filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
+          transform: "matrix3d(-0.997083, 0.0309705, -0.06976, 0, 0.0210364, -0.767068, -0.64122, 0, -0.0733696, -0.640817, 0.764179, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(-0.997083, 0.0309705, -0.06976, 0, 0.0210364, -0.767068, -0.64122, 0, -0.0733696, -0.640817, 0.764179, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+        },
+      },
+    ],
+  },
   "Willow's Wending Entry": {
     name: "Willow's Wending",
     image: "",
     description: "",
     mapTransforms: [
       {
-        selector: "#STAGE #SECTION-3D",
+        selector: "#STAGE",
         properties: {
-          perspective: 478.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer",
-        properties: {
-          x: -5707.6,
-          y: -3903.7,
-          z: -1467.0,
-          rotationX: 38.0,
-          rotationY: -9.0,
-          rotationZ: 11.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          background:
-            "radial-gradient(circle at 75% 93%, transparent, rgba(0, 0, 0, 0.9) 10%)",
+          perspective: 1000,
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          filter: "hue-rotate(183deg) saturate(0.62)",
+          backgroundPositionX: -2522,
+          backgroundPositionY: -1587,
+          filter: "hue-rotate(181deg) saturate(100%) brightness(1)",
+          transform: "matrix3d(0.064768, 0.740317, 0.669131, 0, -0.989019, -0.0416387, 0.1418, 0, 0.132839, -0.670967, 0.729491, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.064768, 0.740317, 0.669131, 0, -0.989019, -0.0416387, 0.1418, 0, 0.132839, -0.670967, 0.729491, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 13%)",
         },
       },
     ],
@@ -1219,68 +1543,28 @@ export const LOCATIONS = {
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
       {
-        selector: "#STAGE #SECTION-3D",
+        selector: "#STAGE",
         properties: {
-          perspective: 800.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer",
-        properties: {
-          x: -4857.4,
-          y: -3371.3,
-          z: -1500.0,
-          rotationX: 42.0,
-          rotationY: -19.0,
-          rotationZ: 17.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          background:
-            "radial-gradient(circle at 67% 76%, transparent, rgba(0, 0, 0, 0.9) 9%)",
+          perspective: 1000,
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          filter: "hue-rotate(183deg) saturate(0.62)",
+          backgroundPositionX: -935,
+          backgroundPositionY: -1348,
+          filter: "hue-rotate(181deg) saturate(100%) brightness(1)",
+          transform: "matrix3d(0.0747085, 0.853904, 0.51504, 0, -0.996899, 0.0511564, 0.0597899, 0, 0.0247073, -0.517909, 0.855079, 0, -3500, -3500, 0, 1)",
         },
       },
-    ],
-    //   mapTransforms: [
-    //   {
-    //     selector: "#STAGE #SECTION-3D",
-    //     properties: {
-    //       perspective: 800,
-    //     },
-    //   },
-    //   {
-    //     selector: "#STAGE #SECTION-3D .canvas-layer",
-    //     properties: {
-    //       x: -4857.6,
-    //       y: -3370.7,
-    //       z: -1500,
-    //       rotationX: 41.7,
-    //       rotationY: -18.9,
-    //       rotationZ: 16.9,
-    //     },
-    //   },
-    //   {
-    //     selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-    //     properties: {
-    //       background:
-    //         "radial-gradient(circle at 67% 85%, transparent, rgba(0, 0, 0, 0.9) 13%)",
-    //     },
-    //   },
-    //   {
-    //     selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-    //     properties: {
-    //       filter: "hue-rotate(130deg) saturate(0.5)",
-    //     },
-    //   },
-    // ],
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.0747085, 0.853904, 0.51504, 0, -0.996899, 0.0511564, 0.0597899, 0, 0.0247073, -0.517909, 0.855079, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 13%)",
+        },
+      },
+    ]
   },
   "Willow's Wending #2": {
     name: "Willow's Wending",
@@ -1289,33 +1573,25 @@ export const LOCATIONS = {
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
       {
-        selector: "#STAGE #SECTION-3D",
+        selector: "#STAGE",
         properties: {
-          perspective: 790.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer",
-        properties: {
-          x: -4435.2,
-          y: -2323.9,
-          z: -457.0,
-          rotationX: 42.0,
-          rotationY: -19.0,
-          rotationZ: 17.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          background:
-            "radial-gradient(circle at 56% 53%, transparent, rgba(0, 0, 0, 0.9) 8%)",
+          perspective: 1000,
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          filter: "hue-rotate(226deg) saturate(0.55)",
+          backgroundPositionX: 1674,
+          backgroundPositionY: -522,
+          filter: "hue-rotate(253deg) saturate(100%) brightness(1)",
+          transform: "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 6%, rgb(0, 0, 0) 12%)",
         },
       },
     ],
@@ -1327,33 +1603,25 @@ export const LOCATIONS = {
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
       {
-        selector: "#STAGE #SECTION-3D",
+        selector: "#STAGE",
         properties: {
-          perspective: 1158.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer",
-        properties: {
-          x: -4073.2,
-          y: -1486.9,
-          z: 755.0,
-          rotationX: 42.0,
-          rotationY: -19.0,
-          rotationZ: 17.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          background:
-            "radial-gradient(circle at 47% 28%, transparent, rgba(0, 0, 0, 0.9) 7%)",
+          perspective: 1000,
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          filter: "hue-rotate(104deg) saturate(0.53)",
+          backgroundPositionX: -1261,
+          backgroundPositionY: 565,
+          filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
+          transform: "matrix3d(0.236729, 0.728548, 0.642789, 0, -0.971482, 0.186703, 0.146169, 0, -0.0135195, -0.65906, 0.751969, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.236729, 0.728548, 0.642789, 0, -0.971482, 0.186703, 0.146169, 0, -0.0135195, -0.65906, 0.751969, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
         },
       },
     ],
@@ -1364,68 +1632,65 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
-        selector: "#STAGE #SECTION-3D",
+        selector: "#STAGE",
         properties: {
-          perspective: 629.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer",
-        properties: {
-          x: -3414.4,
-          y: -976.0,
-          z: 451.0,
-          rotationX: 22.0,
-          rotationY: 4.0,
-          rotationZ: -2.0,
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          background:
-            "radial-gradient(circle at 44% 20%, transparent, rgba(0, 0, 0, 0.9) 6%)",
+          perspective: 1000,
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          filter: "hue-rotate(34deg) saturate(1)",
+          backgroundPositionX: 500,
+          backgroundPositionY: 1696,
+          filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
+          transform: "matrix3d(0.999391, -0.0348995, 0, 0, 0.0275012, 0.787531, 0.615661, 0, -0.0214863, -0.615286, 0.788011, 0, -3500, -3500, 0, 1)",
         },
       },
-    ],
-    // mapTransforms: [
-    //   {
-    //     selector: "#STAGE #SECTION-3D",
-    //     properties: {
-    //       perspective: 446,
-    //     },
-    //   },
-    //   {
-    //     selector: "#STAGE #SECTION-3D .canvas-layer",
-    //     properties: {
-    //       x: -3689.8,
-    //       y: -976,
-    //       z: 451,
-    //       rotationX: 24,
-    //       rotationY: -3.8,
-    //       rotationZ: 4,
-    //     },
-    //   },
-    //   {
-    //     selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-    //     properties: {
-    //       background:
-    //         "radial-gradient(circle at 44% 20%, transparent, rgba(0, 0, 0, 0.9) 8%)",
-    //     },
-    //   },
-    //   {
-    //     selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-    //     properties: {
-    //       filter: "hue-rotate(0deg) saturate(1)",
-    //     },
-    //   },
-    // ],
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.999391, -0.0348995, 0, 0, 0.0275012, 0.787531, 0.615661, 0, -0.0214863, -0.615286, 0.788011, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+        },
+      },
+    ]
+  },
+  "Wainwright Academy": {
+    name: "Wainwright Academy",
+    image: "",
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1261,
+          backgroundPositionY: 1739,
+          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 7%, rgb(0, 0, 0) 22%)",
+        },
+      },
+    ]
+  },
+
+  // Easy copy/paste template for new locations:
+  "": {
+    name: "",
+    image: "",
+    description: "",
+    mapTransforms: []
   },
 };
 

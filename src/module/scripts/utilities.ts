@@ -1,6 +1,8 @@
 // import {gsap, MotionPathPlugin} from "../libraries";
 import { PRE_SESSION } from "./constants";
+import EunosItem from "../documents/EunosItem";
 import Document = foundry.abstract.Document;
+import type ActorDataPC from "../data-model/ActorDataPC";
 
 // #region ▒▒▒▒▒▒▒ [HELPERS] Internal Functions, Data & References Used by Utility Functions ▒▒▒▒▒▒▒ ~
 
@@ -457,6 +459,35 @@ const sCase = (str: unknown): Capitalize<string> => {
 const tCase = (str: unknown): Capitalize<string> => String(str).split(/\s/)
   .map((word, i) => (i && testRegExp(word, _noCapWords) ? lCase(word) : sCase(word)))
   .join(" ").trim() as Capitalize<string>;
+/**
+ * Converts a string to camel case, replacing spaces and hyphens with underscores and capitalizing each word except the first.
+ * @param str - The string to convert to camel case.
+ * @returns The string in camel case.
+ */
+/**
+ * Converts a string to camel case by:
+ * - Converting spaces, hyphens, and underscores to word boundaries
+ * - Capitalizing the first letter of each word except the first
+ * - Removing all separators
+ * @param str - The string or string-like value to convert to camel case
+ * @returns The string in camel case format
+ * @example
+ * camelCase("hello world") // returns "helloWorld"
+ * camelCase("hello-world") // returns "helloWorld"
+ * camelCase("hello_world") // returns "helloWorld"
+ */
+const camelCase = (str: string | number | boolean): string => {
+  return String(str)
+    // Convert separators to spaces
+    .replace(/[-_]+/g, " ")
+    // Handle word boundaries, keeping first letter lowercase
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (match, index) =>
+      index === 0 ? match.toLowerCase() : match.toUpperCase()
+    )
+    // Remove all spaces
+    .replace(/\s+/g, "");
+};
+
 // #endregion ■■■■[Case Conversion]■■■■
 // #region ■■■■■■■[RegExp]■■■■ Regular Expressions ■■■■■■■ ~
 const testRegExp = (str: unknown, patterns: Array<RegExp | string> = [], flags = "gui", isTestingAll = false) => patterns
@@ -2154,6 +2185,36 @@ function positionAlongCircle(index: number, maxIndex: number, origin: Point, rad
 
   return { x, y };
 }
+/**
+ * Encodes an SVG string for use in CSS background-image
+ * @param viewBox - The viewBox attribute value
+ * @param pathD - The path d attribute value
+ * @returns Encoded SVG data URI string
+ */
+function encodeSVGforCSS(viewBox: string, pathD: string, options?: {
+  fill?: string;
+  stroke?: string;
+}): string {
+  // Create the SVG string with optional fill/stroke
+  const fillAttr = options?.fill ? ` fill="${options.fill}"` : "";
+  const strokeAttr = options?.stroke ? ` stroke="${options.stroke}"` : "";
+
+  const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"><path${fillAttr}${strokeAttr} d="${pathD}"/></svg>`;
+
+  // Encode the SVG - keep double quotes and encode them
+  const encoded = svgString
+      .replace(/%/g, '%25')   // Encode % first to avoid double-encoding
+      .replace(/"/g, '%22')   // Encode " to %22 instead of converting to single quotes
+      .replace(/#/g, '%23')   // Encode #
+      .replace(/\{/g, '%7B')  // Encode {
+      .replace(/\}/g, '%7D')  // Encode }
+      .replace(/</g, '%3C')   // Encode <
+      .replace(/>/g, '%3E')   // Encode >
+      .replace(/\s/g, '%20'); // Encode spaces
+
+    // Return as data URI
+    return `data:image/svg+xml,${encoded}`;
+}
 // #endregion ■■■■[SVG]■■■■
 
 // #region ■■■■■■■[Colors]■■■■ Color Manipulation ■■■■■■■ ~
@@ -2737,6 +2798,83 @@ function displayImageSelector(
   return fp.browse(pathRoot);
 }
 
+function getOwnerOfDoc(doc: EunosActor|EunosItem): Maybe<User> {
+  const ownerID = Object.keys(doc.ownership)
+    .find((key) => doc.ownership[key] === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER);
+  if (ownerID) {
+    return getUser(ownerID);
+  }
+  return undefined;
+}
+
+function getActorFromRef(ref: PCTarget|UserTarget): Maybe<EunosActor> {
+  let doc: EunosActor|EunosItem|User|undefined = undefined;
+  if (typeof ref === "string") {
+    if (isDocID(ref)) {
+      doc = getActors().find((actor) => actor.id === ref);
+      if (doc) {
+        return doc;
+      }
+      doc = getUsers().find((user) => user.id === ref);
+      if (doc) {
+        return doc.character as Maybe<EunosActor>;
+      }
+      return undefined;
+    }
+  }
+  doc ??= ref;
+  if ((doc as unknown) instanceof Actor) {
+    return doc as EunosActor;
+  } else if ((doc as unknown) instanceof User) {
+    return (doc as User).character as Maybe<EunosActor>;
+  } else if ((doc as unknown) instanceof EunosItem) {
+    const itemUuid = (doc as EunosItem).uuid;
+    if (/^Actor.*?Item/.test(itemUuid)) {
+      const actorId = itemUuid.replace(/^Actor\.(.*?)\.Item.*$/, "$1");
+      return getActors().find((actor) => actor.id === actorId);
+    }
+  }
+  return undefined;
+}
+
+function getUserFromRef(ref: PCTarget|UserTarget): Maybe<User> {
+  let doc: EunosActor|EunosItem|User|undefined = undefined;
+  if (typeof ref === "string") {
+    if (isDocID(ref)) {
+      doc = getUsers().find((user) => user.id === ref);
+      if (doc) {
+        return doc;
+      }
+      doc = getActors().find((actor) => actor.id === ref);
+      if (doc) {
+        return getOwnerOfDoc(doc);
+      }
+      return undefined;
+    } else if (isDocUUID(ref)) {
+      doc = (fromUuidSync(ref) ?? undefined) as Maybe<EunosActor|EunosItem|User>;
+    }
+  }
+  doc ??= ref;
+  if ((doc as unknown) instanceof User) {
+    return doc as User;
+  } else if ((doc as unknown) instanceof Actor) {
+    return getOwnerOfDoc(doc as EunosActor);
+  }
+  return undefined;
+}
+
+function getOwnedActors(): Array<EunosActor & {system: ActorDataPC}> {
+  const playerUsers = getUsers().filter((user) => !user.isGM);
+  const unsortedActors: Array<EunosActor & {system: ActorDataPC}> = [];
+  for (const user of playerUsers) {
+    const actor = user.character as Maybe<EunosActor>;
+    if (actor) {
+      unsortedActors.push(actor as EunosActor & {system: ActorDataPC});
+    }
+  }
+  return sortDocsByLastWord(unsortedActors);
+}
+
 /**
  * Calculates time remaining until next game session
  * @returns Object containing days, hours, minutes, seconds and total seconds until target time
@@ -2998,7 +3136,7 @@ export {
 
   // ████████ STRINGS: String Parsing, Manipulation, Conversion ████████
   // ■■■■■■■ Case Conversion ■■■■■■■
-  uCase, lCase, sCase, tCase,
+  uCase, lCase, sCase, tCase, camelCase,
   // ■■■■■■■ Formatting ■■■■■■■
   /* hyphenate, */ unhyphenate, pluralize, oxfordize, ellipsize, pad, trimInner,
   toKey,
@@ -3047,7 +3185,7 @@ export {
 
   getSiblings,
 
-  escapeHTML,
+  escapeHTML, encodeSVGforCSS,
 
   extractComputedStyles, compareComputedStyles,
 
@@ -3077,7 +3215,7 @@ export {
 
   parseDocRefToUUID,
 
-  loc, getSetting, getTemplatePath, displayImageSelector,
+  loc, getSetting, getTemplatePath, displayImageSelector, getOwnerOfDoc, getActorFromRef, getUserFromRef, getOwnedActors,
 
   convertTorontoTime, formatDateAsISO, getNextDayTime
 

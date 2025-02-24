@@ -1,5 +1,16 @@
 <div id="MID-ZINDEX-MASK" class="mid-zindex-mask">
   <div class="canvas-mask">
+    <div class="red-lightning">
+      <video
+        class="red-lightning-background"
+        autoplay
+        loop
+        muted
+        playsinline
+      >
+        <source src="modules/eunos-kult-hacks/assets/video/red-birds-lightning.webm" type="video/webm">
+      </video>
+    </div>
     {{#each LOADING_SCREEN_DATA as |data key|}}
     {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs" data=data key=key}}
     {{/each}}

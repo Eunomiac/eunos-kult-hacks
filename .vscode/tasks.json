@@ -2,6 +2,32 @@
 	"version": "2.0.0",
   "tasks": [
     {
+      "label": "Start Development Environment (1x)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Run Foundry Server",
+        "Run Build with Custom Port",
+        "Run 1x Vite Dev Server"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Start Development Environment (2x)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Run Foundry Server",
+        "Run Build with Custom Port",
+        "Run 2x Vite Dev Server"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
       "label": "Run Foundry Server",
       "type": "shell",
       "command": "node",
@@ -18,13 +44,51 @@
         "panel": "dedicated",
         "clear": true
       },
-      "problemMatcher": []
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Foundry Virtual Tabletop.*",
+          "endsPattern": ".*Server started and listening.*"
+        }
+      }
+    },
+    {
+      "label": "Run Build with Custom Port",
+      "type": "shell",
+      "command": "yarn",
+      "args": [
+        "run",
+        "build"
+      ],
+      "options": {
+        "env": {
+          "FOUNDRY_PORT": "30000"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*building for production.*",
+          "endsPattern": ".*✓ built in.*"
+        }
+      }
     },
     {
       "label": "Run 1x Vite Dev Server",
       "type": "shell",
       "command": "yarn",
-      "args": ["run", "dev"],
+      "args": [
+        "run",
+        "dev"
+      ],
       "options": {
         "env": {
           "NUM_CHROME_PROFILES": "1",
@@ -38,23 +102,14 @@
       "label": "Run 2x Vite Dev Server",
       "type": "shell",
       "command": "yarn",
-      "args": ["run", "dev"],
+      "args": [
+        "run",
+        "dev"
+      ],
       "options": {
         "env": {
           "NUM_CHROME_PROFILES": "2",
           "NODE_OPTIONS": "--max-old-space-size=8192",
-          "FOUNDRY_PORT": "30000"
-        }
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Run Build with Custom Port",
-      "type": "shell",
-      "command": "yarn",
-      "args": ["run", "build"],
-      "options": {
-        "env": {
           "FOUNDRY_PORT": "30000"
         }
       },

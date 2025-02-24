@@ -9,16 +9,21 @@ import {
   padNum,
   isDocID,
   isDocUUID,
+  getOwnerOfDoc,
   sortDocsByLastWord,
+  getOwnedActors,
+  getActorFromRef,
+  camelCase,
+  roundNum,
 } from "../scripts/utilities";
 import {
   LOADING_SCREEN_DATA,
-  getLocationDefaultDynamicData,
   PRE_SESSION,
   MEDIA_PATHS,
   LOCATIONS,
   type Location,
-  LOCATION_PLOTTING_SETTINGS,
+  type PCs,
+  CONTROL_SLIDER_PANELS,
   Sounds,
 } from "../scripts/constants";
 import type { EmptyObject } from "fvtt-types/utils";
@@ -32,16 +37,25 @@ import {
 } from "../scripts/enums";
 import EunosSockets from "./EunosSockets";
 import EunosAlerts from "./EunosAlerts";
+import { AlertPaths } from "../scripts/svgdata";
 import ItemDataAdvantage from "../data-model/ItemDataAdvantage";
 import ItemDataDisadvantage from "../data-model/ItemDataDisadvantage";
 import type EunosItem from "../documents/EunosItem";
 import EunosMedia from "./EunosMedia";
 import type ActorDataPC from "../data-model/ActorDataPC";
+import type ActorDataNPC from "../data-model/ActorDataNPC";
 // import AudioHelper from "../scripts/AudioHelper";
 // #endregion -- IMPORTS ~
 
 // #region Type Definitions ~
-/** Status of video loading for each user */
+// Define a shared state object for coordinating filter values
+interface AuroraState {
+  baseHue: number; // Normal state hue
+  glitchHue: number; // Glitch state hue
+  glitchIntensity: number; // How dramatic the color shift is
+  baseSaturation: number;
+  glitchSaturation: number;
+}
 
 // #endregion Type Definitions
 export default class EunosOverlay extends HandlebarsApplicationMixin(
@@ -232,84 +246,50 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
      * Outputs current values to console and alert
      */
     outputValues(event: PointerEvent, target: HTMLElement): void {
-      // Group settings by selector
-      const transformsBySelector: Record<
-        string,
-        {
-          selector: string;
-          properties: Record<string, string | number>;
-        }
-      > = {};
-
-      // Collect transform values
-      LOCATION_PLOTTING_SETTINGS.SIMPLE.forEach((config) => {
-        const elements = document.querySelectorAll(config.selector);
-        if (elements.length > 0) {
-          if (!transformsBySelector[config.selector]) {
-            transformsBySelector[config.selector] = {
-              selector: config.selector,
-              properties: {},
-            };
-          }
-          transformsBySelector[config.selector]!.properties[config.property] =
-            gsap.getProperty(elements[0]!, config.property) as number;
-        }
-      });
-
-      // Collect gradient values
-      LOCATION_PLOTTING_SETTINGS.GRADIENT.forEach((config) => {
-        const elements = document.querySelectorAll(config.selector);
-        if (elements.length > 0) {
-          if (!transformsBySelector[config.selector]) {
-            transformsBySelector[config.selector] = {
-              selector: config.selector,
-              properties: {},
-            };
-          }
-          const element = elements[0] as HTMLElement;
-          transformsBySelector[config.selector]!.properties["background"] =
-            element.style.background;
-        }
-      });
-
-      // Collect filter values
-      LOCATION_PLOTTING_SETTINGS.FILTER.forEach((config) => {
-        const elements = document.querySelectorAll(config.selector);
-        if (elements.length > 0) {
-          if (!transformsBySelector[config.selector]) {
-            transformsBySelector[config.selector] = {
-              selector: config.selector,
-              properties: {},
-            };
-          }
-          const element = elements[0] as HTMLElement;
-          transformsBySelector[config.selector]!.properties["filter"] =
-            element.style.filter;
-        }
-      });
-
-      // Format the output
-      const output = `mapTransforms: [
-    ${Object.values(transformsBySelector)
-      .map(
-        (transform) => `{
-      selector: "${transform.selector}",
-      properties: {
-        ${Object.entries(transform.properties)
-          .map(([key, value]) =>
-            typeof value === "string"
-              ? `${key}: "${value}"`
-              : `${key}: ${value.toFixed(1)}`,
-          )
-          .join(",\n      ")}
-      }
-    }`,
-      )
-      .join(",\n  ")}
-  ]`;
       // Copy to clipboard
       void navigator.clipboard
-        .writeText(output)
+        .writeText(`[
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: ${gsap.getProperty("#STAGE", "perspective")},
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: ${gsap.getProperty(
+              "#STAGE #SECTION-3D .canvas-layer.background-layer",
+              "background-position-x",
+            )},
+            backgroundPositionY: ${gsap.getProperty(
+              "#STAGE #SECTION-3D .canvas-layer.background-layer",
+              "background-position-y",
+            )},
+            filter: "${gsap.getProperty(
+              "#STAGE #SECTION-3D .canvas-layer.background-layer",
+              "filter",
+            )} brightness(1.5)",
+            transform: "${gsap.getProperty(
+              "#STAGE #SECTION-3D .canvas-layer.background-layer",
+              "transform",
+            )}",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "${gsap.getProperty(
+              "#STAGE #SECTION-3D .canvas-layer.under-layer",
+              "transform",
+            )}",
+            background: "${gsap.getProperty(
+              "#STAGE #SECTION-3D .canvas-layer.under-layer",
+              "background",
+            )}",
+          },
+        },
+      ]`)
         .then(() => {
           getNotifier().info("Location plotting values copied to clipboard");
         })
@@ -317,13 +297,90 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           console.error("Failed to copy to clipboard:", err);
           getNotifier().warn("Failed to copy to clipboard");
         });
+      //     // Group settings by selector
+      //     const transformsBySelector: Record<
+      //       string,
+      //       {
+      //         selector: string;
+      //         properties: Record<string, string | number>;
+      //       }
+      //     > = {};
 
-      // Send as whispered chat message
-      // @ts-expect-error Again, bad typing on this
-      void ChatMessage.create({
-        content: `<pre>${output}</pre>`,
-        whisper: [getUser().id],
-      });
+      //     // Collect transform values
+      //     CONTROL_SLIDER_PANELS.LOCATION_PLOTTING.forEach((config) => {
+      //       const elements = document.querySelectorAll(config.selector);
+      //       if (elements.length > 0) {
+      //         if (!transformsBySelector[config.selector]) {
+      //           transformsBySelector[config.selector] = {
+      //             selector: config.selector,
+      //             properties: {},
+      //           };
+      //         }
+      //         let property = config.outputProperty ?? config.property;
+
+      //         // Get the computed value based on property type
+      //         let value: string | number;
+      //         if (property.startsWith("--")) {
+      //           // Handle CSS custom properties
+      //           const computedStyle = getComputedStyle(elements[0]!);
+      //           const rawValue = computedStyle.getPropertyValue(property).trim();
+      //           const numValue = parseFloat(rawValue);
+      //           value = !Number.isNaN(numValue) ? numValue : rawValue;
+      //         } else {
+      //           // Handle regular CSS properties
+      //           const computedStyle = getComputedStyle(elements[0]!);
+      //           const rawValue = computedStyle[camelCase(property) as keyof CSSStyleDeclaration] as string;
+      //           const numValue = parseFloat(rawValue);
+      //           value = !Number.isNaN(numValue) ? numValue : rawValue;
+      //         }
+
+      //         // Format property name for output
+      //         if (property.startsWith("--") || /-| /g.test(property)) {
+      //           property = `"${property}"`;
+      //         } else {
+      //           property = camelCase(property);
+      //         }
+
+      //         transformsBySelector[config.selector]!.properties[property] = value;
+      //       }
+      //     });
+
+      //     // Format the output
+      //     const output = `mapTransforms: [
+      //   ${Object.values(transformsBySelector)
+      //     .map(
+      //       (transform) => `{
+      //     selector: "${transform.selector}",
+      //     properties: {
+      //       ${Object.entries(transform.properties)
+      //         .map(([key, value]) =>
+      //           typeof value === "string"
+      //             ? `${key}: "${value}"`
+      //             : `${key}: ${value.toFixed(1)}`,
+      //         )
+      //         .join(",\n      ")}
+      //     }
+      //   }`,
+      //     )
+      //     .join(",\n  ")}
+      // ]`;
+      //     // Copy to clipboard
+      //     void navigator.clipboard
+      //       .writeText(output)
+      //       .then(() => {
+      //         getNotifier().info("Location plotting values copied to clipboard");
+      //       })
+      //       .catch((err: unknown) => {
+      //         console.error("Failed to copy to clipboard:", err);
+      //         getNotifier().warn("Failed to copy to clipboard");
+      //       });
+
+      //     // Send as whispered chat message
+      //     // @ts-expect-error Again, bad typing on this
+      //     void ChatMessage.create({
+      //       content: `<pre>${output}</pre>`,
+      //       whisper: [getUser().id],
+      //     });
     },
 
     /**
@@ -361,84 +418,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       input.val(initialValue);
       input.trigger("input"); // Trigger input event to update display and apply changes
-    },
-    refreshControl(event: PointerEvent, target: HTMLElement): void {
-      const control = EunosOverlay.instance.overlay$
-        .find(target)
-        .closest(".control-row");
-      EunosOverlay.instance.refreshPlottingControl(control);
-    },
-    syncWithLocation(event: PointerEvent, target: HTMLElement): void {
-      const currentLocation = getSetting("currentLocation");
-      const locationData = EunosOverlay.instance.getLocationData(currentLocation);
-
-      if (!locationData?.mapTransforms) {
-        ui.notifications?.warn(
-          `No transform data found for location: ${currentLocation}`,
-        );
-        return;
-      }
-
-      // Update each control based on the mapTransforms data
-      locationData.mapTransforms.forEach((transform) => {
-        const { selector, properties } = transform;
-
-        // Update transform controls
-        Object.entries(properties).forEach(([property, value]) => {
-          if (property === "background") {
-            // Handle gradient properties
-            const match = (value as string).match(
-              /circle at (\d+)% (\d+)%.*?(\d+)%/,
-            );
-            if (match) {
-              const [, x, y, stop] = match;
-              EunosOverlay.instance.overlay$
-                .find(`input[data-property='circlePositionX']`)
-                .val(x!)
-                .trigger("input");
-              EunosOverlay.instance.overlay$
-                .find(`input[data-property='circlePositionY']`)
-                .val(y!)
-                .trigger("input");
-              EunosOverlay.instance.overlay$
-                .find(`input[data-property='gradientStopPercentage']`)
-                .val(stop!)
-                .trigger("input");
-            }
-          } else if (property === "filter") {
-            // Handle filter properties
-            const hueMatch = (value as string).match(/hue-rotate\((\d+)deg\)/);
-            const saturateMatch = (value as string).match(
-              /saturate\((\d+(?:\.\d+)?)\)/,
-            );
-
-            if (hueMatch) {
-              EunosOverlay.instance.overlay$
-                .find(`input[data-property='hue-rotate']`)
-                .val(hueMatch[1]!)
-                .trigger("input");
-            }
-            if (saturateMatch) {
-              EunosOverlay.instance.overlay$
-                .find(`input[data-property='saturate']`)
-                .val(saturateMatch[1]!)
-                .trigger("input");
-            }
-          } else {
-            // Handle transform properties
-            EunosOverlay.instance.overlay$
-              .find(
-                `input[data-property='${property}'][data-selector='${selector}']`,
-              )
-              .val(value as number)
-              .trigger("input");
-          }
-        });
-      });
-
-      ui.notifications?.info(
-        `Synced controls with location: ${currentLocation}`,
-      );
     },
     togglePCSpotlight(event: PointerEvent, target: HTMLElement): void {
       const pcID = target.dataset["actorId"];
@@ -498,17 +477,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       saveDefaults: EunosOverlay.ACTIONS.saveDefaults.bind(EunosOverlay),
       outputValues: EunosOverlay.ACTIONS.outputValues.bind(EunosOverlay),
       resetControl: EunosOverlay.ACTIONS.resetControl.bind(EunosOverlay),
-      refreshControl: EunosOverlay.ACTIONS.refreshControl.bind(EunosOverlay),
       seriousWoundClick:
         EunosOverlay.ACTIONS.seriousWoundClick.bind(EunosOverlay),
       criticalWoundClick:
         EunosOverlay.ACTIONS.criticalWoundClick.bind(EunosOverlay),
       togglePCSpotlight:
         EunosOverlay.ACTIONS.togglePCSpotlight.bind(EunosOverlay),
-      togglePCDimmed:
-        EunosOverlay.ACTIONS.togglePCDimmed.bind(EunosOverlay),
-      togglePCHidden:
-        EunosOverlay.ACTIONS.togglePCHidden.bind(EunosOverlay),
+      togglePCDimmed: EunosOverlay.ACTIONS.togglePCDimmed.bind(EunosOverlay),
+      togglePCHidden: EunosOverlay.ACTIONS.togglePCHidden.bind(EunosOverlay),
     },
   };
 
@@ -743,10 +719,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #safetyButtons: Maybe<HTMLElement>;
   #alerts: Maybe<HTMLElement>;
   #countdownContainer: Maybe<HTMLElement>;
+  #countdownAurora: Maybe<HTMLElement>;
+  #redLightning: Maybe<HTMLElement>;
   #countdown: Maybe<HTMLElement>;
   #videoStatusPanel: Maybe<HTMLElement>;
   #locationPlottingPanel: Maybe<HTMLElement>;
   #stage: Maybe<HTMLElement>;
+  #stage3D: Maybe<HTMLElement>;
+  #pcs: Maybe<HTMLElement>;
+
   get overlay$() {
     return $(this.element);
   }
@@ -857,6 +838,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(this.#countdownContainer);
   }
 
+  get countdownAurora$() {
+    if (!this.#countdownAurora) {
+      this.#countdownAurora = this.countdownContainer$.find(
+        ".aurora-background",
+      )[0] as Maybe<HTMLElement>;
+    }
+    if (!this.#countdownAurora) {
+      throw new Error("Countdown aurora not found");
+    }
+    return $(this.#countdownAurora);
+  }
+
+  get redLightning$() {
+    if (!this.#redLightning) {
+      this.#redLightning = this.midZIndexMask$.find(
+        ".red-lightning",
+      )[0] as Maybe<HTMLElement>;
+    }
+    if (!this.#redLightning) {
+      throw new Error("Red lightning not found");
+    }
+    return $(this.#redLightning);
+  }
+
   get countdown$() {
     // if (!this.#countdown) {
     this.#countdown = this.element.querySelector(
@@ -906,11 +911,27 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(this.#stage);
   }
 
+  get stage3D$() {
+    if (!this.#stage3D) {
+      this.#stage3D = this.stage$.find("#SECTION-3D")[0] as Maybe<HTMLElement>;
+    }
+    if (!this.#stage3D) {
+      throw new Error("Stage 3D not found");
+    }
+    return $(this.#stage3D);
+  }
+
+  get pcs$() {
+    if (!this.#pcs) {
+      this.#pcs = this.element.querySelector("#PCS") as Maybe<HTMLElement>;
+    }
+    if (!this.#pcs) {
+      throw new Error("PCS not found");
+    }
+    return $(this.#pcs);
+  }
+
   // #endregion DOM ELEMENT GETTERS
-
-  // #region MEDIA GETTERS ~
-
-  // #endregion MEDIA GETTERS
 
   // #region ===== PRE-SESSION MANAGEMENT & GAME PHASE CONTROL =====
   // #region COUNTDOWN ~
@@ -941,23 +962,75 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private async buildCountdownContainerTimeline(): Promise<gsap.core.Timeline> {
     const duration = await this.getPreSessionSongDuration();
     const timeOffset = Math.max(0, duration - this.timeRemaining);
+
+    // Progressive intensity increase
+    gsap.to(this.auroraState, {
+      duration,
+      glitchHue: 180, // More extreme red shift
+      glitchIntensity: 0.8, // More dramatic effect
+      baseHue: 20, // Slight red tint in normal state
+      glitchSaturation: 2, // More saturated during glitches
+      baseSaturation: 1.3, // Slightly more saturated base state
+      ease: "power2.in",
+    });
+
     kLog.log("buildCountdownContainerTimeline", duration, timeOffset);
-    this.#countdownContainerTimeline = gsap.timeline().fromTo(
-      this.countdownContainer$,
-      {
-        filter: "drop-shadow(rgba(0, 0, 0, 0.55) 0px 0px 0px)",
-      },
-      {
-        top: "50%",
-        filter: "drop-shadow(rgba(0, 0, 0, 0.55) 100px 100px 5px)",
-        scale: 3,
-        duration,
-        ease: "power4.inOut",
-      },
-    );
+
+    this.#countdownContainerTimeline = gsap
+      .timeline()
+      .fromTo(
+        this.countdownContainer$,
+        {
+          filter: "drop-shadow(rgba(0, 0, 0, 0.55) 0px 0px 0px)",
+        },
+        {
+          top: "50%",
+          filter: "drop-shadow(rgba(0, 0, 0, 0.55) 100px 100px 5px)",
+          scale: 3,
+          duration,
+          ease: "power4.inOut",
+        },
+      )
+      .to(
+        this.redLightning$,
+        {
+          autoAlpha: 1,
+          duration: 0.1,
+          ease: "none",
+        },
+        ">-20%",
+      )
+      .fromTo(
+        this.countdownAurora$,
+        {
+          autoAlpha: 0,
+        },
+        {
+          autoAlpha: 1,
+          duration: duration, // Fade in during first 30% of animation
+          ease: "power4.in",
+        },
+        0, // Start at beginning of timeline
+      )
+      .to(
+        [this.redLightning$, this.countdownAurora$],
+        {
+          autoAlpha: 0,
+        },
+        "-=2",
+      );
+
     this.#isCountdownContainerTimelinePlaying = true;
     return this.#countdownContainerTimeline.seek(timeOffset);
   }
+
+  private auroraState: AuroraState = {
+    baseHue: 0, // Starting at natural color
+    glitchHue: 140, // Shift towards red
+    glitchIntensity: 0.3, // Initial intensity
+    baseSaturation: 1,
+    glitchSaturation: 1.2,
+  };
 
   private buildGlitchTimeline(repeatDelay: number): gsap.core.Timeline {
     const glitchText$ = this.countdown$.find(".glitch-text");
@@ -1024,6 +1097,28 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(glitchText$, { duration: 0.02, scaleY: 1.1, ease: "power4.inOut" })
       .to(glitchText$, { duration: 0.04, scaleY: 1, ease: "power4.inOut" });
 
+    const aurora$ = this.countdownAurora$.find(".aurora");
+
+    this.#glitchTimeline
+      .to(
+        aurora$,
+        {
+          duration: 0.1,
+          filter: "brightness(2.5)",
+          ease: "power2.inOut",
+        },
+        "split",
+      )
+      .to(
+        aurora$,
+        {
+          duration: 0.2,
+          filter: "brightness(1)",
+          ease: "power2.in",
+        },
+        "+=0.1",
+      );
+
     return this.#glitchTimeline.seek(0);
   }
 
@@ -1084,7 +1179,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #isCountdownHidden = false;
   #areAppElementsFaded = false;
   #areLoadingScreenImagesStopped = false;
-  #isCountdownContainerTimelineSynced = false;
+  // #isCountdownContainerTimelineSynced = false;
   #isPreSessionSongPlaying = false;
   #isPreSessionSongSynced = false;
 
@@ -1100,6 +1195,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     return this.#durationOfSong;
   }
+
+  private async syncCountdownContainerTimeline() {
+    const preSessionSongDuration = await this.getPreSessionSongDuration();
+    const countdownProgress = 1 - this.timeRemaining / preSessionSongDuration;
+    this.#countdownContainerTimeline?.progress(countdownProgress);
+  }
+
   /** Updates the countdown display and handles pre-session sequence */
   private async updateCountdown(): Promise<void> {
     this.#timeRemaining = this.updateCountdownText().totalSeconds;
@@ -1107,14 +1209,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     if (
       this.#isCountdownContainerTimelinePlaying &&
-      !this.#isCountdownContainerTimelineSynced
+      this.timeRemaining % 5 === 0
     ) {
-      const countdownProgress =
-        1 - this.#timeRemaining / preSessionSongDuration;
-      kLog.log(`Countdown progress: ${countdownProgress}`);
-      this.#countdownContainerTimeline?.progress(countdownProgress);
-      this.#isCountdownContainerTimelineSynced = true;
+      void this.syncCountdownContainerTimeline();
     }
+
     if (this.#isPreSessionSongPlaying && !this.#isPreSessionSongSynced) {
       const preSessionSongCurrentTime =
         preSessionSongDuration - this.#timeRemaining;
@@ -1124,7 +1223,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     if (this.#isPreSessionSongSynced && this.#glitchTimeline?.isActive()) {
       const newRepeatDelay = await this.getGlitchRepeatDelay();
-      if (Math.abs(newRepeatDelay - (this.#glitchTimeline?.repeatDelay() ?? Infinity)) > 2) {
+      if (
+        Math.abs(
+          newRepeatDelay - (this.#glitchTimeline?.repeatDelay() ?? Infinity),
+        ) > 2
+      ) {
         kLog.log(`updateCountdown -> newRepeatDelay: ${newRepeatDelay}`);
         this.#glitchTimeline.repeatDelay(newRepeatDelay);
       }
@@ -1186,7 +1289,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return;
     }
 
-    // T-120 secs: Begin glitch AND container timelines
+    // T-<Song Duration> secs: Begin glitch AND container timelines
     if (
       this.timeRemaining <= preSessionSongDuration &&
       !this.#isCountdownContainerTimelinePlaying
@@ -1197,7 +1300,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         "play"
       ]();
       this.#isCountdownContainerTimelinePlaying = true;
-      void this.killSessionClosedAmbientAudio();
+      setTimeout(() => {
+        void this.killSessionClosedAmbientAudio();
+      }, 10000);
       return;
     } else if (
       this.timeRemaining > preSessionSongDuration &&
@@ -1504,7 +1609,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     window.clearInterval(this.#loadScreenRotationTimer);
 
     // Fade out current loading screen item
-    const currentItem = this.#loadingScreenItems.get(this.#currentLoadingScreenItem ?? "");
+    const currentItem = this.#loadingScreenItems.get(
+      this.#currentLoadingScreenItem ?? "",
+    );
     if (currentItem?.[0]) {
       gsap.to(currentItem[0], {
         autoAlpha: 0,
@@ -2171,7 +2278,227 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region ===== STAGE CONTROL =====
 
-  // #region LOCATIONS ~
+  // #region PC PANEL ~
+
+  private PCsGlobalSettingsData: Array<PCs.GlobalSettingsData> = [];
+  private getPCsGlobalSettingsData(): Array<PCs.GlobalSettingsData> {
+    if (this.PCsGlobalSettingsData.length > 0) {
+      return this.PCsGlobalSettingsData;
+    }
+    const ownedActors = getOwnedActors();
+    for (const actor of ownedActors) {
+      this.PCsGlobalSettingsData.push({
+        actorID: actor.id!,
+        ownerID: getOwnerOfDoc(actor)!.id!,
+      });
+    }
+    return this.PCsGlobalSettingsData;
+  }
+  /**
+   * Gathers and memoizes PC data that is common across all locations.
+   * The owner's character is also marked as isOwner, and any actors whose owners are offline are marked as isMasked.
+   *
+   * @returns An array of PCs sorted by slot number, except for the owner, who is always at the center of the array.
+   */
+  private PCsGlobalData: Record<"1"|"2"|"3"|"4"|"5", PCs.GlobalData> = {} as Record<"1"|"2"|"3"|"4"|"5", PCs.GlobalData>;
+  private getPCsGlobalData(): Record<"1"|"2"|"3"|"4"|"5", PCs.GlobalData> {
+    if (Object.keys(this.PCsGlobalData).length > 0) {
+      return this.PCsGlobalData;
+    }
+    const staticData = this.getPCsGlobalSettingsData();
+    const fullData: Array<Omit<PCs.GlobalData, "slot">> = [];
+    for (const data of staticData) {
+      const actor = getActors().find((a) => a.id === data.actorID) as Maybe<EunosActor & {system: ActorDataPC}>;
+      if (!actor) {
+        throw new Error(`Actor ${data.actorID} not found`);
+      }
+      const owner = getOwnerOfDoc(actor);
+      if (!owner) {
+        throw new Error(`Owner of actor ${actor.id} not found`);
+      }
+      fullData.push({
+        ...data,
+        actor,
+        owner,
+        isOwner: owner.id === getUser().id,
+        isMasked: !owner.active,
+      });
+    }
+
+    // Iterate through and, if any actor's owner is the current user, remove it from the array and assign it to myActor
+    const myActorIndex = fullData.findIndex((data) => data.isOwner);
+    if (myActorIndex !== -1) {
+      const myActor = fullData.splice(myActorIndex, 1)[0]!;
+      // Now insert myActor into the middle of the array
+      fullData.splice(Math.floor(fullData.length / 2), 0, myActor);
+    }
+    // With the actors sorted, assign slot data and online data, format as a record
+    const dataRecord: Partial<Record<"1"|"2"|"3"|"4"|"5", PCs.GlobalData>> = {};
+    Object.values(fullData).forEach((data, index) => {
+      dataRecord[String(index + 1) as "1" | "2" | "3" | "4" | "5"] = {
+        ...data,
+        slot: String(index + 1) as "1" | "2" | "3" | "4" | "5"
+      };
+    });
+    this.PCsGlobalData = dataRecord as Record<"1"|"2"|"3"|"4"|"5", PCs.GlobalData>;
+    return this.PCsGlobalData;
+  }
+
+  private getDefaultLocationPCData(): Array<Location.PCData.SettingsData> {
+    const pcGlobalData = this.getPCsGlobalData();
+    const pcData: Array<Location.PCData.SettingsData> = [];
+    Object.values(pcGlobalData).forEach((data) => {
+      pcData.push({
+        ...data,
+        isSpotlit: false,
+        isDimmed: false,
+        isHidden: false,
+      });
+    });
+    return pcData;
+  }
+
+  private async setLocationPCData(
+    location: string,
+    fullData: Location.PCData.FullData
+  ) {
+    const locationFullData = this.getLocationData(location);
+    locationFullData.pcData[fullData.slot] = fullData;
+    await this.setLocationData(location, locationFullData);
+  }
+
+  public async setLocationPCValue(
+    location: string,
+    pcRef: number | string | EunosActor,
+    dotKey: string,
+    value: unknown,
+  ) {
+    const locationPCData = this.getLocationDataForPC(location, pcRef);
+    const curVal: unknown = foundry.utils.getProperty(locationPCData, dotKey);
+    if (curVal === value) {
+      return;
+    }
+    foundry.utils.setProperty(locationPCData, dotKey, value);
+    await this.setLocationPCData(location, locationPCData);
+  }
+
+
+  private pcPortraitTimelines: Record<"1"|"2"|"3"|"4"|"5", Record<string, gsap.core.Timeline>> = {} as Record<"1"|"2"|"3"|"4"|"5", Record<string, gsap.core.Timeline>>;
+
+  private buildIsHiddenTimeline(slot: "1" | "2" | "3" | "4" | "5"): gsap.core.Timeline {
+    if (Object.keys(this.pcPortraitTimelines[slot]).length > 0) {
+      if (!this.pcPortraitTimelines[slot]["isHidden"]) {
+        throw new Error(`'buildIsHiddenTimelines' have been created, but timeline for slot ${slot} not found`);
+      }
+      return this.pcPortraitTimelines[slot]["isHidden"];
+    }
+    const chainSelector = `#PCS .pc-container[data-slot="${slot}"] .chain`;
+    const portraitSelector = `#PCS .pc-container[data-slot="${slot}"] .pc-portrait-container`;
+    const tl = gsap.timeline({paused: true});
+    tl.addLabel("startFalse")
+      .to(chainSelector, {autoAlpha: 1, duration: 0})
+      .to(portraitSelector, {filter: "brightness(1) blur(0)", duration: 0, ease: "none"}, 0)
+      .fromTo(chainSelector, {y: -1000}, {y: 100, duration: 1, ease: "bounce.out"}, 0)
+      .to(portraitSelector, {rotate: 5, duration: 0.1, ease: "power3.out"}, ">-0.2")
+      .to(chainSelector, {y: -1000, duration: 1.5, ease: "power2.out"}, 1)
+      .to(portraitSelector, {y: -1000, duration: 1, ease: "power4.out"}, 1)
+      .to(chainSelector, {autoAlpha: 0, duration: 0.25, ease: "power3.out"}, 1.75)
+      // .to(portrait, {scale: 0.7, duration: 0.5, ease: "power2.out"}, 1)
+      .to(portraitSelector, {filter: "brightness(0.2) blur(5px)", ease: "power2.out", duration: 0.5}, 1)
+      .to([chainSelector, portraitSelector], {autoAlpha: 0, duration: 0.1, ease: "none"}, ">-0.1")
+      .addLabel("true")
+      .addLabel("startTrue")
+      .to([chainSelector, portraitSelector], {autoAlpha: 1, duration: 0.1, ease: "none"})
+      .to(portraitSelector, {y: 0, duration: 1, ease: "bounce.out"}, "<")
+      .to(portraitSelector, {scale: 1, filter: "brightness(1) blur(0px)", ease: "power2.out", duration: 0.5}, "<")
+      .to(chainSelector, {y: 100, duration: 3, ease: "bounce.out"}, "<")
+      .to(portraitSelector, {rotate: 0, duration: 0.2, ease: "power2.out"})
+      .to(chainSelector, {y: -1000, duration: 1, ease: "power4.out"})
+      .to(chainSelector, {autoAlpha: 0, duration: 0.1, ease: "none"}, ">-0.1")
+      .addLabel("false");
+    return tl;
+  }
+
+  private buildIsSpotlitTimeline(slot: "1" | "2" | "3" | "4" | "5"): gsap.core.Timeline {
+    const chain = this.pcs$.find(`[data-slot="${slot}"] .chain`)[0];
+    if (!chain) {
+      throw new Error(`Chain for slot ${slot} not found`);
+    }
+    return gsap.timeline({paused: true});
+
+  }
+
+  private buildIsDimmedTimeline(slot: "1" | "2" | "3" | "4" | "5"): gsap.core.Timeline {
+    const chain = this.pcs$.find(`[data-slot="${slot}"] .chain`)[0];
+    if (!chain) {
+      throw new Error(`Chain for slot ${slot} not found`);
+    }
+    return gsap.timeline({paused: true});
+  }
+
+  private buildIsMaskedTimeline(slot: "1" | "2" | "3" | "4" | "5"): gsap.core.Timeline {
+    const chain = this.pcs$.find(`[data-slot="${slot}"] .chain`)[0];
+    if (!chain) {
+      throw new Error(`Chain for slot ${slot} not found`);
+    }
+    return gsap.timeline({paused: true});
+  }
+
+
+  public buildPCPortraitTimelines() {
+    (["1", "2", "3", "4", "5"] as const).forEach((slot) => {
+      this.pcPortraitTimelines[slot] = {} as Record<string, gsap.core.Timeline>;
+      this.pcPortraitTimelines[slot]["isHidden"] = this.buildIsHiddenTimeline(slot);
+      this.pcPortraitTimelines[slot]["isSpotlit"] = this.buildIsSpotlitTimeline(slot);
+      this.pcPortraitTimelines[slot]["isDimmed"] = this.buildIsDimmedTimeline(slot);
+      this.pcPortraitTimelines[slot]["isMasked"] = this.buildIsMaskedTimeline(slot);
+    });
+  }
+
+  public async togglePCSpotlight(pcID: IDString, isSpotlit?: boolean) {
+    const pcData = this.getLocationDataForPC(getSetting("currentLocation"), pcID);
+    if (!pcData) {
+      kLog.error(`PC ${pcID} not found`);
+      return;
+    }
+    pcData.isSpotlit = isSpotlit ?? !pcData.isSpotlit;
+    await this.setLocationPCData(getSetting("currentLocation"), pcData);
+  }
+
+  public async togglePCHide(pcID: IDString, isHidden?: boolean): Promise<void> {
+    const pcData = this.getLocationDataForPC(getSetting("currentLocation"), pcID);
+    if (!pcData) {
+      kLog.error(`PC ${pcID} not found`);
+      return;
+    }
+    if (isHidden !== undefined && isHidden === pcData.isHidden) {
+      return;
+    }
+    pcData.isHidden = isHidden ?? !pcData.isHidden;
+    if (pcData.slot === "3") {
+      return;
+    }
+    if (pcData.isHidden) {
+      await this.pcPortraitTimelines[pcData.slot]["isHidden"]!.tweenTo("true");
+    } else {
+      await this.pcPortraitTimelines[pcData.slot]["isHidden"]!.tweenTo("false");
+      void this.pcPortraitTimelines[pcData.slot]["isHidden"]!.progress(0);
+    }
+    await this.setLocationPCData(getSetting("currentLocation"), pcData);
+  }
+
+  public async togglePCDimmed(pcID: IDString, isDimmed?: boolean) {
+    const pcData = this.getLocationDataForPC(getSetting("currentLocation"), pcID);
+    if (!pcData) {
+      kLog.error(`PC ${pcID} not found`);
+      return;
+    }
+    pcData.isDimmed = isDimmed ?? !pcData.isDimmed;
+    await this.setLocationPCData(getSetting("currentLocation"), pcData);
+  }
+  // #endregion PC PANEL ~
+
+  // #region LOCATIONS
 
   get locationContainer$(): JQuery {
     return this.overlay$.find("#LOCATIONS");
@@ -2186,65 +2513,141 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return this.locationContainer$.find(".location-description");
   }
 
-  private addActorsToLocationData(locationData: Location.Data): Location.FullData {
-    const { pcData, npcData } = locationData;
-    const actors = getActors();
-    Object.values(pcData).forEach((data) => {
-      const actor = actors.find((a) => a.id === data.id) as Maybe<EunosActor & {system: ActorDataPC}>;
-      if (actor) {
-        data.actor = actor;
-        // Check if actor is online; if not, set isMasked to true
-        if (!actor.system.isOnline) {
-          data.isMasked = true;
-        }
-      } else {
-        throw new Error(`PC Actor '${data.id}' for slot '${data.slot}' not found`);
-      }
-    });
-    Object.values(npcData).forEach((data) => {
-      const actor = actors.find((a) => a.id === data.id);
-      if (actor) {
-        data.actor = actor;
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete npcData[data.slot];
-      }
-    });
-    return locationData as Location.FullData;
-  }
-
-  public getLocationData(location: string): Maybe<Location.FullData> {
-    const settingData = getSettings().get("eunos-kult-hacks", "locationData");
-    if (!(location in settingData) || !settingData[location]) {
-      if (!(location in LOCATIONS && LOCATIONS[location as KeyOf<typeof LOCATIONS>])) {
-        kLog.error(
-          `Location ${location} not found in settingData or in LOCATIONS constant`,
-        );
-        return undefined;
-      }
-
-      const staticData: Location.StaticData = LOCATIONS[location as KeyOf<typeof LOCATIONS>];
-      const fullData: Location.Data = {
-        ...getLocationDefaultDynamicData(),
-        ...staticData,
+  private getLocationDefaultStaticSettingsData(location: string): Location.StaticSettingsData {
+    if (!(location in LOCATIONS)) {
+      return {
+        name: location,
+        image: "",
+        description: "",
+        mapTransforms: [],
       };
-      settingData[location] = fullData;
-    } else {
-      const fullData: Location.Data = {
-        ...getLocationDefaultDynamicData(),
-        ...settingData[location]
-      };
-      settingData[location] = fullData;
     }
-    this.addActorsToLocationData(settingData[location] as Location.Data);
-    return settingData[location] as Location.FullData;
+    return LOCATIONS[location as KeyOf<typeof LOCATIONS>];
+  }
+  private getLocationDefaultDynamicSettingsData(): Location.DynamicSettingsData {
+    return {
+      pcData: Object.fromEntries(this.getDefaultLocationPCData().map((data) => [data.actorID, data])),
+      npcData: {} as Record<IDString, Location.NPCData.SettingsData>,
+      playlists: [] as IDString[],
+    };
+  }
+  private getLocationDefaultSettingsData(location: string): Location.SettingsData {
+    return {
+      ...this.getLocationDefaultStaticSettingsData(location),
+      ...this.getLocationDefaultDynamicSettingsData(),
+    };
   }
 
-  private async setLocationData(location: string, data: Location.Data) {
+  private getStaticLocationData(location: string): Location.SettingsData {
+    const settingData = getSettings().get("eunos-kult-hacks", "locationData") as Record<string, Location.SettingsData>;
+
+    if (!(location in settingData) || !settingData[location]) {
+      settingData[location] = this.getLocationDefaultSettingsData(location);
+    } else {
+      // If hard-coded map transforms are available, use them, overwriting setting data.
+      const staticMapTransforms =
+        LOCATIONS[location as KeyOf<typeof LOCATIONS>]?.mapTransforms;
+      if (staticMapTransforms) {
+        settingData[location].mapTransforms = staticMapTransforms;
+      }
+      const fullSettingsData: Location.SettingsData = {
+        ...this.getLocationDefaultDynamicSettingsData(),
+        ...settingData[location],
+      };
+      settingData[location] = fullSettingsData;
+    }
+    return settingData[location];
+  }
+
+  private getLocationPCData(pcLocationData: Record<IDString, Location.PCData.SettingsData>): Record<"1"|"2"|"3"|"4"|"5", Location.PCData.FullData> {
+    const pcGlobalData = this.getPCsGlobalData();
+    const pcFullData: Record<"1"|"2"|"3"|"4"|"5", Location.PCData.FullData> = {} as Record<"1"|"2"|"3"|"4"|"5", Location.PCData.FullData>;
+    (["1", "2", "3", "4", "5"] as const).forEach((slot) => {
+      const globalData = pcGlobalData[slot];
+      const locData = Object.values(pcLocationData).find((data) => data.actorID === globalData.actorID);
+      if (!locData) {
+        throw new Error(`PC ${globalData.actorID} not found in location data`);
+      }
+      pcFullData[slot] = {
+        ...locData,
+        ...globalData,
+      };
+    });
+    return pcFullData;
+  }
+
+  private getLocationDataForPC(location: string, pcRef: number | string | EunosActor): Location.PCData.FullData {
+    if (["1", "2", "3", "4", "5"].includes(pcRef as string)) {
+      return this.getLocationPCData(this.getLocationData(location).pcData)[pcRef as "1" | "2" | "3" | "4" | "5"];
+    }
+    const actor = getActorFromRef(pcRef as string);
+    if (!actor) {
+      throw new Error(`Actor ${pcRef instanceof Actor ? (pcRef.name ?? "") : String(pcRef)} not found`);
+    }
+    return Object.values(this.getLocationPCData(this.getLocationData(location).pcData)).find((data) => data.actorID === actor.id)!;
+  }
+
+  private getLocationNPCData(npcLocationData: Record<IDString, Location.NPCData.SettingsData>): Partial<Record<"1"|"2"|"3"|"4"|"5"|"6", Location.NPCData.FullData>> {
+    const npcFullData: Partial<Record<"1"|"2"|"3"|"4"|"5"|"6", Location.NPCData.FullData>> = {} as Partial<Record<"1"|"2"|"3"|"4"|"5"|"6", Location.NPCData.FullData>>;
+    (["1", "2", "3", "4", "5", "6"] as const).forEach((slot) => {
+      const locData = Object.values(npcLocationData).find((data) => data.slot === slot);
+      if (!locData) { return; }
+      npcFullData[slot] = {
+        ...locData,
+        actor: getActors().find((a) => a.id === locData.actorID) as EunosActor & {system: ActorDataNPC},
+      };
+    });
+    return npcFullData;
+  }
+
+  private deriveLocationFullData(settingsData: Location.SettingsData): Location.FullData {
+    const { pcData, npcData, playlists } = settingsData;
+
+    const pcFullData = this.getLocationPCData(pcData);
+    const npcFullData = this.getLocationNPCData(npcData);
+
+    const fullData: Location.FullData = {
+      ...settingsData,
+      pcData: pcFullData,
+      npcData: npcFullData,
+      playlists: playlists.map((id) => getGame().playlists.get(id) as Playlist),
+    };
+    return fullData;
+  }
+
+  private deriveLocationSettingsData(fullData: Location.FullData): Location.SettingsData {
+    const { pcData, npcData, playlists, ...staticData } = fullData;
+    const pcSettingsData: Record<IDString, Location.PCData.SettingsData> = Object.fromEntries(Object.entries(pcData)
+    .map(([slot, data]) => [data.actorID, { ...data, slot }]));
+    const npcSettingsData: Record<IDString, Location.NPCData.SettingsData> = Object.fromEntries(Object.entries(npcData).map(([slot, data]) => [data.actorID, {
+      slot: slot as "1" | "2" | "3" | "4" | "5" | "6",
+      actorID: data.actorID,
+      isSpotlit: data.isSpotlit,
+      isDimmed: data.isDimmed,
+      isHidden: data.isHidden,
+      isMasked: data.isMasked,
+    }]));
+    const playlistSettingsData = playlists.map((playlist) => playlist.id!);
+    return {
+      ...staticData,
+      pcData: pcSettingsData,
+      npcData: npcSettingsData,
+      playlists: playlistSettingsData,
+    };
+  }
+
+  public getLocationData(location: string): Location.FullData {
+    const settingData = this.getStaticLocationData(location);
+    return this.deriveLocationFullData(settingData);
+  }
+
+  private async setLocationData(location: string, data: Location.FullData) {
     const curData = getSetting("locationData");
-    curData[location] = data;
+    curData[location] = this.deriveLocationSettingsData(data);
     await setSetting("locationData", curData);
-    void this.render({ parts: ["pcs", "pcsGM", "npcs", "npcsGM", "locations"] });
+    void this.render({
+      parts: ["pcs", "pcsGM", "npcs", "npcsGM", "locations"],
+    });
   }
 
   public async setLocationValue(
@@ -2262,88 +2665,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     foundry.utils.setProperty(locationData, dotKey, value);
     await this.setLocationData(location, locationData);
-  }
-
-  private getLocationPCData(
-    location: string,
-    pcRef: number | string | EunosActor,
-  ): Maybe<Location.CharacterData & {actor: EunosActor}> {
-    let charData: Maybe<Location.CharacterData & {actor: EunosActor}>;
-    const locationPCData = this.getLocationData(location)?.pcData;
-    if (!locationPCData) {
-      kLog.error(`Location ${location} has no PC data`);
-      return undefined;
-    }
-    if (typeof pcRef === "number") {
-      pcRef = `${pcRef}`;
-    }
-    if (typeof pcRef === "string") {
-      if (["1", "2", "3", "4", "5"].includes(pcRef)) {
-        charData = locationPCData[pcRef as "1" | "2" | "3" | "4" | "5"];
-      } else {
-        if (isDocUUID(pcRef)) {
-          const actor = fromUuidSync<EunosActor>(pcRef) as Maybe<EunosActor>;
-          if (!(actor instanceof Actor)) {
-            kLog.error(`Invalid PC reference: ${pcRef}`);
-            return undefined;
-          }
-          if (!actor.id) {
-            kLog.error(`Actor ${actor.name} has no ID`);
-            return undefined;
-          }
-          pcRef = actor.id;
-        }
-        if (isDocID(pcRef)) {
-          const actor = getActors().find((a) => a.id === pcRef);
-          if (!(actor instanceof Actor)) {
-            kLog.error(`Invalid PC reference: ${pcRef}`);
-            return undefined;
-          }
-          charData = Object.values(locationPCData).find(
-            (data) => data.id === pcRef,
-          );
-        }
-      }
-    } else if (pcRef instanceof Actor) {
-      charData = Object.values(locationPCData).find(
-        (data) => data.id === (pcRef as EunosActor).id,
-      );
-    }
-    if (!charData) {
-      kLog.error(
-        `Character data not found for ${pcRef instanceof Actor ? (pcRef.name ?? "") : String(pcRef)}`,
-      );
-      return undefined;
-    }
-    return charData;
-  }
-
-  private async setLocationPCData(
-    location: string,
-    fullData: Location.CharacterData,
-  ) {
-    const { actor, ...data } = fullData;
-    await this.setLocationValue(location, `pcData.${data.slot}`, data);
-  }
-
-  public async setLocationPCValue(
-    location: string,
-    pcRef: number | string | EunosActor,
-    dotKey: string,
-    value: unknown,
-  ) {
-    const locationPCData = this.getLocationPCData(location, pcRef);
-    if (!locationPCData) {
-      throw new Error(
-        `Character data not found for ${pcRef instanceof Actor ? (pcRef.name ?? "") : String(pcRef)}`,
-      );
-    }
-    const curVal: unknown = foundry.utils.getProperty(locationPCData, dotKey);
-    if (curVal === value) {
-      return;
-    }
-    foundry.utils.setProperty(locationPCData, dotKey, value);
-    await this.setLocationPCData(location, locationPCData);
   }
 
   public initializeLocation() {
@@ -2371,11 +2692,25 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
   }
 
+  #stageWaverTimeline: Maybe<gsap.core.Timeline>;
   public goToLocation(location: string, isInstant = false) {
     const locationData = this.getLocationData(location);
     if (!locationData) {
       kLog.error("Location not found", { location });
       return;
+    }
+
+    if (!this.#stageWaverTimeline) {
+      this.#stageWaverTimeline = gsap
+        .timeline({ repeat: -1, yoyo: true })
+        .to(this.stage3D$, {
+          rotationX: "random(-3, 3, 1)",
+          rotationY: "random(-3, 3, 1)",
+          rotationZ: "random(-3, 3, 1)",
+          ease: "sine.inOut",
+          duration: 5,
+          repeatRefresh: true,
+        });
     }
 
     const {
@@ -2394,7 +2729,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .timeline({
         paused: true,
         onComplete: () => {
-          void this.render({ parts: ["pcs", "pcsGM", "npcs", "npcsGM", "locations"] });
+          void this.render({
+            parts: ["pcs", "pcsGM", "npcs", "npcsGM", "locations"],
+          });
         },
       })
       .to(
@@ -2422,14 +2759,29 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         ease: "none",
       })
       .addLabel("startMoving");
+    // .to(this.stage3D$, {
+    //   z: -200,
+    //   duration: 1.5,
+    //   ease: "back.in(1.7)",
+    //   repeat: 1,
+    //   yoyo: true
+    // }, "startMoving")
 
     mapTransforms.forEach(({ selector, properties }) => {
+      // Extract transform properties to be compiled separately
+      // const {rotationX, rotationY, rotationZ, z, ...rest} = properties;
+      // Bump the z shift for the shadowing element
+      let zShift = 0;
+      if (selector.includes("under-layer")) {
+        zShift = 10;
+      }
+      // rest["transform"] = `translate(-50%, -50%) translate3d(0, 0, ${(parseInt(`${z ?? "0"}`) ?? 0) + zShift}px) rotateX(${rotationX ?? 0}deg) rotateY(${rotationY ?? 0}deg) rotate(${rotationZ ?? 0}deg)`;
       timeline.to(
         selector,
         {
           ...properties,
           duration: 3,
-          ease: "back.out(1.7)",
+          ease: "power2.inOut",
         },
         "startMoving",
       );
@@ -2445,6 +2797,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       "-=0.5",
     );
 
+    // timeline.to(this.stage3D$, {
+    //   filter: "blur(15px)",
+    //   duration: 2,
+    //   ease: "power2.out",
+    // }, "startMoving")
+    // .to(this.stage3D$, {
+    //   filter: "blur(0)",
+    //   duration: 2,
+    //   ease: "power2.out",
+    // });
+
     if (isInstant) {
       timeline.progress(0.9).play();
     } else {
@@ -2452,39 +2815,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
   }
 
-  public async togglePCSpotlight(pcID: IDString, isSpotlit?: boolean) {
-    const pcData = this.getLocationPCData(getSetting("currentLocation"), pcID);
-    if (!pcData) {
-      kLog.error(`PC ${pcID} not found`);
-      return;
-    }
-    pcData.isSpotlit = isSpotlit ?? !pcData.isSpotlit;
-    await this.setLocationPCData(getSetting("currentLocation"), pcData);
-  }
 
-  public async togglePCHide(pcID: IDString, isHidden?: boolean) {
-    const pcData = this.getLocationPCData(getSetting("currentLocation"), pcID);
-    if (!pcData) {
-      kLog.error(`PC ${pcID} not found`);
-      return;
-    }
-    pcData.isHidden = isHidden ?? !pcData.isHidden;
-    await this.setLocationPCData(getSetting("currentLocation"), pcData);
-  }
+  // #endregion LOCATIONS
 
-  public async togglePCDimmed(pcID: IDString, isDimmed?: boolean) {
-    const pcData = this.getLocationPCData(getSetting("currentLocation"), pcID);
-    if (!pcData) {
-      kLog.error(`PC ${pcID} not found`);
-      return;
-    }
-    pcData.isDimmed = isDimmed ?? !pcData.isDimmed;
-    await this.setLocationPCData(getSetting("currentLocation"), pcData);
-  }
-
-
-
-  // #region Location Plotting ~
+  // #region LOCATION PLOTTING PANEL ~
   private initialValues: {
     transforms: Record<string, number>;
     gradients: Record<string, number>;
@@ -2496,243 +2830,92 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   };
 
   public togglePlottingPanel(): void {
-    void setSetting("isPlottingLocations", !getSetting("isPlottingLocations"));
+    const isPlottingLocations = !getSetting("isPlottingLocations");
+    this.stage$.find(".positioner-layer").css("visibility", "hidden");
+    void setSetting("isPlottingLocations", isPlottingLocations);
+    if (isPlottingLocations) {
+      this.showPlottingPanel();
+    } else {
+      this.hidePlottingPanel();
+    }
   }
 
   /** Creates and displays the debug panel */
   public showPlottingPanel(): void {
+    this.stage$.find(".positioner-layer").css("visibility", "visible");
     this.locationPlottingPanel$.css("visibility", "visible");
-    this.refreshPlottingPanel();
-    this.addPlottingControlListeners();
-  }
-
-  private getGradientValues(): {
-    circlePositionX: number;
-    circlePositionY: number;
-    gradientStopPercentage: number;
-  } {
-    const underLayer = this.stage$.find(".canvas-layer.under-layer");
-    const gradientString = window.getComputedStyle(underLayer[0]!).background;
-    const match = gradientString.match(/circle at (\d+)% (\d+)%.*?(\d+)%/);
-    if (!match) {
-      return {
-        circlePositionX: 0,
-        circlePositionY: 0,
-        gradientStopPercentage: 0,
-      };
-    }
-    const [, x, y, stop] = match;
-    return {
-      circlePositionX: parseInt(x ?? "0"),
-      circlePositionY: parseInt(y ?? "0"),
-      gradientStopPercentage: parseInt(stop ?? "0"),
-    };
-  }
-  public resetPlottingPanel(): void {
-    // Reset 3D transform values
-    LOCATION_PLOTTING_SETTINGS.SIMPLE.forEach((config) => {
-      const elements = document.querySelectorAll(config.selector);
-      const initialValue = this.initialValues.transforms[config.property];
-      if (typeof initialValue === "number") {
-        elements.forEach((element) => {
-          gsap.to(element, { [config.property]: initialValue });
-        });
-      }
-    });
-
-    // Reset gradient values
-    const elements = document.querySelectorAll(
-      "#STAGE #SECTION-3D .canvas-layer.under-layer",
-    );
-    const { circlePositionX, circlePositionY, gradientStopPercentage } =
-      this.initialValues.gradients;
-    elements.forEach((element) => {
-      (element as HTMLElement).style.background =
-        `radial-gradient(circle at ${circlePositionX}% ${circlePositionY}%, transparent, rgba(0, 0, 0, 0.9) ${gradientStopPercentage}%)`;
-    });
-
-    // Reset filter values
-    LOCATION_PLOTTING_SETTINGS.FILTER.forEach((config) => {
-      const elements = document.querySelectorAll(config.selector);
-      const filterString = config.filters
-        .map((filter) => {
-          const initialValue = this.initialValues.filters[filter.property];
-          if (!initialValue) {
-            return "";
-          }
-          return `${filter.property}(${this.getFilterValue(filter.property, initialValue)})`;
-        })
-        .join(" ");
-
-      elements.forEach((element) => {
-        (element as HTMLElement).style.filter = filterString;
-      });
-    });
-  }
-
-  refreshPlottingControl(control: JQuery): void {
-    const input = control.find("input[type='range']");
-    const valueDisplay = control.find(".value-display");
-    const controlType = input.attr("data-control-type");
-    const property = input.attr("data-property");
-    const selector = input.attr("data-selector");
-
-    if (!controlType || !property) return;
-
-    if (controlType === "transform" && selector) {
-      const elements = document.querySelectorAll(selector);
-      if (elements.length > 0) {
-        const currentValue = gsap.getProperty(elements[0]!, property) as number;
-        const rangeMult = parseFloat(input.attr("data-range-mult") ?? "1");
-        const range = EunosOverlay.instance.getSliderRange(
-          property,
-          currentValue,
-          rangeMult,
-        );
-
-        input
-          .attr("min", String(range.min))
-          .attr("max", String(range.max))
-          .val(currentValue)
-          .trigger("input");
-
-        valueDisplay.text(
-          EunosOverlay.instance.formatControlValue(
-            controlType,
-            property,
-            currentValue,
-          ),
-        );
-      }
-    } else if (controlType === "background") {
-      const currentValue =
-        this.getGradientValues()[
-          property as keyof ReturnType<typeof this.getGradientValues>
-        ];
-      input.val(currentValue).trigger("input");
-      valueDisplay.text(
-        EunosOverlay.instance.formatControlValue(
-          controlType,
-          property,
-          currentValue,
-        ),
-      );
-    } else if (controlType === "filter" && selector) {
-      const element = document.querySelector(selector);
-      if (!element) return;
-
-      const style = window.getComputedStyle(element);
-      const filterRegex = new RegExp(
-        `${property}\\((\\d+(?:\\.\\d+)?(?:deg|%|)?)\\)`,
-      );
-      const match = style.filter.match(filterRegex);
-      if (match) {
-        const currentValue = parseFloat(match[1] ?? "0");
-        input.val(currentValue).trigger("input");
-        valueDisplay.text(
-          EunosOverlay.instance.formatControlValue(
-            controlType,
-            property,
-            currentValue,
-          ),
-        );
-      }
-    }
-  }
-
-  public refreshPlottingPanel(): void {
-    // Refresh all transform controls
-    this.overlay$.find(".transform-controls .control-row").each((_, row) => {
-      const input = $(row).find("input[type='range']");
-      const controlType = input.attr("data-control-type");
-      const property = input.attr("data-property");
-      const selector = input.attr("data-selector");
-      const valueDisplay = $(row).find(".value-display");
-
-      if (controlType === "transform" && selector) {
-        const elements = document.querySelectorAll(selector);
-        if (elements.length > 0) {
-          const currentValue = gsap.getProperty(
-            elements[0]!,
-            property!,
-          ) as number;
-          const rangeMult = parseFloat(input.attr("data-range-mult") ?? "1");
-          const range = EunosOverlay.instance.getSliderRange(
-            property!,
-            currentValue,
-            rangeMult,
-          );
-
-          input
-            .attr("min", String(range.min))
-            .attr("max", String(range.max))
-            .val(currentValue)
-            .trigger("input");
-
-          valueDisplay.text(
-            this.formatControlValue(controlType, property!, currentValue),
-          );
-        }
-      }
-    });
-
-    // Refresh all gradient controls
-    this.overlay$.find(".gradient-controls .control-row").each((_, row) => {
-      const input = $(row).find("input[type='range']");
-      const controlType = input.attr("data-control-type");
-      const property = input.attr("data-property");
-      const selector = input.attr("data-selector");
-      const valueDisplay = $(row).find(".value-display");
-
-      if (selector) {
-        const element = document.querySelector(selector) as HTMLElement;
-        if (!element) return;
-
-        const value =
-          this.getGradientValues()[
-            property as keyof ReturnType<typeof this.getGradientValues>
-          ];
-
-        input.val(value).trigger("input");
-        valueDisplay.text(
-          this.formatControlValue(controlType!, property!, value),
-        );
-      }
-    });
-
-    // Refresh all filter controls
-    this.overlay$.find(".filter-controls .control-row").each((_, row) => {
-      const input = $(row).find("input[type='range']");
-      const controlType = input.attr("data-control-type");
-      const property = input.attr("data-property");
-      const selector = input.attr("data-selector");
-      const valueDisplay = $(row).find(".value-display");
-
-      if (property && selector) {
-        const element = document.querySelector(selector) as HTMLElement;
-        if (!element) return;
-
-        const style = window.getComputedStyle(element);
-        const filterRegex = new RegExp(
-          `${property}\\((\\d+(?:\\.\\d+)?(?:deg|%|)?)\\)`,
-        );
-        const match = style.filter.match(filterRegex);
-
-        if (match) {
-          const value = parseFloat(match[1] ?? "0");
-          input.val(value).trigger("input");
-          valueDisplay.text(
-            this.formatControlValue(controlType!, property, value),
-          );
-        }
-      }
-    });
+    // this.refreshPlottingPanel();
+    // this.addPlottingControlListeners();
   }
 
   public hidePlottingPanel(): void {
     this.locationPlottingPanel$.css("visibility", "hidden");
-    this.removePlottingControlListeners();
+    // this.removePlottingControlListeners();
   }
+
+  // private getGradientValues(): {
+  //   circlePositionX: number;
+  //   circlePositionY: number;
+  //   gradientStopPercentage: number;
+  // } {
+  //   const underLayer = this.stage$.find(".canvas-layer.under-layer");
+  //   const gradientString = window.getComputedStyle(underLayer[0]!).background;
+  //   const match = gradientString.match(/circle at (\d+)% (\d+)%.*?(\d+)%/);
+  //   if (!match) {
+  //     return {
+  //       circlePositionX: 0,
+  //       circlePositionY: 0,
+  //       gradientStopPercentage: 0,
+  //     };
+  //   }
+  //   const [, x, y, stop] = match;
+  //   return {
+  //     circlePositionX: parseInt(x ?? "0"),
+  //     circlePositionY: parseInt(y ?? "0"),
+  //     gradientStopPercentage: parseInt(stop ?? "0"),
+  //   };
+  // }
+  // public resetPlottingPanel(): void {
+  //   // Reset 3D transform values
+  //   LOCATION_PLOTTING_SETTINGS.SIMPLE.forEach((config) => {
+  //     const elements = document.querySelectorAll(config.selector);
+  //     const initialValue = this.initialValues.transforms[config.property];
+  //     if (typeof initialValue === "number") {
+  //       elements.forEach((element) => {
+  //         gsap.to(element, { [config.property]: initialValue });
+  //       });
+  //     }
+  //   });
+
+  //   // Reset gradient values
+  //   // const elements = document.querySelectorAll(
+  //   //   "#STAGE #SECTION-3D .canvas-layer.under-layer",
+  //   // );
+  //   // const { circlePositionX, circlePositionY, gradientStopPercentage } =
+  //   //   this.initialValues.gradients;
+  //   // elements.forEach((element) => {
+  //   //   (element as HTMLElement).style.background =
+  //   //     `radial-gradient(circle at ${circlePositionX}% ${circlePositionY}%, transparent, rgba(0, 0, 0, 1) ${gradientStopPercentage}%)`;
+  //   // });
+
+  //   // // Reset filter values
+  //   // LOCATION_PLOTTING_SETTINGS.FILTER.forEach((config) => {
+  //   //   const elements = document.querySelectorAll(config.selector);
+  //   //   const filterString = config.filters
+  //   //     .map((filter) => {
+  //   //       const initialValue = this.initialValues.filters[filter.property];
+  //   //       if (!initialValue) {
+  //   //         return "";
+  //   //       }
+  //   //       return `${filter.property}(${this.getFilterValue(filter.property, initialValue)})`;
+  //   //     })
+  //   //     .join(" ");
+
+  //   //   elements.forEach((element) => {
+  //   //     (element as HTMLElement).style.filter = filterString;
+  //   //   });
+  //   // });
+  // }
 
   /** Gets the CSS value for a filter property */
   private getFilterValue(property: string, value: number): string {
@@ -2747,7 +2930,83 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
   // #endregion Location Plotting ~
 
-  // #endregion LOCATIONS
+  /**
+   * Creates a slider control with a label, reset button, and action function
+   * @param label - The label text for the control
+   * @param min - The minimum value for the slider
+   * @param max - The maximum value for the slider
+   * @param initValue - The initial value for the slider, or a function that returns the initial value
+   * @param actionFunction - The function to call when the slider value changes
+   */
+  private makeSliderControl(
+    label: string,
+    min: number,
+    max: number,
+    initValue: number | (() => number),
+    actionFunction: (value: number) => void,
+    formatForDisplay: (value: number) => string,
+  ): HTMLDivElement {
+    const controlRow = document.createElement("div");
+    controlRow.classList.add("control-row");
+
+    const labelElement = document.createElement("label");
+    labelElement.textContent = label;
+
+    const valueDisplay = document.createElement("span");
+    valueDisplay.classList.add("value-display");
+
+    const sliderElement = document.createElement("input");
+    sliderElement.type = "range";
+    sliderElement.min = String(min);
+    sliderElement.max = String(max);
+
+    let initialValue = Number(
+      typeof initValue === "number" ? initValue : initValue(),
+    );
+    sliderElement.value = String(initialValue); // Set initial value
+    valueDisplay.textContent = formatForDisplay(initialValue);
+
+    const resetButton = document.createElement("i");
+    resetButton.classList.add("fas", "fa-undo");
+
+    resetButton.addEventListener("click", () => {
+      sliderElement.value = String(initialValue);
+      actionFunction(initialValue);
+      valueDisplay.textContent = formatForDisplay(initialValue);
+    });
+
+    // Update the value display when the slider value changes
+    sliderElement.addEventListener("input", (event) => {
+      const target = event.target as HTMLInputElement;
+      valueDisplay.textContent = formatForDisplay(Number(target.value));
+      actionFunction(Number(target.value));
+    });
+
+    // // Only trigger action when user finishes changing the value
+    // sliderElement.addEventListener("change", (event) => {
+    //   const target = event.target as HTMLInputElement;
+    //   actionFunction(Number(target.value));
+    // });
+
+    // If a function was provided for initValue, add another button with a save icon, which calls the initValue function and updates the initialValue variable
+    if (typeof initValue === "function") {
+      const saveButton = document.createElement("i");
+      saveButton.classList.add("fas", "fa-save");
+      saveButton.addEventListener("click", () => {
+        initialValue = initValue();
+        sliderElement.value = String(initialValue);
+        valueDisplay.textContent = formatForDisplay(initialValue);
+        actionFunction(initialValue);
+      });
+      controlRow.appendChild(saveButton);
+    }
+
+    controlRow.appendChild(labelElement);
+    controlRow.appendChild(sliderElement);
+    controlRow.appendChild(resetButton);
+    controlRow.appendChild(valueDisplay);
+    return controlRow;
+  }
 
   // #endregion STAGE CONTROL
 
@@ -2827,114 +3086,70 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   override async _prepareContext(options: ApplicationV2.RenderOptions) {
     const context = await super._prepareContext(options);
 
-    // Prepare location data for stage
-    const location = getSetting("currentLocation");
-    const locationData = this.getLocationData(location);
-    if (!locationData) {
-      kLog.error(`Location ${location} not found`);
-      return context;
-    }
-    const { pcData, npcData, playlists } = locationData;
-
-    // Prepare loading screen item data
     Object.assign(context, {
-      location,
-      locationData,
-      npcData,
-      pcData,
-      LOADING_SCREEN_DATA,
-      sessionScribeID: getSetting("sessionScribeID"),
       isGM: getUser().isGM,
+      LOADING_SCREEN_DATA,
     });
 
-    if (!getUser().isGM) {
-      const pcActor = getActor();
-      if (pcActor.isPC()) {
+    if (
+      [GamePhase.SessionClosed, GamePhase.SessionLoading].includes(
+        getSetting("gamePhase") as GamePhase,
+      )
+    ) {
+      if (getUser().isGM) {
+        // Prepare video status data for template
+        const users = getUsers().map((user: User) => {
+          const status =
+            !user.active ||
+            this.videoLoadStatus.get(user.id ?? "") ===
+              MediaLoadStatus.NotConnected
+              ? MediaLoadStatus.NotConnected
+              : (this.videoLoadStatus.get(user.id ?? "") ??
+                MediaLoadStatus.PreloadNotRequested);
+
+          return {
+            id: user.id,
+            name: user.name,
+            active: user.active,
+            status,
+            statusClass: status.toLowerCase(),
+            isNotConnected: status === MediaLoadStatus.NotConnected,
+            isPreloadNotRequested:
+              status === MediaLoadStatus.PreloadNotRequested,
+            isLoadPending: status === MediaLoadStatus.LoadPending,
+            isLoading: status === MediaLoadStatus.Loading,
+            isReady: status === MediaLoadStatus.Ready,
+          };
+        });
+        Object.assign(context, { users });
+      }
+    } else {
+      Object.assign(context, {
+        sessionScribeID: getSetting("sessionScribeID"),
+        chainBG: AlertPaths["LINK"]!.cssCode,
+      });
+      if (!getUser().isGM) {
+        const pcActor = getActor();
+        if (pcActor.isPC()) {
+          Object.assign(context, {
+            dramaticHookCandleID: pcActor.system.dramatichooks.assigningFor,
+          });
+        }
+      }
+      // Prepare location data for stage
+      const location = getSetting("currentLocation");
+      const locationData = this.getLocationData(location);
+      if (locationData) {
         Object.assign(context, {
-          dramaticHookCandleID: pcActor.system.dramatichooks.assigningFor,
+          location,
+          locationData,
         });
       }
     }
 
-    if (!getUser().isGM) {
-      return context;
-    }
-
-    // Prepare video status data for template
-    const users = getUsers().map((user: User) => {
-      const status =
-        !user.active ||
-        this.videoLoadStatus.get(user.id ?? "") === MediaLoadStatus.NotConnected
-          ? MediaLoadStatus.NotConnected
-          : (this.videoLoadStatus.get(user.id ?? "") ??
-            MediaLoadStatus.PreloadNotRequested);
-
-      return {
-        id: user.id,
-        name: user.name,
-        active: user.active,
-        status,
-        statusClass: status.toLowerCase(),
-        isNotConnected: status === MediaLoadStatus.NotConnected,
-        isPreloadNotRequested: status === MediaLoadStatus.PreloadNotRequested,
-        isLoadPending: status === MediaLoadStatus.LoadPending,
-        isLoading: status === MediaLoadStatus.Loading,
-        isReady: status === MediaLoadStatus.Ready,
-      };
-    });
-
-    Object.assign(context, {
-      users,
-      isGM: true,
-    });
-
-    // Prepare location plotting panel
-    // Transform controls data
-    const transformControls = LOCATION_PLOTTING_SETTINGS.SIMPLE.map(
-      (config) => {
-        const elements = document.querySelectorAll(config.selector);
-        const initialValue =
-          elements.length > 0
-            ? (gsap.getProperty(
-                elements[0] as Element,
-                config.property,
-              ) as number)
-            : 0;
-        return {
-          ...config,
-          initialValue,
-          ...this.getSliderRange(
-            config.property,
-            initialValue,
-            config.rangeMult,
-          ),
-        };
-      },
-    );
-
-    // Gradient controls data
-    const gradientControls = LOCATION_PLOTTING_SETTINGS.GRADIENT.map(
-      (setting) => ({
-        ...setting,
-      }),
-    );
-
-    // Filter controls data
-    const filterControls = LOCATION_PLOTTING_SETTINGS.FILTER.map((config) => ({
-      selector: config.selector,
-      filters: config.filters.map((filter) => ({
-        ...filter,
-      })),
-    }));
-
-    Object.assign(context, {
-      transformControls,
-      gradientControls,
-      filterControls,
-    });
-
     return context;
   }
+
   // #endregion OVERRIDE: PREPARE CONTEXT ~
 
   // #region OVERRIDE: ON RENDER ~
@@ -2955,126 +3170,53 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.addCanvasMaskListeners();
     }
     this.addStartVideoButtonListeners();
-    this.addPlottingControlListeners();
+    this.makePlottingControls();
+    this.buildPCPortraitTimelines();
   }
 
-  private formatControlValue(
-    controlType: string,
-    property: string,
-    value: number,
-  ): string {
-    switch (property) {
-      case "hue-rotate":
-      case "rotationX":
-      case "rotationY":
-      case "rotationZ":
-        return `${Math.round(value)}°`;
-      case "saturate":
-        return value.toFixed(2);
-      case "circlePositionX":
-      case "circlePositionY":
-      case "gradientStopPercentage":
-        return `${Math.round(value)}%`;
-      default:
-        return String(value);
+  // private formatControlValue(
+  //   controlType: string,
+  //   property: string,
+  //   value: number|string,
+  // ): string {
+  //   switch (property) {
+  //     case "hue-rotate":
+  //     case "rotationX":
+  //     case "rotationY":
+  //     case "rotationZ":
+  //       return `${Math.round(Number(value))}°`;
+  //     case "saturate":
+  //       return Number(value).toFixed(2);
+  //     case "circlePositionX":
+  //     case "circlePositionY":
+  //     case "gradientStopPercentage":
+  //       return `${Math.round(Number(value))}%`;
+  //     default:
+  //       return String(value);
+  //   }
+  // }
+
+  private makePlottingControls() {
+    // Confirm that location plotting panel is visible
+    if (this.locationPlottingPanel$.css("visibility") !== "visible") {
+      return;
     }
-  }
 
-  private addPlottingControlListeners(): void {
-    $(document).on(
-      "input.plottingControls",
-      "#LOCATION-PLOTTING-PANEL input[type='range']",
-      (event) => {
-        const input = $(event.currentTarget);
-        const controlType = input.attr("data-control-type");
-        const property = input.attr("data-property");
-        const selector = input.attr("data-selector");
-        const value = parseFloat(input.val() as string);
+    // If there are already any plotting controls, remove them
+    this.locationPlottingPanel$.find(".control-row").remove();
 
-        if (!controlType || !property) return;
-
-        // Update value display using the shared formatting method
-        const valueDisplay = input
-          .closest(".control-row")
-          .find(".value-display");
-        valueDisplay.text(
-          this.formatControlValue(controlType, property, value),
-        );
-
-        // Apply the value based on control type
-        if (controlType === "transform" && selector) {
-          const elements = document.querySelectorAll(selector);
-          elements.forEach((element) => {
-            gsap.set(element, { [property]: value });
-          });
-        } else if (controlType === "background" && selector) {
-          const controls = this.overlay$.find(".gradient-controls");
-          const xInput = controls.find(
-            "input[data-property='circlePositionX']",
-          );
-          const yInput = controls.find(
-            "input[data-property='circlePositionY']",
-          );
-          const stopInput = controls.find(
-            "input[data-property='gradientStopPercentage']",
-          );
-
-          const xVal = parseInt(xInput.val() as string);
-          const yVal = parseInt(yInput.val() as string);
-          const stopVal = parseInt(stopInput.val() as string);
-
-          const gradientString = `radial-gradient(circle at ${xVal}% ${yVal}%, transparent, rgba(0, 0, 0, 0.9) ${stopVal}%)`;
-
-          kLog.log("GRADIENT CHANGE", { xVal, yVal, stopVal, gradientString });
-
-          const elements = document.querySelectorAll(selector);
-          elements.forEach((element) => {
-            (element as HTMLElement).style.background = gradientString;
-          });
-        } else if (controlType === "filter" && selector) {
-          const controls = this.overlay$.find(".filter-controls");
-          const filterInputs = controls.find("input[type='range']");
-
-          const filterString = Array.from(filterInputs)
-            .map((input) => {
-              const filterProperty = $(input).attr("data-property");
-              const filterValue = $(input).val() as string;
-              return `${filterProperty}(${filterValue}${filterProperty === "hue-rotate" ? "deg" : ""})`;
-            })
-            .join(" ");
-
-          const elements = document.querySelectorAll(selector);
-          elements.forEach((element) => {
-            (element as HTMLElement).style.filter = filterString;
-          });
-        }
-      },
-    );
-  }
-
-  private removePlottingControlListeners(): void {
-    $(document).off(".plottingControls");
+    // Create a control row for each transform control defined in CONTROL_SLIDER_PANELS.LOCATION_PLOTTING
+    CONTROL_SLIDER_PANELS.LOCATION_PLOTTING.forEach((panel) => {
+      const controlRow = this.makeSliderControl(
+        panel.label,
+        panel.min,
+        panel.max,
+        panel.initValue,
+        panel.actionFunction,
+        panel.formatForDisplay,
+      );
+      this.locationPlottingPanel$.find(".control-section").append(controlRow);
+    });
   }
   // #endregion OVERRIDE: ON RENDER ~
-
-  private getSliderRange(
-    property: string,
-    initialValue: number,
-    rangeMult: number,
-  ): { min: number; max: number } {
-    const isAngle = ["rotationX", "rotationY", "rotationZ"].includes(property);
-
-    if (isAngle) {
-      return { min: -360, max: 360 };
-    }
-
-    const range = rangeMult * Math.abs(initialValue);
-    return {
-      min: initialValue - range,
-      max: initialValue + range,
-    };
-  }
 }
-
-// #region DEBUGGING ~
-/** Settings for 3D debug controls */

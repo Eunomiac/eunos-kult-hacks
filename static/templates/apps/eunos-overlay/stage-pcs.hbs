@@ -1,194 +1,33 @@
-<div id="PCS" class="pcs-container {{#if isGM}}pcs-container-gm{{/if}}">
+<div id="PCS" class="pcs-container">
   {{log "PCS CONTAINER" this}}
-  {{#each pcData }}
+  {{#each locationData.pcData }}
   <div
-    class="pc-container {{#if isHidden}}pc-container-hidden{{/if}}{{#if isDimmed}}pc-container-dimmed{{/if}}{{#if isMasked}}pc-container-masked{{/if}}{{#if isSpotlit}}pc-container-spotlit{{/if}}"
-    data-pc-id="{{id}}" data-slot="{{slot}}">
-    {{#if isSpotlit}}
-    <div class="pc-spotlight-container">
-      <img class="pc-spotlight" src="/systems/eunos-kult-hacks/assets/images/stage/spotlight.webp" />
-    </div>
-    {{/if}}
-
-    {{#if actor}}
-    {{#if ../isGM}}
-    <div class="dramatic-hooks-panel">
-      <div class="dramatic-hook-container {{#if actor.system.dramatichooks.dramatichook1.isChecked}}checked{{/if}}">
-        <div class="dramatic-hook-content">{{actor.system.dramatichooks.dramatichook1.content}}</div>
-      </div>
-      <div class="dramatic-hook-container {{#if actor.system.dramatichooks.dramatichook2.isChecked}}checked{{/if}}">
-        <div class="dramatic-hook-content">{{actor.system.dramatichooks.dramatichook2.content}}</div>
-      </div>
-    </div>
-    {{/if}}
-    {{/if}}
-
+    class="pc-container {{#if isHidden}}pc-container-hidden{{/if}} {{#if isDimmed}}pc-container-dimmed{{/if}} {{#if isMasked}}pc-container-masked{{/if}} {{#if isSpotlit}}pc-container-spotlit{{/if}}"
+    data-pc-id="{{actorID}}" data-slot="{{slot}}">
+    <div class="chain" style="background-image: url({{{../chainBG}}});"></div>
     <div class="pc-portrait-container-wrapper">
-      <div class="pc-portrait-container" data-action="pcPortraitClick">
+      <div class="pc-portrait-container {{#if isOwner}}pc-portrait-container-owner{{/if}}">
         {{#if actor}}
-        <img class="pc-portrait" src="{{actor.img}}" />
+        <img class="pc-portrait-frame" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame.webp" />
+        <div class="pc-portrait-container-wrapper-inner">
+        <img class="pc-portrait" src="{{actor.img}}" data-action="pcPortraitClick" />
+        </div>
         {{/if}}
-        {{#if (eq ../sessionScribeID id)}}
+        {{#if (eq ../sessionScribeID actorID)}}
         <div class="session-scribe-indicator">
           <i class="fas fa-quill"></i>
         </div>
         {{/if}}
-        {{#if (eq ../dramaticHookCandleID id)}}
+        {{#if (eq ../dramaticHookCandleID actorID)}}
         <div class="dramatic-hook-candle-indicator">
           <i class="fas fa-candle"></i>
         </div>
         {{/if}}
       </div>
-      {{#if actor}}
-      {{#if ../isGM}}
-      <div class="stability-panel">
-        {{#let
-        anchorName=(getUniqueID "stability-anchor")
-        popoverID=(getUniqueID "stability-popover")
-        }}
-        <div class="stability-number" popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}">
-          {{actor.system.stability.value}}
-        </div>
-        <div id="{{popoverID}}" style="position-anchor: --{{anchorName}};" popover>
-          {{actor.stabilityState}}
-        </div>
-        {{/let}}
-        <div class="stability-conditions">
-          {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs"
-          actor.system.conditionAngry name="Angry"}}
-          {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs"
-          actor.system.conditionDistracted name="Distracted"}}
-          {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs"
-          actor.system.conditionGuiltRidden name="Guilt Ridden"}}
-          {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs"
-          actor.system.conditionHaunted name="Haunted"}}
-          {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs"
-          actor.system.conditionObsessed name="Obsessed"}}
-          {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs"
-          actor.system.conditionSad name="Sad"}}
-          {{> "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs"
-          actor.system.conditionScared name="Scared"}}
-        </div>
-      </div>
-      <div class="wounds-panel">
-        {{#unless (eq actor.system.criticalwound.state "none")}}
-        <div class="critical-wound critical-wound-{{actor.system.criticalwound.state}}" data-action="criticalWoundClick", data-wound-name="{{actor.system.criticalwound.value}}" data-actor-name="{{actor.name}}">
-          {{actor.system.criticalwound.value}}
-        </div>
-        {{/unless}}
-        {{#unless (eq actor.system.majorwound1.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound1.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound1.value}}" data-actor-name="{{actor.name}}">
-          {{actor.system.majorwound1.value}}
-        </div>
-        {{/unless}}
-        {{#unless (eq actor.system.majorwound2.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound2.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound2.value}}" data-actor-name="{{actor.name}}">
-          {{actor.system.majorwound2.value}}
-        </div>
-        {{/unless}}
-        {{#unless (eq actor.system.majorwound3.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound3.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound3.value}}" data-actor-name="{{actor.name}}">
-          {{actor.system.majorwound3.value}}
-        </div>
-        {{/unless}}
-        {{#unless (eq actor.system.majorwound4.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound4.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound4.value}}" data-actor-name="{{actor.name}}">
-          {{actor.system.majorwound4.value}}
-        </div>
-        {{/unless}}
-      </div>
     </div>
-    <div class="triggers-and-holds-panel">
-      <div class="panel advantages-panel">
-        {{#each actor.system.advantages}}
-        {{#unless (eq system.type "passive")}}
-        {{#let
-        advantageAnchorName=(getUniqueID "advantage-anchor")
-        advantagePopoverID=(getUniqueID "advantage-popover")
-        itemID=id
-        pcID=../id
-        }}
-        {{!-- {{log "ADVANTAGE" this}} --}}
-
-
-        <div
-          class="trait-container advantage-container {{system.type}}-advantage {{#if system.hasCounter}}counter-{{case "
-          lower" system.counterName}}{{/if}}">
-          <div class="trait-name advantage-name" popovertarget="{{advantagePopoverID}}"
-            style="anchor-name: --{{advantageAnchorName}}">
-            {{name}}
-          </div>
-          {{#if system.summary}}
-          <div id="{{advantagePopoverID}}" style="position-anchor: --{{advantageAnchorName}};" popover>
-            {{{system.summary}}}
-          </div>
-          {{/if}}
-          {{#if system.trigger}}
-          <div class="trait-trigger">{{{system.trigger}}}</div>
-          {{/if}}
-          {{#if system.hasCounter}}
-          {{{getDotline system.counterCount system.counterCount}}}
-          <span class="counter-column">{{system.counterName}}:
-            <a class="token-add" title="Add {{system.counterName}}" data-action="addCounter" data-item-id="{{itemID}}"
-              data-actor-id="{{pcID}}"><i class="far fa-plus-square"></i></a>
-            {{#if system.counterCount}}{{system.counterCount}}{{else}}0{{/if}}
-            <a class="token-spend" title="Spend {{system.counterName}}" data-action="spendCounter"
-              data-item-id="{{itemID}}" data-actor-id="{{pcID}}"><i class="far fa-minus-square"></i></a>
-          </span>
-          {{/if}}
-        </div>
-
-        {{/let}}
-        {{/unless}}
-        {{/each}}
-      </div>
-      <div class="panel disadvantages-panel">
-        {{#each actor.system.disadvantages}}
-        {{#unless (eq system.type "passive")}}
-        {{#let
-        disadvantageAnchorName=(getUniqueID "disadvantage-anchor")
-        disadvantagePopoverID=(getUniqueID "disadvantage-popover")
-        itemID=id
-        pcID=../id
-        }}
-        {{!-- {{log "DISADVANTAGE" this}} --}}
-
-        <div
-          class="trait-container disadvantage-container {{system.type}}-disadvantage {{#if system.hasCounter}}counter-{{case "
-          lower" system.counterName}}{{/if}}">
-          <div class="trait-name disadvantage-name" popovertarget="{{disadvantagePopoverID}}"
-            style="anchor-name: --{{disadvantageAnchorName}}">
-            {{name}}
-          </div>
-          {{#if system.summary}}
-          <div id="{{disadvantagePopoverID}}" style="position-anchor: --{{disadvantageAnchorName}};" popover>
-            {{{system.summary}}}
-          </div>
-          {{/if}}
-          {{#if system.trigger}}
-          <div class="trait-trigger">{{{system.trigger}}}</div>
-          {{/if}}
-          {{#if system.hasCounter}}
-          {{{getDotline system.counterCount system.counterCount}}}
-          <span class="counter-column">{{system.counterName}}:
-            <a class="token-add" title="Add {{system.counterName}}" data-action="addCounter" data-item-id="{{itemID}}"
-              data-actor-id="{{pcID}}"><i class="far fa-plus-square"></i></a>
-            {{#if system.counterCount}}{{system.counterCount}}{{else}}0{{/if}}
-            <a class="token-spend" title="Spend {{system.counterName}}" data-action="spendCounter"
-              data-item-id="{{itemID}}" data-actor-id="{{pcID}}"><i class="far fa-minus-square"></i></a>
-          </span>
-          {{/if}}
-        </div>
-
-        {{/let}}
-        {{/unless}}
-        {{/each}}
-      </div>
-    </div>
-    {{else}}
   </div>
-  {{/if}}
-  {{/if}}
-</div>
+  <div class="pc-spotlight-container {{#if isSpotlit}}pc-spotlight-container-spotlit{{/if}}">
+    <img class="pc-spotlight" src="/modules/eunos-kult-hacks/assets/images/stage/spotlight.webp" />
+  </div>
 {{/each}}
 </div>

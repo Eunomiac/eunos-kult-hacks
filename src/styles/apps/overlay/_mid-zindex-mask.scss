@@ -163,6 +163,27 @@
     background-repeat: no-repeat;
     background-position: center center;
 
+    .red-lightning {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%; // Larger than container to allow for scaling effects
+      height: 100%;
+      z-index: 99; // Below countdown text (101)
+      pointer-events: none;
+      visibility: hidden; // Start invisible, GSAP will animate this
+
+      .red-lightning-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
     &.canvas-mask {
       background-image: url("modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed.webp");
     }

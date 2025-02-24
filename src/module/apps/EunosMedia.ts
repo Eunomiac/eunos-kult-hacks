@@ -326,7 +326,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
           this.#element = existingElement as T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement;
           return this.#element;
         }
-        kLog.log(`Creating audio element ${this.name}, appending to '${this.parentSelector}'`, this);
+        // kLog.log(`Creating audio element ${this.name}, appending to '${this.parentSelector}'`, this);
         this.#element = document.createElement("audio") as T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement;
         this.#element.id = this.name;
         this.#element.src = this.path;

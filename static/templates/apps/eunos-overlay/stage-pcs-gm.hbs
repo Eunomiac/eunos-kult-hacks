@@ -1,14 +1,12 @@
 <div id="PCS-GM" class="pcs-container pcs-container-gm gm-only">
-  {{log "PCS CONTAINER" this}}
-  {{#each pcData }}
+  {{log "PCS-GM CONTAINER" this}}
+  {{#each locationData.pcData }}
   <div
-    class="pc-container {{#if isHidden}}pc-container-hidden{{/if}}{{#if isDimmed}}pc-container-dimmed{{/if}}{{#if isMasked}}pc-container-masked{{/if}}{{#if isSpotlit}}pc-container-spotlit{{/if}}"
-    data-pc-id="{{id}}" data-slot="{{slot}}">
-    {{#if isSpotlit}}
-    <div class="pc-spotlight-container">
-      <img class="pc-spotlight" src="/systems/eunos-kult-hacks/assets/images/stage/spotlight.webp" />
+    class="pc-container {{#if isHidden}}pc-container-hidden{{/if}} {{#if isDimmed}}pc-container-dimmed{{/if}} {{#if isMasked}}pc-container-masked{{/if}} {{#if isSpotlit}}pc-container-spotlit{{/if}}"
+    data-pc-id="{{actorID}}" data-slot="{{slot}}">
+    <div class="pc-spotlight-container {{#if isSpotlit}}pc-spotlight-container-spotlit{{/if}}">
+      <img class="pc-spotlight" src="/modules/eunos-kult-hacks/assets/images/stage/spotlight.webp" />
     </div>
-    {{/if}}
 
     {{#if actor}}
     <div class="dramatic-hooks-panel">
@@ -23,21 +21,10 @@
 
     <div class="pc-portrait-container-wrapper">
       <div class="pc-portrait-container" data-action="pcPortraitClick">
-        <div class="pc-stage-control-container">
-          <button class="pc-stage-control-button pc-stage-control-button-spotlight" data-action="togglePCSpotlight" data-actor-id="{{id}}" data-value="{{actor.system.spotlight}}">
-            <i class="fas fa-lightbulb"></i>
-          </button>
-          <button class="pc-stage-control-button pc-stage-control-button-hide" data-action="togglePCHidden" data-actor-id="{{id}}">
-            <i class="fas fa-eye-slash"></i>
-          </button>
-          <button class="pc-stage-control-button pc-stage-control-button-dim" data-action="togglePCDimmed" data-actor-id="{{id}}">
-            <i class="fas fa-low-light"></i>
-          </button>
-        </div>
         {{#if actor}}
         <img class="pc-portrait" src="{{actor.img}}" />
         {{/if}}
-        {{#if (eq ../sessionScribeID id)}}
+        {{#if (eq ../sessionScribeID actorID)}}
         <div class="session-scribe-indicator">
           <i class="fas fa-quill"></i>
         </div>
@@ -100,6 +87,17 @@
         </div>
         {{/unless}}
       </div>
+      <div class="pc-stage-control-container">
+        <button class="pc-stage-control-button pc-stage-control-button-spotlight" data-action="togglePCSpotlight" data-actor-id="{{actorID}}" data-value="{{isSpotlit}}">
+          <i class="fas fa-lightbulb"></i>
+        </button>
+        <button class="pc-stage-control-button pc-stage-control-button-hide" data-action="togglePCHidden" data-actor-id="{{actorID}}" data-value="{{isHidden}}">
+          <i class="fas fa-eye-slash"></i>
+        </button>
+        <button class="pc-stage-control-button pc-stage-control-button-dim" data-action="togglePCDimmed" data-actor-id="{{actorID}}" data-value="{{isDimmed}}">
+          <i class="fa-solid fa-sun"></i>
+        </button>
+      </div>
     </div>
     <div class="triggers-and-holds-panel">
       <div class="panel advantages-panel">
@@ -109,7 +107,7 @@
         advantageAnchorName=(getUniqueID "advantage-anchor")
         advantagePopoverID=(getUniqueID "advantage-popover")
         itemID=id
-        pcID=../id
+        pcID=../actorID
         }}
         {{!-- {{log "ADVANTAGE" this}} --}}
 
@@ -152,7 +150,7 @@
         disadvantageAnchorName=(getUniqueID "disadvantage-anchor")
         disadvantagePopoverID=(getUniqueID "disadvantage-popover")
         itemID=id
-        pcID=../id
+        pcID=../actorID
         }}
         {{!-- {{log "DISADVANTAGE" this}} --}}
 

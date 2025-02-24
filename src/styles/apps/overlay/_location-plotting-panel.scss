@@ -96,9 +96,13 @@
       color: var(--K4-bbGOLD);
       cursor: pointer;
       user-select: text;
+      position: absolute;
+      right: 50px;
+      text-align: right;
+      top: -5px;
     }
 
-    .refresh-button {
+    .fa-save {
       cursor: pointer;
       position: absolute;
       right: 20px;
@@ -112,7 +116,7 @@
       }
     }
 
-    .reset-button {
+    .fa-undo {
       cursor: pointer;
       position: absolute;
       right: 0;

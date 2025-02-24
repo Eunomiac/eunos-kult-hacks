@@ -10,6 +10,8 @@
   width: 100%;
   top: 0;
   left: 0;
+  transform-style: preserve-3d;
+  perspective: 1000px;
 
   #BLACKOUT-LAYER {
     display: block;
@@ -28,22 +30,26 @@
     height: 100vh;
     width: 100vw;
     pointer-events: none;
-    perspective: 800px;
     transform-style: preserve-3d;
     perspective-origin: center center;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) translate3d(0, 0, -100px);
     top: 50%;
-    left: 50%;
+    left: calc(50% - 0.5 * var(--sidebar-width));
 
     .canvas-layer {
       display: block;
       position: absolute;
-      height: 100%;
-      width: 100%;
+      height: 7000px;
+      width: 7000px;
       pointer-events: none;
       transform-style: preserve-3d;
-      transform: translate(-50%, -50%) translate3d(-3%, -120%, -1500px)
-        rotateY(-3deg) rotateX(45deg) rotateZ(23deg);
+      backface-visibility: hidden;
+      will-change: transform;
+      transform: translate(-50%, -50%);
+      // top: 200px;
+
+      top: 50%;
+      left: 50%;
 
       * {
         // For all child elements of canvas layers:
@@ -53,25 +59,34 @@
       }
 
       &.under-layer {
-        height: 500%;
-        width: 500%;
         background: radial-gradient(
-          circle at 25% 0%,
+          circle at 50% 50%,
           transparent,
-          rgba(0, 0, 0, 0.9) 50%
+          rgba(0, 0, 0, 0.7) 10%,
+          rgba(0, 0, 0, 1) 15%
         );
       }
 
       &.background-layer {
-        height: 500%;
-        width: 500%;
         background: black
           url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp");
+        // background-size: contain;
+        background-position: 0px 0px;
+        background-repeat: no-repeat;
+        // background-attachment: fixed;
+        filter: hue-rotate(var(--hue-rotate, 130deg)) saturate(var(--saturation, 50%));
+        transform: translate(-50%, -50%);
+      }
+
+      &.positioner-layer {
+        display: none;
+        // background: black;
+        background-image: url("modules/eunos-kult-hacks/assets/images/stage/stage-positioner-square.webp");
         // background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
         // background-attachment: fixed;
-        filter: hue-rotate(130deg) saturate(0.5);
+        // filter: hue-rotate(130deg) saturate(0.5);
       }
     }
   }
