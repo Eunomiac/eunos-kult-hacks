@@ -84,6 +84,21 @@ export default function registerSettings() {
     type: Number,
     default: 0,
   });
+  getSettings().register("eunos-kult-hacks", "isEntryVisible", {
+    name: "Entry Visible",
+    hint: "Whether the entry is visible.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false,
+    onChange: (value) => {
+      if (value) {
+        $(".background-layer").removeClass("entry-hidden");
+      } else {
+        $(".background-layer").addClass("entry-hidden");
+      }
+    }
+  });
   getSettings().register("eunos-kult-hacks", "isPlottingLocations", {
     name: "Plotting Locations",
     hint: "Whether the GM is plotting locations.",
@@ -119,13 +134,29 @@ export default function registerSettings() {
       }
     }
   })
-  getSettings().register("eunos-kult-hacks", "sessionScribeID", {
+  getSettings().register("eunos-kult-hacks", "sessionScribeDeck", {
     name: "Session Scribe",
-    hint: "The ID of the player who is the session scribe.",
+    hint: "The deck of remaining userIDs to be assigned session scribe this round.",
+    scope: "world",
+    config: false,
+    type: Array,
+    default: [],
+  });
+  getSettings().register("eunos-kult-hacks", "sessionScribe", {
+    name: "Session Scribe",
+    hint: "The userID of the current session scribe.",
     scope: "world",
     config: false,
     type: String,
     default: "",
+  });
+  getSettings().register("eunos-kult-hacks", "dramaticHookAssignments", {
+    name: "Dramatic Hook Assignments",
+    hint: "The assignments of dramatic hooks to players.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {},
   });
 }
 

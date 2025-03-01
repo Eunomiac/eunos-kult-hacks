@@ -982,7 +982,7 @@ const isInExact = (needle: unknown, haystack: unknown[]) => isIn(needle, haystac
 // reusable function. Feed in min, max, an ease, and an optional snap value.
 // It returns a random float between min and max, weighted according to the ease you provide,
 // and snapped to the nearest multiple of the snap value if provided.
-function weightedRandom(min: number, max: number, ease: string, snap?: number): () => number {
+function randNumWeighted(min: number, max: number, ease: string, snap?: number): () => number {
   return gsap.utils.pipe(
       Math.random,            // random number between 0 and 1
       gsap.parseEase(ease),   // apply the ease
@@ -1000,7 +1000,7 @@ function randNum(min: number, max: number, arg3?: string|number, arg4?: string|n
   const ease = [arg3, arg4].find((arg) => typeof arg === "string") ?? "none";
 
   if (ease !== "none") {
-    return weightedRandom(min, max, ease, snap)(); // Call weightedRandom if ease is provided
+    return randNumWeighted(min, max, ease, snap)(); // Call randNumWeighted if ease is provided
   }
   return gsap.utils.random(min, max, snap); // Use gsap's random function if no ease is provided
 }
@@ -1099,6 +1099,25 @@ const getBoundingRectangle = (
 // #region ████████ ARRAYS: Array Manipulation ████████ ~
 const randElem = <Type>(array: Type[]): Type => gsap.utils.random(array);
 const randIndex = (array: unknown[]): number => randInt(0, array.length - 1);
+
+
+/**
+ * Reusable function. Feed in an array and an ease and it'll return
+ * a function that pulls a random element from that array, weighted
+ * according to the ease you provide.
+ * @param collection - The array to sample from
+ * @param ease - The ease function to use for weighting
+ * @returns A function that pulls a random element from the array, weighted according to the ease
+ */
+function randElemWeighted(collection: unknown[], ease: gsap.EaseString | gsap.EaseFunction) {
+  return gsap.utils.pipe(
+      Math.random,            //random number between 0 and 1
+      gsap.parseEase(ease),   //apply the ease
+      gsap.utils.mapRange(0, 1, -0.5, collection.length-0.5), //map to the index range of the array, stretched by 0.5 each direction because we'll round and want to keep distribution (otherwise linear distribution would be center-weighted slightly)
+      gsap.utils.snap(1),     //snap to the closest integer
+      i => collection[i]      //return that element from the array
+  );
+}
 const makeIntRange = (min: number, max: number) => {
   const intRange: number[] = [];
   for (let i = min; i <= max; i++) {
@@ -1225,7 +1244,7 @@ const subGroup = (array: unknown[], groupSize: number) => {
   subArrays.push(array);
   return subArrays;
 };
-const shuffle = (array: unknown[]) => {
+const shuffle = <T>(array: T[]): T[] => {
   let currentIndex = array.length; let randomIndex;
 
   // While there remain elements to shuffle.
@@ -1237,7 +1256,7 @@ const shuffle = (array: unknown[]) => {
 
     // And swap it with the current element.
     [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]];
+      array[randomIndex]!, array[currentIndex]!];
   }
 
   return array;
@@ -2800,6 +2819,7 @@ function displayImageSelector(
 
 function getOwnerOfDoc(doc: EunosActor|EunosItem): Maybe<User> {
   const ownerID = Object.keys(doc.ownership)
+    .filter((key) => isDocID(key) && !getGame().users.find((user) => user.id === key)?.isGM)
     .find((key) => doc.ownership[key] === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER);
   if (ownerID) {
     return getUser(ownerID);
@@ -3149,7 +3169,7 @@ export {
   fuzzyMatch, isIn, isInExact,
 
   // ████████ NUMBERS: Number Casting, Mathematics, Conversion ████████
-  randNum, randInt,
+  randNum, randInt, randNumWeighted,
   coinFlip,
   cycleNum, cycleAngle, roundNum, clampNum,
   sum, average,
@@ -3159,7 +3179,7 @@ export {
   getBoundingRectangle,
 
   // ████████ ARRAYS: Array Manipulation ████████
-  randElem, randIndex,
+  randElem, randIndex, randElemWeighted,
   makeIntRange,
   makeCycler,
   unique, group, sample,

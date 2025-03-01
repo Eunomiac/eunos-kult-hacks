@@ -761,36 +761,6 @@ export interface EunosMediaData {
  */
 export const Sounds = {
   PreSessionSongs: {
-    "panic-room": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-panic-room.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 199,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "guns-for-hire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 224,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    playground: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 226,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
     "hells-comin-with-me": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-hells-comin-with-me.ogg",
       alwaysPreload: false,
@@ -811,6 +781,37 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
+    "guns-for-hire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 224,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "panic-room": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-panic-room.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 199,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    playground: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 226,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+
     "to-ashes-and-blood": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-to-ashes-and-blood.ogg",
       alwaysPreload: false,
@@ -1367,6 +1368,12 @@ export const Sounds = {
 } as const;
 // #endregion SOUNDS
 
+// #region EASES ~
+export const EASES = {
+  flickerIn: "M0,0,0.00333,0,0.00667,0,0.01,0,0.01333,0,0.01667,0,0.02,0,0.02333,0,0.02667,0,0.03,0,0.03333,0,0.03667,0,0.04,0,0.04333,0,0.04667,0,0.05,0,0.05333,0,0.05667,0,0.06,0,0.06333,0,0.06667,0,0.07,0,0.07333,0,0.07667,0,0.08,0,0.08333,0,0.08667,0,0.09,0,0.09333,0,0.09667,0,0.1,0,0.10333,0,0.10667,0,0.11,0,0.11333,0,0.11667,0,0.12,0,0.12333,0,0.12667,0,0.13,0,0.13333,0,0.13667,0,0.14,0,0.14333,0,0.14667,0,0.15,0,0.15333,0,0.15667,0,0.16,0,0.16333,0,0.16667,0,0.17,0,0.17333,0,0.17667,0,0.18,0,0.18333,0,0.18667,0,0.19,0,0.19333,0,0.19667,0,0.2,0,0.20333,0,0.20667,0,0.21,0,0.21333,0,0.21667,0,0.22,0,0.22333,0,0.22667,0,0.23,0,0.23333,0,0.23667,0,0.24,0,0.24333,0,0.24667,0,0.25,0,0.25333,0,0.25667,0,0.26,0,0.26333,0,0.26667,0,0.27,0,0.27333,0,0.27667,0,0.28,0,0.28333,0,0.28667,0,0.29,0,0.29333,0,0.29667,0,0.3,0,0.30333,0,0.30667,0,0.31,0,0.31333,0,0.31667,0,0.32,0,0.32333,0,0.32667,0,0.33,0,0.33333,0,0.33667,0,0.34,0,0.34333,0,0.34667,0,0.35,0,0.35333,0,0.35667,0,0.36,0,0.36333,0,0.36667,0,0.37,0,0.37333,0,0.37667,0,0.38,0,0.38333,0,0.38667,0,0.39,0,0.39333,0,0.39667,0,0.4,0,0.40333,0,0.40667,0,0.41,0,0.41333,0,0.41667,0,0.42,0,0.42333,0,0.42667,0,0.43,0,0.43333,0,0.43667,0,0.44,0,0.44333,0,0.44667,0,0.45,0,0.45333,0,0.45667,0,0.46,0,0.46333,0,0.46667,0,0.47,0,0.47333,0.33333,0.47667,0.66667,0.48,1,0.48333,0.66667,0.48667,0.33333,0.49,0,0.49333,0,0.49667,0,0.5,0,0.50333,0,0.50667,0,0.51,0,0.51333,0,0.51667,0,0.52,0,0.52333,0,0.52667,0,0.53,0,0.53333,0,0.53667,0,0.54,0,0.54333,0,0.54667,0,0.55,0,0.55333,0,0.55667,0,0.56,0,0.56333,0,0.56667,0,0.57,0,0.57333,0,0.57667,0,0.58,0,0.58333,0,0.58667,0,0.59,0,0.59333,0,0.59667,0,0.6,0,0.60333,0,0.60667,0,0.61,0,0.61333,0.33333,0.61667,0.66667,0.62,1,0.62333,1,0.62667,1,0.63,1,0.63333,0.66667,0.63667,0.33333,0.64,0,0.64333,0,0.64667,0,0.65,0,0.65333,0.33333,0.65667,0.66667,0.66,1,0.66333,1,0.66667,1,0.67,1,0.67333,0.66667,0.67667,0.33333,0.68,0,0.68333,0.33333,0.68667,0.66667,0.69,1,0.69333,0.66667,0.69667,0.33333,0.7,0,0.70333,0.33333,0.70667,0.66667,0.71,1,0.71333,0.66667,0.71667,0.33333,0.72,0,0.72333,0.33333,0.72667,0.66667,0.73,1,0.73333,0.66667,0.73667,0.33333,0.74,0,0.74333,0,0.74667,0,0.75,0,0.75333,0.33333,0.75667,0.66667,0.76,1,0.76333,0.66667,0.76667,0.33333,0.77,0,0.77333,0,0.77667,0,0.78,0,0.78333,0,0.78667,0,0.79,0,0.79333,0,0.79667,0,0.8,0,0.80333,0,0.80667,0,0.81,0,0.81333,0.33333,0.81667,0.66667,0.82,1,0.82333,0.66667,0.82667,0.33333,0.83,0,0.83333,0.33333,0.83667,0.66667,0.84,1,0.84333,1,0.84667,1,0.85,1,0.85333,1,0.85667,1,0.86,1,0.86333,1,0.86667,1,0.87,1,0.87333,1,0.87667,1,0.88,1,0.88333,1,0.88667,1,0.89,1,0.89333,1,0.89667,1,0.9,1,0.90333,1,0.90667,1,0.91,1,0.91333,1,0.91667,1,0.92,1,0.92333,1,0.92667,1,0.93,1,0.93333,1,0.93667,1,0.94,1,0.94333,1,0.94667,1,0.95,1,0.95333,1,0.95667,1,0.96,1,0.96333,1,0.96667,1,0.97,1,0.97333,1,0.97667,1,0.98,1,0.98333,1,0.98667,1,0.99,1,0.99333,1,0.99667,1,1,1"
+} as const;
+// #endregion EASES
+
 // #region CHARACTERS ~
 
 export declare namespace PCs {
@@ -1386,6 +1393,13 @@ export declare namespace PCs {
     isSpotlit: boolean;
     isDimmed: boolean;
     isHidden: boolean;
+  }
+
+  export interface UIData {
+    isHidden?: boolean;
+    isDimmed?: boolean;
+    isMasked?: boolean;
+    isSpotlit?: boolean;
   }
 }
 
@@ -1453,7 +1467,7 @@ export const LOCATIONS = {
     name: "Fire Access Trail",
     image: "",
     description: "",
-    mapTransforms: [
+    mapTransforms:[
       {
         selector: "#STAGE",
         properties: {
@@ -1461,22 +1475,28 @@ export const LOCATIONS = {
         },
       },
       {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -400
+        }
+      },
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          backgroundPositionX: -2565,
-          backgroundPositionY: -2913,
-          filter: "hue-rotate(130deg) saturate(100%) brightness(1) brightness(1)",
-          transform: "matrix3d(0.962375, -0.222178, -0.156431, 0, 0.270295, 0.723792, 0.634874, 0, -0.0278317, -0.65327, 0.756614, 0, -3500, -3500, 0, 1)",
+          backgroundPositionX: -2848,
+          backgroundPositionY: -2826,
+          filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
+          transform: "matrix3d(0.97431, -0.11963, -0.190809, 0, 0.215093, 0.745386, 0.630979, 0, 0.0667422, -0.655811, 0.751969, 0, -3500, -3500, 0, 1)",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          transform: "matrix3d(0.962375, -0.222178, -0.156431, 0, 0.270295, 0.723792, 0.634874, 0, -0.0278317, -0.65327, 0.756614, 0, -3500, -3500, 0, 1)",
+          transform: "matrix3d(0.97431, -0.11963, -0.190809, 0, 0.215093, 0.745386, 0.630979, 0, 0.0667422, -0.655811, 0.751969, 0, -3500, -3500, 0, 1)",
           background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
         },
       },
-    ]
+    ],
   },
   "Fire Access Trail North": {
     name: "Fire Access Trail",
@@ -1488,6 +1508,12 @@ export const LOCATIONS = {
         properties: {
           perspective: 1000,
         },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -400
+        }
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
@@ -1519,22 +1545,46 @@ export const LOCATIONS = {
         },
       },
       {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          backgroundPositionX: -2522,
+          backgroundPositionX: -2750,
           backgroundPositionY: -1587,
           filter: "hue-rotate(181deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(0.064768, 0.740317, 0.669131, 0, -0.989019, -0.0416387, 0.1418, 0, 0.132839, -0.670967, 0.729491, 0, -3500, -3500, 0, 1)",
+          transform: "matrix3d(0.0647657, 0.74032, 0.669128, 0, -0.993053, -0.0181953, 0.11625, 0, 0.0982372, -0.672009, 0.733998, 0, -3500, -3500, 0, 1)",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          transform: "matrix3d(0.064768, 0.740317, 0.669131, 0, -0.989019, -0.0416387, 0.1418, 0, 0.132839, -0.670967, 0.729491, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 13%)",
+          transform: "matrix3d(0.0647657, 0.74032, 0.669128, 0, -0.993053, -0.0181953, 0.11625, 0, 0.0982372, -0.672009, 0.733998, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 12%, rgb(0, 0, 0) 25%)",
         },
       },
-    ],
+    ]
+
+    //   {
+    //     selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+    //     properties: {
+    //       backgroundPositionX: -2522,
+    //       backgroundPositionY: -1587,
+    //       filter: "hue-rotate(181deg) saturate(100%) brightness(1)",
+    //       transform: "matrix3d(0.064768, 0.740317, 0.669131, 0, -0.989019, -0.0416387, 0.1418, 0, 0.132839, -0.670967, 0.729491, 0, -3500, -3500, 0, 1)",
+    //     },
+    //   },
+    //   {
+    //     selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+    //     properties: {
+    //       transform: "matrix3d(0.064768, 0.740317, 0.669131, 0, -0.989019, -0.0416387, 0.1418, 0, 0.132839, -0.670967, 0.729491, 0, -3500, -3500, 0, 1)",
+    //       background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 13%)",
+    //     },
+    //   },
+    // ],
   },
   "Willow's Wending #1": {
     name: "Willow's Wending",
@@ -1547,6 +1597,12 @@ export const LOCATIONS = {
         properties: {
           perspective: 1000,
         },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
@@ -1579,6 +1635,12 @@ export const LOCATIONS = {
         },
       },
       {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
           backgroundPositionX: 1674,
@@ -1607,6 +1669,12 @@ export const LOCATIONS = {
         properties: {
           perspective: 1000,
         },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
@@ -1638,6 +1706,12 @@ export const LOCATIONS = {
         },
       },
       {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
           backgroundPositionX: 500,
@@ -1665,6 +1739,12 @@ export const LOCATIONS = {
         properties: {
           perspective: 1000,
         },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",

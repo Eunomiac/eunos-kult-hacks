@@ -195,10 +195,11 @@ Hooks.on("ready", () => {
     overridePCSheet();
     overrideNPCSheet();
     overrideItemSheet();
-    if (getUser().isGM) {
+    await RunInitializer(InitializerMethod.PostInitialize);
+    if (game?.user?.isGM) {
+      kLog.display("GM User Detected", 0);
       addClassToDOM("gm-user");
     }
-    await RunInitializer(InitializerMethod.PostInitialize);
   });
 
   replaceBasicMovesHook();

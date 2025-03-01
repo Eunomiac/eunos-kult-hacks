@@ -61,8 +61,17 @@ export interface SocketEvents {
   };
   setLocation: {
     data: {
-      location: string;
+      fromLocation: string;
+      toLocation: string;
     };
+  };
+  updatePCUI: {
+    data: Record<IDString, {
+      isHidden?: boolean;
+      isDimmed?: boolean;
+      isMasked?: boolean;
+      isSpotlit?: boolean;
+    }>;
   };
 }
 
@@ -207,100 +216,6 @@ export default class EunosSockets {
     }
   }
 
-  /** Validates event data against the SocketEvents interface */
-  private validateEventData<E extends SocketEventName>(
-    event: E,
-    data: unknown
-  ): asserts data is SocketEvents[E]["data"] {
-    switch (event) {
-      case "changePhase": {
-        if (typeof data !== "object" || data === null) {
-          throw new Error("changePhase event requires an object with prevPhase and newPhase properties");
-        }
-        break;
-      }
-      case "setLocation": {
-        if (typeof data !== "object" || data === null) {
-          throw new Error("setLocation event requires an object with location string");
-        }
-        break;
-      }
-      case "preloadPreSessionSong": {
-        if (data !== undefined) {
-          throw new Error("preloadPreSessionSong event does not accept any data");
-        }
-        break;
-      }
-      case "playPreSessionSong": {
-        if (data !== undefined) {
-          throw new Error("playPreSessionSong event does not accept any data");
-        }
-        break;
-      }
-      case "preloadIntroVideo": {
-        break;
-      }
-      case "reportPreloadStatus": {
-        if (typeof data !== "object" || data === null) {
-          throw new Error(`reportPreloadStatus event requires an object with userId string and status enum, got ${typeof data}`);
-        }
-        if (!("userId" in data) || typeof data.userId !== "string") {
-          throw new Error(`reportPreloadStatus event requires a userId string, got ${typeof data}`);
-        }
-        if (!("status" in data) || typeof data.status !== "string" || !(data.status in MediaLoadStatus)) {
-          throw new Error(`reportPreloadStatus event requires a status enum, got ${typeof data}`);
-        }
-        break;
-      }
-      case "startVideoPlayback": {
-        if (data !== undefined) {
-          throw new Error("startVideoPlayback event does not accept any data");
-        }
-        break;
-      }
-      case "requestMediaSync": {
-        if (typeof data !== "object" || data === null) {
-          throw new Error(`requestMediaSync event requires an object with userId string and mediaName string, got ${typeof data}`);
-        }
-        if (!("mediaName" in data) || typeof data.mediaName !== "string") {
-          throw new Error(`requestMediaSync event requires a mediaName string, got ${typeof data}`);
-        }
-        if (!("userId" in data) || typeof data.userId !== "string") {
-          throw new Error(`requestMediaSync event requires a userId string, got ${typeof data}`);
-        }
-        break;
-      }
-      case "refreshPCs": {
-        if (data !== undefined) {
-          throw new Error("refreshPCs event does not accept any data");
-        }
-        break;
-      }
-      case "syncMedia": {
-        if (typeof data !== "object" || data === null) {
-          throw new Error(`syncMedia event requires an object with mediaName string and timestamp number, got ${typeof data}`);
-        }
-        if (!("mediaName" in data) || typeof data.mediaName !== "string") {
-          throw new Error(`syncMedia event requires a mediaName string, got ${typeof data}`);
-        }
-        if (!("timestamp" in data) || typeof data.timestamp !== "number") {
-          throw new Error(`syncMedia event requires a timestamp number, got ${typeof data}`);
-        }
-        break;
-      }
-      case "Alert": {
-        if (typeof data !== "object" || data === null) {
-          throw new Error("Alert event requires an object with alert data");
-        }
-        break;
-      }
-      default: {
-        const _exhaustiveCheck: never = event;
-        throw new Error("Unknown socket event: " + String(event));
-      }
-    }
-  }
-
   public async call<R = void, E extends SocketEventName = SocketEventName>(
     event: E,
     target: UserTarget = UserTargetRef.all,
@@ -311,8 +226,6 @@ export default class EunosSockets {
     const users: User[] = this.getUsersFromTarget(target);
 
     try {
-      // Validate the data before sending
-      this.validateEventData(event, data);
 
       kLog.socketCall(`[I CALLED] ${U.uCase(target)}: "${event}"`, data);
 

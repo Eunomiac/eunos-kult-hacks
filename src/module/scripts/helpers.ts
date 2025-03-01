@@ -1,7 +1,7 @@
 // #region IMPORTS ~
 import * as C from "./constants.js";
 // import * as U from "./utilities.js";
-import {isNumber, isList, uCase, lCase, sCase, tCase, signNum, getID, toKey} from "./utilities.js";
+import {isNumber, isList, uCase, lCase, sCase, tCase, signNum, getID, toKey, randNumWeighted} from "./utilities.js";
 import EunosItem from "../documents/EunosItem.js";
 
 const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
@@ -121,6 +121,37 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
       return item.system.trigger!;
     }
     return false;
+  },
+  "getPortraitImage": (actor: EunosActor, type: "bg"|"fg"): string => {
+    const img = actor.img as string;
+    if (type === "bg") {
+      return img.replace(".webp", "-bg-color.webp");
+    }
+    return img.replace(".webp", "-fg-color.webp");
+  },
+  "getSpotlightImages": (slot: string|number): string => {
+    const slotNum = Number(`${slot}`) - 1;
+    if (slotNum < 0 || slotNum > 4) { return ""; }
+    const htmlStrings: string[] = [];
+    // const numLights = randNumWeighted(1, 3, "power3.in", 1)();
+    const spotlightSlots = [
+      ["mid", "right", "far-right"],
+      ["left", "mid", "right"],
+      ["left", "mid", "right"],
+      ["left", "mid", "right"],
+      ["far-left", "left", "mid"],
+    ][slotNum]!;
+    spotlightSlots.forEach((slot) => {
+      htmlStrings.push(`<img class="pc-spotlight pc-spolight-${slot} pc-spotlight-on" src="/modules/eunos-kult-hacks/assets/images/stage/spotlights/spotlight-${slot}-on.webp" />`);
+      htmlStrings.push(`<img class="pc-spotlight pc-spolight-${slot} pc-spotlight-off" src="/modules/eunos-kult-hacks/assets/images/stage/spotlights/spotlight-${slot}-off.webp" />`);
+    })
+    return htmlStrings.join("");
+  },
+  "getNameplateImage": (actor: EunosActor): string => {
+    // Retrieve first word of actor's name, and convert any accented or special characters to their ASCII equivalents, and convert to lowercase
+    const name = actor.name.split(" ")[0]!;
+    const asciiName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/g, "").toLowerCase();
+    return `/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-nameplate-${asciiName}.webp`;
   },
   "getDotline": (current: number, max: number): string => {
     // Create array of styled bullet spans

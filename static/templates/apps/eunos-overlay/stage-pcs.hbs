@@ -1,33 +1,50 @@
 <div id="PCS" class="pcs-container">
+
   {{log "PCS CONTAINER" this}}
+
   {{#each locationData.pcData }}
-  <div
-    class="pc-container {{#if isHidden}}pc-container-hidden{{/if}} {{#if isDimmed}}pc-container-dimmed{{/if}} {{#if isMasked}}pc-container-masked{{/if}} {{#if isSpotlit}}pc-container-spotlit{{/if}}"
-    data-pc-id="{{actorID}}" data-slot="{{slot}}">
-    <div class="chain" style="background-image: url({{{../chainBG}}});"></div>
-    <div class="pc-portrait-container-wrapper">
-      <div class="pc-portrait-container {{#if isOwner}}pc-portrait-container-owner{{/if}}">
-        {{#if actor}}
-        <img class="pc-portrait-frame" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame.webp" />
-        <div class="pc-portrait-container-wrapper-inner">
-        <img class="pc-portrait" src="{{actor.img}}" data-action="pcPortraitClick" />
-        </div>
-        {{/if}}
-        {{#if (eq ../sessionScribeID actorID)}}
-        <div class="session-scribe-indicator">
-          <i class="fas fa-quill"></i>
-        </div>
-        {{/if}}
-        {{#if (eq ../dramaticHookCandleID actorID)}}
-        <div class="dramatic-hook-candle-indicator">
-          <i class="fas fa-candle"></i>
-        </div>
-        {{/if}}
-      </div>
+
+  {{#if (eq ../sessionScribeID ownerID)}}
+  {{#if (eq slot "3")}}
+  <span class="session-scribe-indicator">
+    <img src="modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp" />
+  </span>
+  {{/if}}
+  {{/if}}
+
+  <div class="pc-container {{#if isOwner}}pc-container-owner{{/if}}" data-pc-id="{{actorID}}" data-slot="{{slot}}">
+
+    <div class="pc-spotlight-container">
+      {{{getSpotlightImages slot}}}
     </div>
+
+    <img class="pc-portrait-shadow" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-shadow.webp" />
+
+    <div class="pc-portrait-container" data-action="pcPortraitClick">
+      <div class="pc-portrait-wrapper">
+        <div class="pc-portrait-interior-wrapper">
+          <img class="pc-portrait-red-lightning" src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-red-lightning-bg.webp" />
+          <img class="pc-portrait-smoke" src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-smoke-bg.webp" />
+          <img class="pc-portrait-bg" src="{{getPortraitImage actor "bg"}}" />
+          <img class="pc-portrait-fg" src="{{getPortraitImage actor "fg"}}" />
+          <img class="pc-portrait-nameplate" src="{{getNameplateImage actor}}" />
+        </div>
+        <img class="pc-portrait-frame pc-portrait-frame-dark" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-dark.webp" />
+        <img class="pc-portrait-frame pc-portrait-frame-dim" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-dim.webp" />
+        <img class="pc-portrait-frame pc-portrait-frame-main" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-main.webp" />
+        <img class="pc-portrait-frame pc-portrait-frame-spotlit" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-spotlit.webp" />
+      </div>
+      {{#if (eq ../dramaticHookCandleID actorID)}}
+      <div class="dramatic-hook-candle-indicator">
+        <i class="fa-solid fa-masks-theater"></i>
+      </div>
+      {{/if}}
+    </div>
+
+
+
   </div>
-  <div class="pc-spotlight-container {{#if isSpotlit}}pc-spotlight-container-spotlit{{/if}}">
-    <img class="pc-spotlight" src="/modules/eunos-kult-hacks/assets/images/stage/spotlight.webp" />
-  </div>
+
 {{/each}}
+
 </div>

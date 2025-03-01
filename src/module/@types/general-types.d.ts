@@ -62,6 +62,7 @@ interface ClampResponse {
 
 declare global {
 
+
   const InitializableClasses: Record<string, Constructor>;
 
   const AudioHelper: Exclude<typeof game.audio, undefined>;

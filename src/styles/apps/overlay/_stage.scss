@@ -20,8 +20,17 @@
     width: 1000%;
     background: black;
     pointer-events: none;
+    transform-style: preserve-3d;
+    // transform: rotateX(40deg);
+    transform: translate(-50%, -50%) translate3d(0, 0, 1000px) rotateX(40deg);
+    top: 50%;
+    left: 50%;
     // z-index: 1000000;
-    visibility: hidden;
+    visibility: visible;
+    // opacity: 0.5 !important;
+    // transform: translate3d(0, 0, -1000px);
+    z-index: 1;
+    // visibility: hidden;
   }
 
   #SECTION-3D {
@@ -32,11 +41,12 @@
     pointer-events: none;
     transform-style: preserve-3d;
     perspective-origin: center center;
-    transform: translate(-50%, -50%) translate3d(0, 0, -100px);
+    transform: translate(-50%, -50%);
     top: 50%;
     left: calc(50% - 0.5 * var(--sidebar-width));
+    // opacity: 0;
 
-    .canvas-layer {
+    .canvas-layer:not(.distant-overlay-layer) {
       display: block;
       position: absolute;
       height: 7000px;
@@ -58,6 +68,7 @@
         transform-style: preserve-3d;
       }
 
+
       &.under-layer {
         background: radial-gradient(
           circle at 50% 50%,
@@ -67,7 +78,11 @@
         );
       }
 
+
+
       &.background-layer {
+        // background: black
+          // url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp");
         background: black
           url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp");
         // background-size: contain;
@@ -75,18 +90,29 @@
         background-repeat: no-repeat;
         // background-attachment: fixed;
         filter: hue-rotate(var(--hue-rotate, 130deg)) saturate(var(--saturation, 50%));
-        transform: translate(-50%, -50%);
-      }
+        transition: background-image 2s ease-in-out;
 
-      &.positioner-layer {
-        display: none;
-        // background: black;
-        background-image: url("modules/eunos-kult-hacks/assets/images/stage/stage-positioner-square.webp");
-        // background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-        // background-attachment: fixed;
-        // filter: hue-rotate(130deg) saturate(0.5);
+        &.entry-hidden {
+          background: black
+            url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp");
+          background-position: 0px 0px;
+          background-repeat: no-repeat;
+        }
+
+        .distant-overlay-layer {
+          scale: 1;
+          height: 100%;
+          width: 100%;
+          position: relative;
+          transform-origin: center center;
+          background: black
+            url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp");
+          // background-size: contain;
+          background-position: 0px 0px;
+          background-repeat: no-repeat;
+          // background-attachment: fixed;
+          filter: hue-rotate(var(--hue-rotate, 130deg)) saturate(var(--saturation, 50%));
+        }
       }
     }
   }
