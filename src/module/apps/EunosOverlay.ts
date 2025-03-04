@@ -37,6 +37,8 @@ import {
   MediaLoadStatus,
   EunosMediaTypes,
   PCTargetRef,
+  PCState,
+  NPCState,
 } from "../scripts/enums";
 import EunosSockets from "./EunosSockets";
 import EunosAlerts from "./EunosAlerts";
@@ -424,63 +426,107 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       input.val(initialValue);
       input.trigger("input"); // Trigger input event to update display and apply changes
     },
-    togglePCSpotlight(event: PointerEvent, target: HTMLElement): void {
+    togglePCSpotlight(
+      event: JQuery.MouseDownEvent | JQuery.MouseUpEvent,
+      target: HTMLElement,
+    ): void {
+      kLog.log("togglePCSpotlight", { event, target });
       const pcID = target.dataset["actorId"];
+      kLog.log("pcID", pcID);
       if (!pcID) {
         return;
       }
-      const fullData = EunosOverlay.instance.getLocationData(getSetting("currentLocation"));
-      const allPCData = fullData.pcData;
-      const slot = $(target).closest("[data-slot]").attr("data-slot") as Maybe<"1" | "2" | "3" | "4" | "5">;
-      if (!slot) {
-        kLog.error("No slot found");
-        return;
+      // Check if this is a click-down vs click-release event
+      if (event.type === "mousedown") {
+        // Handle click-down
+        kLog.log("click-down");
+        void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
+          pcID,
+          state: PCState.spotlit,
+        });
+
+      } else if (event.type === "mouseup") {
+        // Handle click-release
+        kLog.log("click-up");
+        void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
+          pcID,
+          state: EunosOverlay.instance.getPCState(pcID),
+        });
       }
-      const pcData = allPCData[slot];
-      pcData.isSpotlit = !pcData.isSpotlit;
-      $(target).attr("data-value", pcData.isSpotlit ? "true" : "false");
-      void EunosOverlay.instance.setLocationData(getSetting("currentLocation"), fullData);
-      const pcUIData = EunosOverlay.instance.derivePCUIData(allPCData);
-      void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, pcUIData);
     },
     togglePCDimmed(event: PointerEvent, target: HTMLElement): void {
       const pcID = target.dataset["actorId"];
       if (!pcID) {
         return;
       }
-      const fullData = EunosOverlay.instance.getLocationData(getSetting("currentLocation"));
-      const allPCData = fullData.pcData;
-      const slot = $(target).closest("[data-slot]").attr("data-slot") as Maybe<"1" | "2" | "3" | "4" | "5">;
-      if (!slot) {
-        kLog.error("No slot found");
-        return;
+      void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
+        pcID,
+        state: PCState.dimmed,
+      });
+      const locData = EunosOverlay.instance.getLocationSettingsData(
+        getSetting("currentLocation"),
+      );
+      if (locData.pcData[pcID]) {
+        locData.pcData[pcID].state = PCState.dimmed;
       }
-      const pcData = allPCData[slot];
-      pcData.isDimmed = !pcData.isDimmed;
-      $(target).attr("data-value", pcData.isDimmed ? "true" : "false");
-      void EunosOverlay.instance.setLocationData(getSetting("currentLocation"), fullData);
-      const pcUIData = EunosOverlay.instance.derivePCUIData(allPCData);
-      void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, pcUIData);
+      void EunosOverlay.instance.setLocationData(
+        getSetting("currentLocation"),
+        EunosOverlay.instance.deriveLocationFullData(locData),
+      );
     },
     togglePCHidden(event: PointerEvent, target: HTMLElement): void {
       const pcID = target.dataset["actorId"];
       if (!pcID) {
         return;
       }
-      const fullData = EunosOverlay.instance.getLocationData(getSetting("currentLocation"));
-      const allPCData = fullData.pcData;
-      const slot = $(target).closest("[data-slot]").attr("data-slot") as Maybe<"1" | "2" | "3" | "4" | "5">;
-      if (!slot) {
-        kLog.error("No slot found");
+      void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
+        pcID,
+        state: PCState.hidden,
+      });
+      const locData = EunosOverlay.instance.getLocationSettingsData(
+        getSetting("currentLocation"),
+      );
+      if (locData.pcData[pcID]) {
+        locData.pcData[pcID].state = PCState.hidden;
+      }
+      void EunosOverlay.instance.setLocationData(
+        getSetting("currentLocation"),
+        EunosOverlay.instance.deriveLocationFullData(locData),
+      );
+    },
+    togglePCBase(event: PointerEvent, target: HTMLElement): void {
+      const pcID = target.dataset["actorId"];
+      if (!pcID) {
         return;
       }
-      const pcData = allPCData[slot];
-      pcData.isHidden = !pcData.isHidden;
-      $(target).attr("data-value", pcData.isHidden ? "true" : "false");
-      void EunosOverlay.instance.setLocationData(getSetting("currentLocation"), fullData);
-      const pcUIData = EunosOverlay.instance.derivePCUIData(allPCData);
-      void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, pcUIData);
-    }
+      void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
+        pcID,
+        state: PCState.base,
+      });
+      const locData = EunosOverlay.instance.getLocationSettingsData(
+        getSetting("currentLocation"),
+      );
+      if (locData.pcData[pcID]) {
+        locData.pcData[pcID].state = PCState.base;
+      }
+      void EunosOverlay.instance.setLocationData(
+        getSetting("currentLocation"),
+        EunosOverlay.instance.deriveLocationFullData(locData),
+      );
+    },
+    async sessionScribeClick(
+      event: PointerEvent,
+      target: HTMLElement,
+    ): Promise<void> {
+      kLog.log("sessionScribeClick", { event, target });
+      const journalPage =
+        await EunosOverlay.instance.getOrCreateSessionJournal();
+      if (journalPage) {
+        // @ts-expect-error - force is a valid option for render
+        await journalPage.sheet.render({ force: true });
+        $(journalPage.sheet!.element).addClass("session-scribe-open");
+      }
+    },
   };
 
   // #endregion ACTIONS
@@ -522,10 +568,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         EunosOverlay.ACTIONS.seriousWoundClick.bind(EunosOverlay),
       criticalWoundClick:
         EunosOverlay.ACTIONS.criticalWoundClick.bind(EunosOverlay),
-      togglePCSpotlight:
-        EunosOverlay.ACTIONS.togglePCSpotlight.bind(EunosOverlay),
       togglePCDimmed: EunosOverlay.ACTIONS.togglePCDimmed.bind(EunosOverlay),
       togglePCHidden: EunosOverlay.ACTIONS.togglePCHidden.bind(EunosOverlay),
+      togglePCBase: EunosOverlay.ACTIONS.togglePCBase.bind(EunosOverlay),
+      sessionScribeClick:
+        EunosOverlay.ACTIONS.sessionScribeClick.bind(EunosOverlay),
     },
   };
 
@@ -650,12 +697,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Initialize PCUIStatus for fresh render
     getOwnedActors().forEach((actor) => {
-      this.instance.PCUIStatus[actor.id!] = {
-        isHidden: false,
-        isDimmed: true,
-        isMasked: false,
-        isSpotlit: false,
-      };
+      this.instance.PCUIStatus[actor.id!] = PCState.hidden;
     });
 
     await this.instance.render({ force: true });
@@ -669,12 +711,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     //     true,
     //   );
     // }, 500);
-
   }
 
   static async PostInitialize() {
     if (!getSetting("isEntryVisible")) {
-      $(".background-layer").addClass("entry-hidden")
+      $(".background-layer").addClass("entry-hidden");
     }
     if (!getUser().isGM) {
       return;
@@ -682,7 +723,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (getSetting("isPlottingLocations")) {
       EunosOverlay.instance.showPlottingPanel();
     }
-
   }
   // #endregion STATIC METHODS
 
@@ -777,18 +817,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       );
     },
 
-    updatePCUI: (
-      data: Record<
-        IDString,
-        {
-          isHidden?: boolean;
-          isDimmed?: boolean;
-          isMasked?: boolean;
-          isSpotlit?: boolean;
-        }
-      >,
-    ) => {
-      void EunosOverlay.instance.updatePCUI(data);
+    refreshLocationImage: (data: { imgKey: string }) => {
+      void EunosOverlay.instance.refreshLocationImage(data.imgKey);
+    },
+
+    updatePCUI: (data: { pcID: IDString; state: PCState }) => {
+      kLog.log("updatePCUI Called", data);
+      void EunosOverlay.instance.updatePCUI({ [data.pcID]: data.state });
     },
   };
   // #endregion SOCKET FUNCTIONS
@@ -810,7 +845,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #locationPlottingPanel: Maybe<HTMLElement>;
   #stage: Maybe<HTMLElement>;
   #stage3D: Maybe<HTMLElement>;
-  #pcs: Maybe<HTMLElement>;
+  // #pcs: Maybe<HTMLElement>;
 
   get overlay$() {
     return $(this.element);
@@ -1006,13 +1041,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   get pcs$() {
-    if (!this.#pcs) {
-      this.#pcs = this.element.querySelector("#PCS") as Maybe<HTMLElement>;
-    }
-    if (!this.#pcs) {
+    const pcs = this.element.querySelector(
+      getUser().isGM ? "#PCS-GM" : "#PCS",
+    ) as Maybe<HTMLElement>;
+    if (!pcs) {
       throw new Error("PCS not found");
     }
-    return $(this.#pcs);
+    return $(pcs);
   }
 
   // #endregion DOM ELEMENT GETTERS
@@ -1238,7 +1273,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.countdownContainer$.find("*").removeAttr("style"); // Remove style attribute from all descendants
     this.#isCountdownContainerTimelinePlaying = false;
     if (isHiding) {
-      this.countdownContainer$.css("visibility", "hidden");
+      this.countdownContainer$.css("visibility", PCState.hidden);
     }
     this.#countdownContainerTimeline = undefined;
     this.#glitchTimeline = undefined;
@@ -1434,7 +1469,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async killSessionClosedAmbientAudio(): Promise<void> {
     // if (!this.#ambientAudio) { return; }
-    await this.getAmbientAudio(false).kill();
+    await this.getAmbientAudio(false).kill(3);
     // this.#ambientAudio = undefined;
   }
   // #endregion SESSION CLOSED AMBIENT AUDIO ~
@@ -2054,8 +2089,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       { once: true },
     );
 
-    void this.animateOutBlackBars();
-
     await this.introVideo.play();
     if (!getUser().isGM) {
       void EunosSockets.getInstance().call(
@@ -2077,6 +2110,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }, 2000);
     }
 
+    // Schedule animating-out of black bars
+    setTimeout(() => {
+      void this.animateOutBlackBars();
+    }, PRE_SESSION.BLACK_BARS_ANIMATION_OUT_VIDEO_DELAY * 1000);
     // Schedule animation of the title
     const videoDuration = await this.introVideo.getDuration();
     const currentVideoTime = this.introVideo.currentTime;
@@ -2372,6 +2409,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.initializePreSessionSong(),
     ]);
     this.initializeVideoPreloading();
+    if (!getUser().isGM) return;
+
+    // GM assigns dramatic hooks and session scribe to settings
+    void this.setDramaticHookAssignments();
+    void this.setSessionScribe();
   }
 
   async sync_SessionLoading() {
@@ -2382,6 +2424,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.initializePreSessionSong(),
       this.preloadIntroVideo(),
     ]);
+    if (!getUser().isGM) return;
+
+    // GM assigns dramatic hooks and session scribe to settings
+    void this.setDramaticHookAssignments();
+    void this.setSessionScribe();
     // this.addStartVideoButtonListeners();
   }
 
@@ -2407,18 +2454,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       );
     }
     void this.buildPCPortraitTimelines();
-    if (!getUser().isGM) return;
-
-
-
-    // GM assigns dramatic hooks and session scribe to settings
-    void this.setDramaticHookAssignments();
-    void this.setSessionScribe();
+    gsap.to(this.stage$, {
+      filter: "brightness(0)",
+      duration: 0,
+      ease: "none",
+    });
   }
 
   async sync_SessionStarting(): Promise<void> {
     addClassToDOM("session-starting");
     void this.buildPCPortraitTimelines();
+    gsap.to(this.stage$, {
+      filter: "brightness(0)",
+      duration: 0,
+      ease: "none",
+    });
     await this.playIntroVideo();
   }
 
@@ -2430,9 +2480,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion SessionStarting Methods
 
   async fadeOutBlackdrop() {
-    await gsap.timeline()
-      .fromTo("#BLACKOUT-LAYER", {opacity: 1}, {opacity: 0, duration: 3, ease: "power2.inOut"})
-      .fromTo("#PCS", {opacity: 0}, {opacity: 1, duration: 1, ease: "power2.inOut"}, 2);
+    await gsap
+      .timeline()
+      .fromTo(
+        "#BLACKOUT-LAYER",
+        { opacity: 1 },
+        { opacity: 0, duration: 3, ease: "power2.inOut" },
+      )
+      .fromTo(
+        "#PCS",
+        { opacity: 0 },
+        { opacity: 1, duration: 1, ease: "power2.inOut" },
+        2,
+      );
   }
 
   // #region SessionRunning Methods
@@ -2442,15 +2502,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     addClassToDOM("session-running");
     await this.fadeOutBlackdrop();
     void this.updatePCUI();
+    // this.render({parts: ["pcs"]});
     if (!getUser().isGM) {
       return;
     }
     // Send an Alert to the session scribe
     void EunosAlerts.Alert({
-      type: AlertType.simple,
-      header: `You are the Session Scribe!`,
-      body: `Please take note of key events, then post a short bullet list of the session's highlights to Discord. You'll gain 1 Experience Point as a reward.`,
+      type: AlertType.central,
+      header: `<br/>You are the Session Scribe!`,
+      body: `<br/>Please take note of key events, then post a short bullet list of the session's highlights to Discord. You'll gain 1 Experience Point as a reward.`,
       target: getSetting("sessionScribe"),
+      displayDuration: 10,
+      soundName: "alert-hit-session-scribe",
+      logoImg: "modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp",
     });
   }
 
@@ -2459,7 +2523,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     addClassToDOM("session-running");
     kLog.log("Fading Out Backdrop");
     // setTimeout(() => {
-      void this.initializeLocation(true);
+    void this.initializeLocation(true);
     // }, 1000);
     await this.fadeOutBlackdrop();
     void this.updatePCUI();
@@ -2551,7 +2615,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         actor,
         owner,
         isOwner: owner.id === getUser().id,
-        isMasked: !owner.active,
       });
     }
 
@@ -2585,9 +2648,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Object.values(pcGlobalData).forEach((data) => {
       pcData.push({
         ...data,
-        isSpotlit: false,
-        isDimmed: false,
-        isHidden: false,
+        state: PCState.base,
       });
     });
     return pcData;
@@ -2622,9 +2683,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   //   Record<string, gsap.core.Timeline>
   // > = {} as Record<IDString, Record<string, gsap.core.Timeline>>;
 
-  private pcMasterTimelines: Record<IDString, gsap.core.Timeline> = {} as Record<IDString, gsap.core.Timeline>;
-  private pcSwayTimelines: Record<IDString, gsap.core.Timeline> = {} as Record<IDString, gsap.core.Timeline>;
-  private pcMaskedTimelines: Record<IDString, gsap.core.Timeline> = {} as Record<IDString, gsap.core.Timeline>;
+  private pcMasterTimelines: Record<IDString, gsap.core.Timeline> =
+    {} as Record<IDString, gsap.core.Timeline>;
+  private pcSwayTimelines: Record<IDString, gsap.core.Timeline> = {} as Record<
+    IDString,
+    gsap.core.Timeline
+  >;
+  private pcMaskedTimelines: Record<IDString, gsap.core.Timeline> =
+    {} as Record<IDString, gsap.core.Timeline>;
 
   private slotStats = {
     "1": {
@@ -2632,266 +2698,388 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       skewX: 0,
       skewY: -5,
       rotationX: 100,
-      scale: 0.9
+      scale: 0.9,
     },
     "2": {
       bottom: -15,
       skewX: 0,
       skewY: -2.5,
       rotationX: 100,
-      scale: 0.95
+      scale: 0.95,
     },
     "3": {
       bottom: 0,
       skewX: 0,
       skewY: 0,
       rotationX: 100,
-      scale: 1
+      scale: 1,
     },
     "4": {
       bottom: -15,
       skewX: 0,
       skewY: 2.5,
       rotationX: 100,
-      scale: 0.95
+      scale: 0.95,
     },
     "5": {
       bottom: -30,
       skewX: 0,
       skewY: 5,
       rotationX: 100,
-      scale: 0.9
-    }
+      scale: 0.9,
+    },
   };
 
-  private buildHiddenToDimmedTimeline(pcContainer$: JQuery, slot: "1" | "2" | "3" | "4" | "5"): gsap.core.Timeline {
-
+  private buildHiddenToDimmedTimeline(
+    pcContainer$: JQuery,
+    slot: "1" | "2" | "3" | "4" | "5",
+  ): gsap.core.Timeline {
     const pcID = pcContainer$.attr("data-pc-id") as Maybe<IDString>;
     if (!pcID) {
       throw new Error(`PC ID not found for pcContainer$`);
     }
 
     const spotlightContainer$ = pcContainer$.find(".pc-spotlight-container");
-    const shadow$ = pcContainer$.find(".pc-portrait-shadow");
-    const sessionScribeIndicator$ = pcContainer$.find(".session-scribe-indicator");
+    const shadow$ = pcContainer$.find(".pc-portrait-shadow-main");
+    const shadowEmpty$ = pcContainer$.find(".pc-portrait-shadow-empty");
+    const sessionScribeIndicator$ = pcContainer$.find(
+      ".session-scribe-indicator",
+    );
 
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
-    const dramaticHookCandleIndicator$ = portraitContainer$.find(".dramatic-hook-candle-indicator");
+    const dramaticHookCandleIndicator$ = portraitContainer$.find(
+      ".dramatic-hook-candle-indicator",
+    );
     const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
-    const interiorWrapper$ = portraitWrapper$.find(".pc-portrait-interior-wrapper");
+    const interiorWrapper$ = portraitWrapper$.find(
+      ".pc-portrait-interior-wrapper",
+    );
     const redLightning$ = interiorWrapper$.find(".pc-portrait-red-lightning");
     const smoke$ = interiorWrapper$.find(".pc-portrait-smoke");
     const portraitFg$ = interiorWrapper$.find(".pc-portrait-fg");
     const portraitBg$ = interiorWrapper$.find(".pc-portrait-bg");
-    const nameplate$  = interiorWrapper$.find(".pc-portrait-nameplate");
+    const nameplate$ = interiorWrapper$.find(".pc-portrait-nameplate");
     const frameDark$ = portraitWrapper$.find(".pc-portrait-frame-dark");
     const frameDim$ = portraitWrapper$.find(".pc-portrait-frame-dim");
     const frameMain$ = portraitWrapper$.find(".pc-portrait-frame-main");
     const frameSpotlit$ = portraitWrapper$.find(".pc-portrait-frame-spotlit");
 
-    const tl = gsap.timeline()
-      .call(() => {
-        this.pcSwayTimelines[pcID]?.seek(0).pause();
-      })
-      .fromTo(portraitContainer$, {
-        opacity: 1,
-        skewX: this.slotStats[slot].skewX,
-        skewY: this.slotStats[slot].skewY,
-        rotationZ: 0,
-        rotationX: this.slotStats[slot].rotationX,
-        scale: this.slotStats[slot].scale,
-        y: 0
-      }, {
-        // y: this.slotStats[slot].bottom,
-        skewX: 0,
-        rotationX: 0,
-        duration: 2,
-        ease: "power3.out"
-      })
-      // .to(frameDim$, {
-      //   y: this.slotStats[slot].bottom,
-      //   duration: 2,
-      //   ease: "elastic.inOut(2)"
-      // }, 0)
-      .fromTo(portraitWrapper$, {
-        opacity: 1,
-      }, {
-        y: this.slotStats[slot].bottom,
-        duration: 1,
-        ease: "power3.out"
-      }, 0)
+    const tl = gsap
+      .timeline()
+      // .call(() => {
+      //   this.pcSwayTimelines[pcID]?.seek(0).pause();
+      // })
       .fromTo(
-      frameDim$, {opacity: 0},  {
-        opacity: 1,
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0)
-      .fromTo(frameDark$, {opacity: 1}, {
-        opacity: 0,
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0.5)
-      .fromTo(smoke$, {opacity: 0, filter: "contrast(1.5) brightness(0.15)"},  {
-        opacity: 1,
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0)
-      .fromTo(shadow$, {opacity: 0}, {
-        opacity: 0.7,
-        duration: 0.25,
-        ease: "power3.out"
-      }, 0.75)
-
-      if (sessionScribeIndicator$.length || dramaticHookCandleIndicator$.length) {
-        tl.fromTo([
-          sessionScribeIndicator$,
-          dramaticHookCandleIndicator$
-        ].filter((el) => el.length), {opacity: 0}, {
+        portraitWrapper$,
+        {
           opacity: 1,
+          y: 200,
+        },
+        {
+          y: this.slotStats[slot].bottom,
+          duration: 1,
+          ease: "bounce.in",
+        },
+        0,
+      )
+      .fromTo(
+        frameDim$,
+        { opacity: 0 },
+        {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0,
+      )
+      .fromTo(
+        frameDark$,
+        { opacity: 1 },
+        {
+          opacity: 0,
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0.5,
+      )
+      .fromTo(
+        smoke$,
+        { opacity: 0, filter: "contrast(1.5) brightness(0.15)" },
+        {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0,
+      )
+      .fromTo(
+        portraitBg$,
+        {
+          opacity: 0,
+          filter: "grayscale(1) brightness(0)"
+        },
+        {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0.5,
+      )
+      .fromTo(
+        shadowEmpty$,
+        {
+          opacity: 0.7,
+          y: 100,
+        },
+        {
+          opacity: 0,
+          y: 0,
           duration: 0.25,
-          ease: "power3.out"
-        }, ">")
-    }
+          ease: "power3.out",
+        },
+        0.25
+      )
+      .fromTo(
+        shadow$,
+        {
+          opacity: 0,
+          y: 100,
+        },
+        {
+          opacity: 0.7,
+          y: 0,
+          duration: 0.25,
+          ease: "power3.out",
+        },
+        0.25,
+      );
 
-    tl.call(() => {
-      this.pcSwayTimelines[pcID]?.play();
-    });
+    //   if (sessionScribeIndicator$.length || dramaticHookCandleIndicator$.length) {
+    //     tl.fromTo([
+    //       sessionScribeIndicator$,
+    //       dramaticHookCandleIndicator$
+    //     ].filter((el) => el.length), {opacity: 0}, {
+    //       opacity: 1,
+    //       duration: 0.25,
+    //       ease: "power3.out"
+    //     }, ">")
+    // }
+
+    // tl.call(() => {
+    //   this.pcSwayTimelines[pcID]?.play();
+    // });
 
     return tl;
   }
 
-  private buildDimmedToBaseTimeline(pcContainer$: JQuery, slot: "1" | "2" | "3" | "4" | "5"): gsap.core.Timeline {
-
+  private buildDimmedToBaseTimeline(
+    pcContainer$: JQuery,
+    slot: "1" | "2" | "3" | "4" | "5",
+  ): gsap.core.Timeline {
     const spotlightContainer$ = pcContainer$.find(".pc-spotlight-container");
     const lights$ = spotlightContainer$.find(".pc-spotlight");
     const onLights$ = lights$.filter(".pc-spotlight-on");
     const offLights$ = lights$.filter(".pc-spotlight-off");
     const shadow$ = pcContainer$.find(".pc-portrait-shadow");
-    const sessionScribeIndicator$ = pcContainer$.find(".session-scribe-indicator");
+    const sessionScribeIndicator$ = pcContainer$.find(
+      ".session-scribe-indicator",
+    );
 
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
-    const dramaticHookCandleIndicator$ = portraitContainer$.find(".dramatic-hook-candle-indicator");
+    const dramaticHookCandleIndicator$ = portraitContainer$.find(
+      ".dramatic-hook-candle-indicator",
+    );
     const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
-    const interiorWrapper$ = portraitWrapper$.find(".pc-portrait-interior-wrapper");
+    const interiorWrapper$ = portraitWrapper$.find(
+      ".pc-portrait-interior-wrapper",
+    );
     const redLightning$ = interiorWrapper$.find(".pc-portrait-red-lightning");
     const smoke$ = interiorWrapper$.find(".pc-portrait-smoke");
     const portraitFg$ = interiorWrapper$.find(".pc-portrait-fg");
     const portraitBg$ = interiorWrapper$.find(".pc-portrait-bg");
-    const nameplate$  = interiorWrapper$.find(".pc-portrait-nameplate");
+    const nameplate$ = interiorWrapper$.find(".pc-portrait-nameplate");
     const frameDark$ = portraitWrapper$.find(".pc-portrait-frame-dark");
     const frameDim$ = portraitWrapper$.find(".pc-portrait-frame-dim");
     const frameMain$ = portraitWrapper$.find(".pc-portrait-frame-main");
     const frameSpotlit$ = portraitWrapper$.find(".pc-portrait-frame-spotlit");
 
-    return gsap.timeline()
-      .fromTo(redLightning$, {opacity: 0}, {
-        opacity: 1,
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0)
-      .to(smoke$, {
-        opacity: 0,
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0.25)
-      .fromTo(frameMain$, {opacity: 0}, {
-        opacity: 1,
-        duration: 1,
-        ease: "power3.out"
-      }, 0)
-      .to(frameDim$, {
-        opacity: 0,
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0.5)
-      .fromTo(nameplate$, {filter: "grayscale(1) brightness(1)"}, {
-        filter: "grayscale(0) brightness(1)",
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0.5)
-      .fromTo(portraitBg$, {opacity: 1, filter: "grayscale(1) brightness(0)"}, {
-        filter: "grayscale(0.5) brightness(1)",
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0.5)
-      .fromTo(portraitFg$, {
-        opacity: 0,
-        scale: 0.8,
-        // y: -60,
-        filter: "grayscale(0.5) brightness(0) blur(15px)"
-      }, {
-        scale: 1,
-        y: 0,
-        opacity: 1,
-        filter: "grayscale(0.5) brightness(1) blur(0px)",
-        duration: 0.5,
-        ease: "power3.out"
-      }, 0.25)
-      .fromTo(offLights$, {y: 500, opacity: 1}, {
-        y: 0,
-        duration: 1,
-        stagger: {
-          amount: 0.5,
-          ease: "power2"
-        }
-      }, 0)
-      .fromTo(onLights$, {y: 500, opacity: 0}, {
-        y: 0,
-        duration: 1
-      }, 0)
-
+    return gsap
+      .timeline()
+      .to(
+        smoke$,
+        {
+          opacity: 0,
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0.25,
+      )
+      .fromTo(
+        frameMain$,
+        { opacity: 0 },
+        {
+          opacity: 1,
+          duration: 1,
+          ease: "power3.out",
+        },
+        0,
+      )
+      .fromTo(
+        redLightning$,
+        { opacity: 0 },
+        {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power3.out"
+        },
+        0.5
+      )
+      .to(
+        frameDim$,
+        {
+          opacity: 0,
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0.5,
+      )
+      .fromTo(
+        nameplate$,
+        { filter: "grayscale(1) brightness(1)" },
+        {
+          filter: "grayscale(0) brightness(1)",
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0.5,
+      )
+      .to(
+        portraitBg$,
+        {
+          filter: "grayscale(0.5) brightness(1)",
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0.5,
+      )
+      .fromTo(
+        portraitFg$,
+        {
+          opacity: 0,
+          scale: 0.8,
+          // y: -60,
+          filter: "grayscale(0.5) brightness(0) blur(15px)",
+        },
+        {
+          scale: 1,
+          y: 0,
+          opacity: 1,
+          filter: "grayscale(0.5) brightness(1) blur(0px)",
+          duration: 0.5,
+          ease: "power3.out",
+        },
+        0.25,
+      )
+      .fromTo(
+        offLights$,
+        { y: 500, opacity: 1 },
+        {
+          y: 0,
+          duration: 0.5,
+          stagger: {
+            amount: 0.5,
+            ease: "power2",
+          },
+        },
+        0,
+      )
+      .fromTo(
+        onLights$,
+        { y: 500, opacity: 0 },
+        {
+          y: 0,
+          duration: 0.5,
+        },
+        0,
+      );
   }
-  private buildBaseToSpotlitTimeline(pcContainer$: JQuery, slot: "1" | "2" | "3" | "4" | "5"): gsap.core.Timeline {
+  private buildBaseToSpotlitTimeline(
+    pcContainer$: JQuery,
+    slot: "1" | "2" | "3" | "4" | "5",
+  ): gsap.core.Timeline {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    const ease = CustomEase.create("flickerIn", EASES.flickerIn) as gsap.EaseFunction;
+    const ease = CustomEase.create(
+      "flickerIn",
+      EASES.flickerIn,
+    ) as gsap.EaseFunction;
 
     const spotlightContainer$ = pcContainer$.find(".pc-spotlight-container");
     const lights$ = spotlightContainer$.find(".pc-spotlight");
     const onLights$ = lights$.filter(".pc-spotlight-on");
     const offLights$ = lights$.filter(".pc-spotlight-off");
     const shadow$ = pcContainer$.find(".pc-portrait-shadow");
-    const sessionScribeIndicator$ = pcContainer$.find(".session-scribe-indicator");
+    const sessionScribeIndicator$ = pcContainer$.find(
+      ".session-scribe-indicator",
+    );
 
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
-    const dramaticHookCandleIndicator$ = portraitContainer$.find(".dramatic-hook-candle-indicator");
+    const dramaticHookCandleIndicator$ = portraitContainer$.find(
+      ".dramatic-hook-candle-indicator",
+    );
     const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
-    const interiorWrapper$ = portraitWrapper$.find(".pc-portrait-interior-wrapper");
+    const interiorWrapper$ = portraitWrapper$.find(
+      ".pc-portrait-interior-wrapper",
+    );
     const redLightning$ = interiorWrapper$.find(".pc-portrait-red-lightning");
     const smoke$ = interiorWrapper$.find(".pc-portrait-smoke");
     const portraitFg$ = interiorWrapper$.find(".pc-portrait-fg");
     const portraitBg$ = interiorWrapper$.find(".pc-portrait-bg");
-    const nameplate$  = interiorWrapper$.find(".pc-portrait-nameplate");
+    const nameplate$ = interiorWrapper$.find(".pc-portrait-nameplate");
     const frameDark$ = portraitWrapper$.find(".pc-portrait-frame-dark");
     const frameDim$ = portraitWrapper$.find(".pc-portrait-frame-dim");
     const frameMain$ = portraitWrapper$.find(".pc-portrait-frame-main");
     const frameSpotlit$ = portraitWrapper$.find(".pc-portrait-frame-spotlit");
 
-    return gsap.timeline()
-      .to(onLights$, {
-        opacity: 1,
-        ease,
-        duration: 1,
-        stagger: {
-          amount: 0.5,
-          ease: "power2"
-        }
-      }, 0)
-      .fromTo(frameSpotlit$, {opacity: 0}, {
-        opacity: 1,
-        ease,
-        duration: 0.5
-      }, 0.5)
-      .to([portraitBg$, portraitFg$, nameplate$], {
-        filter: "grayscale(0) brightness(1.5) blur(0px)",
-        duration: 0.5,
-        ease
-      }, 0.5)
-      // .to([portraitBg$, portraitFg$], {
-      //   scale: 1.25,
-      //   y: 25,
-      //   duration: 0.5,
-      //   ease
-      // }, 0.5);
+    return gsap
+      .timeline()
+      .to(
+        onLights$,
+        {
+          opacity: 1,
+          ease,
+          duration: 1,
+          stagger: {
+            amount: 0.5,
+            ease: "power2",
+          },
+        },
+        0,
+      )
+      .fromTo(
+        frameSpotlit$,
+        { opacity: 0 },
+        {
+          opacity: 1,
+          ease,
+          duration: 0.5,
+        },
+        0.5,
+      )
+      .to(
+        [portraitBg$, portraitFg$, nameplate$],
+        {
+          filter: "grayscale(0) brightness(1.5) blur(0px)",
+          duration: 0.5,
+          ease,
+        },
+        0.5,
+      );
+    // .to([portraitBg$, portraitFg$], {
+    //   scale: 1.25,
+    //   y: 25,
+    //   duration: 0.5,
+    //   ease
+    // }, 0.5);
   }
 
   private buildToMaskedTimeline(pcID: IDString): gsap.core.Timeline {
@@ -2909,25 +3097,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const frames$ = portraitContainer$.find(".pc-portrait-frame");
 
     return gsap
-      .timeline({paused: true})
+      .timeline({ paused: true })
       .addLabel("unmasked")
       .to(frames$, {
         opacity: 0,
         duration: 0.5,
-        ease: "power3.out"
+        ease: "power3.out",
       })
-      .addLabel("masked");
+      .addLabel(PCState.masked);
   }
 
   private buildMasterPCTimeline(pcID: IDString): gsap.core.Timeline {
-
     // If this is a GM user, return a blank timeline.
     if (getUser().isGM) {
-      return gsap.timeline({paused: true});
+      return gsap.timeline({ paused: true });
     }
 
     if (this.pcMasterTimelines[pcID]) {
-      this.pcMasterTimelines[pcID].seek("hidden").kill();
+      this.pcMasterTimelines[pcID].seek(PCState.hidden).kill();
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.pcMasterTimelines[pcID];
     }
@@ -2936,7 +3123,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!pcContainer$.length) {
       throw new Error(`PC container for pcID '${pcID}' not found.`);
     }
-    const slot = pcContainer$.attr("data-slot") as Maybe<"1" | "2" | "3" | "4" | "5">;
+    const slot = pcContainer$.attr("data-slot") as Maybe<
+      "1" | "2" | "3" | "4" | "5"
+    >;
     if (!slot) {
       throw new Error(`Slot for PC '${pcID}' not found.`);
     }
@@ -2946,17 +3135,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const onLights$ = lights$.filter(".pc-spotlight-on");
     const offLights$ = lights$.filter(".pc-spotlight-off");
     const shadow$ = pcContainer$.find(".pc-portrait-shadow");
-    const sessionScribeIndicator$ = pcContainer$.find(".session-scribe-indicator");
+    const sessionScribeIndicator$ = pcContainer$.find(
+      ".session-scribe-indicator",
+    );
 
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
-    const dramaticHookCandleIndicator$ = portraitContainer$.find(".dramatic-hook-candle-indicator");
+    const dramaticHookCandleIndicator$ = portraitContainer$.find(
+      ".dramatic-hook-candle-indicator",
+    );
     const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
-    const interiorWrapper$ = portraitWrapper$.find(".pc-portrait-interior-wrapper");
+    const interiorWrapper$ = portraitWrapper$.find(
+      ".pc-portrait-interior-wrapper",
+    );
     const redLightning$ = interiorWrapper$.find(".pc-portrait-red-lightning");
     const smoke$ = interiorWrapper$.find(".pc-portrait-smoke");
     const portraitFg$ = interiorWrapper$.find(".pc-portrait-fg");
     const portraitBg$ = interiorWrapper$.find(".pc-portrait-bg");
-    const nameplate$  = interiorWrapper$.find(".pc-portrait-nameplate");
+    const nameplate$ = interiorWrapper$.find(".pc-portrait-nameplate");
     const frameDark$ = portraitWrapper$.find(".pc-portrait-frame-dark");
     const frameDim$ = portraitWrapper$.find(".pc-portrait-frame-dim");
     const frameMain$ = portraitWrapper$.find(".pc-portrait-frame-main");
@@ -2983,29 +3178,28 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       frameDark$,
       frameDim$,
       frameMain$,
-      frameSpotlit$
+      frameSpotlit$,
     });
 
-    const tl = gsap.timeline({paused: true});
-    tl.addLabel("hidden")
+    const tl = gsap.timeline({ paused: true });
+    tl.addLabel(PCState.hidden);
 
     // Add sub-timelines
     tl.add(this.buildHiddenToDimmedTimeline(pcContainer$, slot))
-      .addLabel("dimmed")
+      .addLabel(PCState.dimmed)
       .add(this.buildDimmedToBaseTimeline(pcContainer$, slot))
-      .addLabel("base")
+      .addLabel(PCState.base)
       .add(this.buildBaseToSpotlitTimeline(pcContainer$, slot))
-      .addLabel("spotlit");
+      .addLabel(PCState.spotlit);
 
-    kLog.log("Master timeline for PC", {tl});
+    kLog.log("Master timeline for PC", { tl });
 
     return tl;
   }
 
   private buildSwayingLoopTimeline(pcID: IDString): gsap.core.Timeline {
-
     if (this.pcSwayTimelines[pcID]) {
-      this.pcSwayTimelines[pcID].seek("hidden").kill();
+      this.pcSwayTimelines[pcID].seek(PCState.hidden).kill();
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.pcSwayTimelines[pcID];
     }
@@ -3015,11 +3209,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       throw new Error(`PC container for pcID '${pcID}' not found.`);
     }
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
-    const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
+    // const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
 
     return gsap
       .timeline({ repeat: -1, yoyo: true, repeatRefresh: true, paused: true })
-      .to(portraitWrapper$, {
+      .to(portraitContainer$, {
         // x: "random(-5, 5, 1)",
         y: "random(-25, 25, 1)",
         // rotate: "random(-3, 3, 1)",
@@ -3033,101 +3227,77 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const ownedActors = getOwnedActors();
     ownedActors.forEach((actor) => {
       this.pcMasterTimelines[actor.id!] = this.buildMasterPCTimeline(actor.id!);
-      this.pcSwayTimelines[actor.id!] = this.buildSwayingLoopTimeline(actor.id!);
+      this.pcSwayTimelines[actor.id!] = this.buildSwayingLoopTimeline(
+        actor.id!,
+      );
       this.pcMaskedTimelines[actor.id!] = this.buildToMaskedTimeline(actor.id!);
       this.pcMasterTimelines[actor.id!]?.seek(0);
     });
   }
 
-  private getPCUIData(location?: string): Record<IDString, PCs.UIData> {
-    const locData = location
-      ? this.getLocationData(location).pcData
-      : this.getLocationData(getSetting("currentLocation")).pcData;
-    return this.derivePCUIData(locData);
-  }
-
-  private extractPCUIDataFromFullData(pcData: Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>): Record<IDString, PCs.UIData> {
-    const pcUIData: Record<IDString, PCs.UIData> = {} as Record<
-      IDString,
-      PCs.UIData
-    >;
-    Object.values(pcData).forEach((data) => {
-      pcUIData[data.actorID] = {
-        isHidden: data.isHidden,
-        isDimmed: data.isDimmed,
-        isMasked: data.isMasked,
-        isSpotlit: data.isSpotlit,
-      };
-    });
-    return pcUIData;
-  }
-
-  private derivePCUIData(pcData: Record<IDString, PCs.UIData> | Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>): Record<IDString, PCs.UIData> {
-    if (Object.keys(pcData).some((key) => ["1", "2", "3", "4", "5"].includes(key))) {
-      pcData = this.extractPCUIDataFromFullData(pcData as Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>);
+  private getPCState(
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+    pcID: IDString | "1" | "2" | "3" | "4" | "5",
+    location?: string,
+  ): PCState {
+    location ??= getSetting("currentLocation");
+    const locData = this.getLocationData(location).pcData;
+    if (pcID in locData) {
+      return locData[pcID as "1" | "2" | "3" | "4" | "5"].state;
     }
+    const pcData = this.extractPCUIDataFromFullData(locData);
+    return pcData?.[pcID] ?? PCState.base;
+  }
 
-    const pcUIData: Record<IDString, PCs.UIData> = {} as Record<
-      IDString,
-      PCs.UIData
-    >;
-    Object.entries(pcData as Record<IDString, PCs.UIData>).forEach(([actorID, data]) => {
-      /* if (data.isMasked) {
-        pcUIData[actorID] = {
-          isHidden: false,
-          isDimmed: false,
-          isMasked: true,
-          isSpotlit: false
-        };
-      } else */ if (data.isHidden) {
-        pcUIData[actorID] = {
-          isHidden: true,
-          isDimmed: data.isDimmed,
-          isMasked: false,
-          isSpotlit: false,
-        };
-      } else {
-        pcUIData[actorID] = {
-          isHidden: false,
-          isDimmed: data.isDimmed,
-          isMasked: false,
-          isSpotlit: data.isSpotlit,
-        };
-      }
+  private extractPCUIDataFromFullData(
+    pcData?: Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>,
+  ): Record<IDString, PCState> {
+    pcData ??= this.getLocationData(getSetting("currentLocation")).pcData;
+    const pcUIData: Record<IDString, PCState> = {};
+    Object.values(pcData).forEach((data) => {
+      pcUIData[data.actorID] = data.state;
     });
     return pcUIData;
   }
 
-  private getTimelineLabels(pcData: Record<IDString, PCs.UIData>): Record<IDString, string> {
-    return Object.entries(pcData).reduce<Record<IDString, string>>((acc, [pcID, data]) => {
-      if (data.isMasked) {
-        acc[pcID] = "masked";
-      } else if (data.isHidden) {
-        acc[pcID] = "hidden";
-      } else if (data.isDimmed) {
-        acc[pcID] = "dimmed";
-      } else if (data.isSpotlit) {
-        acc[pcID] = "spotlit";
-      } else {
-        acc[pcID] = "base";
-      }
-      return acc;
-    }, {});
-  }
-
-  private PCUIStatus: Record<IDString, PCs.UIData> = {} as Record<IDString, PCs.UIData>;
+  private PCUIStatus: Record<IDString, PCState> = {} as Record<
+    IDString,
+    PCState
+  >;
 
   public async updatePCUI(
-    data?: Record<IDString, PCs.UIData> | Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>
+    data?:
+      | Record<IDString, PCState>
+      | Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>,
   ) {
-    // return;
-    data ??= this.getLocationData(getSetting("currentLocation")).pcData;
-    const timelineLabels = shuffle(Object.entries(this.getTimelineLabels(this.derivePCUIData(data))));
-    let delay = 0;
-    let isDelaying = false;
+    kLog.log("updatePCUI function called", data);
 
-    timelineLabels.forEach(([pcID, label]) => {
-      isDelaying = false;
+    // First check whether this user is the session scribe. If so, add the "session-scribe" class to the #PCS overlay.
+    if (getUser().id === getSetting("sessionScribe")) {
+      this.pcs$.addClass("session-scribe");
+    } else {
+      this.pcs$.removeClass("session-scribe");
+    }
+
+    // return;
+    if (
+      data &&
+      Object.keys(data).some((key) => ["1", "2", "3", "4", "5"].includes(key))
+    ) {
+      data = this.extractPCUIDataFromFullData(
+        data as Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>,
+      );
+    }
+    data ??= this.extractPCUIDataFromFullData(this.getLocationData().pcData);
+    const timelineLabels = shuffle(Object.entries(data));
+    const delay = 0;
+    // let isDelaying = false;
+
+    timelineLabels.forEach(([pcID, state]: [IDString, PCState]) => {
+      // isDelaying = false;
+    if (getUser().isGM) {
+      this.updatePCUI_GM(pcID, state);
+    }
       const swayTimeline = this.pcSwayTimelines[pcID];
       const masterTimeline = this.pcMasterTimelines[pcID];
       const maskedTimeline = this.pcMaskedTimelines[pcID];
@@ -3141,55 +3311,130 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (!maskedTimeline) {
         throw new Error(`PC ${pcID} has no masked timeline.`);
       }
-      const tl = gsap.timeline({delay});
-      if (label === "masked") {
+      const tl = gsap.timeline({ delay });
+      if (state === PCState.masked) {
         swayTimeline.pause();
-        if (maskedTimeline.currentLabel() !== "masked") {
-          if (masterTimeline.currentLabel() === "dimmed") {
-            masterTimeline.currentLabel("dimmed");
+        if (maskedTimeline.currentLabel() !== (PCState.masked as string)) {
+          if (masterTimeline.currentLabel() === (PCState.dimmed as string)) {
+            masterTimeline.currentLabel(PCState.dimmed);
           } else {
-            tl.add(masterTimeline.tweenTo("dimmed", {duration: 0.5}))
+            tl.add(masterTimeline.tweenTo(PCState.dimmed, { duration: 0.5 }));
           }
-          tl.add(maskedTimeline.tweenTo("masked"));
-          delay += 0.25;
+          tl.add(maskedTimeline.tweenTo(PCState.masked));
+          // delay += 0.25;
           return;
         }
-      } else if (maskedTimeline.currentLabel() === "masked") {
-        tl.add(maskedTimeline.tweenTo("unmasked", {duration: 0.5}));
-        isDelaying = true;
+      } else if (maskedTimeline.currentLabel() === (PCState.masked as string)) {
+        tl.add(maskedTimeline.tweenTo(0, { duration: 0.5 }));
+        // isDelaying = true;
       }
 
-      if (label === "hidden") {
-        if (masterTimeline.currentLabel() !== "hidden") {
-          tl.add(masterTimeline.tweenTo("hidden", {duration: 1}));
-          isDelaying = true;
-        }
-      } else if (label === "dimmed") {
-        if (masterTimeline.currentLabel() !== "dimmed") {
-          tl.add(masterTimeline.tweenTo("dimmed", {duration: 1}));
-          isDelaying = true;
-        }
-      } else if (label === "base") {
-        if (masterTimeline.currentLabel() !== "base") {
-          tl.add(masterTimeline.tweenTo("base", {duration: 1}));
-          isDelaying = true;
-        }
-      } else if (label === "spotlit") {
-        if (masterTimeline.currentLabel() !== "spotlit") {
-          tl.add(masterTimeline.tweenTo("spotlit", {duration: 1}));
-          isDelaying = true;
-        }
+
+      if ([PCState.masked, PCState.hidden].includes(state)) {
+        swayTimeline.pause();
+      } else {
+        swayTimeline.play();
       }
 
-      if (isDelaying) {
-        delay += 0.25;
-      }
+      tl.add(
+        masterTimeline.tweenTo(state),
+      );
+
+
+      // if (state === PCState.hidden) {
+      //   if (masterTimeline.currentLabel() !== PCState.hidden as string) {
+      //     tl.add(masterTimeline.tweenTo(PCState.hidden, {duration: 1}));
+      //     isDelaying = true;
+      //   }
+      // } else if (state === PCState.dimmed) {
+      //   if (masterTimeline.currentLabel() !== PCState.dimmed as string) {
+      //     tl.add(masterTimeline.tweenTo(PCState.dimmed, {duration: 1}));
+      //     isDelaying = true;
+      //   }
+      // } else if (state === PCState.base) {
+      //   if (masterTimeline.currentLabel() !== PCState.base as string) {
+      //     tl.add(masterTimeline.tweenTo(PCState.base, {duration: 1}));
+      //     isDelaying = true;
+      //   }
+      // } else if (state === PCState.spotlit) {
+      //   if (masterTimeline.currentLabel() !== PCState.spotlit as string) {
+      //     tl.add(masterTimeline.tweenTo(PCState.spotlit, {duration: 1}));
+      //     isDelaying = true;
+      //   }
+      // }
+
+      // delay += 0.25;
     });
+  }
+
+  public async updateStabilityBG(actor: EunosActor) {
+    const bgImage = actor.getPortraitImage("bg");
+    // if (!bgImage) {
+    //   return;
+    // }
+    const pcContainer$ = $(`.pc-container[data-pc-id="${actor.id}"]`);
+    const bg$ = pcContainer$.find(".pc-portrait-bg");
+    bg$.attr("src", bgImage);
+  }
+
+  private updatePCUI_GM(pcID: IDString, state: PCState) {
+    const pcContainer$ = EunosOverlay.instance.pcs$
+      .find(`.pc-container[data-pc-id="${pcID}"]`);
+    switch (state) {
+      case PCState.dimmed:
+        pcContainer$.addClass("pc-container-dimmed");
+        pcContainer$.removeClass("pc-container-spotlit");
+        pcContainer$.removeClass("pc-container-hidden");
+        pcContainer$.removeClass("pc-container-base");
+        pcContainer$
+          .find(".pc-stage-control-button")
+          .attr("data-value", "false");
+        pcContainer$
+          .find(".pc-stage-control-button-dim")
+          .attr("data-value", "true");
+        break;
+      case PCState.spotlit:
+        pcContainer$.addClass("pc-container-spotlit");
+        pcContainer$.removeClass("pc-container-dimmed");
+        pcContainer$.removeClass("pc-container-hidden");
+        pcContainer$.removeClass("pc-container-base");
+        pcContainer$
+          .find(".pc-stage-control-button")
+          .attr("data-value", "false");
+        pcContainer$
+          .find(".pc-stage-control-button-spotlight")
+          .attr("data-value", "true");
+        break;
+      case PCState.base:
+        pcContainer$.addClass("pc-container-base");
+        pcContainer$.removeClass("pc-container-dimmed");
+        pcContainer$.removeClass("pc-container-spotlit");
+        pcContainer$.removeClass("pc-container-hidden");
+        pcContainer$
+          .find(".pc-stage-control-button")
+          .attr("data-value", "false");
+        pcContainer$
+          .find(".pc-stage-control-button-base")
+          .attr("data-value", "true");
+        break;
+      case PCState.hidden:
+        pcContainer$.addClass("pc-container-hidden");
+        pcContainer$.removeClass("pc-container-dimmed");
+        pcContainer$.removeClass("pc-container-spotlit");
+        pcContainer$.removeClass("pc-container-base");
+        pcContainer$
+          .find(".pc-stage-control-button")
+          .attr("data-value", "false");
+        pcContainer$
+          .find(".pc-stage-control-button-hide")
+          .attr("data-value", "true");
+        break;
+    }
   }
   // Get current state of PCUI
   // #endregion PC PANEL ~
 
-  // #region LOCATIONS
+  // #region LOCATIONS ~
 
   get locationContainer$(): JQuery {
     return this.overlay$.find("#LOCATIONS");
@@ -3211,7 +3456,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!(location in LOCATIONS)) {
       return {
         name: location,
-        image: "",
+        images: {},
         description: "",
         mapTransforms: [],
       };
@@ -3220,6 +3465,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
   private getLocationDefaultDynamicSettingsData(): Location.DynamicSettingsData {
     return {
+      currentImage: null,
       pcData: Object.fromEntries(
         this.getDefaultLocationPCData().map((data) => [data.actorID, data]),
       ),
@@ -3329,7 +3575,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private deriveLocationSettingsData(
     fullData: Location.FullData,
   ): Location.SettingsData {
-    const { pcData, npcData, playlists, ...staticData } = fullData;
+    const { pcData, npcData, playlists, currentImage, ...staticData } = fullData;
     const pcSettingsData: Record<IDString, Location.PCData.SettingsData> =
       Object.fromEntries(
         Object.entries(pcData).map(([slot, data]) => [
@@ -3344,16 +3590,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           {
             slot: slot as "1" | "2" | "3" | "4" | "5" | "6",
             actorID: data.actorID,
-            isSpotlit: data.isSpotlit,
-            isDimmed: data.isDimmed,
-            isHidden: data.isHidden,
-            isMasked: data.isMasked,
+            state: data.state,
           },
         ]),
       );
     const playlistSettingsData = playlists.map((playlist) => playlist.id!);
     return {
       ...staticData,
+      currentImage,
       pcData: pcSettingsData,
       npcData: npcSettingsData,
       playlists: playlistSettingsData,
@@ -3362,7 +3606,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion Assembling Location Data ~
 
   // #region Getting & Setting Location Data & Location PC Data ~
-  public getLocationData(location: string): Location.FullData {
+  public getLocationData(location?: string): Location.FullData {
+    location ??= getSetting("currentLocation");
     const settingData = this.getLocationSettingsData(location);
     return this.deriveLocationFullData(settingData);
   }
@@ -3392,6 +3637,37 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     curData[location] = this.deriveLocationSettingsData(data);
     await setSetting("locationData", curData);
   }
+
+  public async refreshLocationImage(imgKey: string) {
+    const locData = this.getLocationData(getSetting("currentLocation"));
+    if (imgKey && !locData.images[imgKey]) {
+      kLog.error("Location not found", { location: getSetting("currentLocation") });
+      return;
+    }
+    const timeline = gsap.timeline();
+    const curSrc = this.locationImage$.attr("src") ?? "";
+    const newSrc = imgKey ? locData.images[imgKey]! : "";
+    kLog.log("refreshing location image", {curSrc, newSrc});
+    if (curSrc === newSrc) {
+      return;
+    }
+    timeline
+      .to(this.locationImage$, {opacity: 0, duration: 0.5, ease: "power2.out"})
+      .call(() => {
+        this.locationImage$.attr("src", newSrc);
+      });
+    if (newSrc) {
+      timeline.to(this.locationContainer$, {
+        y: 0,
+        x: 0,
+        opacity: 1,
+        filter: "blur(0)",
+        duration: 0,
+        ease: "none",
+      }).to(this.locationImage$, {opacity: 1, duration: 0.5, ease: "power2.in"}, "<");
+    }
+  }
+
   // #endregion
 
   public async initializeLocation(isSkippingPCs = true) {
@@ -3421,11 +3697,33 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
   }
 
+  public async setLocationImage(imageKey?: string, location?: string) {
+    location ??= getSetting("currentLocation");
+    const locationData = this.getLocationData(location);
+    if (!locationData) {
+      kLog.error("Location not found", { location });
+      return;
+    }
+    if (!imageKey) {
+      locationData.currentImage = null;
+    } else if (!(imageKey in locationData.images)) {
+      kLog.error("Image key not found", { imageKey, location });
+      locationData.currentImage = null;
+    } else {
+      locationData.currentImage = imageKey;
+    }
+    await this.setLocationData(location, locationData);
+
+    // Refresh for all clients through socket
+    kLog.log("refreshing location image", {imgKey: locationData.currentImage ?? ""});
+    void EunosSockets.getInstance().call("refreshLocationImage", "all", {imgKey: locationData.currentImage ?? ""});
+  }
+
   #stageWaverTimeline: Maybe<gsap.core.Timeline>;
   public async goToLocation(
     fromLocation: string | null,
     toLocation: string,
-    isSkippingPCs = false
+    isSkippingPCs = false,
   ) {
     const locationData = this.getLocationData(toLocation);
     if (!locationData) {
@@ -3437,24 +3735,32 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.#stageWaverTimeline = gsap
         .timeline({ repeat: -1, yoyo: true, repeatRefresh: true })
         .to(this.stage3D$, {
-          rotationX: "random(-3, 3, 1)",
-          rotationY: "random(-3, 3, 1)",
-          rotationZ: "random(-3, 3, 1)",
+          rotationX: "random(-5, 5, 1)",
+          rotationY: "random(-5, 5, 1)",
+          rotationZ: "random(-5, 5, 1)",
           ease: "sine.inOut",
           duration: 25,
           repeatRefresh: true,
         });
     }
 
-    const { name, image, description, pcData, npcData, playlists, mapTransforms } = locationData;
+    const {
+      name,
+      images,
+      currentImage,
+      description,
+      pcData,
+      npcData,
+      playlists,
+      mapTransforms,
+    } = locationData;
 
     // Construct a timeline that will animate all of the map transforms smoothly and simultaneously
 
     const timeline = gsap.timeline({ paused: true });
 
-    if (!isSkippingPCs) {
-      void this.updatePCUI(pcData);
-    }
+    const curImgSrc = currentImage ? images[currentImage] : "";
+
     // Location Card Animations (currently unimplemented)
     timeline
       .to(
@@ -3468,10 +3774,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           ease: "power2.out",
         },
         0,
-      )
-      .call(() => {
+      );
+
+    // If there is a currentImage set, prepare to fade in location panel
+    if (curImgSrc) {
+      timeline.call(() => {
         this.locationName$.text(name);
-        this.locationImage$.attr("src", image ?? "");
+        this.locationImage$.attr("src", curImgSrc ?? "");
         this.locationDescription$.html(description ?? "");
       })
       .to(this.locationContainer$, {
@@ -3481,7 +3790,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         duration: 0,
         ease: "none",
       })
-      .addLabel("startMoving");
+    }
+
+    timeline.addLabel("startMoving");
+
+    // Restore brightness to stage background if necessary
+    if (gsap.getProperty("#STAGE", "filter") === "brightness(0)") {
+      timeline.to("#STAGE", {
+        filter: "brightness(1)",
+        duration: 1,
+        ease: "none",
+      }, "startMoving");
+    }
 
     // Apply map transforms for this specific location
     mapTransforms.forEach(({ selector, properties }) => {
@@ -3497,17 +3817,26 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
 
     // Fade in the location card
-    timeline.to(
-      this.locationContainer$,
-      {
-        opacity: 1,
-        duration: 1,
-        ease: "power3.inOut",
-      },
-      "-=0.5",
-    );
+    if (curImgSrc) {
+      timeline.to(
+        this.locationContainer$,
+        {
+          opacity: 1,
+          duration: 1,
+          ease: "power3.inOut",
+        },
+        "-=0.5",
+      );
+    }
 
-    return timeline.play();
+    await timeline.play();
+    if (!isSkippingPCs) {
+      void this.updatePCUI(pcData);
+    }
+    if (getUser().isGM) {
+      void this.render({ parts: ["pcsGM"] });
+    }
+    return timeline;
   }
 
   // #endregion LOCATIONS
@@ -3603,7 +3932,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   public togglePlottingPanel(): void {
     const isPlottingLocations = !getSetting("isPlottingLocations");
-    this.stage$.find(".positioner-layer").css("visibility", "hidden");
+    this.stage$.find(".positioner-layer").css("visibility", PCState.hidden);
     void setSetting("isPlottingLocations", isPlottingLocations);
     if (isPlottingLocations) {
       this.showPlottingPanel();
@@ -3621,7 +3950,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   public hidePlottingPanel(): void {
-    this.locationPlottingPanel$.css("visibility", "hidden");
+    this.locationPlottingPanel$.css("visibility", PCState.hidden);
     // this.removePlottingControlListeners();
   }
   // #endregion Location Plotting ~
@@ -3698,6 +4027,131 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.#startVideoListenerAdded = true;
   }
 
+  private addPCControlListeners() {
+    this.pcs$.on(
+      "mousedown",
+      ".pc-stage-control-button-spotlight",
+      (e: JQuery.MouseDownEvent) => {
+        const target = e.target as HTMLElement;
+        EunosOverlay.ACTIONS.togglePCSpotlight(e, target);
+      },
+    );
+    this.pcs$.on(
+      "mouseup",
+      ".pc-stage-control-button-spotlight",
+      (e: JQuery.MouseUpEvent) => {
+        const target = e.target as HTMLElement;
+        EunosOverlay.ACTIONS.togglePCSpotlight(e, target);
+      },
+    );
+  }
+
+  /**
+   * Finds or creates a journal entry for the session scribe
+   * @param journalPageName - Name of the journal entry to find or create
+   * @returns Promise resolving to the journal entry
+   * @private
+   */
+  private async getOrCreateSessionJournal(
+    journalPageName?: string,
+    journalName = "Session Scribe Notes",
+  ): Promise<JournalEntryPage | null> {
+    if (!journalPageName) {
+      journalPageName = `Chapter ${getSetting("chapterNumber")} Notes`;
+    }
+    // Try to find existing journal entry
+    let journal: Maybe<JournalEntry> = getJournals().find(
+      (j) => j.name === journalName,
+    ) as Maybe<JournalEntry>;
+
+    // If the Session Scribe Notes journal entry does not exist, generate the folder (if necessary) and the journal entry.
+    if (!journal) {
+      // Find the folder for session scribe notes
+      const folder: Maybe<Folder> = getFolders().find(
+        (f) => f.type === "JournalEntry" && f.name === "Session Scribe Notes",
+      );
+
+      // If the folder doesn't exist, send an Alert to the GM to create it.
+      if (!folder) {
+        void EunosAlerts.Alert({
+          type: AlertType.simple,
+          target: UserTargetRef.gm,
+          header: "Session Scribe Notes Folder Not Found",
+          body: "Please create a folder called 'Session Scribe Notes' in the root of your journal collection.",
+        });
+        return null;
+      }
+
+      // Create the journal entry
+      const journalData = {
+        name: journalName,
+        folder: folder.id,
+      };
+      journal = (await JournalEntry.create(
+        journalData as never,
+      )) as JournalEntry;
+    }
+
+    // Now check if the journal entry has a page with the name `journalPageName`. If not, create it.
+    let journalPage = journal?.pages.find((p) => p.name === journalPageName);
+    if (!journalPage) {
+      journalPage = (
+        (await journal?.createEmbeddedDocuments("JournalEntryPage", [{ name: journalPageName, text: { content: "<ul><li><p></p></li></ul>" } },
+        ])) as JournalEntryPage[]
+      )[0];
+    }
+
+    // Add custom styles to the journal page
+    this.addJournalStyles(journalPage as JournalEntryPage);
+
+    // Return the journal page.
+    return journalPage as JournalEntryPage;
+  }
+
+  /**
+   * Adds custom styles for a specific journal entry
+   * @param journalEntryId - The ID of the journal entry to style
+   */
+  private addJournalStyles(journalEntryPage: JournalEntryPage): void {
+    // Confirm the journal entry page exists and has a sheet
+    if (!journalEntryPage.sheet) {
+      throw new Error(
+        `Journal entry page "${journalEntryPage.name}" does not have a sheet`,
+      );
+    }
+
+    // Extract the ID attribute of the page's sheet element
+    const sheetId = journalEntryPage.sheet.id;
+
+    // Create a unique ID for the style element to avoid duplicates
+    const styleId = `custom-journal-style-${sheetId}`;
+
+    // Check if we already added this style
+    if (document.getElementById(styleId)) return;
+
+    // Create style element
+    const styleElement = document.createElement("style");
+    styleElement.id = styleId;
+
+    // Add CSS rules targeting the specific journal
+    styleElement.textContent = `
+    #${sheetId} {
+      top: 0px !important;
+      right: var(--sidebar-width) !important;
+      scale: 0.8 !important;
+      opacity: 0.5 !important;
+      transition: all 0.3s ease;
+      left: unset !important;
+      transform-origin: top right !important;
+      &:hover {
+        opacity: 1 !important;
+      }
+    }
+  `;
+
+    // Add to document head
+    document.head.appendChild(styleElement);
+  }
   // #endregion LISTENERS ~
 
   // #region OVERRIDE: PREPARE CONTEXT ~
@@ -3786,6 +4240,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.addCanvasMaskListeners();
     }
     this.addStartVideoButtonListeners();
+    this.addPCControlListeners();
     this.makePlottingControls();
 
     // Object.values(this.pcMasterTimelines).forEach((tl) => { tl.seek(0.2); tl.seek(0);});

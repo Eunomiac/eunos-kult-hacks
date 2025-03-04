@@ -626,12 +626,12 @@ export default class EunosMedia<T extends EunosMediaTypes> {
   /**
    * Kills the media element, fading it out over 0.5s if it is playing, then unloads it.
    */
-  async kill(): Promise<void> {
+  async kill(fadeDuration = 0.5): Promise<void> {
     if (!this.#element) {
       return;
     }
     kLog.log(`Found media "${this.name}", killing it ...`);
-    await gsap.to(this.#element, { volume: 0, duration: 0.5, ease: "power2.in" });
+    await gsap.to(this.#element, { volume: 0, duration: fadeDuration, ease: "power2.in" });
     kLog.log(`... Awaited fade of "${this.name}", unloading.`);
     await this.unload();
   }

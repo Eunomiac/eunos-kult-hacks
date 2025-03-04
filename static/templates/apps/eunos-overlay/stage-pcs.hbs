@@ -4,12 +4,10 @@
 
   {{#each locationData.pcData }}
 
-  {{#if (eq ../sessionScribeID ownerID)}}
   {{#if (eq slot "3")}}
-  <span class="session-scribe-indicator">
+  <span class="session-scribe-indicator" data-action="sessionScribeClick">
     <img src="modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp" />
   </span>
-  {{/if}}
   {{/if}}
 
   <div class="pc-container {{#if isOwner}}pc-container-owner{{/if}}" data-pc-id="{{actorID}}" data-slot="{{slot}}">
@@ -18,14 +16,15 @@
       {{{getSpotlightImages slot}}}
     </div>
 
-    <img class="pc-portrait-shadow" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-shadow.webp" />
+    <img class="pc-portrait-shadow pc-portrait-shadow-empty" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-shadow-empty.webp" />
+    <img class="pc-portrait-shadow pc-portrait-shadow-main" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-shadow.webp" />
 
     <div class="pc-portrait-container" data-action="pcPortraitClick">
       <div class="pc-portrait-wrapper">
         <div class="pc-portrait-interior-wrapper">
+          <img class="pc-portrait-bg" src="{{getPortraitImage actor "bg"}}" />
           <img class="pc-portrait-red-lightning" src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-red-lightning-bg.webp" />
           <img class="pc-portrait-smoke" src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-smoke-bg.webp" />
-          <img class="pc-portrait-bg" src="{{getPortraitImage actor "bg"}}" />
           <img class="pc-portrait-fg" src="{{getPortraitImage actor "fg"}}" />
           <img class="pc-portrait-nameplate" src="{{getNameplateImage actor}}" />
         </div>

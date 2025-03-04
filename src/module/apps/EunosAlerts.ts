@@ -35,6 +35,10 @@ declare namespace EunosAlerts {
       logoImg?: string
     }
 
+    export interface Central extends Omit<Simple, "type"> {
+      type: AlertType.central;
+    }
+
     export interface GMNotice extends Base {
       type: AlertType.gmNotice,
       header: string;
@@ -66,6 +70,7 @@ declare namespace EunosAlerts {
     }
   }
   export type Context<T extends AlertType = AlertType.simple> = T extends AlertType.simple ? Context.Simple
+    : T extends AlertType.central ? Context.Central
     : T extends AlertType.gmNotice ? Context.GMNotice
     : T extends AlertType.criticalWound ? Context.CriticalWound
     : T extends AlertType.seriousWound ? Context.SeriousWound
@@ -82,6 +87,9 @@ declare namespace EunosAlerts {
     }
     export interface Simple extends Context.Simple, Base {
       type: AlertType.simple;
+    }
+    export interface Central extends Context.Central, Base {
+      type: AlertType.central;
     }
     export interface GMNotice extends Context.GMNotice, Base {
       type: AlertType.gmNotice;
@@ -100,13 +108,14 @@ declare namespace EunosAlerts {
     }
   }
   export type TypedData<T extends AlertType> = T extends AlertType.simple ? Data.Simple
+
     : T extends AlertType.gmNotice ? Data.GMNotice
     : T extends AlertType.criticalWound ? Data.CriticalWound
     : T extends AlertType.seriousWound ? Data.SeriousWound
     : T extends AlertType.stability ? Data.Stability
     : T extends AlertType.shatterIllusion ? Data.ShatterIllusion
     : never;
-  export type Data = Data.Simple | Data.GMNotice | Data.CriticalWound | Data.SeriousWound | Data.Stability | Data.ShatterIllusion;
+  export type Data = Data.Simple | Data.Central | Data.GMNotice | Data.CriticalWound | Data.SeriousWound | Data.Stability | Data.ShatterIllusion;
 }
 // #endregion
 // #endregion
@@ -465,6 +474,60 @@ const ALERTANIMATIONS: Record<AlertType, {
       extendTimeline: true
     }
   },
+  [AlertType.central]: {
+    in: {
+      name: "centralAlertIn",
+      effect: (target, config) => {
+        const {duration,  ease} = config;
+        const alerts$ = $("#ALERTS");
+        const target$ = $(target as HTMLElement);
+        const container$ = target$.find(".alert-frame-body");
+        const containerHeight = container$.height() ?? 0;
+        const imgLogo$ = target$.find("img.k4-alert-logo");
+        const heading$ = target$.find("h2");
+        const hr$ = target$.find("hr");
+        const body$ = target$.find("p");
+
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+        const tl = gsap.timeline()
+          .call(() => {
+            alerts$.addClass("k4-central");
+          })
+          ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
+          ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
+          ["fadeIn"](heading$, {duration: 0.5}, "<50%")
+          ["spreadOut"](hr$, {endWidth: 500})
+          ["fadeIn"](body$, {}, "<50%")
+        return tl as gsap.core.Timeline;
+        /* eslint-enable */
+      },
+      defaults: {
+        duration: 1,
+        stagger: 0.25,
+        ease: "power3.in"
+      },
+      extendTimeline: true
+    },
+    out: {
+      name: "centralAlertOut",
+      effect: (target, config) => {
+        const {duration, stagger, ease} = config;
+        const alerts$ = $("#ALERTS");
+        return gsap.timeline()
+          .call(() => {
+            alerts$.removeClass("k4-central");
+          })
+          .fromTo(target, {opacity: 1}, {opacity: 0, duration, stagger, ease});
+      },
+      defaults: {
+        duration: 0.5,
+        stagger: 0.25,
+        ease: "power3.out"
+      },
+      extendTimeline: true
+    }
+  },
   [AlertType.simple]: {
     in: {
       name: "simpleAlertIn",
@@ -714,6 +777,7 @@ class EunosAlerts {
     let defaultSoundName: string|null = null;
     switch (type) {
       case AlertType.simple:
+      case AlertType.central:
       case AlertType.test:
         defaultSoundName ??= "slow-hit";
         // falls through

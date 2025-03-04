@@ -1,9 +1,30 @@
 <div id="LOCATIONS" class="location-container">
-  <div class="location-name">{{location.name}}</div>
-  {{#if location.image}}
-  <img class="location-image" src="{{location.image}}" alt="{{location.name}}" />
-  {{/if}}
-  {{#if location.description}}
-  <div class="location-description">{{location.description}}</div>
-  {{/if}}
+
+  <div class="location-wrapper">
+    <div class="location-name">{{location.name}}</div>
+    <div class="location-image-wrapper">
+      <img class="location-image" src="{{location.image}}" alt="{{location.name}}" />
+    </div>
+    {{#if location.description}}
+    <div class="location-description">{{location.description}}</div>
+    {{/if}}
+  </div>
+  <div class="npcs-wrapper">
+    {{#each location.npcData as |data slot|}}
+    {{#unless (eq data.state "invisible")}}
+    <div class="npc-wrapper npc-slot-{{slot}} npc-state-{{data.state}}" data-npc-id="{{data.actorID}}">
+      {{#unless (eq data.state "shrouded")}}
+      <div class="npc-name">{{data.name}}</div>
+      {{/unless}}
+      <div class="npc-image-wrapper">
+        <img class="npc-image" src="{{data.image}}" alt="{{data.name}}" />
+      </div>
+      <div class="smoke-pillar-wrapper">
+        <img class="smoke-pillar" src="modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar.webp" />
+      </div>
+    </div>
+    {{/unless}}
+    {{/each}}
+  </div>
+
 </div>

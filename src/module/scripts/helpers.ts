@@ -123,11 +123,7 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     return false;
   },
   "getPortraitImage": (actor: EunosActor, type: "bg"|"fg"): string => {
-    const img = actor.img as string;
-    if (type === "bg") {
-      return img.replace(".webp", "-bg-color.webp");
-    }
-    return img.replace(".webp", "-fg-color.webp");
+    return actor.getPortraitImage(type);
   },
   "getSpotlightImages": (slot: string|number): string => {
     const slotNum = Number(`${slot}`) - 1;

@@ -234,6 +234,20 @@ declare global {
   function getPacks(): CompendiumPacks;
 
   /**
+   * Retrieves the collection of all JournalEntry instances in the game.
+   * @returns A Collection of JournalEntry instances.
+   * @throws Error if the Journal collection is not ready.
+   */
+  function getJournals(): Journal;
+
+  /**
+   * Retrieves the collection of all Folder instances in the game.
+   * @returns A Collection of Folder instances.
+   * @throws Error if the Folder collection is not ready.
+   */
+  function getFolders(): Folders;
+
+  /**
    * The kLog object provides a set of functions for logging messages to the console, displaying them in the chat,
    * and opening and closing reports.
    */

@@ -15,16 +15,23 @@
   perspective: 1000px;
   opacity: 0;
 
+  &.session-scribe {
+    .session-scribe-indicator {
+      pointer-events: all;
+      opacity: 0.5;
+    }
+  }
+
 
   .session-scribe-indicator {
     position: absolute;
     // left: -20px;
-    right: -30px;
+    right: 20px;
     // transform: translateX(-50%);
     // bottom: -50px;
     top: 0;
-    height: 275px;
-    width: 275px;
+    height: 100px;
+    width: 100px;
     // transform: scaleX(-1) scaleY(1.2);
     // width: 75px;
     // background: var(--K4-WHITE);
@@ -36,6 +43,19 @@
     justify-content: center;
     font-size: 48px;
     color: var(--K4-dGOLD);
+    transition: all 0.3s ease;
+
+    pointer-events: none;
+    opacity: 0;
+
+    img {
+      pointer-events: none;
+    }
+
+    &:hover {
+      scale: 1.1;
+      opacity: 1;
+    }
   }
 
 
@@ -153,7 +173,7 @@
       bottom: 0;
       width: 100%;
       // height: 100%;
-      z-index: 0;
+      z-index: -6;
       transform-origin: 50% 100%;
       // opacity: 0.7;
     }
@@ -167,7 +187,7 @@
       top: unset;
       transform: translate(-50%, 0%);
       bottom: 25px;
-      transform-origin: center bottom;
+      transform-origin: left bottom;
       transition: all 0.3s ease;
       pointer-events: all;
       cursor: pointer;
@@ -217,9 +237,25 @@
 
           .pc-portrait-red-lightning {
             position: absolute;
-            top: 0px;
+            top: 5px;
             width: 100%;
+            filter: brightness(5);
+            z-index: -1;
+          }
 
+          .pc-portrait-bg[src*="critical-stress"] {
+            // filter: brightness(0) !important;
+            + .pc-portrait-red-lightning {
+              filter: brightness(1);
+            }
+          }
+
+          .pc-portrait-bg[src*="serious-stress"] + .pc-portrait-red-lightning {
+            filter: brightness(0.5);
+          }
+
+          .pc-portrait-bg[src*="moderate-stress"] + .pc-portrait-red-lightning {
+            filter: brightness(0.25);
           }
 
           .pc-portrait-smoke {
@@ -296,6 +332,53 @@
         font-size: 32px;
         color: var(--K4-bGOLD);
 
+        // Keyframe animation for pulsing glow effect
+        @keyframes candle-pulse {
+          0% {
+            box-shadow: 0 0 0 0 var(--K4-bGOLD);
+            filter: brightness(1);
+            opacity: 0.5;
+          }
+
+          // Quick bright pulse
+          5% {
+            box-shadow: 0 0 15px 5px var(--K4-bGOLD);
+            filter: brightness(1.5);
+            opacity: 1;
+          }
+
+          // Fade back to normal
+          10% {
+            box-shadow: 0 0 0 0  var(--K4-bGOLD);
+            filter: brightness(1);
+            opacity: 0.5;
+          }
+
+          // Quick bright pulse
+          15% {
+            box-shadow: 0 0 15px 5px var(--K4-bGOLD);
+            filter: brightness(1.5);
+            opacity: 1;
+          }
+
+          // Fade back to normal
+          20% {
+            box-shadow: 0 0 0 0  var(--K4-bGOLD);
+            filter: brightness(1);
+            opacity: 0.5;
+          }
+
+          // Long pause before next pulse
+          100% {
+            box-shadow: 0 0 0 0  var(--K4-bGOLD);
+            filter: brightness(1);
+            opacity: 0.5;
+          }
+        }
+
+        // Apply the animation
+        animation: candle-pulse 18s ease-in-out infinite;
+
       }
     }
   }
@@ -350,6 +433,40 @@
     flex-direction: column;
     // outline: 1px solid blue;
 
+    &.pc-container-hidden {
+      .pc-portrait-container {
+        filter: grayscale(1) brightness(0.2);
+
+        &:hover {
+          filter: grayscale(1) brightness(1);
+        }
+      }
+    }
+    &.pc-container-dimmed {
+      .pc-portrait-container {
+        filter: grayscale(1) brightness(1) blur(2px);
+
+        &:hover {
+          filter: grayscale(0.75) brightness(1.5) blur(0px);
+        }
+      }
+    }
+    &.pc-container-base {
+      .pc-portrait-container {
+        filter: grayscale(0) brightness(1) blur(0px);
+
+        &:hover {
+          filter: grayscale(0) brightness(1.5) blur(0px);
+        }
+      }
+    }
+    &.pc-container-spotlit {
+      .pc-portrait-container {
+        filter: grayscale(0) brightness(2) blur(0px);
+
+      }
+    }
+
     // Dramatic Hooks panel
     .dramatic-hooks-panel {
       position: absolute;
@@ -402,6 +519,7 @@
       scale: 1.25;
       transform-origin: 50% 100%;
       z-index: 1;
+
       .pc-portrait-container {
         position: absolute;
         top: 50%;
@@ -417,13 +535,13 @@
         transition: all 0.3s ease;
         transform-origin: 0% 0%;
 
-        &:hover,
-        &.pc-portrait-container-dimmed:hover {
-          border-color: var(--K4-bGOLD);
-          transform: translate(-50%, calc(-50% - 2px));
-          filter: none;
-          scale: 1.05;
-        }
+        // &:hover,
+        // &.pc-portrait-container-dimmed:hover {
+        //   border-color: var(--K4-bGOLD);
+        //   transform: translate(-50%, calc(-50% - 2px));
+        //   filter: none;
+        //   scale: 1.05;
+        // }
 
         &.pc-portrait-container-dimmed {
           opacity: 1;
@@ -576,7 +694,7 @@
       top: 10px;
       left: 10px;
       display: flex;
-      gap: 5px;
+      gap: 0px;
       width: 100%;
       pointer-events: none;
       flex-direction: column;
@@ -595,13 +713,20 @@
         height: 20px;
         line-height: 10px;
 
+        &.pc-stage-control-button-spotlight {
+          background: var(--K4-dGOLD);
+          border: 1px solid var(--K4-GOLD);
+          color: var(--K4-bGOLD);
+          margin-bottom: 10px;
+        }
+
         &[data-value="true"] {
           background: var(--K4-dGOLD);
           border: 1px solid var(--K4-GOLD);
           color: var(--K4-bGOLD);
         }
         &[data-value="false"] {
-          background: var(--K4-dRED);
+          background: var(--K4-BLACK);
           border: 1px solid var(--K4-bRED);
           color: var(--K4-bbRED);
         }
@@ -612,6 +737,7 @@
           margin: 0;
           padding: 0;
           font-weight: normal;
+          pointer-events: none;
         }
       }
     }
@@ -756,7 +882,7 @@
           .dotline {
             display: flex;
             position: absolute;
-            right: 2px;
+            right: -3px;
             gap: 3px;
             height: 100%;
             background: var(--counter-color-dark);
@@ -961,13 +1087,15 @@
         left: 50%;
         // transform: translate(-50%, -50%);
         transform-origin: 0% 0%;
+        transition: all 0.25s ease;
 
-        &:hover,
-        &.pc-portrait-container-dimmed:hover {
-          transform: translate(-50%, calc(-50% - 2px)) scale(1.05);
-          scale: 1.05;
-          z-index: 2;
-        }
+        // &:hover,
+        // &.pc-portrait-container-dimmed:hover {
+        //   // transform: translate(-50%, calc(-50% - 2px));
+        //   filter: brightness(1.25);
+        //   // scale: 1.05;
+        //   // z-index: 2;
+        // }
       }
     }
   }

@@ -1,5 +1,5 @@
 import { SYSTEM_ID } from "../scripts/constants";
-import { GamePhase, UserTargetRef, MediaLoadStatus } from "../scripts/enums";
+import { GamePhase, UserTargetRef, MediaLoadStatus, PCState, NPCState } from "../scripts/enums";
 import * as U from "../scripts/utilities";
 import EunosAlerts from "./EunosAlerts";
 
@@ -65,13 +65,22 @@ export interface SocketEvents {
       toLocation: string;
     };
   };
+  refreshLocationImage: {
+    data: {
+      imgKey: string;
+    };
+  };
   updatePCUI: {
-    data: Record<IDString, {
-      isHidden?: boolean;
-      isDimmed?: boolean;
-      isMasked?: boolean;
-      isSpotlit?: boolean;
-    }>;
+    data: {
+      pcID: IDString;
+      state: PCState;
+    };
+  };
+  updateNPCUI: {
+    data: {
+      npcID: IDString;
+      state: NPCState;
+    };
   };
 }
 

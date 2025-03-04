@@ -158,6 +158,7 @@ export default function overridePCSheet() {
             .update({ system: { stability: { value: stability_new } } })
             .then(
               () => {
+                // void EunosOverlay.instance.updateStabilityBG(actor);
                 if (stabilityTier_from === actor.stabilityState) {
                   return;
                 }
@@ -166,6 +167,7 @@ export default function overridePCSheet() {
                   header: `${actor.name} Loses Stability!`,
                   body: `${actor.name} is now ${actor.stabilityState}.`,
                   target: UserTargetRef.all,
+                  soundName: "alert-hit-stability-down"
                 });
               },
               (error: unknown) => {
@@ -195,6 +197,8 @@ export default function overridePCSheet() {
             .update({ system: { stability: { value: stability_new } } })
             .then(
               () => {
+                // void EunosOverlay.instance.updateStabilityBG(actor);
+                // void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
                 if (stabilityTier_from === actor.stabilityState) {
                   return;
                 }
@@ -203,6 +207,7 @@ export default function overridePCSheet() {
                   header: `${actor.name} Gains Stability!`,
                   body: `${actor.name} is now ${actor.stabilityState}.`,
                   target: UserTargetRef.all,
+                  soundName: "alert-hit-stability-up"
                 });
               },
               (error: unknown) => {

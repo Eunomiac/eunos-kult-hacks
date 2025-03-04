@@ -1,7 +1,7 @@
 import type EunosItem from "../documents/EunosItem";
 import { verbalizeNum, deverbalizeNum, tCase, roundNum } from "./utilities";
 import type { Quench } from "@ethaks/fvtt-quench";
-import { PCTargetRef } from "./enums";
+import { PCTargetRef, PCState, NPCState } from "./enums";
 import type ActorDataPC from "../data-model/ActorDataPC";
 import type ActorDataNPC from "../data-model/ActorDataNPC";
 export const SYSTEM_ID = "eunos-kult-hacks";
@@ -615,6 +615,32 @@ const GLOBAL_VARIABLES = {
     }
     throw new Error("Quench is not ready");
   },
+
+  /**
+   * Retrieves the collection of Journal entries.
+   * @returns The collection of Journal entries.
+   * @throws Error if the Journal collection is not ready.
+   */
+  getJournals: function getJournals(): Journal {
+    const journals = getGame().journal;
+    if (!journals) {
+      throw new Error("Journals are not ready");
+    }
+    return journals;
+  },
+
+  /**
+   * Retrieves the collection of Folder instances in the game.
+   * @returns The collection of Folder instances.
+   * @throws Error if the Folder collection is not ready.
+   */
+  getFolders: function getFolders(): Folders {
+    const folders = getGame().folders;
+    if (!folders) {
+      throw new Error("Folders are not ready");
+    }
+    return folders;
+  },
 };
 // #endregion
 
@@ -771,6 +797,16 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
+    "guns-for-hire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 224,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
     "how-villains-are-made": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-how-villains-are-made.ogg",
       alwaysPreload: false,
@@ -781,11 +817,11 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    "guns-for-hire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+    "world-on-fire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
       alwaysPreload: false,
       delay: 0,
-      duration: 224,
+      duration: 146,
       loop: false,
       sync: true,
       volume: 0.5,
@@ -817,16 +853,6 @@ export const Sounds = {
       alwaysPreload: false,
       delay: 0,
       duration: 243,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "world-on-fire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 146,
       loop: false,
       sync: true,
       volume: 0.5,
@@ -944,6 +970,31 @@ export const Sounds = {
     },
   },
   Alerts: {
+    "alert-hit-stability-up": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-stability-up.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+    },
+    "alert-hit-stability-down": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-stability-down.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+    },
+    "alert-hit-session-scribe": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-session-scribe.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+    },
     "alert-hit-wound-1": {
       path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-wound-1.ogg",
       alwaysPreload: true,
@@ -1381,26 +1432,19 @@ export declare namespace PCs {
     actorID: IDString;
     ownerID: IDString;
   }
+
+  export interface LocationSettingsData extends GlobalSettingsData {
+    state: PCState;
+  }
+
   export interface GlobalData extends GlobalSettingsData {
     slot: "1" | "2" | "3" | "4" | "5";
     actor: EunosActor & {system: ActorDataPC};
     owner: User;
     isOwner: boolean;
-    isMasked: boolean;
   }
 
-  export interface LocationSettingsData extends GlobalSettingsData {
-    isSpotlit: boolean;
-    isDimmed: boolean;
-    isHidden: boolean;
-  }
-
-  export interface UIData {
-    isHidden?: boolean;
-    isDimmed?: boolean;
-    isMasked?: boolean;
-    isSpotlit?: boolean;
-  }
+  export interface FullData extends GlobalData, LocationSettingsData { }
 }
 
 export declare namespace NPCs {
@@ -1408,16 +1452,14 @@ export declare namespace NPCs {
   export interface GlobalSettingsData {
     actorID: IDString;
   }
+  export interface LocationSettingsData extends GlobalSettingsData {
+    slot: "1"|"2"|"3"|"4"|"5"|"6";
+    state: NPCState;
+  }
   export interface GlobalData extends GlobalSettingsData {
     actor: EunosActor & {system: ActorDataNPC};
   }
-  export interface LocationSettingsData extends GlobalSettingsData {
-    slot: "1"|"2"|"3"|"4"|"5"|"6";
-    isSpotlit: boolean;
-    isDimmed: boolean;
-    isHidden: boolean;
-    isMasked: boolean;
-  }
+  export interface FullData extends GlobalData, LocationSettingsData { }
 }
 
 // #endregion CHARACTERS
@@ -1426,19 +1468,19 @@ export declare namespace NPCs {
 export declare namespace Location {
 
   export namespace PCData {
-    export interface SettingsData extends PCs.LocationSettingsData { }
-    export interface FullData extends PCs.GlobalData, SettingsData { }
+    export type SettingsData = PCs.LocationSettingsData;
+    export type FullData = PCs.GlobalData & SettingsData;
   }
 
   export namespace NPCData {
-    export interface SettingsData extends NPCs.LocationSettingsData { }
-    export interface FullData extends NPCs.GlobalData, SettingsData { }
+    export type SettingsData = NPCs.LocationSettingsData;
+    export type FullData = NPCs.GlobalData & SettingsData;
   }
 
   interface StaticSettingsData {
     name: string;
-    image?: string;
     description?: string;
+    images: Record<string, string>;
     mapTransforms: Array<{
       selector: string;
       properties: Record<string, number | string | undefined>;
@@ -1446,6 +1488,7 @@ export declare namespace Location {
   }
 
   interface DynamicSettingsData {
+    currentImage: string | null;
     pcData: Record<IDString, PCData.SettingsData>;
     npcData: Record<IDString, NPCData.SettingsData>;
     playlists: IDString[];
@@ -1454,6 +1497,7 @@ export declare namespace Location {
   export interface SettingsData extends StaticSettingsData, DynamicSettingsData {}
 
   interface DynamicFullData {
+    currentImage: string | null;
     pcData: Record<"1" | "2" | "3" | "4" | "5", PCData.FullData>;
     npcData: Partial<Record<"1" | "2" | "3" | "4" | "5" | "6", NPCData.FullData>>;
     playlists: Playlist[];
@@ -1465,7 +1509,10 @@ export declare namespace Location {
 export const LOCATIONS = {
   "Fire Access Trail South": {
     name: "Fire Access Trail",
-    image: "",
+    images: {
+      "Fire Road 1": "modules/eunos-kult-hacks/assets/images/locations/fire-road-1.webp",
+      "Fire Road Car Ahead": "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
+    },
     description: "",
     mapTransforms:[
       {
@@ -1500,7 +1547,10 @@ export const LOCATIONS = {
   },
   "Fire Access Trail North": {
     name: "Fire Access Trail",
-    image: "",
+    images: {
+      "Fire Road 2": "modules/eunos-kult-hacks/assets/images/locations/fire-road-2.webp",
+      "Fire Road Car Ahead": "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
+    },
     description: "",
     mapTransforms: [
       {
@@ -1535,7 +1585,14 @@ export const LOCATIONS = {
   },
   "Willow's Wending Entry": {
     name: "Willow's Wending",
-    image: "",
+    images: {
+      "Polaroids - Missing": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-missing.webp",
+      "Polaroids - In Place": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-present.webp",
+      "Wending Depths 1": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+    },
+    currentImage: "Polaroids - Missing",
     description: "",
     mapTransforms: [
       {
@@ -1588,7 +1645,11 @@ export const LOCATIONS = {
   },
   "Willow's Wending #1": {
     name: "Willow's Wending",
-    image: "",
+    images: {
+      "Wending Depths 1": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+    },
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
@@ -1607,24 +1668,28 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          backgroundPositionX: -935,
+          backgroundPositionX: -1087,
           backgroundPositionY: -1348,
-          filter: "hue-rotate(181deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(0.0747085, 0.853904, 0.51504, 0, -0.996899, 0.0511564, 0.0597899, 0, 0.0247073, -0.517909, 0.855079, 0, -3500, -3500, 0, 1)",
+          filter: "hue-rotate(87deg) saturate(100%) brightness(1)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          transform: "matrix3d(0.0747085, 0.853904, 0.51504, 0, -0.996899, 0.0511564, 0.0597899, 0, 0.0247073, -0.517909, 0.855079, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 13%)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
         },
       },
     ]
   },
   "Willow's Wending #2": {
     name: "Willow's Wending",
-    image: "",
+    images: {
+      "Wending Depths 1": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+    },
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
@@ -1660,7 +1725,11 @@ export const LOCATIONS = {
   },
   "Willow's Wending #3": {
     name: "Willow's Wending",
-    image: "",
+    images: {
+      "Wending Depths 1": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+    },
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
@@ -1681,22 +1750,22 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: -1261,
           backgroundPositionY: 565,
-          filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(0.236729, 0.728548, 0.642789, 0, -0.971482, 0.186703, 0.146169, 0, -0.0135195, -0.65906, 0.751969, 0, -3500, -3500, 0, 1)",
+          filter: "hue-rotate(-186deg) saturate(100%) brightness(1)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          transform: "matrix3d(0.236729, 0.728548, 0.642789, 0, -0.971482, 0.186703, 0.146169, 0, -0.0135195, -0.65906, 0.751969, 0, -3500, -3500, 0, 1)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
           background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
         },
       },
-    ],
+    ]
   },
   "Ranger Station #1": {
     name: "Ranger Station #1",
-    image: "",
+    images: {},
     description: "",
     mapTransforms: [
       {
@@ -1731,7 +1800,7 @@ export const LOCATIONS = {
   },
   "Wainwright Academy": {
     name: "Wainwright Academy",
-    image: "",
+    images: {},
     description: "",
     mapTransforms: [
       {
@@ -1764,11 +1833,324 @@ export const LOCATIONS = {
       },
     ]
   },
+  "Emma's Rise Primary School": {
+    name: "Emma's Rise Primary School",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 957,
+          backgroundPositionY: 1630,
+          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(-0.080072, -0.761847, -0.642789, 0, 0.98907, 0.0193729, -0.146169, 0, 0.123811, -0.647467, 0.751969, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(-0.080072, -0.761847, -0.642789, 0, 0.98907, 0.0193729, -0.146169, 0, 0.123811, -0.647467, 0.751969, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 16%)",
+        },
+      },
+    ]
+  },
+  "Days Go By Pub": {
+    name: "Days Go By Pub",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1087,
+          backgroundPositionY: 2196,
+          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(-0.230389, -0.753579, -0.615661, 0, 0.973081, -0.174655, -0.150361, 0, 0.0057806, -0.63373, 0.773533, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(-0.230389, -0.753579, -0.615661, 0, 0.973081, -0.174655, -0.150361, 0, 0.0057806, -0.63373, 0.773533, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 16%)",
+        },
+      },
+    ]
+  },
+  "Danny's Diner": {
+    name: "Danny's Diner",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1087,
+          backgroundPositionY: 2370,
+          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(0.0137513, -0.787891, -0.615661, 0, 0.979427, 0.134587, -0.150361, 0, 0.201328, -0.600928, 0.773533, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.0137513, -0.787891, -0.615661, 0, 0.979427, 0.134587, -0.150361, 0, 0.201328, -0.600928, 0.773533, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 16%)",
+        },
+      },
+    ]
+  },
+  "Medical Clinic": {
+    name: "Medical Clinic",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 804,
+          backgroundPositionY: 2630,
+          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(-0.997412, -0.0174099, 0.06976, 0, -0.0291893, -0.78864, -0.614162, 0, 0.065708, -0.614608, 0.786091, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(-0.997412, -0.0174099, 0.06976, 0, -0.0291893, -0.78864, -0.614162, 0, 0.065708, -0.614608, 0.786091, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 16%)",
+        },
+      },
+    ]
+  },
+  "Holt Family Lodge": {
+    name: "Holt Family Lodge",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 587,
+          backgroundPositionY: 2783,
+          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 21%)",
+        },
+      },
+    ]
+  },
+  "Holt Farms": {
+    name: "Holt Farms",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 22,
+          backgroundPositionY: 2848,
+          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 21%)",
+        },
+      },
+    ]
+  },
+  "The Greenhouse": {
+    name: "The Greenhouse",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 0,
+          backgroundPositionY: 2978,
+          filter: "hue-rotate(45deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 7%, rgb(0, 0, 0) 15%)",
+        },
+      },
+    ]
+  },
+  "The Aerie": {
+    name: "The Aerie",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1081,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: -543,
+          backgroundPositionY: 3087,
+          filter: "hue-rotate(45deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 15%)",
+        },
+      },
+    ]
+  },
+  "Beacon Hill": {
+    name: "Beacon Hill",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 674,
+          backgroundPositionY: 2239,
+          filter: "hue-rotate(-34deg) saturate(100%) brightness(1.5)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 7%, rgb(0, 0, 0) 16%)",
+        },
+      },
+    ]
+  },
+
+
+
+
 
   // Easy copy/paste template for new locations:
   "": {
     name: "",
-    image: "",
+    images: {},
     description: "",
     mapTransforms: []
   },
@@ -2164,16 +2546,18 @@ export const PRE_SESSION = {
   /** Time in seconds before session start when SessionLoading phase begins */
   LOAD_SESSION: 900, // 15 minutes
   /** Progress value of countdown timer at which loading screen images should be stopped.*/
-  HIDE_LOADING_SCREEN_IMAGES: 0.4,
+  HIDE_LOADING_SCREEN_IMAGES: 0.35,
   /** Repeat delays for glitch animation */
-  GLITCH_REPEAT_DELAY_MIN: 1,
+  GLITCH_REPEAT_DELAY_MIN: 0,
   GLITCH_REPEAT_DELAY_MAX: 7,
   /** Time in seconds before session start when overlay freezes */
-  FREEZE_OVERLAY: 15,
+  FREEZE_OVERLAY: 30,
   /** Time in seconds before session start when countdown disappears */
   COUNTDOWN_HIDE: 1,
   /** Time in seconds before the end of the video when the chapter title is displayed */
-  CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET: 7,
+  CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET: 5,
+  /** Time in seconds after the start of the video when the black bars are animated out */
+  BLACK_BARS_ANIMATION_OUT_VIDEO_DELAY: 25,
   /** Default session day (5 = Friday) */
   DEFAULT_SESSION_DAY: 5,
   /** Default session hour in 24h format (19 = 7 PM) */

@@ -127,6 +127,8 @@ export default function registerSettings() {
     default: {
       "Willow's Wending Entry": {
         name: "Willow's Wending",
+        images: {},
+        currentImage: null,
         mapTransforms: [],
         pcData: {},
         npcData: {},

@@ -1,3 +1,96 @@
 #SAFETY-BUTTONS {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  pointer-events: none;
 
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: 30px;
+  gap: 10px;
+
+  .safety-button-row {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    background: black;
+    width: 250px;
+    width: 50px;
+    height: 50px;
+    border: 2px outset var(--K4-bGOLD);
+    border-left: none;
+    border-radius: 0 10px 10px 0;
+    pointer-events: all;
+    transition: width 0.2s ease-in-out;
+    &:hover {
+      width: 250px;
+    }
+
+    .label-bg,
+    .label-fg {
+      border: 2px solid black;
+      height: 100%;
+      color: var(--K4-bGOLD);
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      // width: 150px;
+      text-align: right;
+      line-height: 46px;
+      font-size: 20px;
+      font-weight: 1000;
+      margin-right: 25px;
+      // align-self: flex-start;
+      &.label-bg {
+        // margin-right: -150px;
+      }
+
+      &.label-fg {
+        border: 2px inset var(--K4-bGOLD);
+        border-right: none;
+        border-left: none;
+        color: black;
+        width: 0px;
+        background-image: url('modules/eunos-kult-hacks/assets/backgrounds/gold-foil-texture-strip.webp');
+        // background-image: url('./assets/backgrounds/gold-foil-texture-strip.webp'); // For Production
+
+        overflow: hidden;
+        white-space: nowrap;
+
+        filter: brightness(2);
+      }
+
+    }
+
+    .safety-button {
+      position: absolute;
+      right: 4px;
+
+      width: 40px;
+      height: 40px;
+      background-image: url('modules/eunos-kult-hacks/assets/backgrounds/gold-foil-texture-strip.webp');
+      // background-image: url('./assets/backgrounds/gold-foil-texture-strip.webp'); // For Production
+      background-size: cover;
+
+      mask-image: url('modules/eunos-kult-hacks/assets/images/stage/safety-buttons/fade-to-black-icon.webp');
+      // mask-image: url('./assets/images/stage/safety-buttons/fade-to-black-icon.webp'); // For Production
+      mask-size: 100% 100%;
+
+      pointer-events: all;
+      filter: brightness(2);
+
+      &.safety-button-stop {
+        mask-image: url('modules/eunos-kult-hacks/assets/images/stage/safety-buttons/stop-scene-icon.webp');
+        // mask-image: url('./assets/images/stage/safety-buttons/stop-scene-icon.webp'); // For Production
+      }
+
+    }
+  }
 }

@@ -64,7 +64,7 @@
         <div class="modifiers-summary">
           {{#if system.stabilityModifiers.length}}
           <div class="stability-modifiers-summary">
-            <label>Stability:</label>
+            <label>{{actor.stabilityState}}:</label>
             {{#each system.stabilityModifiers as |modifier|}}
             <span class="stability-modifier">{{{modifier}}}</span>
             {{/each}}
@@ -72,7 +72,7 @@
           {{/if}}
           {{#if system.woundModifiers.length}}
           <div class="wound-modifiers-summary">
-            <label>Wounds:</label>
+            <label>{{actor.woundState}}:</label>
             {{#each system.woundModifiers as |modifier|}}
             <span class="wound-modifier">{{{modifier}}}</span>
             {{/each}}

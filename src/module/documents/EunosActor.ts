@@ -2,6 +2,7 @@ import EunosItem from "./EunosItem";
 import EunosOverlay from "../apps/EunosOverlay";
 import type ItemDataGear from "../data-model/ItemDataGear";
 import type ActorDataPC from "../data-model/ActorDataPC";
+import {getTemplatePath} from "../scripts/utilities";
 
 declare global {
   class EunosActor extends k4ltActor {
@@ -13,10 +14,12 @@ declare global {
     get hasGrittedTeeth(): boolean;
     get hasBroken(): boolean;
     get stabilityState(): string;
+    get woundState(): string;
     get armor(): number;
     getWoundPenaltyFor(move: EunosItem): number;
     getStabilityPenaltyFor(move: EunosItem): number;
     getStabilityConditionsPenalty(): Promise<number>;
+    getPortraitImage(type: "bg"|"fg"): string;
     moveroll(moveID: string): Promise<void>;
   }
 }
@@ -255,6 +258,50 @@ export default function registerEunosActor(): void {
       return "Critically Stressed";
     }
 
+    get woundState(): string {
+      if (!this.isPC()) {
+        return "";
+      }
+      if (this.hasUnstabilizedCriticalWound) {
+        return "MORTALLY WOUNDED";
+      }
+      if (this.hasFieldTendedCriticalWound) {
+        return "Critically Wounded";
+      }
+      if (this.hasUnstabilizedMajorWounds) {
+        return "Wounded";
+      }
+      return "";
+    }
+
+    getPortraitImage(type: "bg"|"fg"): string {
+      const img = this.img as string;
+      if (type === "bg") {
+        const imgParts = [img.replace(".webp", "")];
+        imgParts.push("-bg-color");
+        switch (this.stabilityState) {
+          case "Broken": {
+            return "";
+          }
+          case "Critically Stressed": {
+            imgParts.push("-critical-stress");
+            break;
+          }
+          case "Seriously Stressed": {
+            imgParts.push("-serious-stress");
+            break;
+          }
+          case "Moderately Stressed": {
+            imgParts.push("-moderate-stress");
+            break;
+          }
+        }
+        imgParts.push(".webp");
+        return imgParts.join("");
+      }
+      return img.replace(".webp", "-fg-color.webp");
+    }
+
 
     override async displayRollResult({ roll, moveName, result, resultText, moveResultText, optionsText, rollMode }: { roll: Roll, moveName: string, result: string, resultText: string, moveResultText: string, optionsText: string, rollMode: string }) {
       const templateData = {
@@ -267,7 +314,10 @@ export default function registerEunosActor(): void {
         optionsText: optionsText
       };
 
-      const content = await renderTemplate("modules/eunos-kult-hacks/templates/apps/chat/roll-card.hbs", templateData);
+      const content = await renderTemplate(
+        getTemplatePath("apps/chat", "roll-card.hbs"),
+        templateData
+      );
 
       const chatData = {
         speaker: ChatMessage.getSpeaker({ alias: this.name }),
@@ -431,11 +481,11 @@ export default function registerEunosActor(): void {
       }
     }
 
-    // override _onUpdate(...args: Parameters<Actor["_onUpdate"]>): void {
-    //   super._onUpdate(...args);
-    //   if (!this.isPC()) { return; }
-    //   void EunosOverlay.instance.render({parts: ["pcs", "pcsGM", "npcs", "npcsGM"]});
-    // }
+    override _onUpdate(...args: Parameters<Actor["_onUpdate"]>): void {
+      super._onUpdate(...args);
+      if (!this.isPC()) { return; }
+      void EunosOverlay.instance.updateStabilityBG(this);
+    }
   }
 
   // Replace the default Actor class with our extended version

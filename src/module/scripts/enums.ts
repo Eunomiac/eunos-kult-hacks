@@ -23,6 +23,23 @@ export enum PCTargetRef {
   others = "others"
 }
 
+export enum PCState {
+  masked = "masked",
+  hidden = "hidden",
+  dimmed = "dimmed",
+  base = "base",
+  spotlit = "spotlit"
+}
+
+export enum NPCState {
+  invisible = "invisible",
+  shrouded = "shrouded",
+  dimmed = "dimmed",
+  base = "base",
+  spotlit = "spotlit"
+}
+
+
 export enum MediaLoadStatus {
   NotConnected = "NotConnected",
   NotStarted = "NotStarted",
@@ -49,5 +66,6 @@ export enum AlertType {
   stability = "stability",
   shatterIllusion = "shatterIllusion",
   gmNotice = "gmNotice",
-  test = "test"
+  test = "test",
+  central = "central"
 };
