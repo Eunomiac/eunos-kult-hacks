@@ -1,9 +1,12 @@
-@use "globals/colors";
-@use "globals/typography";
-@use "globals/globals";
-@use "globals/item-block";
-@use "apps/chat";
-@use "apps/eunos-overlay";
-@use "sheets/sheets";
-@use "apps/interface";
-@use "globals/popovers";
+
+
+@use "globals/functions" as *;
+@use "globals/colors" as *;
+@use "globals/typography" as *;
+@use "globals/globals" as *;
+@use "globals/item-block" as *;
+@use "apps/chat" as *;
+@use "apps/eunos-overlay" as *;
+@use "sheets/sheets" as *;
+@use "apps/interface" as *;
+@use "globals/popovers" as *;

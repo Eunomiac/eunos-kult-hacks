@@ -1,25 +1,176 @@
+:root {
+  /* Firefox scrollbar properties */
+  scrollbar-color: rgb(150, 140, 106) black !important;
+  scrollbar-width: thin !important; /* Only accepts 'auto', 'thin', or 'none' */
+
+  /* Apply to all elements */
+  &, * {
+    scrollbar-color: rgb(150, 140, 106) black !important;
+    scrollbar-width: thin !important;
+  }
+}
+
+/* WebKit scrollbar styling (Chrome, Safari, etc.) */
+::-webkit-scrollbar {
+  width: 3px !important;
+  height: 3px !important; /* For horizontal scrollbars */
+}
+
+::-webkit-scrollbar-track {
+  box-shadow: none !important;
+  border-radius: 1px !important;
+  background: black !important;
+}
+
+::-webkit-scrollbar-thumb {
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 1px !important;
+  background: rgb(150, 140, 106) !important;
+  /* Remove the border that's making it wider */
+  border: none !important;
+}
+
+::-webkit-scrollbar-corner {
+  background: black !important;
+}
+
+/* Style the buttons on the scrollbar (optional) */
+::-webkit-scrollbar-button {
+  display: none !important; /* Hide buttons for a cleaner look */
+}
+
 #ui-left,
 #ui-top,
 #ui-bottom {
   display: none;
 }
-#sidebar-tabs {
-  justify-content: stretch;
-  .item {
-    flex: 1;
+#ui-right {
+  #sidebar {
+    /* SYSTEM-SPECIFIC CONFIG */
+    --sidebar-horiz-gutter: 0px;
+    --sidebar-tabs-horiz-overhang: 20px;
+    --sidebar-chat-input-height: 150px;
 
-    i {
-      font-size: 26px;
+    /* FOUNDRY OVERRIDES */
+    --sidebar-width: 300px;
+    --sidebar-internal-width: calc(
+      var(--sidebar-width) +
+        var(--sidebar-horiz-gutter) - var(--scrollbar-width)
+    );
+    --sidebar-header-height: 32px; // 0px; // 32px;
+    --sidebar-item-height: 48px; // 80px; // 48px;
+
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+
+    --gradient-stop-1: calc(var(--sidebar-width));
+    --gradient-stop-2: calc(var(--gradient-stop-1) + 30px);
+    background: linear-gradient(
+      to left,
+      var(--K4-dBLACK) var(--gradient-stop-1),
+      transparent var(--gradient-stop-2)
+    );
+    background: transparent;
+
+    height: 100%;
+    width: calc(var(--sidebar-width) + var(--sidebar-horiz-gutter));
+    padding-bottom: 10px;
+
+    --K4-color-primary: var(--K4-GOLD);
+    --K4-color-primary-bright: var(--K4-bGOLD);
+    --K4-color-primary-glow: var(--K4-bbGOLD);
+    --K4-color-primary-dark: var(--K4-dGOLD);
+
+    --K4-color-contrast: var(--K4-BLACK);
+    --K4-color-contrast-low: var(--K4-ddGOLD);
+    --K4-color-contrast-high: var(--K4-dBLACK);
+
+    --K4-color-title-fg: var(--K4-color-primary-bright);
+    --K4-color-title-bg: transparent;
+    --K4-color-header: var(--K4-bRED);
+
+    --K4-color-keyword: var(--K4-bbGOLD); // var(--K4-bGOLD);
+    --K4-color-keyword-bright: var(--K4-bbGOLD); // var(--K4-bGOLD);
+    --K4-color-pos: var(--K4-bbGOLD); // var(--K4-bGOLD);
+    --K4-color-neg: var(--K4-bRED); // var(--K4-RED);
+    --K4-neon-text-color: var(--K4-bWHITE);
+
+    --K4-font-primary: var(--font-primary);
+    --K4-font-weight-primary: normal;
+
+    --K4-list-indent: 12px;
+    --K4-bg: transparent #{to-url("backgrounds/bg-item-gold.webp")} no-repeat
+      no-repeat center center / 100% 100%;
+    --K4-bg-inset: transparent #{to-url("backgrounds/bg-gold.webp")} repeat
+      repeat center center/1000px 1000px;
+    --K4-bullet: transparent #{to-url("icons/bullets/bullet-gold-bright.svg")}
+      no-repeat center center/calc(0.5 * var(--K4-list-indent));
+
+    --K4-strip-main-color-fg: var(--K4-color-primary-bright);
+    --K4-strip-main-color-bg: var(--K4-color-contrast);
+    --K4-strip-icon-color-bg: var(--K4-strip-main-color-bg);
+    --K4-strip-button-color-fg: var(--K4-color-contrast);
+    --K4-strip-button-color-bg: var(--K4-color-primary);
+    --K4-strip-button-hover-color-fg: var(--K4-color-contrast-high);
+    --K4-strip-button-hover-color-bg: var(--K4-color-primary-glow);
+    --K4-strip-tooltip-color-fg: var(--K4-bWHITE);
+    --K4-strip-tooltip-color-bg: var(--K4-dBLACK);
+
+    #sidebar-tabs {
+      box-shadow: none;
+      position: relative;
+      z-index: 50;
+      background: var(--K4-dBLACK);
+      justify-content: stretch;
+
+      &[data-tooltip-direction="DOWN"] {
+        box-shadow: 0 5px 5px var(--K4-BLACK);
+        width: calc(var(--sidebar-width) + var(--sidebar-tabs-horiz-overhang));
+        margin-left: calc(
+          var(--sidebar-horiz-gutter) - var(--sidebar-tabs-horiz-overhang)
+        );
+        margin-bottom: 0;
+      }
+
+      .item {
+        flex: 1;
+
+        i {
+          font-size: 26px;
+        }
+      }
+      .item[data-tab="combat"],
+      .item[data-tab="items"],
+      .item[data-tab="scenes"],
+      .item[data-tab="tables"],
+      .item[data-tab="cards"],
+      .item[data-tab="playlists"],
+      .item[data-tab="compendium"] {
+        display: none;
+      }
     }
-  }
-  .item[data-tab="combat"],
-  .item[data-tab="items"],
-  .item[data-tab="scenes"],
-  .item[data-tab="tables"],
-  .item[data-tab="cards"],
-  .item[data-tab="playlists"],
-  .item[data-tab="compendium"] {
-    display: none;
+
+    section.tab.active {
+      padding-left: calc(var(--sidebar-horiz-gutter) - var(--scrollbar-width));
+      &:not(#chat) {
+        background: linear-gradient(
+          to left,
+          var(--K4-dBLACK) var(--gradient-stop-1),
+          transparent var(--gradient-stop-2)
+        );
+      }
+    }
+
+    .quench-button {
+      position: fixed;
+      bottom: 5px;
+      left: 5px;
+      transform-origin: bottom left;
+      scale: 0.85;
+    }
   }
 }
 
@@ -40,7 +191,6 @@
 }
 
 body.gm-user {
-
   #ui-middle {
     z-index: 20001;
   }
@@ -59,7 +209,9 @@ body.gm-user {
   }
 
   #sidebar-tabs {
-    .item i { font-size: 20px;}
+    .item i {
+      font-size: 20px;
+    }
     .item[data-tab="items"],
     .item[data-tab="scenes"],
     .item[data-tab="cards"],
@@ -73,7 +225,4 @@ body.gm-user {
   #NPCS {
     display: none;
   }
-
-
-
 }
