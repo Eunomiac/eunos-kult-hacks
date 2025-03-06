@@ -55,7 +55,14 @@ export default function overrideItemSheet() {
           hasSpecialFlag: type === "active",
           hasEffect: true,
           hasOptions: type === "active",
-          tooltip: this.item.system.trigger || false
+          tooltip: this.item.system.trigger || false,
+          specialMoveValues: [
+            { value: "0", label: getLocalizer().localize("k4lt.None") },
+            { value: "1", label: getLocalizer().localize("k4lt.KeepItTogether") },
+            { value: "2", label: getLocalizer().localize("k4lt.SeeThroughTheIllusion") },
+            { value: "3", label: getLocalizer().localize("k4lt.EndureInjury") },
+            { value: "4", label: "Engage In Combat" }
+          ]
         });
       }
 

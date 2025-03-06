@@ -76,7 +76,8 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/partials/darksecret-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs",
   "modules/eunos-kult-hacks/templates/alerts/alert-simple.hbs",
-  "modules/eunos-kult-hacks/templates/apps/chat/roll-card.hbs"
+  "modules/eunos-kult-hacks/templates/apps/chat/roll-card.hbs",
+  "modules/eunos-kult-hacks/templates/dialog/dialog-engage-in-combat.hbs"
 ];
 
 async function preloadHandlebarTemplates() {

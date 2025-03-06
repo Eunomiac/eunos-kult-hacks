@@ -127,18 +127,93 @@
                 }
               }
             }
-            .is-equipped-container {
+
+            .is-equipped-container,
+            .reload-container {
+
+
+
               position: absolute;
-              left: -21px;
-              top: 5px;
-              text-shadow:
-                0 0 1px black,
-                0 0 1px black,
-                0 0 1px black,
-                0 0 1px black,
-                0 0 1px black,
-                0 0 1px black,
-                0 0 1px black;
+              top: 50%;
+              transform: translate(0%, -50%);
+
+              a {
+                text-shadow:
+                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                  0 0 1px var(--icon-shadow, var(--K4-dBLACK));
+                transition: transform 0.3s ease;
+
+                &:hover {
+                  transform: scale(1.5);
+                }
+              }
+
+              &.is-equipped-container {
+                --icon-shadow: var(--K4-ddGOLD);
+                color: var(--K4-GOLD);
+                left: -21px;
+
+              }
+
+              &.reload-container {
+                --icon-shadow: var(--K4-RED);
+                color: var(--K4-ddRED);
+                font-size: 20px;
+                right: -24px;
+
+                a:hover {
+
+                  animation: icon-pulse 2.5s infinite;
+                }
+              }
+
+
+              @keyframes icon-pulse {
+                0% {
+                  filter: brightness(1);
+                  text-shadow:
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK));
+                }
+
+                20% {
+                  filter: brightness(1.75);
+                  text-shadow:
+                    0 0 2px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 4px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 6px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 8px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 10px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 12px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 14px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 16px var(--icon-shadow, var(--K4-dBLACK));
+                }
+
+                40% {
+                  filter: brightness(1);
+                  text-shadow:
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                    0 0 1px var(--icon-shadow, var(--K4-dBLACK));
+                }
+              }
             }
 
             .far.fa-hand {
@@ -240,6 +315,12 @@
           width: calc(100% - 15px);
           // margin-bottom: 3px;
           border-top: 1px solid var(--K4-RED);
+
+          &.insufficient-ammo {
+            filter: grayscale(1);
+            opacity: 0.5;
+            pointer-events: none;
+          }
 
           &:hover {
             background: color-mix(in srgb, var(--K4-ddRED) 25%, transparent);
@@ -355,11 +436,50 @@
 
         &.relationship-list {
           .move-card {
-            background: var(--K4-ddBLUE);
+            background: var(--relation-bg-color);
+            border: var(--relation-border-size) var(--relation-border-style) var(--relation-border-color);
+            // box-sizing: content-box;
 
             .move-info.item-name {
-              color: var(--K4-bbBLUE);
+              color: var(--relation-fg-color);
+              line-height: 1;
             }
+
+            &.relationship-card-0 {
+              --relation-bg-color: var(--K4-bbBLUE);
+
+              --relation-bg-color: transparent;
+              --relation-fg-color: var(--K4-bBLUE);
+              --relation-border-size: 1px;
+              --relation-border-color: transparent; // var(--K4-bbBLUE);
+              order: 3;
+              filter: saturate(0.5);
+              .move-info.item-name {
+                font-style: italic;
+                font-weight: bold;
+              }
+            }
+            &.relationship-card-1 {
+              --relation-bg-color: var(--K4-bBLUE);
+              --relation-fg-color: var(--K4-ddBLUE);
+              --relation-border-size: 1px;
+              --relation-border-style: solid;
+              --relation-border-color: var(--K4-BLUE);
+              order: 2;
+              filter: saturate(0.4) contrast(1.5);
+            }
+            &.relationship-card-2 {
+              --relation-bg-color: var(--K4-ddBLUE);
+              --relation-fg-color: var(--K4-bbBLUE);
+              --relation-border-size: 1px;
+              --relation-border-style: outset;
+              --relation-border-color: var(--K4-bBLUE);
+              order: 1;
+              .move-info.item-name {
+                font-weight: bold;
+              }
+            }
+
           }
         }
 
@@ -370,6 +490,23 @@
 
           > * {
             order: 1;
+          }
+        }
+
+        &.gear-list {
+          --fg-color: var(--K4-bGOLD);
+          --bg-color: var(--K4-BLACK);
+          gap: 0px;
+
+          .gear-card {
+            padding: 2px 5px;
+
+            .is-equipped-container {
+              scale: 0.8;
+              transform-origin: center top;
+              // top: 0;
+              left: -18px;
+            }
           }
         }
       }
@@ -666,6 +803,65 @@
                 pointer-events: none;
               }
             }
+          }
+        }
+      }
+    }
+
+    .kult-sheet.observer {
+      .sheet-topper {
+        .move-section-container {
+          .move-section {
+            .move-list {
+              .move-card {
+                &:hover {
+                  .item-controls {
+                    opacity: 0;
+                    cursor: default;
+                    pointer-events: none;
+                    height: 0 !important;
+                    overflow: hidden !important;
+                  }
+                }
+                .move-roll {
+                  pointer-events: none;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      .sheet-body {
+        #Stats {
+          .middle-section {
+            .advantage-box {
+              .item-list {
+                .move-card {
+                  &:hover {
+                    .item-controls {
+                      opacity: 0;
+                      cursor: default;
+                      pointer-events: none;
+                      height: 0 !important;
+                      overflow: hidden !important;
+                    }
+                  }
+                  .move-roll {
+                    pointer-events: none;
+                  }
+
+                }
+              }
+            }
+          }
+        }
+        #Conditions,
+        #Advancement {
+          a,
+          img {
+            pointer-events: none !important;
+            cursor: default !important;
           }
         }
       }

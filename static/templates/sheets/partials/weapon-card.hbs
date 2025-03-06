@@ -35,13 +35,22 @@
     {{/if}}
   </div>
 
+  {{#if (eq system.class "Firearm")}}
+  {{#if (lt system.ammo.value system.ammo.max)}}
+  <span class="reload-container">
+    <a class="reload-button" data-item-id="{{_id}}" title="Reload Weapon">
+      <i class="fa-regular fa-person-rifle"></i>
+    </a>
+  </span>
+  {{/if}}
+  {{/if}}
   {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-controls.hbs" view=true show=true trash=true isGM=isGM
   id=_id }}
   {{/let}}
 </div>
 {{#if system.isEquipped}}
 {{#each system.attacks as |attack i|}}
-<div class="weapon-attack-block" data-item-id="{{../_id}}" data-attack-index="{{i}}">
+<div class="weapon-attack-block {{#if (gt attack.ammoCost ../system.ammo.value)}}insufficient-ammo{{/if}}" data-item-id="{{../_id}}" data-attack-index="{{i}}">
   <div class="attack-top-row">
     <div class="attack-harm">{{attack.harm}}</div>
     <div class="attack-name">{{attack.name}}</div>

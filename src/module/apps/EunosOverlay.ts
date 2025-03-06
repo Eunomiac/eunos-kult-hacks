@@ -97,20 +97,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // @ts-expect-error Don't know why the types won't recognize this syntax.
       pc.sheet?.render({ force: true });
     },
-    stopSceneClick(event: PointerEvent, target: HTMLElement) {
-      void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
-        type: AlertType.gmNotice,
-        header: "STOP SCENE",
-        body: "A player has requested an immediate scene stop.",
-      });
-    },
-    fadeToBlackClick(event: PointerEvent, target: HTMLElement) {
-      void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
-        type: AlertType.gmNotice,
-        header: "FADE TO BLACK",
-        body: "A player has requested a fade to black.",
-      });
-    },
     conditionCardClick(event: PointerEvent, target: HTMLElement) {
       const pcId = $(target).closest("[data-pc-id]").attr("data-pc-id");
       if (!pcId) {
@@ -262,6 +248,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           },
         },
         {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: ${gsap.getProperty("#STAGE #SECTION-3D", "z")}
+          }
+        },
+        {
           selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
           properties: {
             backgroundPositionX: ${gsap.getProperty(
@@ -295,7 +287,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             )}",
           },
         },
-      ]`,
+      ]`.replace(/(\bbrightness\([^)]+\))(?:\s+brightness\([^)]+\))+/g, "$1"),
         )
         .then(() => {
           getNotifier().info("Location plotting values copied to clipboard");
@@ -554,9 +546,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
     actions: {
       pcPortraitClick: EunosOverlay.ACTIONS.pcPortraitClick.bind(EunosOverlay),
-      stopSceneClick: EunosOverlay.ACTIONS.stopSceneClick.bind(EunosOverlay),
-      fadeToBlackClick:
-        EunosOverlay.ACTIONS.fadeToBlackClick.bind(EunosOverlay),
       conditionCardClick:
         EunosOverlay.ACTIONS.conditionCardClick.bind(EunosOverlay),
       addCounter: EunosOverlay.ACTIONS.addCounter.bind(EunosOverlay),
@@ -1945,6 +1934,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           },
         },
       },
+      default: "ok"
     }).render(true);
   }
 
@@ -2510,9 +2500,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     void EunosAlerts.Alert({
       type: AlertType.central,
       header: `<br/>You are the Session Scribe!`,
-      body: `<br/>Please take note of key events, then post a short bullet list of the session's highlights to Discord. You'll gain 1 Experience Point as a reward.`,
+      body: `<br/>It is your responsibility this session to maintain a bullet list of this chapter's highlights: major plot events, character revelations, and other important details. As a reward, you'll gain 1 Experience Point at the conclusion of the session.<br/><br/>The session scribe icon at the top right of your screen will open a notepad where you can record your notes during play.<br/><br/>Thank you kindly for your service!`,
       target: getSetting("sessionScribe"),
-      displayDuration: 10,
+      displayDuration: 12,
       soundName: "alert-hit-session-scribe",
       logoImg: "modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp",
     });
@@ -4046,6 +4036,121 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
   }
 
+  private addSafetyButtonListeners() {
+    const fadeToBlackRow$ = this.safetyButtons$.find(".safety-button-row-fade");
+    const fadeToBlackFg$ = fadeToBlackRow$.find(".label-fg");
+    const fadeToBlackIcon$ = fadeToBlackRow$.find(".safety-button-fade");
+    const stopSceneRow$ = this.safetyButtons$.find(".safety-button-row-stop");
+    const stopSceneFg$ = stopSceneRow$.find(".label-fg");
+    const stopSceneIcon$ = stopSceneRow$.find(".safety-button-stop");
+
+    const oldFadeTimeline = fadeToBlackRow$.data("fade-timeline") as Maybe<gsap.core.Timeline>;
+    const oldStopSceneTimeline = stopSceneRow$.data("stop-scene-timeline") as Maybe<gsap.core.Timeline>;
+    if (oldFadeTimeline) {
+      oldFadeTimeline.seek(0).kill();
+    }
+    if (oldStopSceneTimeline) {
+      oldStopSceneTimeline.seek(0).kill();
+    }
+
+    const fadeToBlackTimeline = gsap.timeline({
+      paused: true
+    })
+      .to(fadeToBlackFg$, {
+        width: 250,
+        duration: 2,
+        ease: "power2.in",
+      })
+      .to(fadeToBlackIcon$, {
+        filter: "brightness(0)",
+        duration: 0.5,
+        ease: "power2.inOut",
+      }, "-=0.5")
+      .call(() => {
+        fadeToBlackRow$.css("pointer-events", "none");
+        void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
+          type: AlertType.simple,
+          header: "FADE TO BLACK",
+          body: "A player has requested a fade to black.",
+        });
+
+      })
+      .to(fadeToBlackRow$, {
+        scale: 2,
+        opacity: 0,
+        duration: 0.5,
+        ease: "power3.out"
+      })
+      .call(() => {
+        fadeToBlackTimeline.seek(0).pause();
+        fadeToBlackRow$.attr("style", "");
+      }, [],"+=3");
+
+    fadeToBlackRow$.data("fade-timeline", fadeToBlackTimeline);
+
+    const stopSceneTimeline = gsap.timeline({
+      paused: true
+    })
+      .to(stopSceneFg$, {
+        width: 250,
+        duration: 2,
+        ease: "power2.in",
+      })
+      .to(stopSceneIcon$, {
+        filter: "brightness(0)",
+        duration: 0.5,
+        ease: "power2.inOut",
+      }, "-=0.5")
+      .call(() => {
+        stopSceneRow$.css("pointer-events", "none");
+        void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
+          type: AlertType.simple,
+          header: "STOP SCENE",
+          body: "A player has requested an immediate scene stop.",
+        });
+
+      })
+      .to(stopSceneRow$, {
+        scale: 2,
+        opacity: 0,
+        duration: 0.5,
+        ease: "power3.out"
+      })
+      .call(() => {
+        stopSceneTimeline.seek(0).pause();
+        stopSceneRow$.attr("style", "");
+      }, [],"+=3");;
+
+    stopSceneRow$.data("stop-scene-timeline", stopSceneTimeline);
+
+    fadeToBlackRow$.on("mousedown", () => {
+      const tl = fadeToBlackRow$.data("fade-timeline") as Maybe<gsap.core.Timeline>;
+      kLog.log("fade to black mousedown");
+      if (tl) {
+        tl.timeScale(1).play();
+      }
+    })
+    .on("mouseup", () => {
+      const tl = fadeToBlackRow$.data("fade-timeline") as Maybe<gsap.core.Timeline>;
+      if (tl) {
+        tl.timeScale(3).reverse();
+      }
+    });
+
+    stopSceneRow$.on("mousedown", () => {
+      const tl = stopSceneRow$.data("stop-scene-timeline") as Maybe<gsap.core.Timeline>;
+      if (tl) {
+        tl.timeScale(1).play();
+      }
+    })
+    .on("mouseup", () => {
+      const tl = stopSceneRow$.data("stop-scene-timeline") as Maybe<gsap.core.Timeline>;
+      if (tl) {
+        tl.timeScale(3).reverse();
+      }
+    });
+  }
+
   /**
    * Finds or creates a journal entry for the session scribe
    * @param journalPageName - Name of the journal entry to find or create
@@ -4242,6 +4347,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.addStartVideoButtonListeners();
     this.addPCControlListeners();
     this.makePlottingControls();
+    this.addSafetyButtonListeners();
 
     // Object.values(this.pcMasterTimelines).forEach((tl) => { tl.seek(0.2); tl.seek(0);});
 

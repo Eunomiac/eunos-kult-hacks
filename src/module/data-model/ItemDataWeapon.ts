@@ -1,4 +1,4 @@
-import {type ItemDerivedFieldsBase, getAttackField} from "./fields/itemFields";
+import {type ItemDerivedFieldsWeapon, getAttackField} from "./fields/itemFields";
 import fields = foundry.data.fields;
 import TypeDataModel = foundry.abstract.TypeDataModel;
 import type {EmptyObject, InterfaceToObject} from "fvtt-types/utils";
@@ -30,9 +30,27 @@ export default class ItemDataWeapon extends TypeDataModel<
   typeof ItemSchemaWeapon,
   Item,
   EmptyObject,
-  InterfaceToObject<ItemDerivedFieldsBase>
+  InterfaceToObject<ItemDerivedFieldsWeapon>
 > {
   static override defineSchema() {
     return ItemSchemaWeapon;
+  }
+
+  override prepareDerivedData() {
+    const {ammo, attacks} = this;
+    const curAmmo = ammo.value ?? 0;
+    this.availableAttacks = attacks.filter((attack) => {
+      if (!attack.ammoCost) {
+        return true;
+      }
+      return curAmmo >= attack.ammoCost;
+    }).map((attack) => ({
+      name: attack.name ?? "",
+      harm: attack.harm ?? 0,
+      ammoCost: attack.ammoCost ?? 0,
+      special: attack.special ?? "",
+      isDefault: attack.isDefault ?? false
+    }))
+
   }
 }

@@ -332,6 +332,8 @@
         font-size: 32px;
         color: var(--K4-bGOLD);
 
+        // Apply the animation
+        animation: candle-pulse 18s ease-in-out infinite;
         // Keyframe animation for pulsing glow effect
         @keyframes candle-pulse {
           0% {
@@ -376,8 +378,6 @@
           }
         }
 
-        // Apply the animation
-        animation: candle-pulse 18s ease-in-out infinite;
 
       }
     }

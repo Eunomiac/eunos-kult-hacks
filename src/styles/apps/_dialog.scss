@@ -1,0 +1,29 @@
+.app.dialog {
+  height: auto !important;
+  width: auto !important;
+  min-width: 500px;
+  .window-header {
+
+  }
+  .window-content {
+    .dialog-content {
+
+      .dialog-engage-in-combat {
+        width: 600px;
+        .weapon-list {
+          display: grid;
+          /* Auto-fit will create as many columns as can fit, with each column being at least 100px wide */
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 0px;
+          margin-top: 10px;
+        }
+      }
+    }
+  }
+  .dialog-buttons {
+    .dialog-button[disabled] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+}

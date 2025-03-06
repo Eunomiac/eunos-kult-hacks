@@ -1,6 +1,7 @@
 import EunosItem from "./EunosItem";
 import EunosOverlay from "../apps/EunosOverlay";
 import type ItemDataGear from "../data-model/ItemDataGear";
+import type { AttackSchema } from "../data-model/fields/itemFields";
 import type ActorDataPC from "../data-model/ActorDataPC";
 import {getTemplatePath} from "../scripts/utilities";
 
@@ -16,6 +17,7 @@ declare global {
     get stabilityState(): string;
     get woundState(): string;
     get armor(): number;
+    get availableWeapons(): EunosItem[];
     getWoundPenaltyFor(move: EunosItem): number;
     getStabilityPenaltyFor(move: EunosItem): number;
     getStabilityConditionsPenalty(): Promise<number>;
@@ -239,6 +241,11 @@ export default function registerEunosActor(): void {
       return gearItems.reduce((acc, gear) => acc + (gear.system.armor ?? 0), 0);
     }
 
+    get availableWeapons(): EunosItem[] {
+      return this.items
+        .filter((item) => item.isWeapon() && item.system.isEquipped && item.system.availableAttacks.length > 0);
+    }
+
     get stabilityState(): string {
       if (!this.isPC()) {
         return "";
@@ -303,7 +310,7 @@ export default function registerEunosActor(): void {
     }
 
 
-    override async displayRollResult({ roll, moveName, result, resultText, moveResultText, optionsText, rollMode }: { roll: Roll, moveName: string, result: string, resultText: string, moveResultText: string, optionsText: string, rollMode: string }) {
+    override async displayRollResult({ roll, moveName, result, resultText, moveResultText, optionsText, rollMode }: { roll: Roll, moveName: string, result: string, resultText: string, moveResultText: string, optionsText: string, rollMode: string }, secondMessageContent?: string) {
       const templateData = {
         total: Math.max(0, roll.total ?? 0),
         result: roll.result,
@@ -314,14 +321,20 @@ export default function registerEunosActor(): void {
         optionsText: optionsText
       };
 
-      const content = await renderTemplate(
-        getTemplatePath("apps/chat", "roll-card.hbs"),
-        templateData
-      );
+      const contents: string[] = [
+        await renderTemplate(
+          getTemplatePath("apps/chat", "roll-card.hbs"),
+          templateData
+        )
+      ];
+
+      if (secondMessageContent) {
+        contents.push(secondMessageContent);
+      }
 
       const chatData = {
         speaker: ChatMessage.getSpeaker({ alias: this.name }),
-        content: content,
+        content: contents.join("\n"),
         rolls: [roll],
         rollMode: rollMode
       };
@@ -334,7 +347,8 @@ export default function registerEunosActor(): void {
 
       kultLogger("chatData => ", chatData);
       // @ts-expect-error ChatMessage.create is not typed
-      void ChatMessage.create(chatData);
+      await ChatMessage.create(chatData);
+
     }
 
 
@@ -358,11 +372,14 @@ export default function registerEunosActor(): void {
         kultLogger("Move => ", { moveType, moveName, moveSystemType });
 
         if (moveSystemType === "active") {
+
           const attr =
             move.system.attributemod == "ask"
               ? await this._attributeAsk()
               : move.system.attributemod;
+
           kultLogger("Attribute => ", attr);
+
           const {
             completesuccess,
             options,
@@ -371,6 +388,7 @@ export default function registerEunosActor(): void {
             partialsuccess,
             specialflag,
           } = move.system;
+
           let mod = 0;
           let harm = 0;
           const woundPenalty = this.getWoundPenaltyFor(move);
@@ -379,6 +397,8 @@ export default function registerEunosActor(): void {
           const situation = woundPenalty + stabilityPenalty + stabilityConditionsPenalty;
           const forward: number = this.system.forward ?? 0;
           let ongoing: number = this.system.ongoing ?? 0;
+
+          let secondChatMessageContent: Maybe<string> = undefined;
 
           if (specialflag === 3) {
             // Endure Injury
@@ -409,6 +429,94 @@ export default function registerEunosActor(): void {
             );
             harm = boxoutput.harm_value;
             ongoing += this.armor;
+          } else if (specialflag === 4) {
+            // Engage In Combat
+            const content = await renderTemplate(
+              getTemplatePath("dialog", "dialog-engage-in-combat.hbs"),
+              this
+            );
+            const dialogOutput = await new Promise<Maybe<{ weapon: EunosItem, index: number }>>(
+              (resolve) => {
+                new Dialog({
+                  title: "Select Attack",
+                  content,
+                  buttons: {
+                    submit: {
+                      icon: '<i class="fas fa-check"></i>',
+                      label: "Ok",
+                      callback: (html) => {
+                        const selectedAttack = $(html).find(".weapon-attack-block[data-is-selected='true']");
+                        const weaponID = selectedAttack.data("item-id") as Maybe<string>;
+                        const attackIndex = selectedAttack.data("attack-index") as Maybe<string>;
+                        if (!weaponID || attackIndex === undefined) {
+                          getNotifier().warn("Weapon or attack index not found");
+                          return;
+                        }
+                        const weapon = this.items.get(weaponID);
+                        if (!weapon?.isWeapon()) {
+                          getNotifier().warn("Weapon not found");
+                          return;
+                        }
+                        const attack = weapon.system.availableAttacks[parseInt(attackIndex)];
+                        if (!attack) {
+                          getNotifier().warn("Attack not found");
+                          return;
+                        }
+                        // Subtract ammo cost from weapon ammo
+                        if (attack.ammoCost && weapon.system.ammo?.value) {
+                          void this.updateEmbeddedDocuments("Item", [{
+                            _id: weapon._id,
+                            "system.ammo.value": weapon.system.ammo.value - attack.ammoCost
+                          }]);
+                        }
+                        resolve({
+                          weapon,
+                          index: Number(attackIndex)
+                        });
+                      }
+                    },
+                    cancel: {
+                      icon: '<i class="fas fa-times"></i>',
+                      label: "Cancel"
+                    }
+                  },
+                  render: (html) => {
+                    // Add click handlers for each weapon attack block, which will update the data-is-selected attribute to true
+                    // and set all other data-is-selected attributes to false
+                    const html$ = $(html);
+                    const weaponAttackBlocks$ = html$.find(".weapon-attack-block");
+                    weaponAttackBlocks$
+                      .on({
+                        click: (event) => {
+                          weaponAttackBlocks$.attr("data-is-selected", "false");
+                          $(event.currentTarget).attr("data-is-selected", "true");
+                          html$.find(".dialog-button.submit").prop("disabled", false);
+                        }
+                      });
+
+                    // If there is only one weapon being displayed, and if one of its attacks 'isDefault', select it by default
+                    if (html$.find(".weapon-card-container").length === 1) {
+                      const defaultAttackBlock$ = html$.find(".weapon-attack-block[data-attack-index='0']");
+                      if (defaultAttackBlock$.length > 0) {
+                        $(defaultAttackBlock$).attr("data-is-selected", "true");
+                      }
+                    }
+
+                    // If there are no selected attacks, disable the submit button
+                    const selectedAttackBlocks$ = html$.find(".weapon-attack-block[data-is-selected='true']");
+                    if (selectedAttackBlocks$.length === 0) {
+                      html$.find(".dialog-button.submit").prop("disabled", true);
+                    } else {
+                      html$.find(".dialog-button.submit").prop("disabled", false);
+                    }
+                  },
+                  default: "submit"
+                }).render(true);
+              }
+            );
+            if (dialogOutput && dialogOutput.weapon && dialogOutput.index !== undefined) {
+              secondChatMessageContent = dialogOutput.weapon.getAttackChatMessage(dialogOutput.index);
+            }
           }
           kultLogger("Forward => ", forward);
           kultLogger("Ongoing => ", ongoing);
@@ -453,7 +561,7 @@ export default function registerEunosActor(): void {
               moveResultText: completesuccess ?? "",
               optionsText: showOptionsFor.success ? options ?? "" : "",
               rollMode: rollMode ?? "",
-            });
+            }, secondChatMessageContent);
           } else if (r.total < 10) {
             await this.displayRollResult({
               roll: r,
@@ -463,7 +571,7 @@ export default function registerEunosActor(): void {
               moveResultText: failure ?? "",
               optionsText: showOptionsFor.failure ? options ?? "" : "",
               rollMode: rollMode ?? "",
-            });
+            }, secondChatMessageContent);
           } else {
             await this.displayRollResult({
               roll: r,
@@ -473,7 +581,7 @@ export default function registerEunosActor(): void {
               moveResultText: partialsuccess ?? "",
               optionsText: showOptionsFor.partial ? options ?? "" : "",
               rollMode: rollMode ?? "",
-            });
+            }, secondChatMessageContent);
           }
         } else {
           await move.showInChat();

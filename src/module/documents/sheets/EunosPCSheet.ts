@@ -22,7 +22,7 @@ export default function overridePCSheet() {
         system: ActorDataPC;
       };
       Object.assign(data, {
-        isGM: getUser().isGM,
+        isGM: getUser().isGM
       });
       return data;
     }
@@ -52,6 +52,9 @@ export default function overridePCSheet() {
         this.element.removeClass("locked");
       }
 
+      if (!this.actor.isOwner && !getUser().isGM) {
+        return;
+      }
       html
         .find(".item-delete")
         .off("click")
@@ -101,16 +104,7 @@ export default function overridePCSheet() {
                   if (attack) {
                     // @ts-expect-error Not sure why this is throwing an error.
                     void ChatMessage.create({
-                      content: item.getAttackChatMessage(
-                        attack as {
-                          name: string;
-                          harm: number;
-                          ammoCost: number;
-                          special: string;
-                          isDefault: boolean;
-                        },
-                        item,
-                      ),
+                      content: item.getAttackChatMessage(Number(attackIndex)),
                       speaker: ChatMessage.getSpeaker({ alias: actor.name }),
                     });
                     return;
@@ -239,6 +233,44 @@ export default function overridePCSheet() {
             system: {
               isEquipped: !(item.system as { isEquipped: boolean }).isEquipped,
             },
+          });
+        });
+
+      // Add reload listener
+      html
+        .find(".reload-button")
+        .off("click")
+        .on("click", (event) => {
+          const elem$ = $(event.currentTarget).closest("[data-item-id]");
+          const itemId = elem$.attr("data-item-id");
+          if (!itemId) {
+            kLog.error("No itemId found for reload", { itemId });
+            return;
+          }
+          const item = this.actor.items.get(itemId);
+          if (!item) {
+            kLog.error("No item found for itemId", { itemId });
+            return;
+          }
+          if (!item.isWeapon()) {
+            kLog.error("Item is not a weapon", { itemId });
+            return;
+          }
+          if ((item.system.ammo.value ?? 0) >= (item.system.ammo.max ?? 0)) {
+            kLog.error("Weapon is full", { itemId });
+            return;
+          }
+          void item.update({
+            system: {
+              ammo: { value: item.system.ammo.max },
+            },
+          });
+          void EunosAlerts.Alert({
+            type: AlertType.simple,
+            header: `${actor.name} Reloads!`,
+            body: `${actor.name} reloads their ${item.name}.`,
+            target: UserTargetRef.all,
+            soundName: "alert-hit-stability-up"
           });
         });
 

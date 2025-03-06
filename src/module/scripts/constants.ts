@@ -787,26 +787,6 @@ export interface EunosMediaData {
  */
 export const Sounds = {
   PreSessionSongs: {
-    "hells-comin-with-me": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-hells-comin-with-me.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 126,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "guns-for-hire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 224,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
     "how-villains-are-made": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-how-villains-are-made.ogg",
       alwaysPreload: false,
@@ -817,52 +797,11 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    "world-on-fire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
+    sucker: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
       alwaysPreload: false,
       delay: 0,
-      duration: 146,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "panic-room": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-panic-room.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 199,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    playground: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 226,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-
-    "to-ashes-and-blood": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-to-ashes-and-blood.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 243,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "mad-hatter": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 209,
+      duration: 220,
       loop: false,
       sync: true,
       volume: 0.5,
@@ -888,21 +827,81 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    "broken-crown": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-broken-crown.ogg",
+    playground: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
       alwaysPreload: false,
       delay: 0,
-      duration: 229,
+      duration: 226,
       loop: false,
       sync: true,
       volume: 0.5,
       autoplay: false,
     },
-    sucker: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
+    "guns-for-hire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
       alwaysPreload: false,
       delay: 0,
-      duration: 220,
+      duration: 224,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "hells-comin-with-me": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-hells-comin-with-me.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 126,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "world-on-fire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 146,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "panic-room": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-panic-room.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 199,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "to-ashes-and-blood": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-to-ashes-and-blood.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 243,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "mad-hatter": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 209,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "broken-crown": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-broken-crown.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 229,
       loop: false,
       sync: true,
       volume: 0.5,
@@ -1514,7 +1513,7 @@ export const LOCATIONS = {
       "Fire Road Car Ahead": "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
     },
     description: "",
-    mapTransforms:[
+    mapTransforms: [
       {
         selector: "#STAGE",
         properties: {
@@ -1530,16 +1529,16 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          backgroundPositionX: -2848,
+          backgroundPositionX: -2565,
           backgroundPositionY: -2826,
           filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(0.97431, -0.11963, -0.190809, 0, 0.215093, 0.745386, 0.630979, 0, 0.0667422, -0.655811, 0.751969, 0, -3500, -3500, 0, 1)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          transform: "matrix3d(0.97431, -0.11963, -0.190809, 0, 0.215093, 0.745386, 0.630979, 0, 0.0667422, -0.655811, 0.751969, 0, -3500, -3500, 0, 1)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
           background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
         },
       },
@@ -1568,6 +1567,35 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
+          backgroundPositionX: -2870,
+          backgroundPositionY: 1478,
+          filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
+          transform: "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+        },
+      },
+    ]/* [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -400
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
           backgroundPositionX: -2978,
           backgroundPositionY: 1478,
           filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
@@ -1581,7 +1609,7 @@ export const LOCATIONS = {
           background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
         },
       },
-    ],
+    ] */,
   },
   "Willow's Wending Entry": {
     name: "Willow's Wending",
@@ -1592,7 +1620,6 @@ export const LOCATIONS = {
       "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
       "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
     },
-    currentImage: "Polaroids - Missing",
     description: "",
     mapTransforms: [
       {
@@ -1604,44 +1631,26 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: -400
         }
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          backgroundPositionX: -2750,
-          backgroundPositionY: -1587,
-          filter: "hue-rotate(181deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(0.0647657, 0.74032, 0.669128, 0, -0.993053, -0.0181953, 0.11625, 0, 0.0982372, -0.672009, 0.733998, 0, -3500, -3500, 0, 1)",
+          backgroundPositionX: -2565,
+          backgroundPositionY: -1348,
+          filter: "hue-rotate(105deg) saturate(100%) brightness(1.5)",
+          transform: "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          transform: "matrix3d(0.0647657, 0.74032, 0.669128, 0, -0.993053, -0.0181953, 0.11625, 0, 0.0982372, -0.672009, 0.733998, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 12%, rgb(0, 0, 0) 25%)",
+          transform: "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 10%, rgb(0, 0, 0) 17%)",
         },
       },
     ]
-
-    //   {
-    //     selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-    //     properties: {
-    //       backgroundPositionX: -2522,
-    //       backgroundPositionY: -1587,
-    //       filter: "hue-rotate(181deg) saturate(100%) brightness(1)",
-    //       transform: "matrix3d(0.064768, 0.740317, 0.669131, 0, -0.989019, -0.0416387, 0.1418, 0, 0.132839, -0.670967, 0.729491, 0, -3500, -3500, 0, 1)",
-    //     },
-    //   },
-    //   {
-    //     selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-    //     properties: {
-    //       transform: "matrix3d(0.064768, 0.740317, 0.669131, 0, -0.989019, -0.0416387, 0.1418, 0, 0.132839, -0.670967, 0.729491, 0, -3500, -3500, 0, 1)",
-    //       background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 13%)",
-    //     },
-    //   },
-    // ],
   },
   "Willow's Wending #1": {
     name: "Willow's Wending",
@@ -1668,8 +1677,8 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          backgroundPositionX: -1087,
-          backgroundPositionY: -1348,
+          backgroundPositionX: -543,
+          backgroundPositionY: -1283,
           filter: "hue-rotate(87deg) saturate(100%) brightness(1)",
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
         },
@@ -2138,6 +2147,41 @@ export const LOCATIONS = {
         properties: {
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
           background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 7%, rgb(0, 0, 0) 16%)",
+        },
+      },
+    ]
+  },
+  "The East Tunnel": {
+    name: "The East Tunnel",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 100
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 3065,
+          backgroundPositionY: -370,
+          filter: "hue-rotate(-197deg) saturate(0%) brightness(1.5)",
+          transform: "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 4%, rgb(0, 0, 0) 10%)",
         },
       },
     ]

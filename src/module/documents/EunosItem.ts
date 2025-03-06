@@ -185,27 +185,34 @@ export default class EunosItem extends Item {
     return htmlStrings.join("");
   }
 
-  getAttackChatMessage(attack: {
-    name: string;
-    harm: number;
-    ammoCost: number;
-    special: string;
-    isDefault: boolean;
-  }, item: EunosItem): string {
-    if (!item.isWeapon()) {
+  getAttackChatMessage(attackIndex: number): string {
+    if (!this.isWeapon()) {
+      return "";
+    }
+    const attack = this.system.attacks[attackIndex];
+    if (!attack) {
       return "";
     }
     const htmlStrings: string[] = [
       "<div class='item-block item-block-attack'>",
       "<div class='item-header'>",
-      `<div class='weapon-name'>${item.name}</div>`,
+      "<div class='weapon-name-wrapper'>",
+      `<span class='weapon-name-prefix'>... using</span>&nbsp;<div class='weapon-name'>${this.name}</div>`,
+      "</div>",
       `<div class='item-name'>${attack.name}</div>`,
       "</div>",
       "<div class='item-subheader'>",
-      `<div class='item-harm key-word'>${attack.harm} Harm</div>`,
-      `<div class='item-ammo-cost'>${attack.ammoCost > 0 ? `${attack.ammoCost} Ammo` : ""}</div>`,
-      "</div>"
+      `<div class='item-harm key-word'>[${attack.harm}]</div>`,
+      `<div class='item-range'>range: ${this.system.range?.replace(/\//g, " / ")}</div>`
     ];
+
+    if (attack.ammoCost) {
+      htmlStrings.push(
+        `<div class='item-ammo-cost'>${"<span class='bullet-icon'></span>".repeat(attack.ammoCost)}</div>`
+      );
+    }
+
+    htmlStrings.push("</div>");
 
     if (attack.special) {
       htmlStrings.push(

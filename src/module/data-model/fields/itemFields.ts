@@ -35,7 +35,7 @@ export function getMoveFields() {
       choices: ["none", "ask", "reflexes", "fortitude", "willpower", "charisma", "coolness", "violence", "intuition", "reason", "soul", "perception"],
       required: false
     }),
-    specialflag: new fields.NumberField({initial: 0, min: 0, max: 3}),
+    specialflag: new fields.NumberField({initial: 0, min: 0, max: 4}),
     showOptionsFor: new fields.SchemaField({
       success: new fields.BooleanField({initial: true}),
       partial: new fields.BooleanField({initial: true}),
@@ -54,6 +54,14 @@ export function getAttackField() {
   })
 }
 
+export interface AttackSchema {
+  name: string;
+  harm: number;
+  ammoCost: number;
+  special: string;
+  isDefault: boolean;
+}
+
 export interface ItemDerivedFieldsBase {
   isGM: boolean;
   tooltip: string|false;
@@ -62,4 +70,14 @@ export interface ItemDerivedFieldsBase {
 
 export interface ItemDerivedFieldsRelationship extends ItemDerivedFieldsBase {
   strengthText: string;
+}
+
+export interface ItemDerivedFieldsWeapon extends ItemDerivedFieldsBase {
+  availableAttacks: Array<{
+    name: string;
+    harm: number;
+    ammoCost: number;
+    special: string;
+    isDefault: boolean;
+  }>;
 }

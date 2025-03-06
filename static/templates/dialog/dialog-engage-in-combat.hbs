@@ -1,0 +1,34 @@
+<form class="dialog-engage-in-combat">
+
+  <div class="weapon-list">
+    {{#each availableWeapons as |weapon i|}}
+    <div class="weapon-card-container">
+    <div class="weapon-card move-card">
+      <div class="move-info weapon-info item-name">
+        <a class="move-roll">{{name}} </a>
+        {{#if (eq system.class "Firearm")}}
+        {{{getDotline system.ammo.value system.ammo.max}}}
+        {{/if}}
+      </div>
+    </div>
+
+    {{#each system.availableAttacks as |attack j|}}
+    <div class="weapon-attack-block" data-item-id="{{../_id}}" data-attack-index="{{j}}" data-is-selected="false">
+      <div class="attack-top-row">
+        <div class="attack-harm">{{attack.harm}}</div>
+        <div class="attack-name">{{attack.name}}</div>
+        {{#if (eq ../system.class "Firearm")}}
+        {{{getDotline attack.ammoCost attack.ammoCost}}}
+        {{/if}}
+      </div>
+      {{#unless (eq attack.special "")}}
+      <div class="attack-bottom-row">
+        <div class="attack-special"><span class="down-arrow">↳</span> <em>{{attack.special}}</em></div>
+      </div>
+      {{/unless}}
+    </div>
+    {{/each}}
+    </div>
+    {{/each}}
+  </div>
+</form>
