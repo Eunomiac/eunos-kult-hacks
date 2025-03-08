@@ -318,68 +318,99 @@
 
       .dramatic-hook-candle-indicator {
         position: absolute;
-        right: 25px;
-        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 20px;
         height: 50px;
         width: 50px;
         background: var(--K4-BLACK);
         border-radius: 50%;
-        border: 1px solid var(--K4-bGOLD);
+        border: 1px solid var(--K4-bbBLUE);
         z-index: 10;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 32px;
-        color: var(--K4-bGOLD);
+        color: var(--K4-bbBLUE);
 
         // Apply the animation
         animation: candle-pulse 18s ease-in-out infinite;
         // Keyframe animation for pulsing glow effect
         @keyframes candle-pulse {
           0% {
-            box-shadow: 0 0 0 0 var(--K4-bGOLD);
-            filter: brightness(1);
-            opacity: 0.5;
+            box-shadow: 0 0 0 0 var(--K4-bbBLUE);
+            filter: brightness(1.5);
+            opacity: 1;
           }
 
           // Quick bright pulse
           5% {
-            box-shadow: 0 0 15px 5px var(--K4-bGOLD);
+            box-shadow: 0 0 15px 5px var(--K4-bbBLUE);
             filter: brightness(1.5);
             opacity: 1;
           }
 
           // Fade back to normal
           10% {
-            box-shadow: 0 0 0 0  var(--K4-bGOLD);
-            filter: brightness(1);
-            opacity: 0.5;
+            box-shadow: 0 0 0 0  var(--K4-bbBLUE);
+            filter: brightness(1.5);
+            opacity: 1;
           }
 
           // Quick bright pulse
           15% {
-            box-shadow: 0 0 15px 5px var(--K4-bGOLD);
+            box-shadow: 0 0 15px 5px var(--K4-bbBLUE);
             filter: brightness(1.5);
             opacity: 1;
           }
 
           // Fade back to normal
           20% {
-            box-shadow: 0 0 0 0  var(--K4-bGOLD);
-            filter: brightness(1);
-            opacity: 0.5;
+            box-shadow: 0 0 0 0  var(--K4-bbBLUE);
+            filter: brightness(1.5);
+            opacity: 1;
           }
 
           // Long pause before next pulse
           100% {
             box-shadow: 0 0 0 0  var(--K4-bGOLD);
             filter: brightness(1);
-            opacity: 0.5;
+            opacity: 1;
           }
         }
 
 
       }
+
+      .dramatic-hooks-panel {
+        position: absolute;
+        bottom: 120%;
+        width: 100%;
+        z-index: 1000;
+
+        .dramatic-hook-container {
+          position: absolute;
+          transform: translate(-50%, 0%);
+          left: 50%;
+          width: 100%;
+          color: white;
+          text-shadow:
+              0 0 0 black,
+              0 0 0 black,
+              0 0 0 black,
+              0 0 0 black,
+              0 0 0 black;
+          opacity: 0;
+          text-wrap: balance;
+          text-align: center;
+          // background: black;
+          // border-radius: 10px;
+          // padding: 3px;
+          // border: 1px solid var(--K4-bbGOLD);
+      }
+      }
+
+
     }
   }
 }
@@ -397,6 +428,30 @@
   gap: 5px;
 
 
+  .master-control-container {
+    position: absolute;
+    top: -100px;
+    display: flex;
+    right: 5px;
+    gap: 5px;
+    .pc-stage-control-button {
+      background: var(--K4-BLACK);
+      border: 1px solid var(--K4-GOLD);
+      color: var(--K4-GOLD);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+
+      &:hover {
+        filter: brightness(2);
+      }
+
+    }
+  }
   .pc-spotlight-container {
     position: relative;
     transform: translate(-50%, 0);
@@ -520,6 +575,102 @@
       transform-origin: 50% 100%;
       z-index: 1;
 
+
+      span.pc-name {
+          color: white;
+          font-size: 24px;
+          position: absolute;
+          top: 60%;
+          left: 50%;
+          font-family: var(--font-primary-smallcaps);
+          transform: translate(-50%, -50%);
+          text-align: center;
+          text-shadow:
+            0 0 2px var(--K4-dBLACK),
+            0 0 2px var(--K4-dBLACK),
+            0 0 2px var(--K4-dBLACK),
+            0 0 2px var(--K4-dBLACK),
+            0 0 2px var(--K4-dBLACK),
+            0 0 2px var(--K4-dBLACK);
+          font-weight: 1000;
+          pointer-events: none;
+      }
+
+      .session-scribe-indicator {
+        position: absolute;
+        top: 5px;
+        right: 40px;
+        transform: translate(-50%, 0%);
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+
+        background: url('modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp') no-repeat center center;
+        background-size:  40px;
+
+        // filter:
+        //   drop-shadow(0 0 1px var(--K4-bbGOLD))
+        //   drop-shadow(0 0 1px var(--K4-bbGOLD))
+        //   drop-shadow(0 0 1px var(--K4-bbGOLD))
+        //   drop-shadow(0 0 1px var(--K4-bbGOLD))
+        //   drop-shadow(0 0 1px var(--K4-bbGOLD))
+        //   drop-shadow(0 0 2px var(--K4-bbGOLD))
+        //   drop-shadow(0 0 2px var(--K4-bWHITE))
+        //   drop-shadow(0 0 2px var(--K4-bWHITE));
+
+        box-shadow:
+          0 0 10px var(--K4-bbGOLD),
+          0 0 10px var(--K4-bbGOLD),
+          0 0 10px var(--K4-bbGOLD),
+          0 0 10px var(--K4-bbGOLD),
+          0 0 10px var(--K4-bbGOLD),
+          0 0 10px var(--K4-bbGOLD),
+          0 0 10px var(--K4-bbGOLD);
+
+        animation: session-scribe-indicator-glow 10s ease-in-out infinite;
+
+        @keyframes session-scribe-indicator-glow {
+          0% {
+            box-shadow: 0 0 0px var(--K4-bbGOLD);
+            background: transparent url('modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp') no-repeat center center;
+            background-size:  40px;
+          }
+          80% {
+            box-shadow: 0 0 0px var(--K4-bbGOLD);
+            background: transparent url('modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp') no-repeat center center;
+            background-size:  40px;
+          }
+          90% {
+            box-shadow:
+            0 0 10px var(--K4-bbGOLD),
+            0 0 10px var(--K4-bbGOLD),
+            0 0 10px var(--K4-bbGOLD),
+            0 0 10px var(--K4-bbGOLD),
+            0 0 10px var(--K4-bbGOLD),
+            0 0 10px var(--K4-bbGOLD),
+            0 0 10px var(--K4-bbGOLD);
+            background: var(--K4-dBLACK) url('modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp') no-repeat center center;
+            background-size:  40px;
+          }
+          100% {
+            box-shadow: 0 0 0px var(--K4-bbGOLD);
+            background: transparent url('modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp') no-repeat center center;
+            background-size:  40px;
+          }
+        }
+
+
+        i {
+          display: none;
+          font-size: 20px;
+          color: var(--K4-GOLD);
+          background: var(--K4-RED);
+          border-radius: 50%;
+          height: 40px;
+          width: 40px;
+        }
+      }
+
       .pc-portrait-container {
         position: absolute;
         top: 50%;
@@ -555,6 +706,10 @@
           object-position: center top;
           transform-origin: 50% 0%;
           scale: 2;
+        }
+
+        &:hover + span.pc-name {
+          color: var(--K4-bbGOLD);
         }
       }
 

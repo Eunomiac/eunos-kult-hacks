@@ -285,6 +285,7 @@ export default function registerEunosActor(): void {
       const img = this.img as string;
       if (type === "bg") {
         const imgParts = [img.replace(".webp", "")];
+        // ["https://assets.forge-vtt.com/611b8f58cee1c3b8c7f83ba3/modules/eunos-kult-hacks/assets/images/pcs/jesus-de-costa-fg-color"]
         imgParts.push("-bg-color");
         switch (this.stabilityState) {
           case "Broken": {
@@ -304,8 +305,10 @@ export default function registerEunosActor(): void {
           }
         }
         imgParts.push(".webp");
+        // kLog.log(`Portrait Image ${type} '${img}' => `, imgParts.join(""));
         return imgParts.join("");
       }
+      // kLog.log(`Portrait Image ${type} (!== "bg") '${img}' => `, img.replace(".webp", "-fg-color.webp"));
       return img.replace(".webp", "-fg-color.webp");
     }
 

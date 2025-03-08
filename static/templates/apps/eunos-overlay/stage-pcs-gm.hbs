@@ -1,12 +1,18 @@
 <div id="PCS-GM" class="pcs-container pcs-container-gm gm-only">
   {{log "PCS-GM CONTAINER" this}}
+  <div class="master-control-container">
+    <button class="pc-stage-control-button pc-stage-control-button-wake-all" data-action="wakeAllPCs">
+      <i class="fa-solid fa-sun"></i>
+    </button>
+    <button class="pc-stage-control-button pc-stage-control-button-sleep-all" data-action="sleepAllPCs">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+  </div>
   {{#each locationData.pcData }}
-  <div
-    class="pc-container {{#if (eq state "base")}}pc-container-base{{/if}} {{#if (eq state "dimmed")}}pc-container-dimmed{{/if}} {{#if (eq state "hidden")}}pc-container-hidden{{/if}} {{#if (eq state "spotlit")}}pc-container-spotlit{{/if}} {{#if (eq state "masked")}}pc-container-masked{{/if}}"
-    data-pc-id="{{actorID}}" data-slot="{{slot}}">
-    <div class="pc-spotlight-container {{#if (eq state "spotlit")}}pc-spotlight-container-spotlit{{/if}}">
-      <img class="pc-spotlight" src="/modules/eunos-kult-hacks/assets/images/stage/spotlight.webp" />
-    </div>
+  <div class="pc-container {{#if (eq state " base")}}pc-container-base{{/if}} {{#if (eq state "dimmed"
+    )}}pc-container-dimmed{{/if}} {{#if (eq state "hidden" )}}pc-container-hidden{{/if}} {{#if (eq state "spotlit"
+    )}}pc-container-spotlit{{/if}} {{#if (eq state "masked" )}}pc-container-masked{{/if}}" data-pc-id="{{actorID}}"
+    data-slot="{{slot}}">
 
     {{#if actor}}
     <div class="dramatic-hooks-panel">
@@ -24,12 +30,13 @@
         {{#if actor}}
         <img class="pc-portrait" src="{{actor.img}}" />
         {{/if}}
-        {{#if (eq ../sessionScribeID actorID)}}
-        <div class="session-scribe-indicator">
-          <i class="fas fa-quill"></i>
-        </div>
-        {{/if}}
       </div>
+      <span class="pc-name">{{getFirstName actor}}</span>
+      {{#if (eq ../sessionScribeID ownerID)}}
+      <div class="session-scribe-indicator">
+        <i class="fas fa-quill"></i>
+      </div>
+      {{/if}}
       {{#if actor}}
       <div class="stability-panel">
         {{#let
@@ -62,42 +69,51 @@
       </div>
       <div class="wounds-panel">
         {{#unless (eq actor.system.criticalwound.state "none")}}
-        <div class="critical-wound critical-wound-{{actor.system.criticalwound.state}}" data-action="criticalWoundClick", data-wound-name="{{actor.system.criticalwound.value}}" data-actor-name="{{actor.name}}">
+        <div class="critical-wound critical-wound-{{actor.system.criticalwound.state}}" data-action="criticalWoundClick"
+          , data-wound-name="{{actor.system.criticalwound.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.criticalwound.value}}
         </div>
         {{/unless}}
         {{#unless (eq actor.system.majorwound1.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound1.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound1.value}}" data-actor-name="{{actor.name}}">
+        <div class="major-wound major-wound-{{actor.system.majorwound1.state}}" data-action="seriousWoundClick" ,
+          data-wound-name="{{actor.system.majorwound1.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.majorwound1.value}}
         </div>
         {{/unless}}
         {{#unless (eq actor.system.majorwound2.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound2.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound2.value}}" data-actor-name="{{actor.name}}">
+        <div class="major-wound major-wound-{{actor.system.majorwound2.state}}" data-action="seriousWoundClick" ,
+          data-wound-name="{{actor.system.majorwound2.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.majorwound2.value}}
         </div>
         {{/unless}}
         {{#unless (eq actor.system.majorwound3.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound3.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound3.value}}" data-actor-name="{{actor.name}}">
+        <div class="major-wound major-wound-{{actor.system.majorwound3.state}}" data-action="seriousWoundClick" ,
+          data-wound-name="{{actor.system.majorwound3.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.majorwound3.value}}
         </div>
         {{/unless}}
         {{#unless (eq actor.system.majorwound4.state "none")}}
-        <div class="major-wound major-wound-{{actor.system.majorwound4.state}}" data-action="seriousWoundClick", data-wound-name="{{actor.system.majorwound4.value}}" data-actor-name="{{actor.name}}">
+        <div class="major-wound major-wound-{{actor.system.majorwound4.state}}" data-action="seriousWoundClick" ,
+          data-wound-name="{{actor.system.majorwound4.value}}" data-actor-name="{{actor.name}}">
           {{actor.system.majorwound4.value}}
         </div>
         {{/unless}}
       </div>
       <div class="pc-stage-control-container">
-        <button class="pc-stage-control-button pc-stage-control-button-spotlight" data-action="togglePCSpotlight" data-actor-id="{{actorID}}" data-value="{{eq state "spotlit"}}">
+        <button class="pc-stage-control-button pc-stage-control-button-spotlight" data-action="togglePCSpotlight"
+          data-actor-id="{{actorID}}" data-value="{{eq state " spotlit"}}">
           <i class="fas fa-lightbulb"></i>
         </button>
-        <button class="pc-stage-control-button pc-stage-control-button-base" data-action="togglePCBase" data-actor-id="{{actorID}}" data-value="{{eq state "base"}}">
+        <button class="pc-stage-control-button pc-stage-control-button-base" data-action="togglePCBase"
+          data-actor-id="{{actorID}}" data-value="{{eq state " base"}}">
           <i class="fas fa-sun"></i>
         </button>
-        <button class="pc-stage-control-button pc-stage-control-button-dim" data-action="togglePCDimmed" data-actor-id="{{actorID}}" data-value="{{eq state "dimmed"}}">
+        <button class="pc-stage-control-button pc-stage-control-button-dim" data-action="togglePCDimmed"
+          data-actor-id="{{actorID}}" data-value="{{eq state " dimmed"}}">
           <i class="fa-solid fa-moon"></i>
         </button>
-        <button class="pc-stage-control-button pc-stage-control-button-hide" data-action="togglePCHidden" data-actor-id="{{actorID}}" data-value="{{eq state "hidden"}}">
+        <button class="pc-stage-control-button pc-stage-control-button-hide" data-action="togglePCHidden"
+          data-actor-id="{{actorID}}" data-value="{{eq state " hidden"}}">
           <i class="fas fa-eye-slash"></i>
         </button>
       </div>
@@ -117,16 +133,11 @@
 
         <div
           class="trait-container advantage-container {{system.type}}-advantage {{#if system.hasCounter}}counter-{{case "
-          lower" system.counterName}}{{/if}}">
-          <div class="trait-name advantage-name" popovertarget="{{advantagePopoverID}}"
-            style="anchor-name: --{{advantageAnchorName}}">
+          lower" system.counterName}}{{/if}}" popovertarget="{{advantagePopoverID}}"
+          style="anchor-name: --{{advantageAnchorName}}">
+          <div class="trait-name advantage-name">
             {{name}}
           </div>
-          {{#if system.summary}}
-          <div id="{{advantagePopoverID}}" style="position-anchor: --{{advantageAnchorName}};" popover>
-            {{{system.summary}}}
-          </div>
-          {{/if}}
           {{#if system.trigger}}
           <div class="trait-trigger">{{{system.trigger}}}</div>
           {{/if}}
@@ -141,7 +152,11 @@
           </span>
           {{/if}}
         </div>
-
+        {{#if system.summary}}
+        <div id="{{advantagePopoverID}}" style="position-anchor: --{{advantageAnchorName}};" popover>
+          {{{system.summary}}}
+        </div>
+        {{/if}}
         {{/let}}
         {{/unless}}
         {{/each}}
@@ -159,16 +174,11 @@
 
         <div
           class="trait-container disadvantage-container {{system.type}}-disadvantage {{#if system.hasCounter}}counter-{{case "
-          lower" system.counterName}}{{/if}}">
-          <div class="trait-name disadvantage-name" popovertarget="{{disadvantagePopoverID}}"
-            style="anchor-name: --{{disadvantageAnchorName}}">
+          lower" system.counterName}}{{/if}}" popovertarget="{{disadvantagePopoverID}}"
+          style="anchor-name: --{{disadvantageAnchorName}}">
+          <div class="trait-name disadvantage-name">
             {{name}}
           </div>
-          {{#if system.summary}}
-          <div id="{{disadvantagePopoverID}}" style="position-anchor: --{{disadvantageAnchorName}};" popover>
-            {{{system.summary}}}
-          </div>
-          {{/if}}
           {{#if system.trigger}}
           <div class="trait-trigger">{{{system.trigger}}}</div>
           {{/if}}
@@ -182,8 +192,14 @@
               data-item-id="{{itemID}}" data-actor-id="{{pcID}}"><i class="far fa-minus-square"></i></a>
           </span>
           {{/if}}
+
         </div>
 
+        {{#if system.summary}}
+        <div id="{{disadvantagePopoverID}}" style="position-anchor: --{{disadvantageAnchorName}};" popover>
+          {{{system.summary}}}
+        </div>
+        {{/if}}
         {{/let}}
         {{/unless}}
         {{/each}}

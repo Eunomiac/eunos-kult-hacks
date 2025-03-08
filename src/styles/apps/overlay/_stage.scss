@@ -81,7 +81,7 @@
 
 
       &.background-layer {
-        background: black url("./modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp");
+        background: black url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp");
         // background: black url("./assets/images/stage/stage-map-bg.webp");  // For Production
         // background-size: contain;
         background-position: 0px 0px;
@@ -91,7 +91,7 @@
         transition: background-image 2s ease-in-out;
 
         &.entry-hidden {
-          background: black url("./modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp");
+          background: black url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp");
           // background: black url("./assets/images/stage/stage-map-bg-no-entry.webp"); // For Production
           background-position: 0px 0px;
           background-repeat: no-repeat;

@@ -109,6 +109,9 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     }
     kLog.hbsLog(...(args.map(String) as Tuple<string>), dbLevel);
   },
+  "getFirstName": (actor: EunosActor): string => {
+    return actor.name.split(" ")[0]!;
+  },
   "getImgName": toKey,
   "stringify": (ref: Record<string, unknown>): string => JSON.stringify(ref, null, 2),
   "getTooltip": (actorID: string, itemID: string): string|false => {
@@ -117,13 +120,38 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     console.log(`Getting tooltip for Actor: ${actorID} and Item: ${itemID}`);
     if (!item) { return false; }
     console.log("Item", item);
+    const tooltipLines: string[] = [];
     if (item.isMechanicalItem() && ["active", "triggered"].includes(item.system.type)) {
-      return item.system.trigger!;
+      tooltipLines.push(item.system.trigger!);
+    }
+    if (item.hasOptions()) {
+      tooltipLines.push("<hr>");
+      let optionsString = item.system.options;
+      let headerString = "Options";
+      // Extract the contents of any starting header element
+      const headerMatch = optionsString.match(/<h\d>(.*?):?<\/h\d>/);
+      if (headerMatch?.[1]) {
+        headerString = headerMatch[1];
+        optionsString = optionsString.replace(headerMatch[0], "").trim();
+      }
+      tooltipLines.push(`<h3>${headerString}:</h3>${optionsString}`);
+    }
+    const tooltipString = tooltipLines.join("");
+    const tooltipElem$ = $(tooltipString);
+    // kLog.log("Tooltip", {tooltipLines, tooltipString, tooltipElem: tooltipElem$});
+    if (item.hasOptions()) {
+      const triggerLabelElem$ = $(`<span class='tooltip-trigger-label'>Trigger:</span>`);
+      const triggerWordsElem$ = tooltipElem$.find(".trigger-words");
+      triggerWordsElem$.prepend(triggerLabelElem$);
+    }
+    if (tooltipLines.length > 0) {
+      return $("<div>").append(tooltipElem$).html();
     }
     return false;
   },
   "getPortraitImage": (actor: EunosActor, type: "bg"|"fg"): string => {
-    return actor.getPortraitImage(type);
+    // kLog.log(`getPortraitImage ${actor.name} ${type}`, actor.getPortraitImage(type));
+    return actor.getPortraitImage(type.trim() as "bg"|"fg");
   },
   "getSpotlightImages": (slot: string|number): string => {
     const slotNum = Number(`${slot}`) - 1;
@@ -138,8 +166,8 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
       ["far-left", "left", "mid"],
     ][slotNum]!;
     spotlightSlots.forEach((slot) => {
-      htmlStrings.push(`<img class="pc-spotlight pc-spolight-${slot} pc-spotlight-on" src="/modules/eunos-kult-hacks/assets/images/stage/spotlights/spotlight-${slot}-on.webp" />`);
-      htmlStrings.push(`<img class="pc-spotlight pc-spolight-${slot} pc-spotlight-off" src="/modules/eunos-kult-hacks/assets/images/stage/spotlights/spotlight-${slot}-off.webp" />`);
+      htmlStrings.push(`<img class="pc-spotlight pc-spolight-${slot} pc-spotlight-on" src="modules/eunos-kult-hacks/assets/images/stage/spotlights/spotlight-${slot}-on.webp" />`);
+      htmlStrings.push(`<img class="pc-spotlight pc-spolight-${slot} pc-spotlight-off" src="modules/eunos-kult-hacks/assets/images/stage/spotlights/spotlight-${slot}-off.webp" />`);
     })
     return htmlStrings.join("");
   },
@@ -147,7 +175,7 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     // Retrieve first word of actor's name, and convert any accented or special characters to their ASCII equivalents, and convert to lowercase
     const name = actor.name.split(" ")[0]!;
     const asciiName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/g, "").toLowerCase();
-    return `/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-nameplate-${asciiName}.webp`;
+    return `modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-nameplate-${asciiName}.webp`;
   },
   "getDotline": (current: number, max: number): string => {
     // Create array of styled bullet spans

@@ -12,6 +12,7 @@ import {
   getOwnerOfDoc,
   sortDocsByLastWord,
   getOwnedActors,
+  getOwnedAndActiveActors,
   getActorFromRef,
   camelCase,
   roundNum,
@@ -25,6 +26,7 @@ import {
   LOCATIONS,
   type Location,
   type PCs,
+  type EunosMediaData,
   CONTROL_SLIDER_PANELS,
   Sounds,
   EASES,
@@ -433,16 +435,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         // Handle click-down
         kLog.log("click-down");
         void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
-          pcID,
-          state: PCState.spotlit,
+          [pcID]: PCState.spotlit
         });
 
       } else if (event.type === "mouseup") {
         // Handle click-release
         kLog.log("click-up");
         void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
-          pcID,
-          state: EunosOverlay.instance.getPCState(pcID),
+          [pcID]: EunosOverlay.instance.getPCState(pcID),
         });
       }
     },
@@ -452,8 +452,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
-        pcID,
-        state: PCState.dimmed,
+        [pcID]: PCState.dimmed,
       });
       const locData = EunosOverlay.instance.getLocationSettingsData(
         getSetting("currentLocation"),
@@ -472,8 +471,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
-        pcID,
-        state: PCState.hidden,
+        [pcID]: PCState.hidden,
       });
       const locData = EunosOverlay.instance.getLocationSettingsData(
         getSetting("currentLocation"),
@@ -492,8 +490,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, {
-        pcID,
-        state: PCState.base,
+        [pcID]: PCState.base,
       });
       const locData = EunosOverlay.instance.getLocationSettingsData(
         getSetting("currentLocation"),
@@ -518,6 +515,40 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         await journalPage.sheet.render({ force: true });
         $(journalPage.sheet!.element).addClass("session-scribe-open");
       }
+    },
+    async wakeAllPCs(event: PointerEvent, target: HTMLElement): Promise<void> {
+      kLog.log("wakeAllPCs", { event, target });
+      const pcs = Object.fromEntries(getOwnedActors().map((actor) => [actor.id!, PCState.base]));
+      const locData = EunosOverlay.instance.getLocationSettingsData(
+        getSetting("currentLocation"),
+      );
+      Object.entries(pcs).forEach(([pcID, state]) => {
+        if (locData.pcData[pcID]) {
+          locData.pcData[pcID].state = state;
+        }
+      });
+      void EunosOverlay.instance.setLocationData(
+        getSetting("currentLocation"),
+        EunosOverlay.instance.deriveLocationFullData(locData),
+      );
+      void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, pcs);
+    },
+    async sleepAllPCs(event: PointerEvent, target: HTMLElement): Promise<void> {
+      kLog.log("sleepAllPCs", { event, target });
+      const pcs = Object.fromEntries(getOwnedActors().map((actor) => [actor.id!, PCState.hidden]));
+      const locData = EunosOverlay.instance.getLocationSettingsData(
+        getSetting("currentLocation"),
+      );
+      Object.entries(pcs).forEach(([pcID, state]) => {
+        if (locData.pcData[pcID]) {
+          locData.pcData[pcID].state = state;
+        }
+      });
+      void EunosOverlay.instance.setLocationData(
+        getSetting("currentLocation"),
+        EunosOverlay.instance.deriveLocationFullData(locData),
+      );
+      void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, pcs);
     },
   };
 
@@ -562,6 +593,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       togglePCBase: EunosOverlay.ACTIONS.togglePCBase.bind(EunosOverlay),
       sessionScribeClick:
         EunosOverlay.ACTIONS.sessionScribeClick.bind(EunosOverlay),
+      wakeAllPCs: EunosOverlay.ACTIONS.wakeAllPCs.bind(EunosOverlay),
+      sleepAllPCs: EunosOverlay.ACTIONS.sleepAllPCs.bind(EunosOverlay),
     },
   };
 
@@ -810,10 +843,50 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void EunosOverlay.instance.refreshLocationImage(data.imgKey);
     },
 
-    updatePCUI: (data: { pcID: IDString; state: PCState }) => {
+    updatePCUI: (data: Record<IDString, PCState>) => {
       kLog.log("updatePCUI Called", data);
-      void EunosOverlay.instance.updatePCUI({ [data.pcID]: data.state });
+      void EunosOverlay.instance.updatePCUI(data);
     },
+
+    playMedia: (data: { mediaName: string, mediaData?: Partial<EunosMediaData> }) => {
+      data.mediaData ??= {};
+      const media = EunosMedia.GetMedia(data.mediaName);
+      void media.play(data.mediaData, false);
+    },
+
+    killMedia: (data: { mediaName: string }) => {
+      const media = EunosMedia.GetMedia(data.mediaName);
+      void media.kill(3);
+    },
+
+    requestSoundSync: async ({
+      userId
+    }: {
+      userId: string;
+    }) => {
+      const playingSounds = Object.fromEntries(
+        await Promise.all(
+          EunosMedia.GetLoopingPlayingSounds()
+            .map(async (sound) => [sound.name, await sound.getSettingsData()])
+        )
+      ) as Record<string, EunosMediaData>;
+      kLog.log(`GM returning playing sounds: ${Object.keys(playingSounds).join(", ")}`, playingSounds);
+      void EunosSockets.getInstance().call("syncSounds", userId, {
+        sounds: playingSounds,
+      });
+    },
+
+    syncSounds: async ({
+      sounds,
+    }: {
+      sounds: Record<string, EunosMediaData>;
+    }) => {
+      for (const [soundName, soundData] of Object.entries(sounds)) {
+        const sound = EunosMedia.GetMedia(soundName);
+        kLog.log(`Syncing sound '${soundName}' to volume '${soundData.volume}' with fade-in '${soundData.fadeInDuration}'`);
+        void sound.play({ volume: soundData.volume, fadeInDuration: soundData.fadeInDuration });
+      }
+    }
   };
   // #endregion SOCKET FUNCTIONS
 
@@ -1948,7 +2021,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       topBar$,
       {
         height: 0,
-        duration: 5,
+        duration: PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION,
         ease: "none",
       },
       0,
@@ -1956,7 +2029,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       bottomBar$,
       {
         height: 0,
-        duration: 5,
+        duration: PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION,
         ease: "none",
       },
       0,
@@ -2204,7 +2277,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region DRAMATIC HOOK ASSIGNMENT ~
   private async setDramaticHookAssignments(isDebugging = false): Promise<void> {
     // Collect all active users and their actors
-    let activeUsers = getUsers().filter((user) => !user.isGM && user.active);
+    // let activeUsers = getUsers().filter((user) => !user.isGM && user.active);
+    let activeUsers = getUsers().filter((user) => !user.isGM);
     // If there are fewer than three active users, do not assign dramatic hooks.
     if (activeUsers.length < 3) {
       if (isDebugging) {
@@ -2247,18 +2321,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       // If there are no self-assignments, write to settings and return
       if (!hasSelfAssignment) {
-        kLog.log("No self-assignments, returning assignments", {
-          activeUsers,
-          shuffledActors,
-        });
+        const assignmentMap = Object.fromEntries(
+          activeUsers.map((user, index) => [
+            user.name,
+            shuffledActors[index]!.name
+          ]),
+        );
+        const dramaticHookAssignments = Object.fromEntries(
+          activeUsers.map((user, index) => [
+            user.id!,
+            shuffledActors[index]!.id!,
+          ]),
+        ) as Record<IDString, IDString>;
+        kLog.log("No self-assignments, returning assignments", {assignmentMap, dramaticHookAssignments});
         await setSetting(
           "dramaticHookAssignments",
-          Object.fromEntries(
-            activeUsers.map((user, index) => [
-              user.id!,
-              shuffledActors[index]!.id!,
-            ]),
-          ) as Record<IDString, IDString>,
+          dramaticHookAssignments,
         );
         return;
       }
@@ -2394,9 +2472,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionLoading Methods
   private async initialize_SessionLoading(): Promise<void> {
     addClassToDOM("session-loading");
+    await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
       this.initializePreSessionSong(),
+      this.initializeAmbientAudio(),
     ]);
     this.initializeVideoPreloading();
     if (!getUser().isGM) return;
@@ -2413,6 +2493,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.initializeCountdown(),
       this.initializePreSessionSong(),
       this.preloadIntroVideo(),
+      this.initializeAmbientAudio(),
     ]);
     if (!getUser().isGM) return;
 
@@ -2638,7 +2719,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Object.values(pcGlobalData).forEach((data) => {
       pcData.push({
         ...data,
-        state: PCState.base,
+        state: PCState.hidden,
       });
     });
     return pcData;
@@ -2680,7 +2761,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     gsap.core.Timeline
   >;
   private pcMaskedTimelines: Record<IDString, gsap.core.Timeline> =
-    {} as Record<IDString, gsap.core.Timeline>;
+    {} as Record<number, gsap.core.Timeline>;
 
   private slotStats = {
     "1": {
@@ -3213,6 +3294,96 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       });
   }
 
+  private buildHookDisplayTimeline(hookContainer$: JQuery): gsap.core.Timeline {
+    const tl = gsap.timeline({repeatRefresh: true});
+    tl.fromTo(hookContainer$, {
+      opacity: 0,
+      y: 100,
+      scale: 0.75,
+      filter: "blur(10px)"
+    }, {
+      opacity: 1,
+      y: 30,
+      scale: 1,
+      filter: "blur(0px)",
+      duration: 3,
+      ease: "sine.inOut",
+    })
+    // .fromTo(hookContainer$, {
+    //   x: -25,
+    // }, {
+    //   x: 25,
+    //   duration: 3,
+    //   repeat: 3,
+    //   yoyo: true,
+    //   ease: "sine.inOut",
+    // }, 0)
+    .fromTo(hookContainer$, {
+      y: 30,
+    }, {
+      y: 20,
+      duration: 4,
+      repeat: 6,
+      yoyo: true,
+      ease: "sine.inOut",
+    }, 0)
+    .to(hookContainer$, {
+      opacity: 0,
+      scale: 2,
+      filter: "blur(10px)",
+      duration: 3,
+      ease: "power3.in",
+    })
+    .to(hookContainer$, {
+      y: 0,
+      scale: 1,
+      filter: "blur(0px)",
+      duration: 0,
+    });
+    return tl;
+  }
+
+  private getDramaticHookContainer(pcID: IDString, index: 1|2): JQuery {
+    const container$ = this.pcs$.find(`.pc-container[data-pc-id="${pcID}"]`);
+    if (!container$.length) {
+      throw new Error(`PC container for pcID '${pcID}' not found.`);
+    }
+    const hookContainer$ = container$.find(".dramatic-hook-container");
+    if (hookContainer$.length < index) {
+      throw new Error(`Dramatic hook container for pcID '${pcID}' and index '${index}' not found.`);
+    }
+    return $(hookContainer$[index - 1] as HTMLElement);
+  }
+
+  private buildDramaticHookTimeline(): gsap.core.Timeline {
+    const activeActors = getOwnedActors()
+      .filter((actor) => actor.isPC() && getOwnerOfDoc(actor)?.id !== getUser().id);
+    const activeActorContainers: [IDString, 1|2][] = [];
+    activeActors.forEach((actor) => {
+      activeActorContainers.push([actor.id!, 1], [actor.id!, 2]);
+    });
+    kLog.log(`Active actor containers:`, activeActorContainers);
+    const tl = gsap.timeline({ paused: true, repeat: -1, repeatRefresh: true });
+    shuffle(activeActorContainers).forEach(([pcID, index]) => {
+      tl.call(() => {
+        const actor = getActorFromRef(pcID);
+        if (!actor?.isPC()) {
+          kLog.log(`Actor ${pcID} is not a PC, skipping dramatic hook display.`, actor);
+          return;
+        }
+        const hookData = actor.system.dramatichooks[`dramatichook${index}`];
+        if (!hookData.content || hookData.isChecked) {
+          kLog.log(`Actor ${pcID} has no dramatic hook content or is already checked, skipping dramatic hook display.`, hookData);
+          return;
+        }
+        const container$ = this.getDramaticHookContainer(pcID, index);
+        kLog.log(`Playing hook display timeline for actor ${pcID} and index ${index}.`, container$);
+        this.buildHookDisplayTimeline(container$).play();
+      }, [], "+=50");
+    });
+    return tl;
+  }
+
   public async buildPCPortraitTimelines() {
     const ownedActors = getOwnedActors();
     ownedActors.forEach((actor) => {
@@ -3223,6 +3394,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.pcMaskedTimelines[actor.id!] = this.buildToMaskedTimeline(actor.id!);
       this.pcMasterTimelines[actor.id!]?.seek(0);
     });
+    if (!getUser().isGM) {
+      this.buildDramaticHookTimeline().play();
+    }
   }
 
   private getPCState(
@@ -3460,7 +3634,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         this.getDefaultLocationPCData().map((data) => [data.actorID, data]),
       ),
       npcData: {} as Record<IDString, Location.NPCData.SettingsData>,
-      playlists: [] as IDString[],
+      playlists: {} as Record<string, EunosMediaData>,
     };
   }
   private getLocationDefaultSettingsData(
@@ -3546,6 +3720,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
     return npcFullData;
   }
+  private getLocationPlaylistData(
+    playlists: Record<string, EunosMediaData>,
+  ): Record<string, EunosMedia<EunosMediaTypes.audio>> {
+    const playlistFullData: Record<string, EunosMedia<EunosMediaTypes.audio>> = {};
+    Object.entries(playlists).forEach(([id, data]) => {
+      if (EunosMedia.Sounds.has(id)) {
+        playlistFullData[id] = EunosMedia.Sounds.get(id)!;
+      }
+      playlistFullData[id] = new EunosMedia(id, data as EunosMediaData & {type: EunosMediaTypes.audio});
+    });
+    return playlistFullData;
+  }
   private deriveLocationFullData(
     settingsData: Location.SettingsData,
   ): Location.FullData {
@@ -3553,18 +3739,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     const pcFullData = this.getLocationPCData(pcData);
     const npcFullData = this.getLocationNPCData(npcData);
+    const playlistFullData = this.getLocationPlaylistData(playlists);
 
     const fullData: Location.FullData = {
       ...settingsData,
       pcData: pcFullData,
       npcData: npcFullData,
-      playlists: playlists.map((id) => getGame().playlists.get(id) as Playlist),
+      playlists: playlistFullData,
     };
     return fullData;
   }
-  private deriveLocationSettingsData(
+  private async deriveLocationSettingsData(
     fullData: Location.FullData,
-  ): Location.SettingsData {
+  ): Promise<Location.SettingsData> {
     const { pcData, npcData, playlists, currentImage, ...staticData } = fullData;
     const pcSettingsData: Record<IDString, Location.PCData.SettingsData> =
       Object.fromEntries(
@@ -3584,7 +3771,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           },
         ]),
       );
-    const playlistSettingsData = playlists.map((playlist) => playlist.id!);
+    // Convert playlist data to settings format by getting settings data for each media entry
+    const playlistSettingsData: Record<string, EunosMediaData> = Object.fromEntries(
+      await Promise.all(
+        Object.entries(playlists).map(async ([id, media]: [string, EunosMedia<EunosMediaTypes.audio>]) => {
+          const settingsData = await media.getSettingsData();
+          return [id, settingsData];
+        })
+      )
+    ) as Record<string, EunosMediaData>;
     return {
       ...staticData,
       currentImage,
@@ -3624,8 +3819,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async setLocationData(location: string, data: Location.FullData) {
     const curData = getSetting("locationData");
-    curData[location] = this.deriveLocationSettingsData(data);
+    curData[location] = await this.deriveLocationSettingsData(data);
     await setSetting("locationData", curData);
+  }
+
+  public async resetLocationData(location?: string) {
+    location ??= getSetting("currentLocation");
+    const defaultData = this.deriveLocationFullData(this.getLocationDefaultSettingsData(location));
+    await this.setLocationData(location, defaultData);
   }
 
   public async refreshLocationImage(imgKey: string) {
@@ -3716,6 +3917,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     isSkippingPCs = false,
   ) {
     const locationData = this.getLocationData(toLocation);
+    const fromLocationData = fromLocation ? this.getLocationData(fromLocation) : null;
     if (!locationData) {
       kLog.error("Location not found", { location: toLocation });
       return;
@@ -3744,6 +3946,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       playlists,
       mapTransforms,
     } = locationData;
+
+    const {
+      playlists: fromPlaylists
+    } = fromLocationData ?? {playlists: {}};
 
     // Construct a timeline that will animate all of the map transforms smoothly and simultaneously
 

@@ -16,22 +16,38 @@
       {{{getSpotlightImages slot}}}
     </div>
 
-    <img class="pc-portrait-shadow pc-portrait-shadow-empty" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-shadow-empty.webp" />
-    <img class="pc-portrait-shadow pc-portrait-shadow-main" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-shadow.webp" />
+    <img class="pc-portrait-shadow pc-portrait-shadow-empty"
+      src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-shadow-empty.webp" />
+    <img class="pc-portrait-shadow pc-portrait-shadow-main"
+      src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-shadow.webp" />
 
     <div class="pc-portrait-container" data-action="pcPortraitClick">
       <div class="pc-portrait-wrapper">
+      <div class="dramatic-hooks-panel">
+        <div class="dramatic-hook-container {{#if actor.system.dramatichooks.dramatichook1.isChecked}}checked{{/if}}">
+          <div class="dramatic-hook-content">{{actor.system.dramatichooks.dramatichook1.content}}</div>
+        </div>
+        <div class="dramatic-hook-container {{#if actor.system.dramatichooks.dramatichook2.isChecked}}checked{{/if}}">
+          <div class="dramatic-hook-content">{{actor.system.dramatichooks.dramatichook2.content}}</div>
+        </div>
+      </div>
         <div class="pc-portrait-interior-wrapper">
-          <img class="pc-portrait-bg" src="{{getPortraitImage actor "bg"}}" />
-          <img class="pc-portrait-red-lightning" src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-red-lightning-bg.webp" />
-          <img class="pc-portrait-smoke" src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-smoke-bg.webp" />
-          <img class="pc-portrait-fg" src="{{getPortraitImage actor "fg"}}" />
+          <img class="pc-portrait-bg" src="{{getPortraitImage actor " bg"}}" />
+          <img class="pc-portrait-red-lightning"
+            src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-red-lightning-bg.webp" />
+          <img class="pc-portrait-smoke"
+            src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-smoke-bg.webp" />
+          <img class="pc-portrait-fg" src="{{getPortraitImage actor " fg"}}" />
           <img class="pc-portrait-nameplate" src="{{getNameplateImage actor}}" />
         </div>
-        <img class="pc-portrait-frame pc-portrait-frame-dark" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-dark.webp" />
-        <img class="pc-portrait-frame pc-portrait-frame-dim" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-dim.webp" />
-        <img class="pc-portrait-frame pc-portrait-frame-main" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-main.webp" />
-        <img class="pc-portrait-frame pc-portrait-frame-spotlit" src="/modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-spotlit.webp" />
+        <img class="pc-portrait-frame pc-portrait-frame-dark"
+          src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-dark.webp" />
+        <img class="pc-portrait-frame pc-portrait-frame-dim"
+          src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-dim.webp" />
+        <img class="pc-portrait-frame pc-portrait-frame-main"
+          src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-main.webp" />
+        <img class="pc-portrait-frame pc-portrait-frame-spotlit"
+          src="modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-spotlit.webp" />
       </div>
       {{#if (eq ../dramaticHookCandleID actorID)}}
       <div class="dramatic-hook-candle-indicator">
@@ -44,6 +60,6 @@
 
   </div>
 
-{{/each}}
+  {{/each}}
 
 </div>

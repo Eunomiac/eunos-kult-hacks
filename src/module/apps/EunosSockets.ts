@@ -1,4 +1,4 @@
-import { SYSTEM_ID } from "../scripts/constants";
+import { SYSTEM_ID, type EunosMediaData } from "../scripts/constants";
 import { GamePhase, UserTargetRef, MediaLoadStatus, PCState, NPCState } from "../scripts/enums";
 import * as U from "../scripts/utilities";
 import EunosAlerts from "./EunosAlerts";
@@ -71,15 +71,33 @@ export interface SocketEvents {
     };
   };
   updatePCUI: {
-    data: {
-      pcID: IDString;
-      state: PCState;
-    };
+    data: Record<IDString, PCState>;
   };
   updateNPCUI: {
     data: {
       npcID: IDString;
       state: NPCState;
+    };
+  };
+  requestSoundSync: {
+    data: {
+      userId: string;
+    };
+  };
+  syncSounds: {
+    data: {
+      sounds: Record<string, EunosMediaData>;
+    };
+  };
+  playMedia: {
+    data: {
+      mediaName: string;
+      mediaData?: Partial<EunosMediaData>;
+    };
+  };
+  killMedia: {
+    data: {
+      mediaName: string;
     };
   };
 }

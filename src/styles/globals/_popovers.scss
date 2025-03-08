@@ -4,6 +4,16 @@
     // width: fit-content !important;
   }
 
+  @position-try --custom-left {
+    position-area: top left;
+    inset-area: top left;
+  }
+
+  @position-try --custom-right {
+    position-area: top right;
+    inset-area: top right;
+  }
+
   [popover] {
     position: absolute;
     position-area: top;
@@ -12,6 +22,9 @@
     width: fit-content !important;
     min-width: 200px !important;
     max-width: 500px !important;
+
+    position-try-fallbacks:
+      --custom-left, --custom-right;
 
     display: flex;
     flex-direction: column;
@@ -50,6 +63,7 @@
       white-space: break-spaces;
       text-wrap: balance;
       hyphens: none !important;
+      width: 100% !important;
     }
 
     > div {
@@ -68,6 +82,43 @@
       }
     }
 
+
+    h3 {
+      margin: 0 !important;
+      text-align: left !important;
+    }
+
+    hr {
+      display: block !important;
+      width: 100% !important;
+      height: 3px !important;
+      background: var(--trigger-color, var(--K4-RED)) !important;
+      border: none !important;
+      margin-top: 0 !important;
+    }
+
+    ul, ol {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 5px !important;
+
+      li {
+        text-align: left !important;
+        text-wrap: pretty !important;
+        hyphens: auto !important;
+      }
+    }
+
+    .tooltip-trigger-label {
+      display: inline-block !important;
+      width: auto !important;
+      font-weight: 1000 !important;
+      font-size: 14px !important;
+      color: var(--K4-bWHITE) !important;
+      text-align: left !important;
+      margin-left: 0px !important;
+      margin-right: 5px !important;
+    }
     .trigger-words, .key-word {
       font-weight: normal;
       color: white !important;
@@ -75,6 +126,41 @@
       &.key-word {
         font-weight: 1000 !important;
       }
+
+      &.trigger-words {
+        display: block !important;
+        font-weight: 1000 !important;
+        font-size: 14px !important;
+        color: var(--trigger-color, var(--K4-bbGOLD)) !important;
+        text-align: left !important;
+        text-wrap: auto !important;
+        width: auto !important;
+
+        &::after {
+          content: " ...";
+          font-weight: 1000 !important;
+          font-size: 14px !important;
+          color: var(--trigger-color, var(--K4-bbGOLD)) !important;
+          text-align: left !important;
+        }
+      }
+    }
+
+    &.advantage-tooltip {
+      --trigger-color: var(--K4-bGOLD);
+    }
+
+    &.disadvantage-tooltip {
+      --trigger-color: var(--K4-bRED);
+    }
+    &.darksecret-tooltip {
+      --trigger-color: var(--K4-bGREY);
+    }
+    &.weapon-tooltip {
+      --trigger-color: var(--K4-bRED);
+    }
+    &.relationship-tooltip {
+      --trigger-color: var(--K4-bBLUE);
     }
 
     &.weapon-tooltip,
@@ -110,6 +196,7 @@
       h2 {
         display: block !important;
       }
+
 
       * {
         // margin: 0 !important;

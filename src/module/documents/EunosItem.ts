@@ -60,6 +60,9 @@ export default class EunosItem extends Item {
       this.type === "limitation"
     );
   }
+  hasOptions(): this is EunosItem & { system: { options: string } } {
+    return Boolean("options" in (this.system as ItemDataMove | ItemDataAdvantage | ItemDataDisadvantage | ItemDataAbility | ItemDataLimitation) && (this.system as ItemDataMove | ItemDataAdvantage | ItemDataDisadvantage | ItemDataAbility | ItemDataLimitation).options);
+  }
   isAdvantage(): this is EunosItem & { system: ItemDataAdvantage } {
     return this.type === "advantage";
   }

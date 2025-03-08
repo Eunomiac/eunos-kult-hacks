@@ -14,7 +14,7 @@ import ItemDataRelationship from "../data-model/ItemDataRelationship";
 import ItemDataWeapon from "../data-model/ItemDataWeapon";
 import { GamePhase } from "../scripts/enums";
 import { UserTarget } from "../apps/EunosSockets";
-import { type Location } from "../scripts/constants";
+import { type Location, type EunosMediaData } from "../scripts/constants";
 
 declare global {
 

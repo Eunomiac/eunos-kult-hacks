@@ -2895,6 +2895,13 @@ function getOwnedActors(): Array<EunosActor & {system: ActorDataPC}> {
   return sortDocsByLastWord(unsortedActors);
 }
 
+function getOwnedAndActiveActors(): Array<EunosActor & {system: ActorDataPC}> {
+  const ownedActors = getOwnedActors();
+  const activeActors = ownedActors
+    .filter((actor) => getOwnerOfDoc(actor)?.active);
+  return sortDocsByLastWord([...ownedActors, ...activeActors]);
+}
+
 /**
  * Calculates time remaining until next game session
  * @returns Object containing days, hours, minutes, seconds and total seconds until target time
@@ -3235,7 +3242,7 @@ export {
 
   parseDocRefToUUID,
 
-  loc, getSetting, getTemplatePath, displayImageSelector, getOwnerOfDoc, getActorFromRef, getUserFromRef, getOwnedActors,
+  loc, getSetting, getTemplatePath, displayImageSelector, getOwnerOfDoc, getActorFromRef, getUserFromRef, getOwnedActors, getOwnedAndActiveActors,
 
   convertTorontoTime, formatDateAsISO, getNextDayTime
 

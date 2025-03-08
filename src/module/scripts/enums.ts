@@ -17,6 +17,15 @@ export enum EunosMediaTypes {
   video = "video"
 }
 
+export enum EunosMediaCategories {
+  PreSessionSongs = "PreSessionSongs",
+  Ambient = "Ambient",
+  Weather = "Weather",
+  Effects = "Effects",
+  Alerts = "Alerts",
+  Video = "Video"
+}
+
 export enum PCTargetRef {
   all = "all",
   self = "self",

@@ -1,5 +1,5 @@
 import { Sounds, PRE_SESSION, type EunosMediaData } from "../scripts/constants";
-import { EunosMediaTypes, MediaLoadStatus, UserTargetRef } from "../scripts/enums";
+import { EunosMediaCategories, EunosMediaTypes, MediaLoadStatus, UserTargetRef } from "../scripts/enums";
 import { objDeepFlatten } from "../scripts/utilities";
 import EunosSockets from "./EunosSockets";
 // #region === SOUND FUNCTIONS AND VALUES ===
@@ -51,13 +51,21 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     }
   }
 
+  static GetMediaByCategory(category: EunosMediaCategories): EunosMedia<EunosMediaTypes.audio | EunosMediaTypes.video>[] {
+    return Array.from(EunosMedia.Sounds.values()).filter((media) => media.category === category);
+  }
+
+  static GetLoopingPlayingSounds(): EunosMedia<EunosMediaTypes.audio>[] {
+    return Array.from(EunosMedia.Sounds.values()).filter((media) => media.loop && media.playing);
+  }
+
   // #region === INITIALIZATION === ~
   /**
    * Initialize the sound system by preloading all sounds
    */
-  static PostInitialize() {
+  static async PostInitialize() {
     // Preload all sounds
-    return Promise.all(
+    await Promise.all(
       objDeepFlatten(Sounds, {isKeepingLastObject: true}).map(([soundName, soundData]) => {
         const sound = new EunosMedia(soundName);
         if (sound.alwaysPreload) {
@@ -66,11 +74,18 @@ export default class EunosMedia<T extends EunosMediaTypes> {
         return Promise.resolve();
       })
     );
+
+    // Request sync of playing sounds from GM
+    void EunosSockets.getInstance().call("requestSoundSync", UserTargetRef.gm, {
+      userId: getUser().id!,
+    });
+
   }
   // #endregion INITIALIZATION
 
   #type: T;
   #element: T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement;
+  #category: EunosMediaCategories = EunosMediaCategories.Video;
   path: string;
   name: string;
   delay: number;
@@ -161,6 +176,17 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       throw new Error(`No element could be found for EunosMedia instance ${this.name}`);
     }
     return this.#element;
+  }
+
+  get category(): EunosMediaCategories {
+    if (!this.#category) {
+      if (this.path) {
+        this.#category = this.getCategoryFromPath();
+      } else {
+        throw new Error(`No path provided for media ${this.name}`);
+      }
+    }
+    return this.#category;
   }
 
   get loadedMap(): Map<string, EunosMedia<T>> {
@@ -264,6 +290,16 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     }
   }
 
+  #fadeInDuration: Maybe<number>;
+
+  public get fadeInDuration(): number {
+    if (this.#fadeInDuration) {
+      return this.#fadeInDuration;
+    } else {
+      return 0;
+    }
+  }
+
   public get currentTime(): number {
     return this.element.currentTime ?? 0;
   }
@@ -272,6 +308,23 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     this.element.currentTime = time;
   }
 
+  async getSettingsData(): Promise<EunosMediaData> {
+    return {
+      path: this.path,
+      alwaysPreload: this.alwaysPreload,
+      delay: this.delay,
+      fadeInDuration: this.fadeInDuration,
+      displayDuration: this.displayDuration,
+      duration: await this.getDuration(),
+      parentSelector: this.parentSelector,
+      loop: this.loop,
+      mute: this.mute,
+      sync: this.sync,
+      volume: this.volume,
+      autoplay: this.autoplay,
+      reportPreloadStatus: this.reportPreloadStatus
+    };
+  }
   get loaded(): boolean {
     if (this.type === EunosMediaTypes.audio) {
       if (EunosMedia.LoadedSounds.has(this.name)) {
@@ -294,6 +347,12 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       EunosMedia.LoadedVideos.delete(this.name);
       return false;
     }
+  }
+  get playing(): boolean {
+    // A media element is playing if it's not paused, not ended, and is ready to play
+    return !this.element.paused &&
+           !this.element.ended &&
+           this.element.readyState > 2; // HAVE_CURRENT_DATA or higher
   }
 
   private getTypeFromPath(path?: string): T {
@@ -357,6 +416,27 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     }
   }
 
+  private getCategoryFromPath(path?: string): EunosMediaCategories {
+    path ??= this.path;
+    if (!path) {
+      throw new Error(`No path provided for media ${this.name}`);
+    }
+    if (this.type === EunosMediaTypes.video) {
+      return EunosMediaCategories.Video;
+    } else if (path.includes("ambient")) {
+      return EunosMediaCategories.Ambient;
+    } else if (path.includes("weather")) {
+      return EunosMediaCategories.Weather;
+    } else if (path.includes("effects")) {
+      return EunosMediaCategories.Effects;
+    } else if (path.includes("alerts")) {
+      return EunosMediaCategories.Alerts;
+    } else if (path.includes("music")) {
+      return EunosMediaCategories.PreSessionSongs;
+    }
+    throw new Error(`Unsupported category: ${path}`);
+  }
+
   constructor(mediaName: string, mediaData?: EunosMediaData & {type: T}) {
 
     let data: EunosMediaData & {type: T};
@@ -377,6 +457,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     this.name = mediaName;
     this.delay = data.delay ?? 0;
     this.displayDuration = data.displayDuration;
+    this.#fadeInDuration = data.fadeInDuration ?? 0;
     this.reportPreloadStatus = data.reportPreloadStatus ?? false;
     if (data.path) {
       this.path = data.path;
@@ -403,6 +484,9 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       this.alwaysPreload = true;
     } else {
       this.alwaysPreload = false;
+    }
+    if (this.#type === EunosMediaTypes.audio) {
+      this.#category = this.getCategoryFromPath();
     }
     this.loop = data.loop ?? false;
     this.mute = data.mute ?? false;
@@ -588,11 +672,19 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     volume?: number;
     loop?: boolean;
     sync?: boolean;
-  }): Promise<void> {
-    const { volume, loop, sync } = options ?? {};
+    fadeInDuration?: number;
+  }, isSocketCalling = false): Promise<void> {
+    const { volume, loop, sync, fadeInDuration } = options ?? {};
     this.volume = volume ?? this.volume;
     this.loop = loop ?? this.loop;
     this.sync = sync ?? this.sync;
+    this.#fadeInDuration = fadeInDuration ?? this.#fadeInDuration;
+
+    if (getUser().isGM && isSocketCalling) {
+      const mediaData = await this.getSettingsData();
+      void EunosSockets.getInstance().call("playMedia", UserTargetRef.all, {mediaName: this.name, mediaData});
+      return;
+    }
     if (!this.loaded) {
       if (this.alwaysPreload) {
         console.warn(
@@ -608,10 +700,11 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     //     this.#element.currentTime = syncTime;
     //   }
     // }
-    this.#element.volume = this.volume;
+    this.#element.volume = this.fadeInDuration > 0 ? 0 : this.volume;
     this.#element.loop = this.loop;
     try {
       await this.#element.play();
+      await gsap.to(this.#element, { volume: this.volume, duration: this.fadeInDuration, ease: "none" });
     } catch (error) {
       if (error instanceof Error && error.name === "NotAllowedError") {
         kLog.error("Playback prevented, setting up interaction handlers", error);
@@ -626,12 +719,16 @@ export default class EunosMedia<T extends EunosMediaTypes> {
   /**
    * Kills the media element, fading it out over 0.5s if it is playing, then unloads it.
    */
-  async kill(fadeDuration = 0.5): Promise<void> {
+  async kill(fadeDuration = 2, isSocketCalling = false): Promise<void> {
+    if (getUser().isGM && isSocketCalling) {
+      void EunosSockets.getInstance().call("killMedia", UserTargetRef.all, {mediaName: this.name});
+      return;
+    }
     if (!this.#element) {
       return;
     }
     kLog.log(`Found media "${this.name}", killing it ...`);
-    await gsap.to(this.#element, { volume: 0, duration: fadeDuration, ease: "power2.in" });
+    await gsap.to(this.#element, { volume: 0, duration: fadeDuration, ease: "none" });
     kLog.log(`... Awaited fade of "${this.name}", unloading.`);
     await this.unload();
   }

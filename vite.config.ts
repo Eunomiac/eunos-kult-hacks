@@ -75,6 +75,8 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
     tsconfigPaths(),
     foundryEntrypointsPlugin(),
     openChromePlugin(),
+    // Add the CSS URL plugin here
+    cssUrlRewritePlugin(command),
   ];
 
   // Handle minification after build to allow for tree-shaking and whitespace minification
@@ -224,6 +226,36 @@ function minifyPlugin(): Vite.Plugin {
         });
       },
     },
+  };
+}
+
+/**
+ * Plugin to rewrite CSS asset URLs based on build mode
+ * @param command - The Vite command ('build' or 'serve')
+ */
+function cssUrlRewritePlugin(command: string): Vite.Plugin {
+  const isProduction = command === "build";
+
+  return {
+    name: "css-url-rewrite",
+    transform(code, id) {
+      // Only process CSS and SCSS files
+      if (!id.match(/\.s?css$/)) return null;
+
+      // For production build: replace module paths with relative paths
+      if (isProduction) {
+        return code.replace(
+          /url\(['"]modules\/eunos-kult-hacks\/assets\//g,
+          "url('./assets/"
+        );
+      }
+
+      // For development: replace relative paths with module paths
+      return code.replace(
+        /url\(['"]\.\/(assets)\//g,
+        "url('modules/eunos-kult-hacks/$1/"
+      );
+    }
   };
 }
 
