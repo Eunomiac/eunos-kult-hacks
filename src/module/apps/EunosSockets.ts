@@ -83,6 +83,7 @@ export interface SocketEvents {
     data: {
       userId: string;
     };
+    return: Record<string, EunosMediaData>;
   };
   syncSounds: {
     data: {
@@ -196,7 +197,7 @@ export default class EunosSockets {
   public registerSocketFunctions(funcs: Record<string, SocketFunction>): void {
     for (const [fName, func] of Object.entries(funcs)) {
       this.socket.register(fName, async (data: unknown) => {
-        await this.executeSocketFunction(fName as SocketEventName, data as SocketEvents[SocketEventName]["data"]);
+        return this.executeSocketFunction(fName as SocketEventName, data as SocketEvents[SocketEventName]["data"]);
       });
       this.socketFunctions[fName] = func;
     }
@@ -253,17 +254,31 @@ export default class EunosSockets {
     const users: User[] = this.getUsersFromTarget(target);
 
     try {
-
       kLog.socketCall(`[I CALLED] ${U.uCase(target)}: "${event}"`, data);
 
-      // Use executeAsGM for GM-targeted calls that expect returns
-      if (target === UserTargetRef.gm as string && expectResponse) {
-        const result = await socket.executeAsGM(event, data);
-        kLog.socketCall(`[THEY ANSWERED] "${event}" with "${String(result)}"`, data);
-        return result as R;
+      // Handle calls expecting responses
+      if (expectResponse) {
+        // For GM targets
+        if (target === UserTargetRef.gm as string) {
+          const result = await (socket.executeAsGM(event, data, true) as Promise<R>);
+          kLog.socketCall(`[THEY ANSWERED] "${event}" with "${String(result)}"`, data);
+          return result as R;
+        }
+
+        // For specific user targets (by ID or UUID)
+        if (U.isDocID(target) || U.isDocUUID(target)) {
+          const userId = U.isDocUUID(target) ? fromUuidSync(target as `User.${string}`)?.id as Maybe<string> : target;
+          if (!userId) throw new Error(`Invalid user target: ${target}`);
+          const result = await (socket.executeAsUser(event, userId, data, true) as Promise<R>);
+          kLog.socketCall(`[THEY ANSWERED] "${event}" with "${String(result)}"`, data);
+          return result;
+        }
+
+        // Multiple targets with expectResponse is not supported
+        throw new Error("Cannot expect response from multiple targets.");
       }
 
-      // Use executeForUsers for broadcast-style calls
+      // Handle broadcast-style calls (no response expected)
       const userIds = users.map((user: User) => user.id!);
       await socket.executeForUsers(event, userIds, data);
       return undefined as R;
@@ -277,7 +292,7 @@ export default class EunosSockets {
   private async executeSocketFunction<E extends SocketEventName>(
     event: E,
     data: SocketEvents[E]["data"],
-  ): Promise<void> {
+  ): Promise<"return" extends keyof SocketEvents[E] ? SocketEvents[E]["return"] : undefined> {
     const func = this.socketFunctions[event];
 
     if (!func || typeof func !== "function") {
@@ -288,7 +303,10 @@ export default class EunosSockets {
 
     try {
       kLog.socketResponse(`[I HEARD] "${event}": Executing "${func.name}"`, data);
-      await Promise.resolve(func(data));
+      const funcResult = await func(data);
+      const result = funcResult === undefined ? undefined : funcResult;
+      kLog.socketResponse(`[I HEARD] "${event}": Executed "${func.name}"`, result);
+      return result as "return" extends keyof SocketEvents[E] ? SocketEvents[E]["return"] : undefined;
     } catch (error: unknown) {
       kLog.error(`[I HEARD] "${event}" BUT "${func.name}" EXECUTION FAILED`, {...data, error});
       throw error;

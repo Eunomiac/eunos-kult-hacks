@@ -681,9 +681,8 @@ class OrderedSet<T> {
 class EunosAlerts {
   // #region INITIALIZATION ~
 
-  public static readonly SocketFunctions: Record<string, SocketFunction> = {
+  public static readonly SocketFunctions: Record<string, SocketFunction<void, Partial<EunosAlerts.Data>>> = {
     "Alert": (data: Partial<EunosAlerts.Data>) => {
-      // data.soundName ??= "slow-hit";
       const thisAlert = new EunosAlerts(data);
       kLog.log("Alert", data, thisAlert);
       if (data.skipQueue) {

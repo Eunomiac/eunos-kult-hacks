@@ -1,17 +1,15 @@
 export {};
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare global {
-  type SyncSocketFunction = (...params: any[]) => void;
-  type AsyncSocketFunction = (...params: any[]) => Promise<void>;
-  type SocketFunction = SyncSocketFunction|AsyncSocketFunction
+  type SyncSocketFunction<T = unknown, P = unknown> = (data: P) => T;
+  type AsyncSocketFunction<T = unknown, P = unknown> = (data: P) => Promise<T>;
+  type SocketFunction<T = unknown, P = unknown> = SyncSocketFunction<T, P> | AsyncSocketFunction<T, P>;
 
   interface Socket {
     register(name: string, func: SocketFunction): void;
-    executeAsUser(name: string, userId: string, data?: unknown): Promise<unknown>;
     executeForUsers(name: string, userIds: string[], data?: unknown): Promise<void>;
     executeForEveryone(name: string, data?: unknown): Promise<void>;
     executeForGM(name: string, data?: unknown): Promise<void>;
-    executeAsGM(name: string, data?: unknown): Promise<unknown>;
     on(event: "connect" | "disconnect", handler: () => void): void;
     connected: boolean;
 
@@ -20,14 +18,14 @@ declare global {
      * Executes 'handler' on that Client, passing it 'parameters'.
      * Can 'await' return value of passed handler function.
      */
-    executeAsGM<S extends SocketFunction>(handler: string | S, ...parameters: Parameters<S>): Promise<ReturnType<S>>
+    executeAsGM(name: string, data?: unknown, expectResponse?: boolean): Promise<unknown>;
 
     /**
-      * Chooses Specified User Client, if Connected.
-      * Executes 'handler' on that Client, passing it 'parameters'.
-      * Can 'await' return value of passed handler function.
-      */
-    executeAsUser<S extends SocketFunction>(handler: string | S, userId: string, ...parameters: Parameters<S>): Promise<ReturnType<S>>
+     * Chooses Specified User Client, if Connected.
+     * Executes 'handler' on that Client, passing it 'parameters'.
+     * Can 'await' return value of passed handler function.
+     */
+    executeAsUser(name: string, userId: string, data?: unknown, expectResponse?: boolean): Promise<unknown>;
 
     /**
      * Chooses GM Clients.

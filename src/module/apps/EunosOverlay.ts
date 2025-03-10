@@ -550,6 +550,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       );
       void EunosSockets.getInstance().call("updatePCUI", UserTargetRef.all, pcs);
     },
+    refreshStatus(event: PointerEvent, target: HTMLElement) {
+      if (!getUser().isGM) return;
+      kLog.log("Refresh status button clicked");
+      EunosOverlay.instance.requestStatusUpdate();
+    },
   };
 
   // #endregion ACTIONS
@@ -595,6 +600,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         EunosOverlay.ACTIONS.sessionScribeClick.bind(EunosOverlay),
       wakeAllPCs: EunosOverlay.ACTIONS.wakeAllPCs.bind(EunosOverlay),
       sleepAllPCs: EunosOverlay.ACTIONS.sleepAllPCs.bind(EunosOverlay),
+      refreshStatus: EunosOverlay.ACTIONS.refreshStatus.bind(EunosOverlay),
     },
   };
 
@@ -749,7 +755,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion STATIC METHODS
 
   // #region SOCKET FUNCTIONS ~
-  public static readonly SocketFunctions: Record<string, SocketFunction> = {
+  public static readonly SocketFunctions: {
+    changePhase: SocketFunction<void, { prevPhase: GamePhase; newPhase: GamePhase }>;
+    preloadPreSessionSong: SocketFunction<void, void>;
+    playPreSessionSong: SocketFunction<void, void>;
+    preloadIntroVideo: SocketFunction<void, void>;
+    reportPreloadStatus: SocketFunction<void, { userId: string; status: MediaLoadStatus }>;
+    refreshPCs: SocketFunction<void, void>;
+    startVideoPlayback: SocketFunction<void, void>;
+    requestMediaSync: SocketFunction<number, { userId: string; mediaName: string }>;
+    syncMedia: SocketFunction<void, { mediaName: string; timestamp: number }>;
+    setLocation: SocketFunction<void, { fromLocation: string; toLocation: string }>;
+    refreshLocationImage: SocketFunction<void, { imgKey: string }>;
+    updatePCUI: SocketFunction<void, Record<IDString, PCState>>;
+    playMedia: SocketFunction<void, { mediaName: string, mediaData?: Partial<EunosMediaData> }>;
+    killMedia: SocketFunction<void, { mediaName: string }>;
+    requestSoundSync: SocketFunction<void, { userId: string }>;
+    syncSounds: SocketFunction<void, { sounds: Record<string, EunosMediaData> }>;
+  } = {
     changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
       void EunosOverlay.instance
         .cleanupPhase(data.prevPhase)
@@ -790,7 +813,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
 
     startVideoPlayback: async () => {
-      await EunosOverlay.instance.playIntroVideo();
+      await EunosOverlay.instance.playIntroVideo(true);
     },
 
     requestMediaSync: async ({
@@ -803,10 +826,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       const media = EunosMedia.GetMedia(mediaName);
       const timestamp = media.currentTime;
       kLog.log(`GM returning media timestamp: ${timestamp} for ${mediaName}`);
-      void EunosSockets.getInstance().call("syncMedia", userId, {
-        mediaName,
-        timestamp,
-      });
+      // void EunosSockets.getInstance().call("syncMedia", userId, {
+      //   mediaName,
+      //   timestamp,
+      // });
       return timestamp;
     },
 
@@ -1399,7 +1422,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       const preSessionSongCurrentTime =
         preSessionSongDuration - this.#timeRemaining;
       kLog.log(`Pre-session song current time: ${preSessionSongCurrentTime}`);
-      this.sessionStartingSong.currentTime = preSessionSongCurrentTime;
+      // Only sync song time if difference is more than 5 seconds
+      const timeDiff = Math.abs(this.sessionStartingSong.currentTime - preSessionSongCurrentTime);
+      if (timeDiff > 5) {
+        kLog.log(`Syncing pre-session song time - diff: ${timeDiff}s`);
+        this.sessionStartingSong.currentTime = preSessionSongCurrentTime;
+      }
       this.#isPreSessionSongSynced = true;
     }
     if (this.#isPreSessionSongSynced && this.#glitchTimeline?.isActive()) {
@@ -1481,9 +1509,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         "play"
       ]();
       this.#isCountdownContainerTimelinePlaying = true;
-      setTimeout(() => {
-        void this.killSessionClosedAmbientAudio();
-      }, 10000);
+      void this.killSessionClosedAmbientAudio();
       return;
     } else if (
       this.timeRemaining > preSessionSongDuration &&
@@ -1531,7 +1557,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async killSessionClosedAmbientAudio(): Promise<void> {
     // if (!this.#ambientAudio) { return; }
-    await this.getAmbientAudio(false).kill(3);
+    await this.getAmbientAudio(false).kill(5);
     // this.#ambientAudio = undefined;
   }
   // #endregion SESSION CLOSED AMBIENT AUDIO ~
@@ -1766,6 +1792,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.cacheLoadingScreenItems();
 
       // Begin item rotation
+      this.#areLoadingScreenImagesStopped = false;
       void this.rotateLoadingScreenItems();
     } catch (error) {
       kLog.error("Failed to initialize loading screen:", error);
@@ -1940,6 +1967,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion FREEZING OVERLAY ~
 
   // #region INTRO VIDEO ~
+  #animateOutBlackBarsTimeout: Maybe<number>;
+  #animateSessionTitleTimeout: Maybe<number>;
   #introVideo: Maybe<EunosMedia<EunosMediaTypes.video>>;
   get introVideo(): EunosMedia<EunosMediaTypes.video> {
     if (!this.#introVideo) {
@@ -1948,6 +1977,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         type: EunosMediaTypes.video,
         parentSelector: "#TOP-ZINDEX-MASK",
         autoplay: false,
+        sync: true,
         loop: false,
         mute: false,
         volume: 1,
@@ -1965,6 +1995,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       kLog.error("Failed to preload intro video:", error);
     }
   }
+
+  /** Requests all clients to report their current video preload status */
+  private requestStatusUpdate(): void {
+    if (!getUser().isGM) return;
+    kLog.log("Requesting status update from all clients");
+    void EunosSockets.getInstance().call("preloadIntroVideo", UserTargetRef.all);
+}
 
   /** Initiates video preloading for all users */
   private initializeVideoPreloading(): void {
@@ -2011,7 +2048,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }).render(true);
   }
 
-  async animateOutBlackBars() {
+  async animateOutBlackBars(startTime = 0) {
     const topBar$ = this.maxZIndexBars$.find(".canvas-mask-bar-top");
     const bottomBar$ = this.maxZIndexBars$.find(".canvas-mask-bar-bottom");
 
@@ -2033,9 +2070,25 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         ease: "none",
       },
       0,
-    );
+    ).seek(startTime);
 
     return tl;
+  }
+
+  resetOverlayFromIntroVideo(): void {
+    if (this.#animateOutBlackBarsTimeout) {
+      clearTimeout(this.#animateOutBlackBarsTimeout);
+      this.#animateOutBlackBarsTimeout = undefined;
+    }
+    if (this.#animateSessionTitleTimeout) {
+      clearTimeout(this.#animateSessionTitleTimeout);
+      this.#animateSessionTitleTimeout = undefined;
+    }
+    this.midZIndexMask$.attr("style", "");
+    this.maxZIndexBars$.attr("style", "");
+    this.maxZIndexBars$.find(".canvas-mask-bar-top").attr("style", "");
+    this.maxZIndexBars$.find(".canvas-mask-bar-bottom").attr("style", "");
+    this.topZIndexMask$.attr("style", "");
   }
 
   async animateSessionTitle(
@@ -2134,7 +2187,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   /** Plays the intro video from the start */
-  public async playIntroVideo(): Promise<void> {
+  public async playIntroVideo(isPlayingQuote = false): Promise<void> {
     // Reset volume in case it was faded out
     this.introVideo.volume = 1;
 
@@ -2153,37 +2206,33 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
 
     await this.introVideo.play();
-    if (!getUser().isGM) {
-      void EunosSockets.getInstance().call(
-        "requestMediaSync",
-        UserTargetRef.gm,
-        {
-          mediaName: "intro-video",
-          userId: getUser().id!,
-        },
-      );
+
+    // Schedule playback of session quote if intro video is just starting
+    if (this.introVideo.currentTime <= 2) {
+      const sessionQuoteName = `quote-session-${getSetting("chapterNumber")}`;
+      void EunosMedia.GetMedia(sessionQuoteName)?.play();
     }
 
-    // Schedule playback of session quote
-    const sessionQuoteName = `quote-session-${getSetting("chapterNumber")}`;
-    const sessionQuote = EunosMedia.GetMedia(sessionQuoteName);
-    if (sessionQuote) {
-      setTimeout(() => {
-        void sessionQuote.play();
-      }, 2000);
+    // Schedule animating-out of black bars (or set them instantly if intro video has been playing for too long)
+    const blackBarsAnimationOutStart = PRE_SESSION.BLACK_BARS_ANIMATION_OUT_VIDEO_DELAY - this.introVideo.currentTime;
+    const blackBarsAnimationOutEnd = PRE_SESSION.BLACK_BARS_ANIMATION_OUT_VIDEO_DELAY + PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION - this.introVideo.currentTime;
+    if (blackBarsAnimationOutEnd <= 0) {
+      void this.animateOutBlackBars(PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION);
+    } else if (blackBarsAnimationOutStart < 0) {
+      void this.animateOutBlackBars(-1 * blackBarsAnimationOutStart);
+    } else {
+      this.#animateOutBlackBarsTimeout = window.setTimeout(() => {
+        void this.animateOutBlackBars();
+      }, blackBarsAnimationOutStart * 1000);
     }
 
-    // Schedule animating-out of black bars
-    setTimeout(() => {
-      void this.animateOutBlackBars();
-    }, PRE_SESSION.BLACK_BARS_ANIMATION_OUT_VIDEO_DELAY * 1000);
     // Schedule animation of the title
     const videoDuration = await this.introVideo.getDuration();
     const currentVideoTime = this.introVideo.currentTime;
     const titleDisplayOffset = PRE_SESSION.CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET;
     const titleDisplayTime =
       videoDuration - titleDisplayOffset - currentVideoTime;
-    setTimeout(() => {
+    this.#animateSessionTitleTimeout = window.setTimeout(() => {
       void this.animateSessionTitle().then(() => {
         if (getUser().isGM) {
           void setSetting("gamePhase", GamePhase.SessionRunning);
@@ -2193,6 +2242,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async killIntroVideo(): Promise<void> {
+    if (this.#animateOutBlackBarsTimeout) {
+      clearTimeout(this.#animateOutBlackBarsTimeout);
+      this.#animateOutBlackBarsTimeout = undefined;
+    }
+    if (this.#animateSessionTitleTimeout) {
+      clearTimeout(this.#animateSessionTitleTimeout);
+      this.#animateSessionTitleTimeout = undefined;
+    }
     await gsap.to(
       [this.topZIndexMask$[0], this.maxZIndexBars$[0], this.midZIndexMask$[0]],
       {
@@ -2448,6 +2505,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     //   return;
     // }
     addClassToDOM("session-closed");
+    this.resetOverlayFromIntroVideo();
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
@@ -2457,6 +2515,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
   async sync_SessionClosed() {
     addClassToDOM("session-closed");
+    this.resetOverlayFromIntroVideo();
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
@@ -2472,6 +2531,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionLoading Methods
   private async initialize_SessionLoading(): Promise<void> {
     addClassToDOM("session-loading");
+    this.resetOverlayFromIntroVideo();
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
@@ -2488,6 +2548,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   async sync_SessionLoading() {
     addClassToDOM("session-loading");
+    this.resetOverlayFromIntroVideo();
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),

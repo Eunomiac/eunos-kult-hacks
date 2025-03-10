@@ -194,9 +194,9 @@ const k4Logger = (type: KeyOf<typeof STYLES> = "base", ...content: [string, ...u
 const kLog = {
   display: (...content: [string, ...unknown[]]) => { k4Logger("display", ...content); },
   log: (...content: [string, ...unknown[]]) => { k4Logger("base", ...content); },
-  socketCall: () => { return; } /* (...content: [string, ...unknown[]]) => { k4Logger("socketCall", ...content); } */,
-  socketReceived: () => { return; } /* (...content: [string, ...unknown[]]) => { k4Logger("socketReceived", ...content); } */,
-  socketResponse: () => { return; } /* (...content: [string, ...unknown[]]) => { k4Logger("socketResponse", ...content); } */,
+  socketCall: (...content: [string, ...unknown[]]) => { k4Logger("socketCall", ...content); },
+  socketReceived: (...content: [string, ...unknown[]]) => { k4Logger("socketReceived", ...content); },
+  socketResponse: (...content: [string, ...unknown[]]) => { k4Logger("socketResponse", ...content); },
   error: (...content: [string, ...unknown[]]) => { k4Logger("error", ...content); },
   hbsLog: (...content: [string, ...unknown[]]) => { k4Logger("handlebars", ...content); }
 };

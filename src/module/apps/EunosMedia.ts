@@ -548,6 +548,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     // If already fully loaded, return immediately
     if (this.preloadStatus === MediaLoadStatus.Ready) {
       this.loadedMap.set(this.name, this);
+      this.reportPreloadStatusToGM();
       return;
     }
 
@@ -693,13 +694,13 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       }
       await this.preload();
     }
-    // if (this.sync) {
-    //   const syncTime = await EunosSockets.getInstance().call<number>("requestMediaSync", UserTargetRef.gm, {mediaName: this.name});
-    //   kLog.log(`Syncing media ${this.name} to ${syncTime}`, this);
-    //   if (Math.abs(syncTime - this.#element.currentTime) > 1) {
-    //     this.#element.currentTime = syncTime;
-    //   }
-    // }
+    if (this.sync) {
+      const syncTime = await EunosSockets.getInstance().call<number>("requestMediaSync", UserTargetRef.gm, {mediaName: this.name}, true);
+      kLog.log(`Syncing media ${this.name} to ${syncTime}`, this);
+      if (Math.abs(syncTime - this.#element.currentTime) > 5) {
+        this.#element.currentTime = syncTime;
+      }
+    }
     this.#element.volume = this.fadeInDuration > 0 ? 0 : this.volume;
     this.#element.loop = this.loop;
     try {
