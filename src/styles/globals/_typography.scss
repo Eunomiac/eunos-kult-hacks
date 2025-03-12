@@ -172,6 +172,62 @@
   font-weight: 700 900; /* Bold, Black */
 }
 
+@font-face {
+  font-family: DisgustingBehaviour;
+  src: #{to-url("fonts/DisgustingBehavior.ttf")} format('truetype');
+}
+
+@font-face {
+  font-family: EyesWideSuicide;
+  src: #{to-url("fonts/EyesWideSuicide.ttf")} format('truetype');
+}
+
+@font-face {
+  font-family: MarshalTheDead;
+  src: #{to-url("fonts/MarshalTheDead.ttf")} format('truetype');
+}
+
+@font-face {
+  font-family: SanguisNoctis;
+  src: #{to-url("fonts/SanguisNoctis.ttf")} format('truetype');
+}
+
+@font-face {
+  font-family: BudoyoObor;
+  src: #{to-url("fonts/BudoyoObor.otf")} format('opentype');
+}
+
+@font-face {
+  font-family: Dkmothman;
+  src: #{to-url("fonts/Dkmothman.ttf")} format('truetype');
+}
+
+@font-face {
+  font-family: ManicDepressive;
+  src: #{to-url("fonts/ManicDepressive.ttf")} format('truetype');
+}
+
+@font-face {
+  font-family: Astral101;
+  src: #{to-url("fonts/Astral101.ttf")} format("truetype");
+}
+
+@font-face {
+  font-family: BurntScratches;
+  src: #{to-url("fonts/BurntScratches.ttf")} format("truetype");
+}
+
+@font-face {
+  font-family: Dkcrisscross;
+  src: #{to-url("fonts/Dkcrisscross.ttf")} format("truetype");
+}
+
+@font-face {
+  font-family: DkPlagueMaster;
+  src: #{to-url("fonts/DkPlagueMaster.ttf")} format("truetype");
+}
+
+
 $rem-8: 8px;
 $rem-10: 10px;
 $rem-12: 12px;

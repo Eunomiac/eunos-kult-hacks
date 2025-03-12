@@ -1,5 +1,9 @@
 .item-block {
-  --bg-fade-color: color-mix(in srgb, var(--bg-color, transparent) 15%, transparent);
+  --bg-fade-color: color-mix(
+    in srgb,
+    var(--fg-color, transparent) 75%,
+    transparent
+  );
   background: var(--bg-fade-color);
   width: calc(100% + 2 * 5px);
   margin-left: -5px;
@@ -21,13 +25,14 @@
     img {
       height: 48px;
       width: 48px;
-     }
+    }
     .move-name {
       color: var(--fg-color);
     }
   }
 
-  .item-body, .item-body * {
+  .item-body,
+  .item-body * {
     hyphens: auto;
   }
 
@@ -60,6 +65,7 @@
 
   &.item-block-attack {
     margin-top: 10px;
+
     .item-header {
       display: flex;
       flex-direction: column;
@@ -78,25 +84,37 @@
         right: 0;
         padding: 0 10px;
 
-      .weapon-name {
-        // background: var(--K4-ddRED);
-        // color: var(--K4-bWHITE);
-        font-size: 16px;
-        white-space: nowrap;
-        // font-family: Infidel;
-        line-height: 1.4;
-        font-weight: bold;
-        border-bottom-left-radius: 10px;
-        font-style: italic;
+        .weapon-name-prefix,
+        .weapon-name {
+          color: var(--fg-color, black);
+          text-shadow:
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black,
+            0 0 1px black;
+        }
+
+        .weapon-name {
+          // background: var(--K4-ddRED);
+          // color: var(--K4-bWHITE);
+          font-size: 16px;
+          white-space: nowrap;
+          // font-family: Infidel;
+          line-height: 1.4;
+          font-weight: bold;
+          border-bottom-left-radius: 10px;
+          font-style: italic;
+        }
       }
-    }
 
       .item-name {
         background: var(--K4-ddRED);
         color: var(--K4-bWHITE);
         margin-top: 25px;
         padding: 5px;
-        margin-bottom: -2px;
+        // margin-bottom: -2px;
         font-size: 20px;
         font-family: var(--font-primary-smallcaps);
         text-transform: lowercase;
@@ -104,7 +122,7 @@
         // background: var(--K4-ddRED);
         // color: var(--K4-bRED);
         font-weight: 1000;
-        width: 100%;
+        width: calc(100% + 10px);
         text-align: center;
       }
     }
@@ -122,14 +140,12 @@
       // scale: 0.8;
       .item-harm {
         color: var(--K4-BLUE);
-
       }
       .item-range {
         // color: var(--K4-WHITE);
         font-weight: 1000;
         font-family: var(--font-primary-smallcaps);
         text-transform: lowercase;
-
       }
       .item-ammo-cost {
         display: inline-flex;
@@ -160,9 +176,7 @@
         font-size: 16px;
         letter-spacing: -0.05em;
       }
-
     }
-
   }
 }
 .dotline {
@@ -195,28 +209,28 @@
   margin-bottom: 0px;
 
   + .weapon-attack-block {
-  // margin-top: -2px;
-  // background: color-mix(in srgb, var(--K4-ddRED) 50%, transparent);
-  border-top: none;
-  border-bottom: 2px solid var(--K4-RED);
-  // border-width: 3px;
-  // border-top: 3px solid var(--K4-RED);
+    // margin-top: -2px;
+    // background: color-mix(in srgb, var(--K4-ddRED) 50%, transparent);
+    border-top: none;
+    border-bottom: 2px solid var(--K4-RED);
+    // border-width: 3px;
+    // border-top: 3px solid var(--K4-RED);
   }
 
   .dotline {
     .dot {
-    border: 1px solid var(--K4-bGOLD);
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    width: 6px;
-    &.empty {
-      background: transparent;
-    }
+      border: 1px solid var(--K4-bGOLD);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      width: 6px;
+      &.empty {
+        background: transparent;
+      }
 
-    &.filled {
-      background: var(--K4-bGOLD);
+      &.filled {
+        background: var(--K4-bGOLD);
+      }
     }
-  }
   }
 }
 .weapon-attack-block {
@@ -290,18 +304,18 @@
       // place-self: flex-end;
 
       .dot {
-      border: 1px solid black;
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-      width: 6px;
-      &.empty {
-        background: transparent;
-      }
+        border: 1px solid black;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        width: 6px;
+        &.empty {
+          background: transparent;
+        }
 
-      &.filled {
-        background: black;
+        &.filled {
+          background: black;
+        }
       }
-    }
     }
   }
 

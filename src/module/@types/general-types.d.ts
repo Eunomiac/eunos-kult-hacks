@@ -16,6 +16,10 @@ import type EunosActor from "../documents/EunosActor";
 import type EunosItem from "../documents/EunosItem";
 import type {UserTargetRef, PCTargetRef} from "../scripts/enums";
 
+// Should look like:   // type EffectChangeData = import("@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/documents/_types.d.mts").EffectChangeData;
+// Except to fvtt-types\src\foundry\client-esm\applications\api\application.d.mts
+// import type {ApplicationV2} from "fvtt-types/utils";
+
 
 // import type {Socket, SocketLib} from "./socketlib";
 // #endregion
@@ -61,7 +65,16 @@ interface ClampResponse {
 // #endregion
 
 declare global {
+  interface EunosOverlayConfiguration extends foundry.applications.api.ApplicationV2.Configuration {
+    dragDrop?: DragDrop[];
+  }
 
+  // This ensures ApplicationV2 can work with our extended configuration
+  namespace ApplicationV2 {
+    interface ConfigurationMap {
+      EunosOverlay: EunosOverlayConfiguration;
+    }
+  }
 
   const InitializableClasses: Record<string, Constructor>;
 

@@ -1,5 +1,5 @@
-<div id="NPCS-GM" class="npcs-container">
-  {{#each npcsData as |npc index|}}
+<div id="NPCS-GM" class="npcs-container npcs-container-gm gm-only">
+  {{!-- {{#each npcsData as |npc index|}}
   {{#let
   anchorName=(getUniqueID "npc-container-anchor")
   popoverID=(getUniqueID "npc-container-popover")
@@ -19,5 +19,5 @@
   <div class="npc-container-spotlight npc-container-spotlight-index-{{index}}" data-npc-id="{{npc.id}}"
     data-is-spotlit="{{npc.system.isSpotlit}}"></div>
   {{/let}}
-  {{/each}}
+  {{/each}} --}}
 </div>

@@ -58,16 +58,34 @@
         &.roll-result-completesuccess {
           --bg-color: var(--K4-dGOLD);
           --fg-color: var(--K4-bbGOLD);
+
+          + .item-block {
+            --bg-color: var(--K4-dGOLD);
+            --fg-color: var(--K4-bbGOLD);
+            margin-top: 0;
+          }
         }
 
         &.roll-result-partialsuccess {
           --bg-color: var(--K4-GREY);
           --fg-color: var(--K4-WHITE);
+
+          + .item-block {
+            --bg-color: var(--K4-GREY);
+            --fg-color: var(--K4-WHITE);
+            margin-top: 0;
+          }
         }
 
         &.roll-result-failure {
           --bg-color: var(--K4-ddRED);
           --fg-color: var(--K4-bRED);
+
+          + .item-block {
+            --bg-color: var(--K4-ddRED);
+            --fg-color: var(--K4-bRED);
+            margin-top: 0;
+          }
         }
 
         &.item-block {

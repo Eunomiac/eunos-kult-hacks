@@ -1,3 +1,524 @@
-#NPCS, #NPCS-GM {
+#NPCS,
+#NPCS-GM {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: calc(100vw - var(--sidebar-width));
+  transform-style: preserve-3d;
+  perspective-origin: center center;
+  perspective: 1000px;
+  pointer-events: auto;
+
+  .npc-portrait {
+    position: absolute;
+    width: 150px;
+    height: 200px;
+    transform-style: preserve-3d;
+    transition: all 1s ease;
+
+    &-frame {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    &-shadow {
+      position: absolute;
+      background: black;
+      width: 100%;
+      height: 100%;
+      top: 20px;
+      left: 0;
+      transform-origin: bottom center;
+      filter: blur(5px);
+      opacity: 0.5;
+      z-index: -1;
+      // transform: scale(0.6);
+    }
+
+    &-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 0px 0px;
+    }
+
+    &-name {
+      height: auto;
+      color: #fff;
+      text-align: center;
+      padding: 5px 0;
+      background: rgba(0, 0, 0, 1);
+      transform-origin: center center;
+    }
+
+    .npc-portrait-controls {
+      position: absolute;
+      display: flex;
+      gap: 5px;
+      z-index: 100;
+
+      &.gm-controls {
+        flex-direction: column-reverse;
+        top: 5px;
+        gap: 15px;
+        top: -75px;
+        right: -35px;
+
+        i {
+          cursor: pointer;
+          color: #fff;
+          text-shadow: 0 0 3px #000;
+          opacity: 0.7;
+          transition: opacity 0.2s;
+          font-size: 16px;
+          padding: 5px;
+          background: var(--K4-dGOLD);
+          border-radius: 50%;
+          border: 2px solid var(--K4-bGOLD);
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+
+        .npc-remove-btn {
+          &:hover {
+            background: var(--K4-bWHITE);
+            border-color: var(--K4-bRED);
+            color: var(--K4-bbRED);
+          }
+        }
+
+        .npc-drag-handle {
+          border-radius: 0;
+          cursor: grab;
+          background: var(--K4-dGREY);
+          border: 2px solid transparent;
+          &:active {
+            cursor: grabbing;
+            border: 2px solid var(--K4-bGREY);
+          }
+        }
+      }
+
+      &.state-controls {
+        bottom: 190px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        .npc-stage-control-button {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: var(--K4-dRED);
+          border: 1px solid var(--K4-bRED);
+          color: var(--K4-bbRED);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: rgba(40, 40, 40, 0.8);
+            border-color: #888;
+          }
+
+          &.active {
+            background: rgba(60, 60, 60, 0.8);
+            border-color: #aaa;
+          }
+        }
+      }
+    }
+
+
+    .npc-smoke-effect-container {
+      position: absolute;
+      bottom: 0px;
+      height: 1024px;
+      width: 512px;
+      left: calc(50% + 25px);
+      bottom: -60px;
+      transform: translate(-50%, 0);
+
+      .npc-smoke-effect {
+        height: 100%;
+        border: none;
+        display: none;
+      }
+    }
+
+  }
+  .npc-drag-guideline {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: rgba(255, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 9999;
+
+    &::after {
+      content: 'PC Portrait Zone Below';
+      position: absolute;
+      right: 10px;
+      top: -20px;
+      color: rgba(255, 0, 0, 0.8);
+      font-size: 12px;
+    }
+
+    &.drag-guideline-x {
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background-color: rgba(0, 255, 255, 0.5);
+
+
+      &::after {
+        color: rgba(0, 255, 255, 0.8);
+      }
+    }
+
+    animation: guidelinePulse 2s infinite;
+  }
+
+  @keyframes guidelinePulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.3; }
+  }
+
+  @keyframes guidelinePulse {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.3; }
+  }
+  // Drag preview styling
+  .npc-portrait-preview {
+    position: absolute;
+    width: 150px; // These values should match EunosOverlay.PORTRAIT_SIZE
+    height: 200px;
+    border: 2px dashed #fff;
+    background-color: rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+}
+
+#NPCS {
+  .npc-portrait {
+    height: auto;
+    width: 100px;
+
+    .npc-portrait-container {
+      position: static;
+      scale: 1;
+      transform-origin: bottom center;
+      .npc-portrait-frame {
+        mask-image: url("modules/eunos-kult-hacks/assets/images/stage/npc-frame/torn-paper-mask-tall.webp");
+        mask-size: 100% 100%;
+        mask-repeat: no-repeat;
+        mask-position: center;
+      }
+    }
+
+    &:nth-child(1) {
+      .npc-portrait-container {
+        animation: pulsingShadow 21s linear infinite;
+      }
+      .npc-portrait-name-container {
+        animation: pulsingGlow 30s linear infinite;
+      }
+    }
+    &:nth-child(2) {
+      .npc-portrait-container {
+        animation: pulsingShadow 21s linear infinite;
+        animation-delay: 2.8s;
+      }
+      .npc-portrait-name-container {
+        animation: pulsingGlow 30s linear infinite;
+        animation-delay: 2.8s; // 30s / 5 = 2.8s offset
+      }
+    }
+    &:nth-child(3) {
+      .npc-portrait-container {
+        animation: pulsingShadow 21s linear infinite;
+        animation-delay: 5.6s;
+      }
+      .npc-portrait-name-container {
+        animation: pulsingGlow 30s linear infinite;
+        animation-delay: 5.6s;
+      }
+    }
+    &:nth-child(4) {
+      .npc-portrait-container {
+        animation: pulsingShadow 21s linear infinite;
+        animation-delay: 8.4s;
+      }
+      .npc-portrait-name-container {
+        animation: pulsingGlow 30s linear infinite;
+        animation-delay: 8.4s;
+      }
+    }
+    &:nth-child(5) {
+      .npc-portrait-container {
+        animation: pulsingShadow 21s linear infinite;
+        animation-delay: 11.2s;
+      }
+      .npc-portrait-name-container {
+        animation: pulsingGlow 30s linear infinite;
+        animation-delay: 11.2s;
+      }
+    }
+    &:nth-child(6) {
+      .npc-portrait-container {
+        animation: pulsingShadow 21s linear infinite;
+        animation-delay: 14s;
+      }
+      .npc-portrait-name-container {
+        animation: pulsingGlow 30s linear infinite;
+        animation-delay: 14s;
+      }
+    }
+
+    @keyframes pulsingGlow {
+      0% {
+        // top: 0px;
+        rotate: 0deg;
+        filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0.5));
+      }
+      25% {
+        // top: 3px;
+        rotate: 3deg;
+        filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+      }
+      50% {
+        // top: 0px;
+        rotate: 0deg;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+      }
+      75% {
+        // top: -3px;
+        rotate: -3deg;
+        filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+      }
+      100% {
+        // top: 0px;
+        rotate: 0deg;
+        filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0.5));
+      }
+    }
+
+    @keyframes pulsingShadow {
+      0% {
+        top: 0px;
+        filter: drop-shadow(0 0 0px rgba(0, 0, 0, 1));
+      }
+      25% {
+        top: 3px;
+        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 1));
+      }
+      50% {
+        top: 0px;
+        filter: drop-shadow(0 0 10px rgba(0, 0, 0, 1));
+      }
+      75% {
+        top: -3px;
+        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 1));
+      }
+      100% {
+        top: 0px;
+        filter: drop-shadow(0 0 0px rgba(0, 0, 0, 1));
+      }
+    }
+
+    .npc-portrait-name-container {
+      position: absolute;
+      transform-origin: center center;
+      scale: 1;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      top: 100%;
+
+      .npc-portrait-name {
+        mask-image: url("modules/eunos-kult-hacks/assets/images/stage/npc-frame/torn-paper-mask-strip.webp");
+        mask-size: 100% 100%;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        scale: 1;
+        width: 125px;
+        padding: 10px;
+        font-size: 14px;
+        font-family: SanguisNoctis;
+        line-height: 1.1;
+        letter-spacing: 3.5px;
+        font-variant: small-caps;
+        text-wrap: balance;
+        // position: absolute;
+        // outline: 1px dotted red;
+      }
+    }
+  }
+  .npc-portrait-invisible {
+    .npc-portrait-frame,
+    .npc-portrait-name,
+    .npc-portrait-shadow {
+      visibility: hidden;
+    }
+  }
+  .npc-portrait-shrouded {
+    .npc-portrait-frame,
+    .npc-portrait-name {
+      scale: 1;
+      filter: grayscale(0) brightness(1) blur(0px);
+    }
+    .npc-portrait-name {
+      visibility: hidden;
+    }
+  }
+  .npc-portrait-dimmed {
+    .npc-portrait-frame,
+    .npc-portrait-name {
+      scale: 0.8;
+      filter: grayscale(1) brightness(0.5) blur(2px);
+    }
+  }
+  .npc-portrait-base {
+    .npc-portrait-frame,
+    .npc-portrait-name {
+      scale: 1;
+      filter: grayscale(0) brightness(1) blur(0px);
+
+      &.npc-portrait-name {
+        // scale: 1.25;
+      }
+    }
+  }
+}
+
+#NPCS-GM {
+
+  &.disabled {
+    .npc-stage-control-button {
+      pointer-events: none !important;
+      filter: grayscale(1) brightness(0.5) !important;
+    }
+  }
+
+  .npc-portrait-name-container {
+    .npc-portrait-name {
+      font-family: KtrataSmallCaps;
+      text-wrap: balance;
+    }
+  }
+  .npc-portrait-shrouded {
+    .npc-portrait-controls.state-controls {
+      .npc-stage-control-button-shrouded {
+        background: var(--K4-bbGOLD);
+        color: black;
+        border-color: var(--K4-bbGOLD);
+      }
+    }
+  }
+  .npc-portrait-dimmed {
+    .npc-portrait-controls.state-controls {
+      .npc-stage-control-button-dimmed {
+        background: var(--K4-bbGOLD);
+        color: black;
+        border-color: var(--K4-bbGOLD);
+      }
+    }
+  }
+  .npc-portrait-invisible {
+    .npc-portrait-controls.state-controls {
+      .npc-stage-control-button-invisible {
+        background: var(--K4-bbGOLD);
+        color: black;
+        border-color: var(--K4-bbGOLD);
+      }
+    }
+  }
+  .npc-portrait-base {
+    .npc-portrait-controls.state-controls {
+      .npc-stage-control-button-base {
+        background: var(--K4-bbGOLD);
+        color: black;
+        border-color: var(--K4-bbGOLD);
+      }
+    }
+  }
+}
+
+#STAGE-CHANGES-LOG {
+  position: absolute;
+  // top: 50px;
+  left: 0;
+  bottom: 360px;
+  width: 300px;
+  height: min-content;
+  // overflow-y: scroll;
+  // background: rgba(0, 0, 0, 0.5);
+  color: lime;
+  text-shadow:
+    0 0 2px black,
+    0 0 2px black,
+    0 0 2px black,
+    0 0 2px black,
+    0 0 2px black,
+    0 0 2px black;
+  z-index: 9999;
+  padding: 0 10px;
+  border-radius: 10px;
+  // border: 1px solid var(--K4-bGOLD);
+  // backdrop-filter: blur(10px);
+
+  .stage-changes-log-button {
+    position: absolute;
+    top: -30px;
+    left: 1%;
+    width: min-content;
+    height: min-content;
+    line-height: 1;
+    // transform: translateX(-50%);
+    background: var(--K4-dGOLD);
+    color: var(--K4-bbGOLD);
+    border: 1px solid var(--K4-bGOLD);
+    border-radius: 5px;
+    padding: 5px;
+    pointer-events: auto;
+    cursor: pointer;
+
+    &[data-action="clearUIChanges"] {
+      // bottom: 50px;
+      left: 17%;
+      background: var(--K4-dRED);
+      border-color: var(--K4-bRED);
+      color: var(--K4-bbRED);
+    }
+  }
+
+  .stage-changes-log-content {
+
+    .change-log-entry {
+      font-size: 12px;
+      white-space: nowrap;
+      font-family: Pragmata Pro;
+      line-height: 1.25;
+      &::before {
+        content: "•";
+        display: inline-block;
+        margin-right: 5px;
+        color: inherit;
+      }
+
+      &.change-log-entry-pc {
+        color: magenta;
+      }
+    }
+  }
 
 }

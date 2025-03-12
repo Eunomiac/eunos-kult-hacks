@@ -51,7 +51,8 @@ html {
       #PCS-GM,
       #NPCS-GM,
       #STAGE,
-      #VIDEO-STATUS-PANEL {
+      #VIDEO-STATUS-PANEL,
+      #STAGE-CHANGES-LOG {
         visibility: hidden;
       }
     }
@@ -69,8 +70,9 @@ html {
       #NPCS-GM,
       #PCS,
       #PCS-GM,
-      #STAGE/* ,
-      #VIDEO-STATUS-PANEL */ {
+      #STAGE,
+      // #VIDEO-STATUS-PANEL,
+      #STAGE-CHANGES-LOG {
         visibility: hidden;
       }
     }
@@ -89,7 +91,8 @@ html {
       // #PCS-GM,
       // #NPCS-GM,
       // #STAGE,
-      #VIDEO-STATUS-PANEL {
+      #VIDEO-STATUS-PANEL,
+      #STAGE-CHANGES-LOG {
         visibility: hidden;
       }
     }
@@ -108,7 +111,8 @@ html {
       // #PCS-GM,
       // #NPCS-GM,
       // #STAGE,
-      #VIDEO-STATUS-PANEL {
+      #VIDEO-STATUS-PANEL/* ,
+      #STAGE-CHANGES-LOG */ {
         visibility: hidden;
       }
     }
@@ -126,7 +130,8 @@ html {
       // #PCS-GM,
       #NPCS-GM,
       // #STAGE,
-      #VIDEO-STATUS-PANEL {
+      #VIDEO-STATUS-PANEL,
+      #STAGE-CHANGES-LOG {
         visibility: hidden;
       }
     }

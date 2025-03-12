@@ -60,6 +60,8 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-pcs.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/loading-screen-item.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait-gm.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-header.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-topper.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-trigger.hbs",

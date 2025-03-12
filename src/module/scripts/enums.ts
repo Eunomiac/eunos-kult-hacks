@@ -45,7 +45,8 @@ export enum NPCState {
   shrouded = "shrouded",
   dimmed = "dimmed",
   base = "base",
-  spotlit = "spotlit"
+  spotlit = "spotlit",
+  removed = "removed"
 }
 
 

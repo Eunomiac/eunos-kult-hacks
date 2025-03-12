@@ -1,23 +1,7 @@
 <div id="NPCS" class="npcs-container">
-  {{#each npcsData as |npc index|}}
-  {{#let
-  anchorName=(getUniqueID "npc-container-anchor")
-  popoverID=(getUniqueID "npc-container-popover")
-  tooltip=npc.description
-  }}
-  <div class="npc-container npc-container-index-{{index}}" data-npc-id="{{npc.id}}" {{#if
-    tooltip}}popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}" {{/if}}>
-    <div class="npc-name">{{npc.name}}</div>
-    <img class="npc-image" src="{{npc.img}}" alt="{{npc.name}}" />
-    <div class="npc-description">{{npc.system.shortDescription}}</div>
+  {{!-- Preload container --}}
+  <div class="npc-smoke-effect-preload">
+    <img src="modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-bright.webp" alt="" style="position: absolute; top: -9999px; left: -9999px;"/>
+    <img src="modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-dark.webp" alt="" style="position: absolute; top: -9999px; left: -9999px;"/>
   </div>
-  {{#if tooltip}}
-  <div id="{{popoverID}}" style="position-anchor: --{{anchorName}};" popover>
-    {{{tooltip}}}
-  </div>
-  {{/if}}
-  <div class="npc-container-spotlight npc-container-spotlight-index-{{index}}" data-npc-id="{{npc.id}}"
-    data-is-spotlit="{{npc.system.isSpotlit}}"></div>
-  {{/let}}
-  {{/each}}
 </div>

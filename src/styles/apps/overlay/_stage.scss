@@ -72,9 +72,9 @@
       &.under-layer {
         background: radial-gradient(
           circle at 50% 50%,
-          transparent,
-          rgba(0, 0, 0, 0.7) 10%,
-          rgba(0, 0, 0, 1) 15%
+          transparent 0%,
+          rgba(0, 0, 0, 0.7) 0%,
+          rgb(0, 0, 0) 2%
         );
       }
 
@@ -93,6 +93,13 @@
         &.entry-hidden {
           background: black url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp");
           // background: black url("./assets/images/stage/stage-map-bg-no-entry.webp"); // For Production
+          background-position: 0px 0px;
+          background-repeat: no-repeat;
+        }
+
+        &.lit {
+          background: white url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp");
+          // background: white url("./assets/images/stage/stage-map-bg-lit.webp"); // For Production
           background-position: 0px 0px;
           background-repeat: no-repeat;
         }

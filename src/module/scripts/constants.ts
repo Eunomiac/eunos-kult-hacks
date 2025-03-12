@@ -46,7 +46,7 @@ export const CONTROL_SLIDER_PANELS = {
     {
       label: "Z-Height",
       min: -10000,
-      max: 100,
+      max: 10000,
       initValue: () => {
         const element = $("#STAGE #SECTION-3D")[0];
         if (!element) { return 0; }
@@ -799,13 +799,23 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    home: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
+    "how-villains-are-made": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-how-villains-are-made.ogg",
       alwaysPreload: false,
       delay: 0,
+      duration: 197,
       loop: false,
       sync: true,
-      duration: 229,
+      volume: 0.5,
+      autoplay: false,
+    },
+      sucker: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 220,
+      loop: false,
+      sync: true,
       volume: 0.5,
       autoplay: false,
     },
@@ -819,13 +829,13 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    "how-villains-are-made": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-how-villains-are-made.ogg",
+    home: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
       alwaysPreload: false,
       delay: 0,
-      duration: 197,
       loop: false,
       sync: true,
+      duration: 229,
       volume: 0.5,
       autoplay: false,
     },
@@ -839,16 +849,7 @@ export const Sounds = {
     //   volume: 0.5,
     //   autoplay: false,
     // },
-    // sucker: {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 220,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
+
     // "arsonists-lulluby": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-arsonists-lullaby.ogg",
     //   alwaysPreload: false,
@@ -1311,7 +1312,7 @@ export declare namespace NPCs {
     actorID: IDString;
   }
   export interface LocationSettingsData extends GlobalSettingsData {
-    slot: "1"|"2"|"3"|"4"|"5"|"6";
+    position: Point;
     state: NPCState;
   }
   export interface GlobalData extends GlobalSettingsData {
@@ -1357,7 +1358,7 @@ export declare namespace Location {
   interface DynamicFullData {
     currentImage: string | null;
     pcData: Record<"1" | "2" | "3" | "4" | "5", PCData.FullData>;
-    npcData: Partial<Record<"1" | "2" | "3" | "4" | "5" | "6", NPCData.FullData>>;
+    npcData: Record<IDString, NPCData.FullData>;
     playlists: Record<string, EunosMedia<EunosMediaTypes.audio>>;
   }
 
@@ -1370,6 +1371,15 @@ export const LOCATIONS = {
     images: {},
     description: "",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "black",
+          boxShadow: "0 0 50vw black inset",
+          "--dramatic-hook-color": "white",
+          "--dramatic-hook-text-shadow-color": "black",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1389,13 +1399,16 @@ export const LOCATIONS = {
           backgroundPositionY: -2826,
           filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
+          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
+          backgroundPosition: "0px 0px",
+          backgroundRepeat: "no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 0%, rgb(0, 0, 0) 5%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.7) 0%, rgb(0, 0, 0) 5%)",
         },
       },
     ],
@@ -1408,6 +1421,15 @@ export const LOCATIONS = {
     },
     description: "",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "black",
+          boxShadow: "0 0 50vw black inset",
+          "--dramatic-hook-color": "white",
+          "--dramatic-hook-text-shadow-color": "black",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1427,13 +1449,16 @@ export const LOCATIONS = {
           backgroundPositionY: -2826,
           filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
+          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
+          backgroundPosition: "0px 0px",
+          backgroundRepeat: "no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
         },
       },
     ],
@@ -1446,6 +1471,15 @@ export const LOCATIONS = {
     },
     description: "",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "black",
+          boxShadow: "0 0 50vw black inset",
+          "--dramatic-hook-color": "white",
+          "--dramatic-hook-text-shadow-color": "black",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1465,13 +1499,16 @@ export const LOCATIONS = {
           backgroundPositionY: 1478,
           filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
           transform: "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
+          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
+          backgroundPosition: "0px 0px",
+          backgroundRepeat: "no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
         },
       },
     ]/* [
@@ -1500,7 +1537,7 @@ export const LOCATIONS = {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(-0.997083, 0.0309705, -0.06976, 0, 0.0210364, -0.767068, -0.64122, 0, -0.0733696, -0.640817, 0.764179, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
         },
       },
     ] */,
@@ -1517,6 +1554,15 @@ export const LOCATIONS = {
     },
     description: "",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "black",
+          boxShadow: "0 0 50vw black inset",
+          "--dramatic-hook-color": "white",
+          "--dramatic-hook-text-shadow-color": "black",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1536,13 +1582,14 @@ export const LOCATIONS = {
           backgroundPositionY: -1348,
           filter: "hue-rotate(105deg) saturate(100%) brightness(1.5)",
           transform: "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
+          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 10%, rgb(0, 0, 0) 17%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 5%, rgba(0, 0, 0, 0.7) 10%, rgb(0, 0, 0) 17%)",
         },
       },
     ]
@@ -1559,6 +1606,15 @@ export const LOCATIONS = {
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "black",
+          boxShadow: "0 0 50vw black inset",
+          "--dramatic-hook-color": "white",
+          "--dramatic-hook-text-shadow-color": "black",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1578,13 +1634,14 @@ export const LOCATIONS = {
           backgroundPositionY: -1283,
           filter: "hue-rotate(87deg) saturate(100%) brightness(1)",
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
+          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
         },
       },
     ]
@@ -1601,6 +1658,15 @@ export const LOCATIONS = {
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "black",
+          boxShadow: "0 0 50vw black inset",
+          "--dramatic-hook-color": "white",
+          "--dramatic-hook-text-shadow-color": "black",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1620,13 +1686,14 @@ export const LOCATIONS = {
           backgroundPositionY: -522,
           filter: "hue-rotate(253deg) saturate(100%) brightness(1)",
           transform: "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
+          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 6%, rgb(0, 0, 0) 12%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 3%, rgba(0, 0, 0, 0.7) 6%, rgb(0, 0, 0) 12%)",
         },
       },
     ],
@@ -1643,6 +1710,15 @@ export const LOCATIONS = {
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "black",
+          boxShadow: "0 0 50vw black inset",
+          "--dramatic-hook-color": "white",
+          "--dramatic-hook-text-shadow-color": "black",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1662,13 +1738,14 @@ export const LOCATIONS = {
           backgroundPositionY: 565,
           filter: "hue-rotate(-186deg) saturate(100%) brightness(1)",
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
+          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
         },
       },
     ]
@@ -1678,6 +1755,15 @@ export const LOCATIONS = {
     images: {},
     description: "",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "black",
+          boxShadow: "0 0 50vw black inset",
+          "--dramatic-hook-color": "white",
+          "--dramatic-hook-text-shadow-color": "black",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1697,13 +1783,59 @@ export const LOCATIONS = {
           backgroundPositionY: 1696,
           filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
           transform: "matrix3d(0.999391, -0.0348995, 0, 0, 0.0275012, 0.787531, 0.615661, 0, -0.0214863, -0.615286, 0.788011, 0, -3500, -3500, 0, 1)",
+          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(0.999391, -0.0348995, 0, 0, 0.0275012, 0.787531, 0.615661, 0, -0.0214863, -0.615286, 0.788011, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+        },
+      },
+    ]
+  },
+  "Emma's Rise": {
+    name: "Emma's Rise",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -1000
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 826,
+          backgroundPositionY: 1652,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(0.0092613, 0.52984, 0.848047, 0, -0.998721, 0.0470522, -0.0184903, 0, -0.0496993, -0.846792, 0.529598, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.0092613, 0.52984, 0.848047, 0, -0.998721, 0.0470522, -0.0184903, 0, -0.0496993, -0.846792, 0.529598, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgba(255, 255, 255, 0.75) 25%)",
         },
       },
     ]
@@ -1713,6 +1845,15 @@ export const LOCATIONS = {
     images: {},
     description: "",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1730,15 +1871,16 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: 1261,
           backgroundPositionY: 1739,
-          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 7%, rgb(0, 0, 0) 22%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -1749,6 +1891,15 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
         selector: "#STAGE",
         properties: {
           perspective: 1000,
@@ -1757,7 +1908,7 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: -100,
         }
       },
       {
@@ -1765,15 +1916,16 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: 957,
           backgroundPositionY: 1630,
-          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(-0.080072, -0.761847, -0.642789, 0, 0.98907, 0.0193729, -0.146169, 0, 0.123811, -0.647467, 0.751969, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(-0.080072, -0.761847, -0.642789, 0, 0.98907, 0.0193729, -0.146169, 0, 0.123811, -0.647467, 0.751969, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 16%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -1784,6 +1936,15 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
         selector: "#STAGE",
         properties: {
           perspective: 1000,
@@ -1792,7 +1953,7 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: -100,
         }
       },
       {
@@ -1800,15 +1961,106 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: 1913,
           backgroundPositionY: 1652,
-          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(-0.0316297, 0.905755, 0.42262, 0, -0.997985, -0.0053527, -0.0632192, 0, -0.0549989, -0.423768, 0.904099, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(-0.0316297, 0.905755, 0.42262, 0, -0.997985, -0.0053527, -0.0632192, 0, -0.0549989, -0.423768, 0.904099, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 7%, rgb(0, 0, 0) 15%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]
+  },
+  "Town Hall": {
+    name: "Town Hall",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 621
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1370,
+          backgroundPositionY: 2522,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-0.0001deg) rotateY(8.9998deg) rotateX(40deg)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-0.0001deg) rotateY(8.9998deg) rotateX(40deg)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]
+  },
+  "First Bank of Emma's Rise": {
+    name: "First Bank of Emma's Rise",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 621
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1500,
+          backgroundPositionY: 2304,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -1819,6 +2071,15 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
         selector: "#STAGE",
         properties: {
           perspective: 1000,
@@ -1827,23 +2088,24 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: 621
         }
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
           backgroundPositionX: 1087,
-          backgroundPositionY: 2196,
-          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
-          transform: "matrix3d(-0.230389, -0.753579, -0.615661, 0, 0.973081, -0.174655, -0.150361, 0, 0.0057806, -0.63373, 0.773533, 0, -3500, -3500, 0, 1)",
+          backgroundPositionY: 2304,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(-0.0282302, -0.808527, -0.587781, 0, 0.999391, -0.0348943, 0, 0, -0.0205102, -0.587423, 0.80902, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          transform: "matrix3d(-0.230389, -0.753579, -0.615661, 0, 0.973081, -0.174655, -0.150361, 0, 0.0057806, -0.63373, 0.773533, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 16%)",
+          transform: "matrix3d(-0.0282302, -0.808527, -0.587781, 0, 0.999391, -0.0348943, 0, 0, -0.0205102, -0.587423, 0.80902, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -1854,6 +2116,15 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
         selector: "#STAGE",
         properties: {
           perspective: 1000,
@@ -1862,7 +2133,46 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: 621
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1087,
+          backgroundPositionY: 2478,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(0.014125, -0.808895, -0.587784, 0, 0.999596, -0.0030655, 0.02824, 0, -0.0246451, -0.587946, 0.808525, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.014125, -0.808895, -0.587784, 0, 0.999596, -0.0030655, 0.02824, 0, -0.0246451, -0.587946, 0.808525, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]/* [
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100,
         }
       },
       {
@@ -1870,24 +2180,34 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: 1087,
           backgroundPositionY: 2370,
-          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.0137513, -0.787891, -0.615661, 0, 0.979427, 0.134587, -0.150361, 0, 0.201328, -0.600928, 0.773533, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(0.0137513, -0.787891, -0.615661, 0, 0.979427, 0.134587, -0.150361, 0, 0.201328, -0.600928, 0.773533, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 16%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
-    ]
+    ] */
   },
-  "Medical Clinic": {
-    name: "Medical Clinic",
+  "Ranger Station #3": {
+    name: "Ranger Station #3",
     images: {},
     description: "",
     mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
       {
         selector: "#STAGE",
         properties: {
@@ -1897,7 +2217,52 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: -124
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1391,
+          backgroundPositionY: 2152,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(-0.999239, -0.01744, 0.0348995, 0, -0.0090616, -0.766318, -0.642397, 0, 0.0379475, -0.642225, 0.765577, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(-0.999239, -0.01744, 0.0348995, 0, -0.0090616, -0.766318, -0.642397, 0, 0.0379475, -0.642225, 0.765577, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ],
+  },
+  "Medical Clinic": {
+    name: "Medical Clinic",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: -100,
         }
       },
       {
@@ -1905,15 +2270,16 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: 804,
           backgroundPositionY: 2630,
-          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(-0.997412, -0.0174099, 0.06976, 0, -0.0291893, -0.78864, -0.614162, 0, 0.065708, -0.614608, 0.786091, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(-0.997412, -0.0174099, 0.06976, 0, -0.0291893, -0.78864, -0.614162, 0, 0.065708, -0.614608, 0.786091, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 16%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -1924,6 +2290,15 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
         selector: "#STAGE",
         properties: {
           perspective: 1000,
@@ -1932,7 +2307,7 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: -100,
         }
       },
       {
@@ -1940,15 +2315,16 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: 587,
           backgroundPositionY: 2783,
-          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 21%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -1959,6 +2335,15 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
         selector: "#STAGE",
         properties: {
           perspective: 1000,
@@ -1967,7 +2352,7 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: -100,
         }
       },
       {
@@ -1975,15 +2360,16 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: 22,
           backgroundPositionY: 2848,
-          filter: "hue-rotate(2deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 21%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -1994,6 +2380,15 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
         selector: "#STAGE",
         properties: {
           perspective: 1000,
@@ -2002,7 +2397,7 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: -100
+          z: -100,
         }
       },
       {
@@ -2010,15 +2405,16 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: 0,
           backgroundPositionY: 2978,
-          filter: "hue-rotate(45deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 7%, rgb(0, 0, 0) 15%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -2029,6 +2425,15 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
         selector: "#STAGE",
         properties: {
           perspective: 1081,
@@ -2037,7 +2442,7 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: 100
+          z: 100,
         }
       },
       {
@@ -2045,15 +2450,16 @@ export const LOCATIONS = {
         properties: {
           backgroundPositionX: -543,
           backgroundPositionY: 3087,
-          filter: "hue-rotate(45deg) saturate(100%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 15%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]
@@ -2064,34 +2470,14 @@ export const LOCATIONS = {
     description: "",
     mapTransforms: [
       {
-        selector: "#STAGE",
+        selector: "body",
         properties: {
-          perspective: 1000,
-        },
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
       },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 674,
-          backgroundPositionY: 2239,
-          filter: "hue-rotate(-34deg) saturate(100%) brightness(1.5)",
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
-        },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 7%, rgb(0, 0, 0) 16%)",
-        },
-      },
-    ]
-  },
-  "The East Tunnel": {
-    name: "The East Tunnel",
-    images: {},
-    description: "",
-    mapTransforms: [
       {
         selector: "#STAGE",
         properties: {
@@ -2107,17 +2493,63 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
+          backgroundPositionX: 674,
+          backgroundPositionY: 2239,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]
+  },
+  "The East Tunnel": {
+    name: "The East Tunnel",
+    images: {},
+    description: "",
+    mapTransforms: [
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 100,
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
           backgroundPositionX: 3065,
           backgroundPositionY: -370,
-          filter: "hue-rotate(-197deg) saturate(0%) brightness(1.5)",
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
           transform: "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) 4%, rgb(0, 0, 0) 10%)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
     ]

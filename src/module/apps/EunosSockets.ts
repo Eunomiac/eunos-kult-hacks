@@ -74,9 +74,26 @@ export interface SocketEvents {
     data: Record<IDString, PCState>;
   };
   updateNPCUI: {
+    data: Record<IDString, { state?: NPCState, position?: Point }>;
+  };
+  spotlightPC: {
     data: {
-      npcID: IDString;
-      state: NPCState;
+      pcID: string;
+    };
+  };
+  unspotlightPC: {
+    data: {
+      pcID: string;
+    };
+  };
+  spotlightNPC: {
+    data: {
+      npcID: string;
+    };
+  };
+  unspotlightNPC: {
+    data: {
+      npcID: string;
     };
   };
   requestSoundSync: {
