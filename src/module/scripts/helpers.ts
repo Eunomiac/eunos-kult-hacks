@@ -3,7 +3,7 @@ import * as C from "./constants.js";
 // import * as U from "./utilities.js";
 import {isNumber, isList, uCase, lCase, sCase, tCase, signNum, getID, toKey, randNumWeighted} from "./utilities.js";
 import EunosItem from "../documents/EunosItem.js";
-
+import EunosOverlay from "../apps/EunosOverlay.js";
 const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
   /**
    * Handlebars helper that allows defining local variables (like #with), but without changing the context. Can define multiple variables in one call (see example).
@@ -184,6 +184,18 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
       bullets[i] = `<span class="dot filled"></span>`;
     }
     return `<div class="dotline">${bullets.join("")}</div>`;
+  },
+  "actorHasGogglesImg": (actor: EunosActor): boolean => {
+    return Boolean(actor.getGogglesImageSrc());
+  },
+  "getGogglesImg": (actor: EunosActor): string => {
+    return actor.getGogglesImageSrc() ?? (actor.img as string);
+  },
+  "isLocationBright": (): boolean => {
+    return EunosOverlay.instance.isLocationBright;
+  },
+  "isOutdoors": (): boolean => {
+    return EunosOverlay.instance.isOutdoors;
   },
   /**
    * Constructs a complete CSS filter string from individual filter values

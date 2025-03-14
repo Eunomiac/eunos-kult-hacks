@@ -1,9 +1,10 @@
 // #region IMPORTS ~
 import {getSetting, formatDateAsISO} from "./utilities.ts";
-import {GamePhase, PCTargetRef} from "./enums.ts";
+import {EunosMediaCategories, GamePhase, PCTargetRef} from "./enums.ts";
 import EunosOverlay from "../apps/EunosOverlay";
 import fields = foundry.data.fields;
 import {LOCATIONS} from "./constants.ts";
+import EunosMedia from "../apps/EunosMedia.ts";
 // #endregion
 
 
@@ -118,6 +119,25 @@ export default function registerSettings() {
     type: String,
     default: "Willow's Wending" as keyof typeof LOCATIONS,
   });
+  getSettings().register("eunos-kult-hacks", "isOutdoors", {
+    name: "Is Outdoors",
+    hint: "Whether the current scene is set outdoors of the currentLocation.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: true,
+  });
+  getSettings().register("eunos-kult-hacks", "weatherAudio", {
+    name: "Weather Audio",
+    hint: "A record of the currently-playing weather tracks and their outdoor volume.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {},
+    onChange: (value) => {
+      void EunosOverlay.instance.updateWeatherAudio();
+    }
+  });
   getSettings().register("eunos-kult-hacks", "locationData", {
     name: "Location Data",
     hint: "Data for all configured locations.",
@@ -132,7 +152,9 @@ export default function registerSettings() {
         mapTransforms: [],
         pcData: {},
         npcData: {},
-        playlists: {}
+        audioData: {},
+        isBright: false,
+        isIndoors: false,
       }
     }
   })

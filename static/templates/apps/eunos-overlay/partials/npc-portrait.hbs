@@ -1,13 +1,18 @@
-<div class="npc-portrait npc-portrait-{{state}}" style="opacity: 0;" data-actor-id="{{actor.id}}" data-state="{{state}}">
+<div class="npc-portrait npc-portrait-invisible npc-portrait-name-{{nameState}} {{#if (isLocationBright)}}npc-portrait-bright {{#if (isOutdoors)}}npc-portrait-goggles{{/if}}{{/if}}" data-actor-id="{{actor.id}}" data-portrait-state="{{portraitState}}" data-name-state="{{nameState}}" data-goggles-state="{{#if (isOutdoors)}}goggles{{else}}noGoggles{{/if}}">
   <div class="npc-portrait-container">
     <div class="npc-portrait-frame">
-      <img class="npc-portrait-image" src="{{actor.img}}" alt="{{actor.name}}" />
+      <img class="npc-portrait-image npc-portrait-image-base" src="{{actor.img}}" />
+      {{#if (actorHasGogglesImg actor)}}
+      <img class="npc-portrait-image npc-portrait-image-goggles" src="{{getGogglesImg actor}}" />
+      {{/if}}
     </div>
   </div>
   <div class="npc-portrait-name-container">
     <div class="npc-portrait-name">{{actor.name}}</div>
   </div>
-  <div class="npc-portrait-shadow"></div>
+  <div class="npc-portrait-shadow">
+      <img class="npc-portrait-shadow-image" src="{{actor.img}}" />
+  </div>
   <div class="npc-smoke-effect-container">
     <img class="npc-smoke-effect" src="" />
   </div>

@@ -19,6 +19,7 @@ import {
   randElem,
   shuffle,
   getDistance,
+  timeline,
 } from "../scripts/utilities";
 import {
   LOADING_SCREEN_DATA,
@@ -28,6 +29,7 @@ import {
   type Location,
   type PCs,
   type EunosMediaData,
+  type NPCs,
   CONTROL_SLIDER_PANELS,
   Sounds,
   EASES,
@@ -41,7 +43,9 @@ import {
   EunosMediaTypes,
   PCTargetRef,
   PCState,
-  NPCState,
+  NPCPortraitState,
+  NPCNameState,
+  EunosMediaCategories,
 } from "../scripts/enums";
 import EunosSockets from "./EunosSockets";
 import EunosAlerts from "./EunosAlerts";
@@ -464,21 +468,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         );
       }
     },
-    toggleNPCShrouded(event: PointerEvent, target: HTMLElement): void {
-      const npcID = target.dataset["actorId"];
-      if (!npcID) return;
-      EunosOverlay.instance.queueUIChanges({
-        [npcID]: {
-          state: NPCState.shrouded
-        },
-      });
-    },
     toggleNPCDimmed(event: PointerEvent, target: HTMLElement): void {
       const npcID = target.dataset["actorId"];
       if (!npcID) return;
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          state: NPCState.dimmed
+          portraitState: NPCPortraitState.dimmed,
         },
       });
     },
@@ -487,7 +482,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (!npcID) return;
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          state: NPCState.invisible
+          portraitState: NPCPortraitState.invisible,
         },
       });
     },
@@ -497,7 +492,37 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          state: NPCState.base
+          portraitState: NPCPortraitState.base,
+        },
+      });
+    },
+    toggleNPCNameBase(event: PointerEvent, target: HTMLElement): void {
+      const npcID = target.dataset["actorId"];
+      if (!npcID) return;
+
+      EunosOverlay.instance.queueUIChanges({
+        [npcID]: {
+          nameState: NPCNameState.base,
+        },
+      });
+    },
+    toggleNPCNameShrouded(event: PointerEvent, target: HTMLElement): void {
+      const npcID = target.dataset["actorId"];
+      if (!npcID) return;
+
+      EunosOverlay.instance.queueUIChanges({
+        [npcID]: {
+          nameState: NPCNameState.shrouded,
+        },
+      });
+    },
+    toggleNPCNameInvisible(event: PointerEvent, target: HTMLElement): void {
+      const npcID = target.dataset["actorId"];
+      if (!npcID) return;
+
+      EunosOverlay.instance.queueUIChanges({
+        [npcID]: {
+          nameState: NPCNameState.invisible,
         },
       });
     },
@@ -508,7 +533,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          state: NPCState.removed
+          portraitState: NPCPortraitState.removed,
         },
       });
     },
@@ -733,13 +758,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     syncMedia: SocketFunction<void, { mediaName: string; timestamp: number }>;
     setLocation: SocketFunction<
       void,
-      { fromLocation: string; toLocation: string }
+      { fromLocation: string; toLocation: string; isGoingOutdoors: boolean }
     >;
     refreshLocationImage: SocketFunction<void, { imgKey: string }>;
     updatePCUI: SocketFunction<void, Record<IDString, PCState>>;
     spotlightPC: SocketFunction<void, { pcID: string }>;
     unspotlightPC: SocketFunction<void, { pcID: string }>;
-    updateNPCUI: SocketFunction<void, Record<IDString, { state?: NPCState; position?: Point }>>;
+    updateNPCUI: SocketFunction<
+      void,
+      Record<IDString, { state?: NPCPortraitState; position?: Point }>
+    >;
     spotlightNPC: SocketFunction<void, { npcID: string }>;
     unspotlightNPC: SocketFunction<void, { npcID: string }>;
     playMedia: SocketFunction<
@@ -752,6 +780,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void,
       { sounds: Record<string, EunosMediaData> }
     >;
+    setIndoors: SocketFunction<void, { isIndoors: boolean }>;
   } = {
     changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
       void EunosOverlay.instance
@@ -834,10 +863,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
     },
 
-    setLocation: (data: { fromLocation: string; toLocation: string }) => {
+    setLocation: (data: {
+      fromLocation: string;
+      toLocation: string;
+      isGoingOutdoors: boolean;
+    }) => {
       void EunosOverlay.instance.goToLocation(
         data.fromLocation,
         data.toLocation,
+        data.isGoingOutdoors,
       );
     },
 
@@ -850,7 +884,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void EunosOverlay.instance.updatePCUI(data);
     },
 
-
     spotlightPC: ({ pcID }: { pcID: string }) => {
       void EunosOverlay.instance.updatePCUI({ [pcID]: PCState.spotlit });
     },
@@ -859,17 +892,29 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void EunosOverlay.instance.updatePCUI({ [pcID]: PCState.base });
     },
     updateNPCUI: (
-      data: Record<IDString, { state?: NPCState; position?: Point }>,
+      data: Record<IDString, { state?: NPCPortraitState; position?: Point }>,
     ) => {
-      void EunosOverlay.instance.updateNPCUI(data);
+      void EunosOverlay.instance.updateNPCUI(data, {
+        isUpdatingExplicitOnly: true,
+      });
     },
 
     spotlightNPC: ({ npcID }: { npcID: string }) => {
-      void EunosOverlay.instance.updateNPCUI({ [npcID]: { state: NPCState.spotlit } });
+      void EunosOverlay.instance.updateNPCUI(
+        {
+          [npcID]: { portraitState: NPCPortraitState.spotlit },
+        },
+        { isShowingOnly: true, isUpdatingExplicitOnly: true },
+      );
     },
 
     unspotlightNPC: ({ npcID }: { npcID: string }) => {
-      void EunosOverlay.instance.updateNPCUI({ [npcID]: { state: NPCState.base } });
+      void EunosOverlay.instance.updateNPCUI(
+        {
+          [npcID]: { portraitState: NPCPortraitState.base },
+        },
+        { isShowingOnly: true, isUpdatingExplicitOnly: true },
+      );
     },
     playMedia: (data: {
       mediaName: string;
@@ -920,6 +965,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
     },
 
+    setIndoors: ({ isIndoors }: { isIndoors: boolean }) => {
+      if (isIndoors) {
+        void EunosOverlay.instance.goIndoors();
+      } else {
+        void EunosOverlay.instance.goOutdoors();
+      }
+    },
   };
   // #endregion SOCKET FUNCTIONS
 
@@ -2369,6 +2421,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     addClassToDOM("session-running");
     await this.fadeOutBlackdrop();
     void this.updatePCUI();
+    void this.updateWeatherAudio();
     // this.render({parts: ["pcs"]});
     if (!getUser().isGM) {
       return;
@@ -2395,7 +2448,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // }, 1000);
     await this.fadeOutBlackdrop();
     void this.updatePCUI();
-
+    void this.updateWeatherAudio();
     // kLog.log("Faded Out Backdrop");
     // void this.initializeLocation(true);
   }
@@ -2444,6 +2497,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         type: EunosMediaTypes.video,
         parentSelector: "#TOP-ZINDEX-MASK",
         autoplay: false,
+        fadeInDuration: 2,
         sync: true,
         loop: false,
         mute: false,
@@ -2685,7 +2739,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       { once: true },
     );
 
-    await this.introVideo.play();
+    await this.introVideo.play({ fadeInDuration: 1 });
 
     // Schedule playback of session quote if intro video is just starting
     if (this.introVideo.currentTime <= 2) {
@@ -3408,7 +3462,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       });
   }
 
-  private buildHookDisplayTimeline(pcID: IDString, index: 1 | 2): gsap.core.Timeline {
+  private buildHookDisplayTimeline(
+    pcID: IDString,
+    index: 1 | 2,
+  ): gsap.core.Timeline {
     const hookContainer$ = this.getDramaticHookContainer(pcID, index);
     const actor = getActorFromRef(pcID);
     if (!actor?.isPC()) {
@@ -3418,9 +3475,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       );
       return gsap.timeline();
     }
-    const tl = gsap.timeline({
-      repeatRefresh: true,
-      onStart: function(this: gsap.core.Timeline) {
+    const tl = gsap
+      .timeline({
+        repeatRefresh: true,
+        onStart: function (this: gsap.core.Timeline) {
           const hookData = actor.system.dramatichooks[`dramatichook${index}`];
           if (!hookData.content || hookData.isChecked) {
             kLog.log(
@@ -3429,25 +3487,25 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             );
             this.progress(1).kill();
           }
-        }
+        },
       })
       .fromTo(
-      hookContainer$,
-      {
-        opacity: 0,
-        y: 100,
-        scale: 0.75,
-        filter: "blur(10px)",
-      },
-      {
-        opacity: 1,
-        y: 30,
-        scale: 1,
-        filter: "blur(0px)",
-        duration: 3,
-        ease: "sine.inOut",
-      },
-    )
+        hookContainer$,
+        {
+          opacity: 0,
+          y: 100,
+          scale: 0.75,
+          filter: "blur(10px)",
+        },
+        {
+          opacity: 1,
+          y: 30,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 3,
+          ease: "sine.inOut",
+        },
+      )
       .fromTo(
         hookContainer$,
         {
@@ -3524,27 +3582,52 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private PCUIChanges: Map<IDString, PCState> = new Map();
-  private NPCUIChanges: Map<IDString, { state: NPCState; position: Point }> =
-    new Map();
+  private NPCUIChanges: Map<
+    IDString,
+    {
+      portraitState: NPCPortraitState;
+      nameState: NPCNameState;
+      position: Point;
+    }
+  > = new Map();
 
   private refreshChangesDisplay(): void {
     this.changesLog$.empty();
     const changeDisplayLines: string[] = [];
+    const stateDisplayStrings: string[] = [];
     this.PCUIChanges.forEach((state, id) => {
-      changeDisplayLines.push(
+      stateDisplayStrings.push(
         `<div class="change-log-entry change-log-entry-pc"><strong>${getActorFromRef(id)?.name}</strong> is now ${state.toUpperCase()}</div>`,
       );
     });
     this.NPCUIChanges.forEach((change, id) => {
+      if ("portraitState" in change && change.portraitState) {
+        stateDisplayStrings.push(`P: ${change.portraitState.toUpperCase()}`);
+      }
+      if ("nameState" in change && change.nameState) {
+        stateDisplayStrings.push(`N: ${change.nameState.toUpperCase()}`);
+      }
+      let stateString = stateDisplayStrings.join(" and ");
+      if ("position" in change && change.position) {
+        stateString += ` at {${change.position.x}, ${change.position.y}}`;
+      }
       changeDisplayLines.push(
-        `<div class="change-log-entry change-log-entry-npc"><strong>${getActorFromRef(id)?.name}</strong> is now ${change.state.toUpperCase()}</div>`,
+        `<div class="change-log-entry change-log-entry-npc"><strong>${getActorFromRef(id)?.name}</strong> is now ${stateString}</div>`,
       );
     });
     this.changesLog$.html(changeDisplayLines.join(""));
   }
 
   private queueUIChanges(
-    changes: Record<IDString, PCState | { state?: NPCState; position?: Point }>,
+    changes: Record<
+      IDString,
+      | PCState
+      | {
+          portraitState?: NPCPortraitState;
+          nameState?: NPCNameState;
+          position?: Point;
+        }
+    >,
   ): void {
     // Separate the changes into PC and NPC changes
     Object.entries(changes)
@@ -3554,39 +3637,45 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         this.updatePCUI_GM(pcID, state as PCState);
       });
 
-    (Object.entries(changes)
-      .filter(([id]): this is [IDString, {state?: NPCState, position?: Point}] => !getActorFromRef(id)?.isPC()) as [IDString, {state?: NPCState, position?: Point}][])
-      .forEach(([npcID, {state, position}]) => {
+    (
+      Object.entries(changes).filter(
+        ([id]): this is [
+          IDString,
+          {
+            portraitState?: NPCPortraitState;
+            nameState?: NPCNameState;
+            position?: Point;
+          },
+        ] => !getActorFromRef(id)?.isPC(),
+      ) as [
+        IDString,
+        {
+          portraitState?: NPCPortraitState;
+          nameState?: NPCNameState;
+          position?: Point;
+        },
+      ][]
+    ).forEach(([npcID, { portraitState, nameState, position }]) => {
+      const npcContainer$ = $(`.npc-portrait[data-actor-id="${npcID}"]`);
+      // If there are missing states, derive it from the data attributes of the NPC container
+      portraitState ??= npcContainer$.attr(
+        "data-portrait-state",
+      ) as NPCPortraitState;
+      nameState ??= npcContainer$.attr("data-name-state") as NPCNameState;
+      // If there is no position, derive it from the position of the NPC container
+      position ??= {
+        x: parseInt(`${gsap.getProperty(npcContainer$[0]!, "x")}`),
+        y: parseInt(`${gsap.getProperty(npcContainer$[0]!, "y")}`),
+      };
 
-        // If there is no state, derive it from the class name of the NPC container
-        if (!state) {
-          const npcContainer$ = $(`.npc-portrait[data-actor-id="${npcID}"]`);
-          state = npcContainer$.attr("class")!.replace(/^npc-container npc-container-/, "") as NPCState;
-        }
-        // If there is no position, derive it from the position of the NPC container
-        if (!position) {
-          const npcContainer$ = $(`.npc-portrait[data-actor-id="${npcID}"]`);
-          position = {
-            x: parseInt(`${gsap.getProperty(npcContainer$[0]!, "x")}`),
-            y: parseInt(`${gsap.getProperty(npcContainer$[0]!, "y")}`),
-          };
-        }
-
-        this.NPCUIChanges.set(
-          npcID,
-          {state, position},
-        );
-        this.updateNPCUI_GM(
-          npcID,
-          {state, position},
-        );
-      });
+      this.NPCUIChanges.set(npcID, { portraitState, nameState, position });
+      void this.updateNPCUI_GM(npcID, { portraitState, nameState, position });
+    });
 
     this.refreshChangesDisplay();
   }
 
   private async pushUIChanges(): Promise<void> {
-
     // Add the 'disabled' class to #NPCS-GM to prevent button usage while updating.
     this.npcs$.addClass("disabled");
 
@@ -3618,21 +3707,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     EunosOverlay.instance.PCUIChanges.forEach((state, actorID) => {
       locData.pcData[actorID] ??= {} as Location.PCData.SettingsData;
       Object.assign(locData.pcData[actorID], {
-        state
-      });
-    });
-    EunosOverlay.instance.NPCUIChanges.forEach(({ state, position }, actorID) => {
-      if (state === NPCState.removed) {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete locData.npcData[actorID];
-        return;
-      }
-      locData.npcData[actorID] ??= {} as Location.NPCData.SettingsData;
-      Object.assign(locData.npcData[actorID], {
         state,
-        position,
       });
     });
+    EunosOverlay.instance.NPCUIChanges.forEach(
+      ({ portraitState, nameState, position }, actorID) => {
+        if (portraitState === NPCPortraitState.removed) {
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete locData.npcData[actorID];
+          return;
+        }
+        locData.npcData[actorID] ??= {} as Location.NPCData.SettingsData;
+        Object.assign(locData.npcData[actorID], {
+          portraitState,
+          nameState,
+          position,
+        });
+      },
+    );
 
     await EunosOverlay.instance.setLocationData(
       getSetting("currentLocation"),
@@ -3959,7 +4051,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     event.preventDefault();
     event.stopPropagation();
 
-    kLog.log("OnDragOver", event);
+    // kLog.log("OnDragOver", event);
 
     const stage = this.stage$[0];
     if (!stage) return;
@@ -4017,7 +4109,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     };
 
     if (parsedData.uuid) {
-      const actor = fromUuidSync(parsedData.uuid as `Actor.${string}`) as Maybe<EunosActor & { system: ActorDataNPC }>;
+      const actor = fromUuidSync(parsedData.uuid as `Actor.${string}`) as Maybe<
+        EunosActor & { system: ActorDataNPC }
+      >;
       if (!actor) return;
       parsedData.actorID = actor.id!;
     }
@@ -4049,14 +4143,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         xPercent: -50,
         yPercent: -50,
         x,
-        y
-      })
+        y,
+      });
       return;
     }
 
     // Handle new actor drop
     if (parsedData.actorID) {
-      const actor = getActors().find((a) => a.id === parsedData.actorID) as Maybe<EunosActor & { system: ActorDataNPC }>;
+      const actor = getActors().find(
+        (a) => a.id === parsedData.actorID,
+      ) as Maybe<EunosActor & { system: ActorDataNPC }>;
       if (!actor || actor.isPC()) return;
 
       const actorID = actor.id!;
@@ -4076,375 +4172,608 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       locationData[currentLocation].npcData =
         locationData[currentLocation].npcData || {};
 
-      let state = NPCState.invisible;
+      let portraitState = NPCPortraitState.invisible;
+      let nameState = NPCNameState.base;
+
       if (
         locationData[currentLocation].npcData[actorID] &&
         !actor.system.isGeneric
       ) {
+        kLog.log("Removing duplicate NPC from overlay", { actorID });
         this.npcs$.find(`[data-actor-id="${actorID}"]`).remove();
-        state =
-          locationData[currentLocation].npcData[actorID].state;
+        portraitState =
+          locationData[currentLocation].npcData[actorID].portraitState;
+        nameState = locationData[currentLocation].npcData[actorID].nameState;
       }
 
-      void this.renderNPCPortrait(actor, NPCState.invisible, { x, y });
+      void this.renderNPCPortrait(actor, { x, y });
 
       this.queueUIChanges({
         [actorID]: {
           position: { x, y },
-          state,
+          portraitState,
+          nameState,
         },
       });
     }
   }
 
-  private async buildNPCTransitionTimeline(
-    npcID: string,
-    state?: NPCState,
-    position?: Point
-  ): Promise<Maybe<{tl: gsap.core.Timeline}>> {
+  private buildNPCHiddenToDimmedTimeline(
+    npcContainer$: JQuery,
+  ): gsap.core.Timeline {
+    const SMOKE_EFFECT_DELAY = 2;
 
-    let npcContainer$ = this.npcs$.find(`[data-actor-id="${npcID}"]`);
-    if (!npcContainer$.length) {
-      if (state === NPCState.removed) {
-        return;
-      }
-      await this.renderNPCPortrait(
-        getActors().find((a) => a.id === npcID)!,
-        NPCState.invisible,
-        position,
+    const portraitContainer$ = npcContainer$.find(".npc-portrait-container");
+    const portraitFrame$ = portraitContainer$.find(".npc-portrait-frame");
+    const portraitImage$ = portraitFrame$.find(".npc-portrait-image-base");
+    const portraitImageGoggles$ = portraitFrame$.find(
+      ".npc-portrait-image-goggles",
+    );
+    const portraitNameContainer$ = npcContainer$.find(
+      ".npc-portrait-name-container",
+    );
+    const portraitName$ = npcContainer$.find(".npc-portrait-name");
+    const portraitShadow$ = npcContainer$.find(".npc-portrait-shadow");
+    const smokeEffectContainer$ = npcContainer$.find(
+      ".npc-smoke-effect-container",
+    );
+    const smokeEffect$ = smokeEffectContainer$.find(".npc-smoke-effect");
+
+    return gsap
+      .timeline({ paused: true })
+      .fromTo(
+        portraitContainer$,
+        {
+          autoAlpha: 0,
+          // skewX: -30,
+          scale: getUser().isGM ? 1 : 2,
+          filter: "brightness(5) blur(300px)",
+        },
+        {
+          autoAlpha: 1,
+          // skewX: 0,
+          scale: getUser().isGM ? 1 : 0.8,
+          filter: "brightness(0.5) blur(0px)",
+          duration: 1,
+          ease: "power2.out",
+        },
+        0,
+      )
+      .fromTo(
+        portraitShadow$,
+        {
+          scale: 0.5,
+          filter: "brightness(0) blur(100px)",
+          autoAlpha: 0,
+        },
+        {
+          scale: 0.8,
+          filter: "brightness(0) blur(10px)",
+          autoAlpha: 0.5,
+          duration: 0.25,
+          ease: "power2.out",
+        },
+        0.75,
+      )
+      .call(() => {
+        npcContainer$.attr("data-portrait-state", NPCPortraitState.dimmed);
+        npcContainer$.removeClass(
+          "npc-portrait-invisible npc-portrait-base npc-portrait-spotlit",
+        );
+        npcContainer$.addClass("npc-portrait-dimmed");
+      });
+  }
+
+  private buildNPCDimmedToBaseTimeline(
+    npcContainer$: JQuery,
+  ): gsap.core.Timeline {
+    const portraitContainer$ = npcContainer$.find(".npc-portrait-container");
+    const portraitFrame$ = portraitContainer$.find(".npc-portrait-frame");
+    const portraitImage$ = portraitFrame$.find(".npc-portrait-image-base");
+    const portraitImageGoggles$ = portraitFrame$.find(
+      ".npc-portrait-image-goggles",
+    );
+    const portraitNameContainer$ = npcContainer$.find(
+      ".npc-portrait-name-container",
+    );
+    const portraitName$ = npcContainer$.find(".npc-portrait-name");
+    const portraitShadow$ = npcContainer$.find(".npc-portrait-shadow");
+    const smokeEffectContainer$ = npcContainer$.find(
+      ".npc-smoke-effect-container",
+    );
+    const smokeEffect$ = smokeEffectContainer$.find(".npc-smoke-effect");
+
+    return gsap
+      .timeline({ paused: true })
+      .to(portraitContainer$, {
+        scale: 1,
+        filter: "brightness(1) blur(0px)",
+        duration: 1,
+        ease: "power2.out",
+      })
+      .to(
+        portraitShadow$,
+        {
+          scale: 1,
+          filter: "brightness(0) blur(5px)",
+          autoAlpha: 0.8,
+          duration: 1,
+          ease: "power2.out",
+        },
+        0,
+      )
+      .call(() => {
+        npcContainer$.attr("data-portrait-state", NPCPortraitState.base);
+        npcContainer$.removeClass(
+          "npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit",
+        );
+        npcContainer$.addClass("npc-portrait-base");
+      });
+  }
+
+  private buildNPCBaseToSpotlitTimeline(
+    npcContainer$: JQuery,
+  ): gsap.core.Timeline {
+    const portraitContainer$ = npcContainer$.find(".npc-portrait-container");
+
+    return gsap
+      .timeline({ paused: true })
+      .to(portraitContainer$, {
+        filter: "brightness(1.5) blur(0px)",
+        duration: 1,
+        ease: "power2.out",
+      })
+      .call(() => {
+        npcContainer$.attr("data-portrait-state", NPCPortraitState.spotlit);
+        npcContainer$.removeClass(
+          "npc-portrait-base npc-portrait-invisible npc-portrait-dimmed",
+        );
+        npcContainer$.addClass("npc-portrait-spotlit");
+      });
+  }
+
+  private buildNPCNameHiddenToShroudedTimeline(
+    npcContainer$: JQuery,
+  ): gsap.core.Timeline {
+    const portraitNameContainer$ = npcContainer$.find(
+      ".npc-portrait-name-container",
+    );
+    const portraitName$ = npcContainer$.find(".npc-portrait-name");
+    return gsap
+      .timeline({ paused: true })
+      .call(() => {
+        npcContainer$.attr("data-name-state", NPCNameState.invisible);
+        npcContainer$.removeClass(
+          "npc-portrait-name-shrouded npc-portrait-name-base",
+        );
+        npcContainer$.addClass("npc-portrait-name-invisible");
+      })
+      .fromTo(
+        portraitNameContainer$,
+        {
+          autoAlpha: 0,
+          scale: 0.5,
+          filter: "blur(10px)",
+          // skewX: -30,
+          // x: "+=200",
+          y: -10,
+          xPercent: -50,
+          yPercent: 0,
+        },
+        {
+          duration: 1,
+          ease: "power2.out",
+          scale: 1,
+          autoAlpha: 1,
+          x: 0,
+          y: -10,
+          skewX: 0,
+          xPercent: -50,
+          yPercent: 0,
+          filter: "blur(0px)",
+        },
+        0,
+      )
+      .fromTo(
+        portraitName$,
+        {
+          autoAlpha: 0,
+          scale: 1,
+          filter: "blur(10px)",
+        },
+        {
+          autoAlpha: 1,
+          ease: "power2.out",
+          duration: 0.5,
+        },
+        0.5,
+      )
+      .call(() => {
+        npcContainer$.attr("data-name-state", NPCNameState.shrouded);
+        npcContainer$.removeClass(
+          "npc-portrait-name-invisible npc-portrait-name-base",
+        );
+        npcContainer$.addClass("npc-portrait-name-shrouded");
+      });
+  }
+
+  private buildNPCNameShroudedToBaseTimeline(
+    npcContainer$: JQuery,
+  ): gsap.core.Timeline {
+    const portraitName$ = npcContainer$.find(".npc-portrait-name");
+
+    return gsap
+      .timeline({ paused: true })
+      .to(portraitName$, {
+        filter: "blur(0px)",
+        duration: 1,
+        ease: "power2.out",
+      })
+      .call(() => {
+        npcContainer$.attr("data-name-state", NPCNameState.base);
+        npcContainer$.removeClass(
+          "npc-portrait-name-shrouded npc-portrait-name-invisible",
+        );
+        npcContainer$.addClass("npc-portrait-name-base");
+      });
+  }
+
+  private buildNPCPortraitTimeline(npcContainer$: JQuery): gsap.core.Timeline {
+    kLog.log("buildNPCPortraitTimeline", { npcContainer$ });
+
+    npcContainer$.data(
+      "portrait-timeline",
+      gsap
+        .timeline({ paused: true })
+        .addLabel(NPCPortraitState.removed)
+        .addLabel(NPCPortraitState.invisible)
+        .add(this.buildNPCHiddenToDimmedTimeline(npcContainer$).paused(false))
+        .addLabel(NPCPortraitState.dimmed)
+        .add(this.buildNPCDimmedToBaseTimeline(npcContainer$).paused(false))
+        .addLabel(NPCPortraitState.base)
+        .add(this.buildNPCBaseToSpotlitTimeline(npcContainer$).paused(false))
+        .addLabel(NPCPortraitState.spotlit),
+    );
+
+    return npcContainer$.data("portrait-timeline") as gsap.core.Timeline;
+  }
+
+  private buildNPCNameTimeline(npcContainer$: JQuery): gsap.core.Timeline {
+    npcContainer$.data(
+      "name-timeline",
+      gsap
+        .timeline({ paused: true })
+        .addLabel(NPCNameState.invisible)
+        .add(
+          this.buildNPCNameHiddenToShroudedTimeline(npcContainer$).paused(
+            false,
+          ),
+        )
+        .addLabel(NPCNameState.shrouded)
+        .add(
+          this.buildNPCNameShroudedToBaseTimeline(npcContainer$).paused(false),
+        )
+        .addLabel(NPCNameState.base),
+    );
+
+    return npcContainer$.data("name-timeline") as gsap.core.Timeline;
+  }
+
+  private buildNPCGogglesTimeline(npcContainer$: JQuery): gsap.core.Timeline {
+    const actorID = npcContainer$.attr("data-actor-id") as Maybe<string>;
+    if (!actorID) {
+      kLog.error("No actorID found for NPC container", { npcContainer$ });
+      npcContainer$.data("goggles-timeline", gsap.timeline());
+      return gsap.timeline();
+    }
+    const actor = getActorFromRef(actorID) as EunosActor;
+    if (actor.isPC()) {
+      kLog.error(
+        "Actor on stage is a PC: No goggles transition timeline created.",
+        { actorID, actor },
       );
-      npcContainer$ = this.npcs$.find(`[data-actor-id="${npcID}"]`);
+      npcContainer$.data("goggles-timeline", gsap.timeline());
+      return gsap.timeline();
+    }
+    const gogglesImg = actor.getGogglesImageSrc();
+    if (!gogglesImg) {
+      kLog.error("No goggles image found for NPC", { actorID, actor });
+      npcContainer$.data("goggles-timeline", gsap.timeline());
+      return gsap.timeline();
     }
 
-    if ((!state || npcContainer$.hasClass(`npc-portrait-${state}`))
-      && (!position
-        || getDistance(position, {x: parseInt(`${gsap.getProperty(npcContainer$[0]!, "x")}`), y: parseInt(`${gsap.getProperty(npcContainer$[0]!, "y")}`)}) < 100
-        || state === NPCState.removed)) {
-      return;
-    }
+    const portraitImage$ = npcContainer$.find(".npc-portrait-image-base");
+    const portraitImageGoggles$ = npcContainer$.find(
+      ".npc-portrait-image-goggles",
+    );
 
-    const isFromInvisible = npcContainer$.hasClass("npc-portrait-invisible");
-    const npcPortraitFrame$ = npcContainer$.find(".npc-portrait-frame");
-    const npcPortraitName$ = npcContainer$.find(".npc-portrait-name");
-    const smokeEffect$ = npcContainer$.find(".npc-smoke-effect");
-
-    const tls: {
-      state: Maybe<gsap.core.Timeline>;
-      position: Maybe<gsap.core.Timeline>;
-    } = {
-      state: undefined,
-      position: undefined,
-    };
-
-    if (state) {
-      const SMOKE_EFFECT_DELAY = 1.5;
-      const FADE_DURATION = 1;
-      const SMOKE_EFFECT_OFFSET = isFromInvisible
-        ? SMOKE_EFFECT_DELAY - FADE_DURATION
-        : 0;
-
-      tls.state = gsap.timeline();
-
-      if (isFromInvisible) {
-        // Reset and show the smoke effect
-        tls.state.call(() => {
-          // Force reload the image to restart animation
-          const src = this.isLocationBright
-            ? "modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-dark.webp"
-            : "modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-bright.webp";
-          smokeEffect$.attr("src", "").css("display", "block").attr("src", src);
-        })
+    npcContainer$.data(
+      "goggles-timeline",
+      gsap
+        .timeline({ paused: true })
+        .addLabel("noGoggles")
         .call(() => {
-          smokeEffect$.css("display", "none");
-          smokeEffect$.attr("src", "");
-        }, [], "+=4"); // Position the second call 4 seconds after the first one
-      }
+          npcContainer$.attr("data-goggles-state", "noGoggles");
+          npcContainer$.removeClass("npc-portrait-goggles");
+          kLog.log("goggles Timeline at NO GOGGLES", { npcContainer$ });
+        })
+        .fromTo(
+          portraitImage$,
+          {
+            autoAlpha: 1,
+          },
+          {
+            autoAlpha: 0,
+            duration: 1,
+            ease: "power2.out",
+          },
+          0,
+        )
+        .fromTo(
+          portraitImageGoggles$,
+          {
+            autoAlpha: 0,
+          },
+          {
+            autoAlpha: 1,
+            duration: 1,
+            ease: "power2.out",
+          },
+          0,
+        )
+        .call(() => {
+          npcContainer$.attr("data-goggles-state", "goggles");
+          npcContainer$.addClass("npc-portrait-goggles");
+          kLog.log("goggles Timeline at GOGGLES", { npcContainer$ });
+        })
+        .addLabel("goggles"),
+    );
 
-      switch (state) {
-        case NPCState.removed:
-        case NPCState.invisible: {
-          tls.state.to(
-            npcContainer$,
-            {
-              duration: FADE_DURATION / 2,
-              ease: "power3.out",
-              filter: "blur(30px)",
-              clearProps: "filter",
-            },
-            0,
-          ).to(
-            [npcPortraitFrame$, npcPortraitName$],
-            {
-              duration: FADE_DURATION,
-              ease: "power3.out",
-              scale: 2,
-              x: "+=200",
-              y: "-=150",
-              skewX: -30,
-              autoAlpha: 0,
-              filter: "brightness(5)",
-              clearProps: "all",
-              onComplete: () => {
-                if (state === NPCState.removed) {
-                  npcContainer$.remove();
-                } else {
-                  smokeEffect$.css("display", "none");
-                  smokeEffect$.attr("src", "");
-                  npcContainer$
-                    .removeClass("npc-portrait-base npc-portrait-spotlit npc-portrait-dimmed npc-portrait-shrouded")
-                    .addClass("npc-portrait-invisible");
-                }
-              },
-            },
-            0,
-          );
-          break;
-        }
-        case NPCState.shrouded: {
-          tls.state.fromTo(
-            npcPortraitFrame$,
-            {
-              scale: isFromInvisible ? 0.5 : 1,
-              autoAlpha: isFromInvisible ? 0 : 1,
-              filter: isFromInvisible
-                ? "brightness(0.5) blur(10px)"
-                : "brightness(1) blur(0px)",
-            },
-            {
-              duration: FADE_DURATION,
-              ease: "power2.out",
-              scale: 1,
-              autoAlpha: 1,
-              filter: "brightness(1) blur(0px)",
-            },
-            SMOKE_EFFECT_OFFSET,
-          ).to(
-            npcPortraitName$,
-            {
-              duration: FADE_DURATION,
-              ease: "power2.out",
-              scale: 1.5,
-              autoAlpha: 0,
-              filter: "brightness(0.5) blur(10px)",
-              clearProps: "all",
-              onComplete: () => {
-                npcContainer$
-                  .removeClass(
-                    "npc-portrait-base npc-portrait-spotlit npc-portrait-dimmed npc-portrait-invisible",
-                  )
-                  .addClass("npc-portrait-shrouded");
-              },
-            },
-            0,
-          );
-          break;
-        }
-        case NPCState.dimmed: {
-          tls.state.fromTo(
-            npcPortraitFrame$,
-            {
-              scale: isFromInvisible ? 0.5 : 1,
-              autoAlpha: isFromInvisible ? 0 : 1,
-              filter: isFromInvisible
-                ? "brightness(0.5) blur(10px)"
-                : "brightness(1) blur(0px)",
-            },
-            {
-              duration: FADE_DURATION,
-              ease: "power2.out",
-              scale: 0.8,
-              autoAlpha: 1,
-              filter: "brightness(0.5) blur(10px)",
-              onComplete: () => {
-                npcContainer$
-                  .removeClass(
-                    "npc-portrait-base npc-portrait-spotlit npc-portrait-invisible npc-portrait-shrouded",
-                  )
-                  .addClass("npc-portrait-dimmed");
-              },
-            },
-            SMOKE_EFFECT_OFFSET,
-          ).to(
-            npcPortraitName$,
-            {
-              duration: FADE_DURATION,
-              ease: "power2.out",
-              scale: 1,
-              autoAlpha: 1,
-              filter: "brightness(0.5) blur(0px)",
-              clearProps: "all",
-            },
-            SMOKE_EFFECT_OFFSET,
-          );
-          break;
-        }
-        case NPCState.base: {
-          tls.state.fromTo(
-            npcPortraitFrame$,
-            {
-              scale: isFromInvisible ? 0.5 : 1,
-              autoAlpha: isFromInvisible ? 0 : 1,
-              filter: isFromInvisible
-                ? "brightness(0.5) blur(10px)"
-                : "brightness(1) blur(0px)",
-            },
-            {
-              duration: FADE_DURATION,
-              ease: "power2.out",
-              scale: 1,
-              autoAlpha: 1,
-              filter: "brightness(1) blur(0px)",
-              onComplete: () => {
-                npcContainer$
-                  .removeClass(
-                    "npc-portrait-spotlit npc-portrait-dimmed npc-portrait-invisible npc-portrait-shrouded",
-                  )
-                  .addClass("npc-portrait-base");
-              },
-            },
-            SMOKE_EFFECT_OFFSET,
-          ).to(
-            npcPortraitName$,
-            {
-              duration: FADE_DURATION,
-              ease: "power2.out",
-              scale: 1,
-              autoAlpha: 1,
-              filter: "brightness(1) blur(0px)",
-              clearProps: "all",
-            },
-            SMOKE_EFFECT_OFFSET,
-          );
-          break;
-        }
-        case NPCState.spotlit: {
-          tls.state.fromTo(
-            npcPortraitFrame$,
-            {
-              scale: isFromInvisible ? 0.5 : 1,
-              autoAlpha: isFromInvisible ? 0 : 1,
-              filter: isFromInvisible
-                ? "brightness(0.5) blur(10px)"
-                : "brightness(1) blur(0px)",
-            },
-            {
-              duration: FADE_DURATION,
-              ease: "power2.out",
-              scale: 1.2,
-              autoAlpha: 1,
-              filter: "brightness(1.5) blur(0px)",
-              onComplete: () => {
-                npcContainer$
-                  .removeClass(
-                    "npc-portrait-base npc-portrait-dimmed npc-portrait-invisible npc-portrait-shrouded",
-                  )
-                  .addClass("npc-portrait-spotlit");
-              },
-            },
-            SMOKE_EFFECT_OFFSET,
-          ).to(
-            npcPortraitName$,
-            {
-              duration: FADE_DURATION,
-              ease: "power2.out",
-              scale: 1,
-              autoAlpha: 1,
-              filter: "invert(1) brightness(1.5) blur(0px)",
-              clearProps: "all",
-            },
-            SMOKE_EFFECT_OFFSET,
-          );
-          break;
-        }
-      }
-    }
-
-    if (position) {
-      tls.position = gsap.timeline();
-
-      tls.position.to(npcContainer$, {
-        xPercent: -50,
-        yPercent: -50,
-        x: position.x,
-        y: position.y,
-        zIndex: position.y,
-        duration: isFromInvisible ? 0 : 1,
-        ease: "back.inOut",
-        onComplete: () => {
-          // Update shadow skew after position change
-          void this.updateShadowSkew(npcContainer$[0]!);
-        },
-      });
-    }
-
-    if (!tls.state && !tls.position) {
-      return;
-    }
-
-    const tl = gsap.timeline();
-
-    // Now to create a single timeline merging both. Where the state vs. position timelines are placed in the master timeline depends on what's being changed.
-    // If we're coming from "invisible", we instantly set the position and only return a state transition timeline.
-    // If we're going to "removed", we ignore the position timeline.
-    // Otherwise, we stagger the timelines such that they both COMPLETE at the same time.
-
-    if (isFromInvisible) {
-      if (tls.state) {
-        tl.add(tls.state, 0);
-      }
-      if (tls.position) {
-        tl.add(tls.position, 0);
-      }
-    } else if (tls.state && state === NPCState.removed) {
-      tl.add(tls.state, 0);
-    } else if (tls.state && tls.position) {
-      // Stagger the timelines such that they both COMPLETE at the same time.
-      const stateDuration = tls.state.duration();
-      const positionDuration = tls.position.duration();
-
-      if (stateDuration > positionDuration) {
-        tl.add(tls.state, 0);
-        tl.add(tls.position, stateDuration - positionDuration);
-      } else {
-        tl.add(tls.position, 0);
-        tl.add(tls.state, positionDuration - stateDuration);
-      }
-    } else if (tls.state) {
-      tl.add(tls.state, 0);
-    } else if (tls.position) {
-      tl.add(tls.position, 0);
-    }
-
-    return { tl };
+    return npcContainer$.data("goggles-timeline") as gsap.core.Timeline;
   }
 
-  private async buildNPCUIUpdateTimeline(data: Record<IDString, { state?: NPCState; position?: Point }>): Promise<{tl: gsap.core.Timeline}> {
-    const masterTl = gsap.timeline({paused: true});
+  private buildNPCTransitionTimeline(
+    npcContainer$: JQuery,
+    portraitState?: NPCPortraitState,
+    nameState?: NPCNameState,
+    gogglesState?: "goggles" | "noGoggles",
+    position?: Point,
+  ): gsap.core.Timeline {
+    if (getUser().isGM) {
+      return gsap.timeline();
+    }
+    const SMOKE_EFFECT_DELAY = 1.5;
 
-    const TIMELINE_STAGGER_AMOUNT = 1;
-    const numChanges = Object.keys(data).length;
-    await Promise.all(Object.entries(data).map(async ([npcID, { state, position }], index) => {
-      const { tl } = await this.buildNPCTransitionTimeline(npcID, state, position) ?? {};
-      if (tl) {
-        masterTl.add(tl, (index * TIMELINE_STAGGER_AMOUNT) / numChanges);
+    const npcID = npcContainer$.attr("data-actor-id") as IDString;
+    const smokeEffect$ = npcContainer$.find(".npc-smoke-effect");
+    const actor = getActorFromRef(npcID) as EunosActor;
+    portraitState ??= npcContainer$.attr(
+      "data-portrait-state",
+    ) as NPCPortraitState;
+    nameState ??= npcContainer$.attr("data-name-state") as NPCNameState;
+    position ??= {
+      x: gsap.getProperty(npcContainer$[0]!, "x") as number,
+      y: gsap.getProperty(npcContainer$[0]!, "y") as number,
+    };
+    gogglesState ??=
+      this.isOutdoors && this.isLocationBright && actor.getGogglesImageSrc()
+        ? "goggles"
+        : "noGoggles";
+
+    // Get timelines as JQuery data elements from npcContainer$
+    const portraitTimeline = npcContainer$.data(
+      "portrait-timeline",
+    ) as gsap.core.Timeline;
+    const nameTimeline = npcContainer$.data(
+      "name-timeline",
+    ) as gsap.core.Timeline;
+    const gogglesTimeline = npcContainer$.data(
+      "goggles-timeline",
+    ) as gsap.core.Timeline;
+    const currentPortraitState = this.getNPCStatusFromOverlay(npcContainer$).portraitState;
+    const positionTimeline = gsap.to(npcContainer$, {
+      xPercent: -50,
+      yPercent: -50,
+      x: position.x,
+      y: position.y,
+      duration: 1,
+      ease: "power2.out",
+    });
+
+    // Create timeline of tweenTo's to update portrait, name, and goggles
+    const tl = gsap.timeline({
+      paused: true,
+      onComplete: () => {
+        if (portraitState === NPCPortraitState.removed) {
+          npcContainer$.remove();
+        } else {
+          // Update data-attributes and classes for new NPC state
+          npcContainer$.attr("data-portrait-state", portraitState);
+          npcContainer$.attr("data-name-state", nameState);
+          npcContainer$.attr("data-goggles-state", gogglesState);
+          npcContainer$.removeClass("npc-portrait-name-shrouded npc-portrait-name-invisible npc-portrait-name-base");
+          npcContainer$.addClass(`npc-portrait-name-${nameState}`);
+          npcContainer$.removeClass("npc-portrait-base npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit");
+          npcContainer$.addClass(`npc-portrait-${portraitState}`);
+          npcContainer$.removeClass("npc-portrait-goggles npc-portrait-noGoggles");
+          npcContainer$.addClass(`npc-portrait-${gogglesState}`);
+        }
+      },
+    });
+
+    const timeOffset = [
+      NPCPortraitState.invisible,
+      NPCPortraitState.removed,
+    ].includes(portraitState)
+      ? 0
+      : 0;
+
+    kLog.log(`buildNPCTransitionTimeline for ${actor.name}`, {
+      portraitState,
+      nameState,
+      gogglesState,
+      gogglesStateReasons: {
+        isOutdoors: this.isOutdoors,
+        isLocationBright: this.isLocationBright,
+        hasGoggles: Boolean(actor.getGogglesImageSrc()),
+      },
+      position,
+      currentPortraitLabel: currentPortraitState,
+      timeOffset,
+    });
+
+    if (
+      [NPCPortraitState.invisible, NPCPortraitState.removed].includes(
+        currentPortraitState,
+      )
+    ) {
+      // Create a sub-timeline that will be controlled by the master timeline
+      const subTl = gsap.timeline({ paused: true });
+      // Starting from invisible/removed state
+      subTl
+        // First set initial position and goggles image instantly
+        .add(positionTimeline.duration(0), 0)
+        .add(gogglesTimeline.tweenTo(gogglesState), 0);
+        // Start smoke effect IF new portrait state is not invisible/removed
+        if (portraitState !== NPCPortraitState.invisible && portraitState !== NPCPortraitState.removed) {
+          subTl.call(
+            () => {
+              const src = this.isLocationBright
+              ? "modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-dark.webp"
+              : "modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-bright.webp";
+            smokeEffect$
+              .attr("src", "")
+              .css("display", "block")
+              .attr("src", src);
+          },
+          [],
+          0,
+        )
+
+        // Fade in smoke
+        .to(
+          smokeEffect$,
+          {
+            opacity: 1,
+            duration: 0.1,
+          },
+          0,
+        )
+
+        // After smoke is visible, start portrait transition
+        .add(
+          portraitTimeline.tweenFromTo(
+            NPCPortraitState.invisible,
+            portraitState,
+          ),
+          SMOKE_EFFECT_DELAY,
+          )
+        }
+
+        // Add goggles and name transitions in parallel with portrait
+        subTl.add(gogglesTimeline.tweenTo(gogglesState), SMOKE_EFFECT_DELAY)
+        .add(
+          nameTimeline.tweenFromTo(NPCNameState.invisible, nameState),
+          SMOKE_EFFECT_DELAY + timeOffset,
+        );
+
+      // Create the master control timeline
+      tl.to(subTl, {
+        progress: 1,
+        duration: subTl.duration(),
+        ease: "none",
+      });
+
+      kLog.log("buildNPCTransitionTimeline: FROM invis/removed", {
+        subDuration: subTl.duration(),
+        subTotalDuration: subTl.totalDuration(),
+        tlDuration: tl.duration(),
+        tlTotalDuration: tl.totalDuration(),
+      });
+    } else if (
+      [NPCPortraitState.invisible, NPCPortraitState.removed].includes(
+        portraitState,
+      )
+    ) {
+      tl.add(portraitTimeline.tweenTo(portraitState), 0);
+      tl.add(nameTimeline.tweenTo(NPCNameState.invisible), timeOffset);
+      tl.duration(1);
+      kLog.log("buildNPCTransitionTimeline: TO invis/removed", { tl });
+    } else {
+      tl.add(portraitTimeline.tweenTo(portraitState), 0);
+      tl.add(nameTimeline.tweenTo(nameState), timeOffset);
+      tl.add(positionTimeline, "<");
+      tl.add(gogglesTimeline.tweenTo(gogglesState), "<");
+      tl.duration(1);
+      kLog.log("buildNPCTransitionTimeline: GENERIC", { tl });
+    }
+
+    tl.play();
+
+    return tl;
+  }
+
+  private async buildNPCUIUpdateTimeline(
+    data: Record<
+      IDString,
+      {
+        portraitState?: NPCPortraitState;
+        nameState?: NPCNameState;
+        position?: Point;
       }
-    }));
+    >,
+  ): Promise<{ tl: gsap.core.Timeline }> {
+    const masterTl = gsap.timeline({ paused: true });
+
+    const TIMELINE_STAGGER_AMOUNT = 0.25;
+    const numChanges = Object.keys(data).length;
+    await Promise.all(
+      Object.entries(data).map(
+        async ([npcID, { portraitState, nameState, position }], index) => {
+          let npcContainer$ = this.npcs$.find(
+            `.npc-portrait[data-actor-id="${npcID}"]`,
+          );
+          if (!npcContainer$.length) {
+            if (portraitState === NPCPortraitState.removed || portraitState === NPCPortraitState.invisible) {
+              return;
+            }
+            npcContainer$ = await this.renderNPCPortrait(
+              getActorFromRef(npcID) as EunosActor,
+              position,
+            );
+          }
+          // const gogglesState = Boolean(this.isOutdoors && this.isLocationBright && actor.getGogglesImageSrc()) ? "goggles" : "noGoggles";
+          if (getUser().isGM) {
+            return;
+          }
+          masterTl.add(
+            this.buildNPCTransitionTimeline(
+              npcContainer$,
+              portraitState,
+              nameState,
+              undefined, // gogglesState,
+              position,
+            ),
+            (index * TIMELINE_STAGGER_AMOUNT) / numChanges,
+          );
+        },
+      ),
+    );
+
+    masterTl.play();
 
     return { tl: masterTl };
   }
 
   private async renderNPCPortrait(
     actor: EunosActor,
-    state: NPCState,
     position?: Point,
-  ): Promise<void> {
+  ): Promise<JQuery> {
     if (!position) {
       // Attempt to retrieve it from current location
       const currentLocation = getSetting("currentLocation");
       const locationData = this.getLocationData(currentLocation);
-      const npcData = locationData?.npcData?.[actor.id!];
-      if (!npcData) return;
-      position = npcData.position;
+      position = locationData?.npcData?.[actor.id!]?.position;
     }
 
     if (!position) {
@@ -4456,34 +4785,47 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       getUser().isGM
         ? "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait-gm.hbs"
         : "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait.hbs",
-      {actor, state: NPCState.invisible}
+      {
+        actor,
+        portraitState: NPCPortraitState.invisible,
+        nameState: NPCNameState.invisible,
+      },
     );
 
     // Create jQuery element but don't append yet
     const npcContainer$ = $(html);
 
-    // Set position before adding to DOM
-    gsap.set(npcContainer$[0]!, {
+    await gsap.set(npcContainer$[0]!, {
+      opacity: 0,
+    });
+
+    // Now append the element
+    npcContainer$.appendTo(this.npcs$);
+
+    // Set the position
+    kLog.log(`updating npc portrait position to ${position.x}, ${position.y}`);
+
+    await gsap.set(npcContainer$[0]!, {
       xPercent: -50,
       yPercent: -50,
       x: position.x,
       y: position.y,
-      scale: getUser().isGM ? 0.5 : 1
+      scale: getUser().isGM ? 0.5 : 1,
     });
-
-    // Now append the pre-positioned element
-    npcContainer$.appendTo(this.npcs$);
 
     // Update shadow skew for newly rendered portrait
     await this.updateShadowSkew(npcContainer$[0]!);
 
-    // Set opacity of portrait
-    await gsap.set(npcContainer$, {
+    // Build timelines for the new NPC
+    this.buildNPCPortraitTimeline(npcContainer$);
+    this.buildNPCNameTimeline(npcContainer$);
+    this.buildNPCGogglesTimeline(npcContainer$);
+
+    await gsap.set(npcContainer$[0]!, {
       opacity: 1,
     });
 
-    // Update state of portrait
-    this.updateNPCState(npcContainer$, state);
+    return npcContainer$;
   }
 
   async updateShadowSkew(element: HTMLElement) {
@@ -4497,37 +4839,167 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
   }
 
-  private NPCUIStatus: Record<
-    IDString,
-    {
-      state: NPCState;
-      position: Point;
+  private getNPCStatusFromOverlay(npcContainer$: JQuery): {
+    portraitState: NPCPortraitState;
+    nameState: NPCNameState;
+    position: Point;
+  } {
+    if (!npcContainer$?.length) {
+      return {
+        portraitState: NPCPortraitState.removed,
+        nameState: NPCNameState.base,
+        position: { x: 0, y: 0 },
+      };
     }
-  > = {};
+    return {
+      portraitState: npcContainer$.attr(
+        "data-portrait-state",
+      ) as NPCPortraitState,
+      nameState: npcContainer$.attr("data-name-state") as NPCNameState,
+      position: {
+        x: gsap.getProperty(npcContainer$[0]!, "x") as number,
+        y: gsap.getProperty(npcContainer$[0]!, "y") as number,
+      },
+    };
+  }
 
-  public async updateNPCUI(data: Record<IDString, { state?: NPCState; position?: Point }>) {
+  private getNPCDataFromOverlay(): Record<string, NPCs.FullData> {
+    const npcContainers$ = this.npcs$.children();
+    const npcData: Record<string, NPCs.FullData> = {};
+    npcContainers$.each((i, el) => {
+      const npcID = $(el).attr("data-actor-id") as Maybe<string>;
+      if (!npcID) {
+        kLog.log("Removing NPC from overlay: no actorID", { el });
+        $(el).remove();
+        return;
+      }
+      npcData[npcID] = {
+        ...this.getNPCStatusFromOverlay($(el)),
+        actor: getActorFromRef(npcID) as EunosActor & { system: ActorDataNPC },
+        actorID: npcID,
+      };
+    });
+    return npcData;
+  }
+
+  public async updateNPCUI(
+    data: Record<
+      IDString,
+      {
+        portraitState?: NPCPortraitState;
+        nameState?: NPCNameState;
+        position?: Point;
+      }
+    >,
+    options: {
+      isHidingOnly?: boolean;
+      isShowingOnly?: boolean;
+      isUpdatingExplicitOnly?: boolean;
+    },
+  ) {
+    data = JSON.parse(JSON.stringify(data)) as typeof data;
+    kLog.log("updateNPCUI", { data, options });
+
+    if (options.isHidingOnly && options.isShowingOnly) {
+      throw new Error("Cannot set both isHidingOnly and isShowingOnly to true");
+    }
+
+    if (!options.isShowingOnly && !options.isUpdatingExplicitOnly) {
+      // First, identify all NPCs that are currently in the overlay
+      const currentNPCs = Object.fromEntries(
+        Array.from(this.npcs$.children()).map((el) => [
+          $(el).attr("data-actor-id") as IDString,
+          this.getNPCStatusFromOverlay($(el)),
+        ]),
+      );
+
+      // Second, identify all NPCs that are in the overlay but not in the data; add them to the data with the removed state
+      Object.keys(currentNPCs)
+        .filter((npcID) => !data[npcID])
+        .forEach((npcID) => {
+          data[npcID] = {
+            portraitState: NPCPortraitState.removed,
+            nameState: NPCNameState.base,
+          };
+        });
+    }
+
     if (getUser().isGM) {
-      Object.entries(data).forEach(([npcID, { state, position }]) => {
-        this.updateNPCUI_GM(npcID, { state, position });
-      });
+      Object.entries(data).forEach(
+        ([npcID, { portraitState, nameState, position }]) => {
+          void this.updateNPCUI_GM(npcID, {
+            portraitState,
+            nameState,
+            position,
+          });
+        },
+      );
       return;
+    }
+
+    if (options.isShowingOnly) {
+      // Remove from data any NPCs that are NPCPortraitState.removed or invisible
+      Object.keys(data).forEach((npcID) => {
+        if (
+          data[npcID]!.portraitState === NPCPortraitState.removed ||
+          data[npcID]!.portraitState === NPCPortraitState.invisible
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete data[npcID];
+        }
+      });
+    }
+
+    if (options.isHidingOnly) {
+      // Remove from data any NPCs that are NOT NPCPortraitState.removed or NPCPortraitState.invisible
+      Object.keys(data).forEach((npcID) => {
+        if (
+          data[npcID]!.portraitState !== NPCPortraitState.removed &&
+          data[npcID]!.portraitState !== NPCPortraitState.invisible
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete data[npcID];
+        }
+      });
     }
     const { tl } = await this.buildNPCUIUpdateTimeline(data);
     tl.play();
   }
 
-  private updateNPCUI_GM(
+  private async updateNPCUI_GM(
     npcID: IDString,
-    data: { state?: NPCState; position?: Point },
+    data: {
+      portraitState?: NPCPortraitState;
+      nameState?: NPCNameState;
+      position?: Point;
+    },
   ) {
-    const npcContainer$ = EunosOverlay.instance.npcs$.find(
+    kLog.log("Updating NPC UI (GM)", { npcID, data });
+    let npcContainer$ = EunosOverlay.instance.npcs$.find(
       `.npc-portrait[data-actor-id="${npcID}"]`,
     );
-    let { state, position } = data;
+    if (!npcContainer$.length) {
+      npcContainer$ = await this.renderNPCPortrait(
+        getActorFromRef(npcID) as EunosActor,
+        data.position,
+      );
+    }
+    let { portraitState, nameState, position } = data;
     // If no state, determine from class name of npcContainer
-    state ??= npcContainer$
-      .attr("class")!
-      .replace(/^.*?npc-portrait npc-portrait-/, "") as NPCState;
+    portraitState ??= this.getNPCStatusFromOverlay(npcContainer$).portraitState;
+    nameState ??= this.getNPCStatusFromOverlay(npcContainer$).nameState;
+
+    const gogglesState =
+      this.isOutdoors &&
+      this.isLocationBright &&
+      getActorFromRef(npcID)!.getGogglesImageSrc()
+        ? "goggles"
+        : "noGoggles";
+
+    kLog.log(
+      "Updating NPC UI (GM): portraitState, nameState, gogglesState from getNPCStatus",
+      { portraitState, nameState, gogglesState },
+    );
 
     if (position) {
       gsap.set(npcContainer$, {
@@ -4535,61 +5007,107 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         yPercent: -50,
         x: position.x,
         y: position.y,
-        zIndex: position.y
+        scale: 1,
+        zIndex: position.y,
       });
     }
 
-    this.updateNPCState(npcContainer$, state);
+    this.updateNPCPortraitState(npcContainer$, portraitState);
+    this.updateNPCNameState(npcContainer$, nameState);
+    this.updateNPCGogglesState(npcContainer$, gogglesState);
   }
 
-  private updateNPCState(npcContainer$: JQuery, state: NPCState) {
-    switch (state) {
-      case NPCState.removed:
+  private updateNPCPortraitState(
+    npcContainer$: JQuery,
+    portraitState: NPCPortraitState,
+  ) {
+    npcContainer$.attr("data-portrait-state", portraitState);
+    switch (portraitState) {
+      case NPCPortraitState.removed:
+        kLog.log(
+          "Removing NPC from overlay (updateNPCPortraitState): state === removed",
+          { npcContainer$ },
+        );
         npcContainer$.remove();
         break;
-      case NPCState.invisible:
+      case NPCPortraitState.invisible:
         npcContainer$
           .removeClass(
-            "npc-portrait-base npc-portrait-spotlit npc-portrait-dimmed npc-portrait-shrouded",
+            "npc-portrait-base npc-portrait-spotlit npc-portrait-dimmed",
           )
           .addClass("npc-portrait-invisible");
         break;
 
-      case NPCState.shrouded:
+      case NPCPortraitState.dimmed:
         npcContainer$
           .removeClass(
-            "npc-portrait-base npc-portrait-spotlit npc-portrait-dimmed npc-portrait-invisible",
-          )
-          .addClass("npc-portrait-shrouded");
-        break;
-
-      case NPCState.dimmed:
-        npcContainer$
-          .removeClass(
-            "npc-portrait-base npc-portrait-spotlit npc-portrait-invisible npc-portrait-shrouded",
+            "npc-portrait-base npc-portrait-spotlit npc-portrait-invisible",
           )
           .addClass("npc-portrait-dimmed");
         break;
 
-      case NPCState.spotlit:
+      case NPCPortraitState.spotlit:
         npcContainer$
           .removeClass(
-            "npc-portrait-base npc-portrait-dimmed npc-portrait-invisible npc-portrait-shrouded",
+            "npc-portrait-base npc-portrait-dimmed npc-portrait-invisible",
           )
           .addClass("npc-portrait-spotlit");
         break;
 
-      case NPCState.base:
+      case NPCPortraitState.base:
       default:
         npcContainer$
           .removeClass(
-            "npc-portrait-spotlit npc-portrait-dimmed npc-portrait-invisible npc-portrait-shrouded",
+            "npc-portrait-spotlit npc-portrait-dimmed npc-portrait-invisible",
           )
           .addClass("npc-portrait-base");
         break;
     }
   }
 
+  private updateNPCNameState(npcContainer$: JQuery, nameState: NPCNameState) {
+    npcContainer$.attr("data-name-state", nameState);
+    switch (nameState) {
+      case NPCNameState.invisible:
+        npcContainer$
+          .removeClass("npc-portrait-name-base npc-portrait-name-shrouded")
+          .addClass("npc-portrait-name-invisible");
+        break;
+
+      case NPCNameState.shrouded:
+        npcContainer$
+          .removeClass("npc-portrait-name-base npc-portrait-name-invisible")
+          .addClass("npc-portrait-name-shrouded");
+        break;
+      case NPCNameState.base:
+      default:
+        npcContainer$
+          .removeClass("npc-portrait-name-invisible npc-portrait-name-shrouded")
+          .addClass("npc-portrait-name-base");
+        break;
+    }
+  }
+
+  private updateNPCGogglesState(
+    npcContainer$: JQuery,
+    gogglesState: "goggles" | "noGoggles",
+  ) {
+    const gogglesImg$ = npcContainer$.find(".npc-portrait-image-goggles");
+    const noGogglesImg$ = npcContainer$.find(".npc-portrait-image-base");
+    npcContainer$.attr("data-goggles-state", gogglesState);
+    switch (gogglesState) {
+      case "goggles":
+        npcContainer$.addClass("npc-portrait-goggles");
+        gogglesImg$.css("opacity", 1);
+        noGogglesImg$.css("opacity", 0);
+        break;
+      case "noGoggles":
+        npcContainer$.removeClass("npc-portrait-goggles");
+        gogglesImg$.css("opacity", 0);
+        noGogglesImg$.css("opacity", 1);
+        break;
+    }
+  }
   // #endregion NPC PANEL ~
 
   // #region LOCATIONS ~
@@ -4607,11 +5125,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return this.locationContainer$.find(".location-description");
   }
   get isLocationBright(): boolean {
-    // The background property of '"#STAGE #SECTION-3D .canvas-layer.background-layer"' will be "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat" if the location is bright, and "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat" if it's dark.
-    const background = this.stage3D$
-      .find(".canvas-layer.background-layer")
-      .css("background");
-    return background.includes("stage-map-bg-lit");
+    return this.getLocationData().isBright;
+  }
+  get isOutdoors(): boolean {
+    return !this.getLocationData().isIndoors || getSetting("isOutdoors");
   }
 
   // #region Assembling Location Data ~
@@ -4624,6 +5141,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         images: {},
         description: "",
         mapTransforms: [],
+        audioData: {},
+        isBright: true,
+        isIndoors: false,
       };
     }
     return LOCATIONS[location as KeyOf<typeof LOCATIONS>];
@@ -4635,7 +5155,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         this.getDefaultLocationPCData().map((data) => [data.actorID, data]),
       ),
       npcData: {} as Record<IDString, Location.NPCData.SettingsData>,
-      playlists: {} as Record<string, EunosMediaData>,
+      audioData: {} as Record<string, EunosMediaData>,
     };
   }
   private getLocationDefaultSettingsData(
@@ -4660,6 +5180,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         LOCATIONS[location as KeyOf<typeof LOCATIONS>]?.mapTransforms;
       if (staticMapTransforms) {
         settingData[location].mapTransforms = staticMapTransforms;
+      }
+      // If hard-coded audio data is available, use it, overwriting setting data.
+      const staticAudioData =
+        LOCATIONS[location as KeyOf<typeof LOCATIONS>]?.audioData;
+      if (staticAudioData) {
+        settingData[location].audioData = staticAudioData;
       }
       const fullSettingsData: Location.SettingsData = {
         ...this.getLocationDefaultDynamicSettingsData(),
@@ -4709,45 +5235,43 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
     return npcFullData;
   }
-  private getLocationPlaylistData(
-    playlists: Record<string, EunosMediaData>,
+  private getLocationAudioData(
+    audioData: Record<string, Partial<EunosMediaData>>,
   ): Record<string, EunosMedia<EunosMediaTypes.audio>> {
-    const playlistFullData: Record<
-      string,
-      EunosMedia<EunosMediaTypes.audio>
-    > = {};
-    Object.entries(playlists).forEach(([id, data]) => {
+    const audioFullData: Record<string, EunosMedia<EunosMediaTypes.audio>> = {};
+    Object.entries(audioData).forEach(([id, data]) => {
       if (EunosMedia.Sounds.has(id)) {
-        playlistFullData[id] = EunosMedia.Sounds.get(id)!;
+        audioFullData[id] = EunosMedia.Sounds.get(id)!;
       }
-      playlistFullData[id] = new EunosMedia(
-        id,
-        data as EunosMediaData & { type: EunosMediaTypes.audio },
-      );
+      const thisAudioData = {
+        type: EunosMediaTypes.audio,
+        ...data,
+      } as EunosMediaData & { type: EunosMediaTypes.audio };
+      audioFullData[id] = new EunosMedia(id, thisAudioData);
     });
-    return playlistFullData;
+    return audioFullData;
   }
   private deriveLocationFullData(
     settingsData: Location.SettingsData,
   ): Location.FullData {
-    const { pcData, npcData, playlists } = settingsData;
+    const { pcData, npcData, audioData } = settingsData;
 
     const pcFullData = this.getLocationPCData(pcData);
     const npcFullData = this.getLocationNPCData(npcData);
-    const playlistFullData = this.getLocationPlaylistData(playlists);
+    const playlistFullData = this.getLocationAudioData(audioData);
 
     const fullData: Location.FullData = {
       ...settingsData,
       pcData: pcFullData,
       npcData: npcFullData,
-      playlists: playlistFullData,
+      audioData: playlistFullData,
     };
     return fullData;
   }
   private async deriveLocationSettingsData(
     fullData: Location.FullData,
   ): Promise<Location.SettingsData> {
-    const { pcData, npcData, playlists, currentImage, ...staticData } =
+    const { pcData, npcData, audioData, currentImage, ...staticData } =
       fullData;
     const pcSettingsData: Record<IDString, Location.PCData.SettingsData> =
       Object.fromEntries(
@@ -4762,7 +5286,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const playlistSettingsData: Record<string, EunosMediaData> =
       Object.fromEntries(
         await Promise.all(
-          Object.entries(playlists).map(
+          Object.entries(audioData).map(
             async ([id, media]: [
               string,
               EunosMedia<EunosMediaTypes.audio>,
@@ -4778,12 +5302,71 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       currentImage,
       pcData: pcSettingsData,
       npcData: npcSettingsData,
-      playlists: playlistSettingsData,
+      audioData: playlistSettingsData,
     };
   }
   // #endregion Assembling Location Data ~
 
   // #region Getting & Setting Location Data & Location PC Data ~
+  public chooseLocation() {
+    const currentLocation = getSetting("currentLocation");
+
+    // Sort the keys of LOCATIONS by the region property, and then the name, DISCOUNTING the word "the" if it appears at the start
+    const sortedLocations = Object.keys(LOCATIONS).sort((a, b) => {
+      const regionA = LOCATIONS[a as KeyOf<typeof LOCATIONS>].region;
+      const regionB = LOCATIONS[b as KeyOf<typeof LOCATIONS>].region;
+      if (regionA === regionB) {
+        return a.replace(/^the\b\s*/i, "").localeCompare(b.replace(/^the\b\s*/i, ""));
+      }
+      return regionA.localeCompare(regionB);
+    });
+
+    new Dialog({
+      title: "Go To Location",
+      content: `
+    <form>
+      <div class="form-group">
+        <div class="location-grid">
+          ${sortedLocations
+            .map(
+              (loc) =>
+                `<div class="location-button ${loc === currentLocation ? "selected" : ""} location-region-${LOCATIONS[loc as KeyOf<typeof LOCATIONS>].region}"
+                  data-location="${loc}">${loc}</div>`,
+            )
+            .join("")}
+        </div>
+      </div>
+      <div class="reset-location-container">
+          <div class="reset-location-button reset-location">RESET</div>
+          <div class="reset-location-button reset-all">RESET ALL</div>
+      </div>
+    </form>
+  `,
+      buttons: {
+        cancel: {
+          icon: '<i class="fas fa-times"></i>',
+          label: "Cancel",
+        },
+      },
+      render: (html) => {
+        const html$ = $(html);
+        // Add click handlers for the location buttons
+        html$.find(".location-button").on("click", (event) => {
+          const location = event.currentTarget.dataset["location"]!;
+          void EunosOverlay.instance.setLocation(location);
+          // Close the dialog after selection
+          html$.closest(".dialog").find(".close").trigger("click");
+        });
+        html$.find(".reset-location").on("click", (event) => {
+          void EunosOverlay.instance.resetLocationData();
+        });
+        html$.find(".reset-all").on("click", (event) => {
+          void EunosOverlay.instance.resetAllLocationData();
+        });
+      },
+      default: "cancel",
+    }).render(true);
+  }
   public getLocationData(location?: string): Location.FullData {
     location ??= getSetting("currentLocation");
     const settingData = this.getLocationSettingsData(location);
@@ -4813,7 +5396,97 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private async setLocationData(location: string, data: Location.FullData) {
     const curData = getSetting("locationData");
     curData[location] = await this.deriveLocationSettingsData(data);
-    await setSetting("locationData", curData);
+    kLog.log("WOULD have set isOutdoors to TRUE because we're setting location data.");
+    await Promise.all([
+      setSetting("locationData", curData),
+      // setSetting("isOutdoors", true),
+    ]);
+  }
+
+  public async updateWeatherAudio() {
+    const weatherAudio = getSetting("weatherAudio");
+    const currentWeatherAudio = EunosMedia.GetMediaByCategory(EunosMediaCategories.Weather)
+      .filter((media) => media.playing);
+    // Identify all tracks that are no longer present in the value, and stop them
+    currentWeatherAudio.forEach((media) => {
+      if (!weatherAudio[media.name]) {
+        void media.kill(3);
+      }
+    });
+    // Identify all tracks that are present in the value, and start them. Reduce the volume to 10% if currently indoors.
+    Object.entries(weatherAudio).forEach(([mediaName, volume]) => {
+      const media = EunosMedia.GetMedia(mediaName);
+      if (media) {
+        if (!this.isOutdoors) {
+          volume *= 0.1;
+        }
+        void media.play({volume});
+      }
+    });
+  }
+
+  public async setIndoors(isIndoors: boolean) {
+    const locData = this.getLocationData();
+    if (!locData.isIndoors) {
+      kLog.error("Cannot set indoors when location is not indoors");
+      return;
+    }
+    kLog.log(`Setting isOutdoors to ${!isIndoors} because we're calling setIndoors.`);
+    await setSetting("isOutdoors", !isIndoors);
+    void EunosSockets.getInstance().call("setIndoors", UserTargetRef.all, {
+      isIndoors,
+    });
+  }
+
+  private async goIndoors() {
+    if ((this.#goToLocationTimeline?.progress() ?? 1) < 1) {
+      kLog.log("Waiting for goToLocation to finish");
+      await this.#goToLocationTimeline;
+    }
+    await this.updateWeatherAudio();
+
+    // 2. Fade in audioData from location.
+    const locationSounds = this.getLocationData().audioData;
+    Object.values(locationSounds).forEach((media) => {
+      void media.play();
+    });
+
+    // 3. Animate canvas background radial gradient shadow stops
+    gsap.to(this.stage3D$.find(".under-layer"), {
+      background:
+        "radial-gradient(circle at 50% 50%, transparent 2%, rgb(123 46 0 / 75%) 4%, rgb(0 0 0) 6%)",
+      duration: 1,
+      ease: "power2.inOut",
+    });
+
+    // 4. Toggle goggles for all NPCs
+    await this.updateNPCUI(this.getNPCDataFromOverlay(), {});
+  }
+
+  public async goOutdoors() {
+    if ((this.#goToLocationTimeline?.progress() ?? 1) < 1) {
+      kLog.log("Waiting for goToLocation to finish");
+      await this.#goToLocationTimeline;
+    }
+    await this.updateWeatherAudio();
+
+    // 2. Kill all ambient audio.
+    EunosMedia.GetMediaByCategory(EunosMediaCategories.Ambient)
+      .filter((media) => media.playing)
+      .forEach((media) => {
+        void media.kill(1);
+      });
+
+    // 3. Animate canvas background radial gradient shadow stops
+    gsap.to(this.stage3D$.find(".under-layer"), {
+      background:
+        "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+      duration: 1,
+      ease: "power2.inOut",
+    });
+
+    // 4. Toggle goggles for all NPCs
+    await this.updateNPCUI(this.getNPCDataFromOverlay(), {});
   }
 
   public async resetLocationData(location?: string) {
@@ -4822,6 +5495,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.getLocationDefaultSettingsData(location),
     );
     await this.setLocationData(location, defaultData);
+  }
+
+  public async resetAllLocationData() {
+    const locData = getSetting("locationData");
+    Object.keys(locData).forEach((location) => {
+      locData[location] = this.deriveLocationFullData(
+        this.getLocationDefaultSettingsData(location),
+      );
+    });
+    await setSetting("locationData", locData);
+    getNotifier().info("All location data reset");
   }
 
   public async refreshLocationImage(imgKey: string) {
@@ -4868,14 +5552,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #endregion
 
-  public async initializeLocation(isSkippingPCs = true) {
+  public async initializeLocation(isStartingWithPCs = true) {
     const location = getSetting("currentLocation");
     // if (isZoomingIn) {
     //   await gsap.timeline()
     //     .fromTo(".distant-overlay-layer", {scale: 0.3, filter: "blur(5px)"}, {scale: 1, duration: 10, ease: "power2.in"})
     //     .fromTo(".distant-overlay-layer", {opacity: 1}, {opacity: 0, duration: 3, ease: "power2.out"}, ">=-1")
     // }
-    await this.goToLocation(null, location, isSkippingPCs);
+    await this.goToLocation(null, location, /* isStartingWithPCs */ false);
   }
 
   public async setLocation(location: string) {
@@ -4883,18 +5567,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return;
     }
     const fromLocation = getSetting("currentLocation");
+    const fromLocationData = this.getLocationData(fromLocation);
     const locationData = this.getLocationData(location);
     if (!locationData) {
       kLog.error(`Location ${location} not found`);
       return;
     }
-    await setSetting("currentLocation", location);
+    // If the location is NOT bright, make sure the weather-lightning effect is NOT playing.
+    const weatherSoundSettings = getSetting("weatherAudio") ?? {};
+    if (!locationData.isBright) {
+      delete weatherSoundSettings["weather-lightning"];
+    } else {
+      weatherSoundSettings["weather-lightning"] = 0.08;
+    }
+    await setSetting("weatherAudio", weatherSoundSettings);
+
+    const isCurrentlyIndoors =
+      !getSetting("isOutdoors") && fromLocationData.isIndoors;
+    kLog.log("Setting isOutdoors to TRUE because we're setting a new location.");
+    await Promise.all([
+      setSetting("currentLocation", location),
+      setSetting("isOutdoors", true),
+    ]);
     void EunosSockets.getInstance().call("setLocation", UserTargetRef.all, {
       fromLocation,
       toLocation: location,
+      isGoingOutdoors: isCurrentlyIndoors,
     });
 
-    void this.render({ parts: ["pcs", "npcs"] });
+    // void this.render({ parts: ["pcs", "npcs"] });
   }
 
   public async setLocationImage(imageKey?: string, location?: string) {
@@ -4924,11 +5625,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   #stageWaverTimeline: Maybe<gsap.core.Timeline>;
+  #goToLocationTimeline: Maybe<gsap.core.Timeline>;
+
   public async goToLocation(
     fromLocation: string | null,
     toLocation: string,
-    isSkippingPCs = false,
+    isGoingOutdoors: boolean,
   ) {
+    if (this.#goToLocationTimeline) {
+      this.#goToLocationTimeline.kill();
+    }
+
+    if (isGoingOutdoors) {
+      await this.goOutdoors();
+    }
+
     const locationData = this.getLocationData(toLocation);
     const fromLocationData = fromLocation
       ? this.getLocationData(fromLocation)
@@ -4937,6 +5648,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       kLog.error("Location not found", { location: toLocation });
       return;
     }
+
+    kLog.log(`[goToLocation] ${fromLocation} -> ${toLocation}`, {
+      [`From${fromLocation} Data`]: fromLocationData,
+      [`To ${toLocation} Data`]: JSON.parse(JSON.stringify(locationData)) as typeof locationData,
+    });
 
     if (!this.#stageWaverTimeline) {
       this.#stageWaverTimeline = gsap
@@ -4951,18 +5667,54 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         });
     }
 
-    const {
+    let {
       name,
       images,
       currentImage,
       description,
       pcData,
       npcData,
-      playlists,
+      audioData,
       mapTransforms,
+      isIndoors,
     } = locationData;
 
-    const { playlists: fromPlaylists } = fromLocationData ?? { playlists: {} };
+    const { audioData: fromAudioData } = fromLocationData ?? {
+      audioData: {} as Record<string, EunosMediaData>,
+    };
+
+    // If the location is indoors, assume we're starting outdoors -- and don't play internal audio.
+    if (isIndoors) {
+      audioData = {};
+    }
+
+    // If the location is NOT bright, make sure the weather-lightning effect is NOT playing.
+    const lightningAudio = EunosMedia.GetMedia("weather-lightning");
+    if (!locationData.isBright) {
+      await lightningAudio.kill(2);
+    } else {
+      const lightningVolume = Sounds.Weather["weather-lightning"].volume;
+      if (name === "Emma's Rise") {
+        await lightningAudio.kill(0);
+        setTimeout(() => {
+          void lightningAudio.play().then(() => {
+            gsap.fromTo(lightningAudio.element, { volume: 1 }, { volume: lightningVolume, duration: 10, ease: "none" });
+          });
+        }, 5000);
+      } else {
+        void lightningAudio.play();
+      }
+    }
+
+    // Get keys that exist in fromAudioData but not in audioData (audio to stop)
+    const audioKeysToStop = Object.keys(fromAudioData).filter(
+      (key): key is string => !(key in audioData),
+    );
+
+    // Get keys that exist in audioData but not in fromAudioData (audio to start)
+    const audioKeysToStart = Object.keys(audioData).filter(
+      (key): key is string => !(key in fromAudioData),
+    );
 
     // Construct a timeline that will animate all of the map transforms smoothly and simultaneously
 
@@ -4970,7 +5722,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     const curImgSrc = currentImage ? images[currentImage] : "";
 
-    // Location Card Animations (currently unimplemented)
+    // Animate out the location card
     timeline.to(
       this.locationContainer$,
       {
@@ -4980,31 +5732,59 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         opacity: 0,
         duration: 0.5,
         ease: "power2.out",
+        onComplete: () => {
+          this.locationName$.text(name);
+          this.locationImage$.attr("src", curImgSrc ?? "");
+          this.locationDescription$.html(description ?? "");
+          gsap.to(this.locationContainer$, {
+            y: 0,
+            x: 0,
+            filter: "blur(0)",
+            opacity: 0,
+            duration: 0,
+            ease: "none",
+          });
+        },
       },
       0,
     );
 
-    // If there is a currentImage set, prepare to fade in location panel
-    if (curImgSrc) {
-      timeline
-        .call(() => {
-          this.locationName$.text(name);
-          this.locationImage$.attr("src", curImgSrc ?? "");
-          this.locationDescription$.html(description ?? "");
-        })
-        .to(this.locationContainer$, {
-          y: 0,
-          x: 0,
-          filter: "blur(0)",
-          duration: 0,
-          ease: "none",
-        });
-    }
+    // // Refresh the GM overlay
+    // if (getUser().isGM) {
+    //   timeline.call(() => {
+    //     void this.render({ parts: ["pcsGM", "npcsGM"] });
+    //   }, [], 0);
+    // }
 
-    timeline.addLabel("startMoving");
+    timeline.addLabel("startMoving_0");
+
+    // Stop any audio that is no longer playing at this location
+    timeline.call(
+      () => {
+        audioKeysToStop.forEach((key) => {
+          void EunosMedia.Sounds.get(key)?.kill(5);
+        });
+      },
+      [],
+      "startMoving_0",
+    );
+
+    // Update the NPC UI with the hidden data only
+    timeline.call(
+      () => {
+        kLog.log("Updating NPC UIs, HIDING NPCs", JSON.parse(JSON.stringify(npcData)));
+        void this.updateNPCUI(npcData, { isHidingOnly: true });
+      },
+      [],
+      0,
+    );
 
     // Restore brightness to stage background if necessary
-    if (gsap.getProperty("#STAGE", "filter") === "brightness(0)") {
+    if (
+      (gsap.getProperty("#STAGE", "filter") as Maybe<string>)?.includes(
+        "brightness(0)",
+      )
+    ) {
       timeline.to(
         "#STAGE",
         {
@@ -5012,22 +5792,63 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 1,
           ease: "none",
         },
-        "startMoving",
+        "startMoving_0",
       );
     }
 
     // Apply map transforms for this specific location
-    mapTransforms.forEach(({ selector, properties }) => {
-      timeline.to(
-        selector,
-        {
-          ...properties,
-          duration: 5,
-          ease: "back.out(0.1)",
-        },
-        "startMoving",
+    mapTransforms.forEach((transforms, setIndex) => {
+      transforms.forEach(({ selector, properties }, index) => {
+        if (mapTransforms.length === 1) {
+          kLog.log("Applying single map transform at startMoving_0", {
+            selector,
+            properties,
+          });
+          timeline.to(
+            selector,
+            {
+              duration: 5,
+              ease: "back.out(0.1)",
+              ...properties,
+            },
+            "startMoving_0",
+          );
+        } else {
+          // The ease depends on the number of transforms and whether this is the first or last transform
+          // First transform: power3.in
+          // Last transform: power3.out
+          // Middle transforms: power3.out if index is odd, power3.in if index is even
+          const ease =
+            setIndex === 0
+              ? "power3.in"
+              : setIndex === mapTransforms.length - 1
+                ? "power3.out"
+                : setIndex % 2 === 0
+                  ? "power3.out"
+                  : "power3.in";
+          kLog.log(
+            `Applying map transform ${index === 0 ? `at startMoving_${setIndex} at ${timeline.duration()}` : "with last transform"} - ${ease}`,
+            { selector, properties, ease },
+          );
+          timeline.to(
+            selector,
+            {
+              duration: 5,
+              ease,
+              ...properties,
+            },
+            `startMoving_${setIndex}`,
+          );
+        }
+      });
+      kLog.log(
+        `Adding label startMoving_${setIndex + 1} at ${timeline.duration()}`,
       );
+      timeline.addLabel(`startMoving_${setIndex + 1}`);
     });
+
+    kLog.log("Adding label stopMoving at", timeline.duration());
+    timeline.addLabel("stopMoving", "-=0.5");
 
     // Fade in the location card
     if (curImgSrc) {
@@ -5038,18 +5859,36 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 1,
           ease: "power3.inOut",
         },
-        "-=0.5",
+        "stopMoving",
       );
     }
 
-    await timeline.play();
-    if (!isSkippingPCs) {
-      void this.updatePCUI(pcData);
-      void this.render({ parts: ["npcs"] });
-    }
-    if (getUser().isGM) {
-      void this.render({ parts: ["pcsGM", "npcsGM"] });
-    }
+    // Start playing audio, but begin fading it in 3 seconds before "stopMoving"
+    timeline.call(
+      () => {
+        audioKeysToStart.forEach((key) => {
+          void EunosMedia.Sounds.get(key)?.play({ fadeInDuration: 5 });
+        });
+      },
+      [],
+      "stopMoving-=3",
+    );
+
+    timeline.call(
+      () => {
+        kLog.log("Updating PC and NPC UIs, SHOWING NPCs", JSON.parse(JSON.stringify(npcData)));
+        void this.updatePCUI(pcData);
+        void this.updateNPCUI(npcData, { isShowingOnly: true });
+      },
+      [],
+      getUser().isGM ? 1 : "stopMoving",
+    );
+
+    this.#goToLocationTimeline = timeline;
+
+    await timeline /* .timeScale(0.25) */
+      .play();
+
     return timeline;
   }
 
@@ -5618,39 +6457,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.addSafetyButtonListeners();
 
     // Clear and render NPCs for current location
-    const currentLocation = getSetting("currentLocation");
-    const locationData = this.getLocationData(currentLocation);
-    if (locationData?.npcData) {
-      this.npcs$.empty();
-      Object.values(locationData.npcData).forEach((npcData) => {
-        if (npcData.state === NPCState.removed) {
+    setTimeout(() => {
+      const currentLocation = getSetting("currentLocation");
+      const locationData = this.getLocationData(currentLocation);
+      if (locationData?.npcData) {
+        if (getUser().isGM) {
+          Object.entries(locationData.npcData).forEach(
+            ([npcID, { portraitState, nameState, position }]) => {
+              void this.updateNPCUI_GM(npcID, {
+                portraitState,
+                nameState,
+                position,
+              });
+            },
+          );
           return;
         }
-        const actor = npcData.actor ?? getActors().find((a) => a.id === npcData.actorID);
-        if (actor) {
-          void this.renderNPCPortrait(actor, npcData.state, npcData.position);
-        }
-      });
-    }
-
-    // this.#dragDrop.forEach((d) => {
-    //   if (d.options.dragSelector === ".actor") {
-    //     // Bind to the sidebar actors list for drag source
-    //     const sidebarActors = document.querySelector(
-    //       "#sidebar #actors .directory-list",
-    //     ) as HTMLElement;
-    //     if (sidebarActors) d.bind(sidebarActors);
-    //   } else if (d.options.dragSelector === ".npc-drag-handle") {
-    //     // Bind to existing NPC portraits for drag handles
-    //     const npcPortraits = this.element.querySelectorAll(".npc-portrait") as NodeListOf<HTMLElement>;
-    //     npcPortraits.forEach(portrait => d.bind(portrait));
-    //   }
-
-    //   // Bind to our drop target
-    //   const dropTarget = this.element.querySelector("#NPCS-GM") as HTMLElement;
-    //   if (dropTarget) d.bind(dropTarget);
-    // });
-
+        this.npcs$.empty();
+        void this.buildNPCUIUpdateTimeline(locationData.npcData).then(
+          ({ tl }) => {
+            tl.play();
+          },
+        );
+      }
+    }, 5000);
     this.#dragDrop.forEach((d) => {
       // Bind to the sidebar actors list
       const sidebarActors = document.querySelector(

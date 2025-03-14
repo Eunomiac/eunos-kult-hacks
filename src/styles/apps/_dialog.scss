@@ -18,6 +18,134 @@
           margin-top: 10px;
         }
       }
+
+      .location-grid {
+        display: grid;
+        /* Auto-fit will create as many columns as can fit, with each column being at least 100px wide */
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        width: 800px;
+        gap: 10px;
+        margin-top: 10px;
+        --bg-color: var(--K4-BLACK);
+        --fg-color: var(--K4-bGOLD);
+
+        .location-button {
+          padding: 5px;
+          text-align: center;
+          background: var(--bg-color);
+          color: var(--fg-color);
+          border: 1px solid var(--fg-color);
+          border-radius: 3px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: all 0.3s ease;
+
+          &:hover {
+            filter: brightness(1.5);
+          }
+
+          &.selected {
+            border-width: 5px;
+            box-shadow:
+              0 0 5px 0 var(--bg-color),
+              0 0 10px 0 var(--bg-color),
+              0 0 15px 0 var(--bg-color),
+              0 0 20px 0 var(--bg-color);
+
+            animation: pulse 2s infinite;
+
+            @keyframes pulse {
+              0% {
+                box-shadow:
+                  0 0 5px 0 var(--bg-color),
+                  0 0 10px 0 var(--bg-color),
+                  0 0 15px 0 var(--bg-color),
+                  0 0 20px 0 var(--bg-color);
+              }
+              50% {
+                box-shadow:
+                  0 0 10px 0 var(--bg-color),
+                  0 0 15px 0 var(--bg-color),
+                  0 0 20px 0 var(--bg-color),
+                  0 0 25px 0 var(--bg-color);
+              }
+              100% {
+                box-shadow:
+                  0 0 5px 0 var(--bg-color),
+                  0 0 10px 0 var(--bg-color),
+                  0 0 15px 0 var(--bg-color),
+                  0 0 20px 0 var(--bg-color);
+              }
+            }
+          }
+          &.location-region-realWorld {
+            display: none;
+          }
+          &.location-region-willowsWending {
+            --fg-color: rgb(255, 255, 255);
+            --bg-color: rgb(0, 100, 0); // Dark forest green for winding woods
+          }
+          &.location-region-academy {
+            --fg-color: rgb(255, 255, 255);
+            --bg-color: rgb(25, 25, 112); // Midnight blue for academic setting
+          }
+          &.location-region-townSquare {
+            --fg-color: rgb(50, 50, 50);
+            --bg-color: rgb(255, 223, 0); // Gold/yellow for central gathering place
+          }
+          &.location-region-kingsgraveEstate {
+            --fg-color: rgb(255, 255, 255);
+            --bg-color: rgb(72, 61, 139); // Dark slate blue for regal/grave setting
+          }
+          &.location-region-holtFarms {
+            --fg-color: rgb(50, 50, 50);
+            --bg-color: rgb(154, 205, 50); // Yellow-green for farmland
+          }
+          &.location-region-beaconHill {
+            --fg-color: rgb(50, 50, 50);
+            --bg-color: rgb(255, 140, 0); // Dark orange for beacon/warning light
+          }
+          &.location-region-eastTunnel {
+            --fg-color: rgb(255, 255, 255);
+            --bg-color: rgb(139, 69, 19); // Saddle brown for underground tunnel
+          }
+          &.location-region-residential {
+            --fg-color: rgb(50, 50, 50);
+            --bg-color: rgb(176, 196, 222); // Light steel blue for homes
+          }
+          &.location-region-hollowood {
+            --fg-color: rgb(255, 255, 255);
+            --bg-color: rgb(85, 107, 47); // Dark olive green for hollow woods
+          }
+          &.location-region-ashHill {
+            --fg-color: rgb(255, 255, 255);
+            --bg-color: rgb(128, 128, 128); // Gray for ash
+          }
+        }
+      }
+
+      .reset-location-container {
+        display: flex;
+        width: 100%;
+        padding: 0 20px;
+        margin-top: 10px;
+
+        .reset-location-button {
+          padding: 15px 10px;
+          text-align: center;
+          background: var(--K4-dBLACK);
+          color: var(--K4-GOLD);
+          border: 1px solid var(--K4-GOLD);
+          border-radius: 3px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: all 0.3s ease;
+
+          &:hover {
+            filter: brightness(1.5);
+          }
+        }
+      }
     }
   }
   .dialog-buttons {

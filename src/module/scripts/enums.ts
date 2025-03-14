@@ -40,13 +40,18 @@ export enum PCState {
   spotlit = "spotlit"
 }
 
-export enum NPCState {
+export enum NPCPortraitState {
   invisible = "invisible",
-  shrouded = "shrouded",
   dimmed = "dimmed",
   base = "base",
   spotlit = "spotlit",
   removed = "removed"
+}
+
+export enum NPCNameState {
+  invisible = "invisible",
+  shrouded = "shrouded",
+  base = "base"
 }
 
 

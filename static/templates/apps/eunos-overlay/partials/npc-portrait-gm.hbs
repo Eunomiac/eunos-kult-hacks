@@ -1,4 +1,4 @@
-<div class="npc-portrait npc-portrait-{{state}}" data-actor-id="{{actor.id}}" style="opacity: 0;">
+<div class="npc-portrait npc-portrait-{{portraitState}} npc-portrait-name-{{nameState}}" data-actor-id="{{actor.id}}" data-portrait-state="{{portraitState}}" data-name-state="{{nameState}}" style="opacity: 0;">
   <div class="npc-portrait-controls gm-controls">
     <i class="fas fa-times npc-remove-btn" data-action="removeNPC"></i>
     <i class="fas fa-grip-vertical npc-drag-handle"></i>
@@ -8,26 +8,36 @@
       <img class="npc-portrait-image" src="{{actor.img}}" alt="{{actor.name}}" />
     </div>
   </div>
-  <div class="npc-portrait-name">{{actor.name}}</div>
-  <div class="npc-portrait-controls state-controls">
+  <div class="npc-portrait-name npc-name-{{nameState}}">{{actor.name}}</div>
+  <div class="npc-portrait-controls state-controls name-controls">
+    <button class="npc-stage-control-button npc-stage-control-button-name-base" data-action="toggleNPCNameBase"
+      data-actor-id="{{actor.id}}" data-value="{{eq nameState "base"}}">
+      <i class="fas fa-sun"></i>
+    </button>
+    <button class="npc-stage-control-button npc-stage-control-button-name-shrouded" data-action="toggleNPCNameShrouded"
+      data-actor-id="{{actor.id}}" data-value="{{eq nameState "shrouded"}}">
+      <i class="fa-solid fa-mask"></i>
+    </button>
+    <button class="npc-stage-control-button npc-stage-control-button-name-invisible" data-action="toggleNPCNameInvisible"
+      data-actor-id="{{actor.id}}" data-value="{{eq nameState "invisible"}}">
+      <i class="fas fa-eye-slash"></i>
+    </button>
+  </div>
+  <div class="npc-portrait-controls state-controls portrait-controls">
     <button class="npc-stage-control-button npc-stage-control-button-spotlight" data-action="toggleNPCSpotlight"
-      data-actor-id="{{actor.id}}" data-value="{{eq state "spotlit"}}">
+      data-actor-id="{{actor.id}}" data-value="{{eq portraitState "spotlit"}}">
       <i class="fas fa-lightbulb"></i>
     </button>
     <button class="npc-stage-control-button npc-stage-control-button-base" data-action="toggleNPCBase"
-      data-actor-id="{{actor.id}}" data-value="{{eq state "base"}}">
+      data-actor-id="{{actor.id}}" data-value="{{eq portraitState "base"}}">
       <i class="fas fa-sun"></i>
     </button>
     <button class="npc-stage-control-button npc-stage-control-button-dimmed" data-action="toggleNPCDimmed"
-      data-actor-id="{{actor.id}}" data-value="{{eq state "dimmed"}}">
+      data-actor-id="{{actor.id}}" data-value="{{eq portraitState "dimmed"}}">
       <i class="fa-solid fa-moon"></i>
     </button>
-    <button class="npc-stage-control-button npc-stage-control-button-shrouded" data-action="toggleNPCShrouded"
-      data-actor-id="{{actor.id}}" data-value="{{eq state "shrouded"}}">
-      <i class="fa-solid fa-mask"></i>
-    </button>
     <button class="npc-stage-control-button npc-stage-control-button-invisible" data-action="toggleNPCInvisible"
-      data-actor-id="{{actor.id}}" data-value="{{eq state "invisible"}}">
+      data-actor-id="{{actor.id}}" data-value="{{eq portraitState "invisible"}}">
       <i class="fas fa-eye-slash"></i>
     </button>
   </div>

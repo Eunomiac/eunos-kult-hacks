@@ -1,5 +1,5 @@
 import { SYSTEM_ID, type EunosMediaData } from "../scripts/constants";
-import { GamePhase, UserTargetRef, MediaLoadStatus, PCState, NPCState } from "../scripts/enums";
+import { GamePhase, UserTargetRef, MediaLoadStatus, PCState, NPCPortraitState, NPCNameState } from "../scripts/enums";
 import * as U from "../scripts/utilities";
 import EunosAlerts from "./EunosAlerts";
 
@@ -63,6 +63,7 @@ export interface SocketEvents {
     data: {
       fromLocation: string;
       toLocation: string;
+      isGoingOutdoors: boolean;
     };
   };
   refreshLocationImage: {
@@ -74,7 +75,7 @@ export interface SocketEvents {
     data: Record<IDString, PCState>;
   };
   updateNPCUI: {
-    data: Record<IDString, { state?: NPCState, position?: Point }>;
+    data: Record<IDString, { state?: NPCPortraitState, position?: Point }>;
   };
   spotlightPC: {
     data: {
@@ -116,6 +117,11 @@ export interface SocketEvents {
   killMedia: {
     data: {
       mediaName: string;
+    };
+  };
+  setIndoors: {
+    data: {
+      isIndoors: boolean;
     };
   };
 }

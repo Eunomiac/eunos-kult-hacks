@@ -1,7 +1,13 @@
 import type EunosItem from "../documents/EunosItem";
 import { verbalizeNum, deverbalizeNum, tCase, roundNum } from "./utilities";
 import type { Quench } from "@ethaks/fvtt-quench";
-import { PCTargetRef, PCState, NPCState, EunosMediaTypes } from "./enums";
+import {
+  PCTargetRef,
+  PCState,
+  NPCPortraitState,
+  NPCNameState,
+  EunosMediaTypes,
+} from "./enums";
 import type ActorDataPC from "../data-model/ActorDataPC";
 import type ActorDataNPC from "../data-model/ActorDataNPC";
 import EunosMedia from "../apps/EunosMedia";
@@ -25,12 +31,16 @@ export const CONTROL_SLIDER_PANELS = {
       max: 2000,
       initValue: () => {
         const element = $("#STAGE")[0];
-        if (!element) { return 1000; }
+        if (!element) {
+          return 1000;
+        }
         return (gsap.getProperty(element, "perspective") ?? 1000) as number;
       },
       actionFunction: (value: number) => {
         const element = $("#STAGE")[0];
-        if (!element) { return; }
+        if (!element) {
+          return;
+        }
         if (gsap.getTweensOf(element).length > 0) {
           gsap.killTweensOf(element, "perspective");
         }
@@ -41,7 +51,7 @@ export const CONTROL_SLIDER_PANELS = {
       },
       formatForDisplay: (value: number) => {
         return `${roundNum(value)}px`;
-      }
+      },
     },
     {
       label: "Z-Height",
@@ -49,12 +59,16 @@ export const CONTROL_SLIDER_PANELS = {
       max: 10000,
       initValue: () => {
         const element = $("#STAGE #SECTION-3D")[0];
-        if (!element) { return 0; }
+        if (!element) {
+          return 0;
+        }
         return (gsap.getProperty(element, "z") ?? 0) as number;
       },
       actionFunction: (value: number) => {
         const element = $("#STAGE #SECTION-3D")[0];
-        if (!element) { return; }
+        if (!element) {
+          return;
+        }
         if (gsap.getTweensOf(element).length > 0) {
           gsap.killTweensOf(element, "transform");
         }
@@ -62,115 +76,180 @@ export const CONTROL_SLIDER_PANELS = {
       },
       formatForDisplay: (value: number) => {
         return `${roundNum(value)}px`;
-      }
+      },
     },
     {
       label: "Background Position X",
       min: -3500,
       max: 3500,
       initValue: () => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return 0; }
-        return (gsap.getProperty(element, "background-position-x") ?? 0) as number;
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return 0;
+        }
+        return (gsap.getProperty(element, "background-position-x") ??
+          0) as number;
       },
       actionFunction: (value: number) => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return; }
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return;
+        }
         if (gsap.getTweensOf(element).length > 0) {
-          gsap.killTweensOf(element, "background-position-x,background-position-y");
+          gsap.killTweensOf(
+            element,
+            "background-position-x,background-position-y",
+          );
         }
         gsap.to(element, { duration: 0.5, backgroundPositionX: value });
       },
       formatForDisplay: (value: number) => {
         return `${roundNum(value)}px`;
-      }
+      },
     },
     {
       label: "Background Position Y",
       min: -3500,
       max: 3500,
       initValue: () => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return 0; }
-        return (gsap.getProperty(element, "background-position-y") ?? 0) as number;
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return 0;
+        }
+        return (gsap.getProperty(element, "background-position-y") ??
+          0) as number;
       },
       actionFunction: (value: number) => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return; }
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return;
+        }
         if (gsap.getTweensOf(element).length > 0) {
-          gsap.killTweensOf(element, "background-position-x,background-position-y");
+          gsap.killTweensOf(
+            element,
+            "background-position-x,background-position-y",
+          );
         }
         gsap.to(element, { duration: 0.5, backgroundPositionY: value });
       },
       formatForDisplay: (value: number) => {
         return `${roundNum(value)}px`;
-      }
+      },
     },
     {
       label: "Hue",
       min: -360,
       max: 360,
       initValue: () => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return 0; }
-        const filterString = (gsap.getProperty(element, "filter") ?? "") as string;
-        const hueRotate = filterString.match(/hue-rotate\(([-.\d]+)(?:\s?deg)?\)/)?.[1];
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return 0;
+        }
+        const filterString = (gsap.getProperty(element, "filter") ??
+          "") as string;
+        const hueRotate = filterString.match(
+          /hue-rotate\(([-.\d]+)(?:\s?deg)?\)/,
+        )?.[1];
         return hueRotate ? parseFloat(hueRotate) : 0;
       },
       actionFunction: (value: number) => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return; }
-        const filterString = (gsap.getProperty(element, "filter") ?? "") as string;
-        let saturation = Number(filterString.match(/saturate\(([.\d]*)(?:%)?\)/)?.[1] ?? "100");
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return;
+        }
+        const filterString = (gsap.getProperty(element, "filter") ??
+          "") as string;
+        let saturation = Number(
+          filterString.match(/saturate\(([.\d]*)(?:%)?\)/)?.[1] ?? "100",
+        );
         if (saturation < 1) {
           saturation *= 100;
         }
         if (gsap.getTweensOf(element).length > 0) {
           gsap.killTweensOf(element, "filter");
         }
-        gsap.to(element, { duration: 0.5, filter: `hue-rotate(${value}deg) saturate(${saturation}%)` });
+        gsap.to(element, {
+          duration: 0.5,
+          filter: `hue-rotate(${value}deg) saturate(${saturation}%)`,
+        });
       },
       formatForDisplay: (value: number) => {
         return `${roundNum(value, 2)}deg`;
-      }
+      },
     },
     {
       label: "Saturation",
       min: 0,
       max: 100,
       initValue: () => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return 100; }
-        const filterString = (gsap.getProperty(element, "filter") ?? "") as string;
-        let saturation = Number(filterString.match(/saturate\(([.\d]*)(?:%)?\)/)?.[1] ?? "100");
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return 100;
+        }
+        const filterString = (gsap.getProperty(element, "filter") ??
+          "") as string;
+        let saturation = Number(
+          filterString.match(/saturate\(([.\d]*)(?:%)?\)/)?.[1] ?? "100",
+        );
         if (saturation < 1) {
           saturation *= 100;
         }
         return saturation;
       },
       actionFunction: (value: number) => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return; }
-        const filterString = (gsap.getProperty(element, "filter") ?? "") as string;
-        const hueRotate = Number(filterString.match(/hue-rotate\(([.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0");
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return;
+        }
+        const filterString = (gsap.getProperty(element, "filter") ??
+          "") as string;
+        const hueRotate = Number(
+          filterString.match(/hue-rotate\(([.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0",
+        );
         if (gsap.getTweensOf(element).length > 0) {
           gsap.killTweensOf(element, "filter");
         }
-        gsap.to(element, { duration: 0.5, filter: `hue-rotate(${hueRotate}deg) saturate(${value}%)` });
+        gsap.to(element, {
+          duration: 0.5,
+          filter: `hue-rotate(${hueRotate}deg) saturate(${value}%)`,
+        });
       },
       formatForDisplay: (value: number) => {
         return `${value}%`;
-      }
+      },
     },
     {
       label: "Rotation X",
       min: -360,
       max: 360,
       initValue: () => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return 0; }
-        const transformString = (gsap.getProperty(element, "transform") ?? "") as string;
-        const rotationX = Number(transformString.match(/rotateX\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0");
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return 0;
+        }
+        const transformString = (gsap.getProperty(element, "transform") ??
+          "") as string;
+        const rotationX = Number(
+          transformString.match(/rotateX\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0",
+        );
         return rotationX;
       },
       actionFunction: (value: number) => {
@@ -178,7 +257,9 @@ export const CONTROL_SLIDER_PANELS = {
           $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0],
           $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0],
         ].filter(Boolean) as Array<HTMLElement>;
-        if (elements.length !== 2) { return; }
+        if (elements.length !== 2) {
+          return;
+        }
         const element = elements[0]!;
         const rotationX = Number(gsap.getProperty(element, "rotationX") ?? 0);
         const rotationY = Number(gsap.getProperty(element, "rotationY") ?? 0);
@@ -191,17 +272,24 @@ export const CONTROL_SLIDER_PANELS = {
       },
       formatForDisplay: (value: number) => {
         return `${roundNum(value, 2)}deg`;
-      }
+      },
     },
     {
       label: "Rotation Y",
       min: -360,
       max: 360,
       initValue: () => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return 0; }
-        const transformString = (gsap.getProperty(element, "transform") ?? "") as string;
-        const rotationY = Number(transformString.match(/rotateY\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0");
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return 0;
+        }
+        const transformString = (gsap.getProperty(element, "transform") ??
+          "") as string;
+        const rotationY = Number(
+          transformString.match(/rotateY\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0",
+        );
         return rotationY;
       },
       actionFunction: (value: number) => {
@@ -209,7 +297,9 @@ export const CONTROL_SLIDER_PANELS = {
           $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0],
           $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0],
         ].filter(Boolean) as Array<HTMLElement>;
-        if (elements.length !== 2) { return; }
+        if (elements.length !== 2) {
+          return;
+        }
         const element = elements[0]!;
         const rotationX = Number(gsap.getProperty(element, "rotationX") ?? 0);
         const rotationY = Number(gsap.getProperty(element, "rotationY") ?? 0);
@@ -222,17 +312,24 @@ export const CONTROL_SLIDER_PANELS = {
       },
       formatForDisplay: (value: number) => {
         return `${roundNum(value, 2)}deg`;
-      }
+      },
     },
     {
       label: "Rotation Z",
       min: -360,
       max: 360,
       initValue: () => {
-        const element = $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0];
-        if (!element) { return 0; }
-        const transformString = (gsap.getProperty(element, "transform") ?? "") as string;
-        const rotationZ = Number(transformString.match(/rotate\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0");
+        const element = $(
+          "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        )[0];
+        if (!element) {
+          return 0;
+        }
+        const transformString = (gsap.getProperty(element, "transform") ??
+          "") as string;
+        const rotationZ = Number(
+          transformString.match(/rotate\(([-.\d]*)(?:\s?deg)?\)/)?.[1] ?? "0",
+        );
         return rotationZ;
       },
       actionFunction: (value: number) => {
@@ -240,7 +337,9 @@ export const CONTROL_SLIDER_PANELS = {
           $("#STAGE #SECTION-3D .canvas-layer.background-layer")[0],
           $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0],
         ].filter(Boolean) as Array<HTMLElement>;
-        if (elements.length !== 2) { return; }
+        if (elements.length !== 2) {
+          return;
+        }
         const element = elements[0]!;
         const rotationX = Number(gsap.getProperty(element, "rotationX") ?? 0);
         const rotationY = Number(gsap.getProperty(element, "rotationY") ?? 0);
@@ -253,7 +352,7 @@ export const CONTROL_SLIDER_PANELS = {
       },
       formatForDisplay: (value: number) => {
         return `${roundNum(value, 2)}deg`;
-      }
+      },
     },
     {
       label: "Inner Stop",
@@ -261,21 +360,35 @@ export const CONTROL_SLIDER_PANELS = {
       max: 100,
       initValue: () => {
         const element = $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0];
-        if (!element) { return 0; }
-        const backgroundString = (gsap.getProperty(element, "background") ?? "") as string;
-        const innerStop = Number(backgroundString.match(/rgba?\([^)]+\)\s+(\d+)%/)?.[1] ?? "0");
+        if (!element) {
+          return 0;
+        }
+        const backgroundString = (gsap.getProperty(element, "background") ??
+          "") as string;
+        const innerStop = Number(
+          backgroundString.match(/rgba?\([^)]+\)\s+(\d+)%/)?.[1] ?? "0",
+        );
         return innerStop;
       },
       actionFunction: (value: number) => {
         const element = $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0];
-        if (!element) { return; }
-        const backgroundString = (gsap.getProperty(element, "background") ?? "") as string;
-        const outerStop = Number(backgroundString.match(/rgba?\([^)]+\)\s+([-.\d]+)%/g)?.[1]?.match(/([-.\d]+)%/)?.[1] ?? "0");
-        kLog.log(`Inner Stop: ${value}%, Outer Stop: ${outerStop}%\nBackground String: ${backgroundString}`);
+        if (!element) {
+          return;
+        }
+        const backgroundString = (gsap.getProperty(element, "background") ??
+          "") as string;
+        const outerStop = Number(
+          backgroundString
+            .match(/rgba?\([^)]+\)\s+([-.\d]+)%/g)?.[1]
+            ?.match(/([-.\d]+)%/)?.[1] ?? "0",
+        );
+        kLog.log(
+          `Inner Stop: ${value}%, Outer Stop: ${outerStop}%\nBackground String: ${backgroundString}`,
+        );
         if (gsap.getTweensOf(element).length > 0) {
           gsap.killTweensOf(element, "background");
         }
-        if (value > (outerStop - 5)) {
+        if (value > outerStop - 5) {
           value = outerStop - 5;
         }
         const newBackgroundString = `radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) ${value}%, rgb(0, 0, 0) ${outerStop}%)`;
@@ -283,7 +396,7 @@ export const CONTROL_SLIDER_PANELS = {
       },
       formatForDisplay: (value: number) => {
         return `${value}%`;
-      }
+      },
     },
     {
       label: "Outer Stop",
@@ -291,21 +404,35 @@ export const CONTROL_SLIDER_PANELS = {
       max: 100,
       initValue: () => {
         const element = $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0];
-        if (!element) { return 0; }
-        const backgroundString = (gsap.getProperty(element, "background") ?? "") as string;
-        const outerStop = Number(backgroundString.match(/rgba?\([^)]+\)\s+([-.\d]+)%/g)?.[1]?.match(/([-.\d]+)%/)?.[1] ?? "0");
+        if (!element) {
+          return 0;
+        }
+        const backgroundString = (gsap.getProperty(element, "background") ??
+          "") as string;
+        const outerStop = Number(
+          backgroundString
+            .match(/rgba?\([^)]+\)\s+([-.\d]+)%/g)?.[1]
+            ?.match(/([-.\d]+)%/)?.[1] ?? "0",
+        );
         return outerStop;
       },
       actionFunction: (value: number) => {
         const element = $("#STAGE #SECTION-3D .canvas-layer.under-layer")[0];
-        if (!element) { return; }
-        const backgroundString = (gsap.getProperty(element, "background") ?? "") as string;
-        const innerStop = Number(backgroundString.match(/rgba?\([^)]+\)\s+(\d+)%/)?.[1] ?? "0");
-        kLog.log(`Inner Stop: ${innerStop}%, Outer Stop: ${value}%\nBackground String: ${backgroundString}`);
+        if (!element) {
+          return;
+        }
+        const backgroundString = (gsap.getProperty(element, "background") ??
+          "") as string;
+        const innerStop = Number(
+          backgroundString.match(/rgba?\([^)]+\)\s+(\d+)%/)?.[1] ?? "0",
+        );
+        kLog.log(
+          `Inner Stop: ${innerStop}%, Outer Stop: ${value}%\nBackground String: ${backgroundString}`,
+        );
         if (gsap.getTweensOf(element).length > 0) {
           gsap.killTweensOf(element, "background");
         }
-        if (value < (innerStop + 5)) {
+        if (value < innerStop + 5) {
           value = innerStop + 5;
         }
         const newBackgroundString = `radial-gradient(circle at 50% 50%, transparent, rgba(0, 0, 0, 0.7) ${innerStop}%, rgb(0, 0, 0) ${value}%)`;
@@ -313,11 +440,10 @@ export const CONTROL_SLIDER_PANELS = {
       },
       formatForDisplay: (value: number) => {
         return `${value}%`;
-      }
-    }
+      },
+    },
   ],
-}
-
+};
 
 export const LOCATION_PLOTTING_SETTINGS: {
   SIMPLE: Array<{
@@ -783,6 +909,7 @@ export interface EunosMediaData {
   volume?: number;
   autoplay?: boolean;
   reportPreloadStatus?: boolean;
+  showInSoundMenu?: boolean;
 }
 /**
  * Map of sound names to their HTMLAudioElement instances
@@ -809,7 +936,37 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-      sucker: {
+    "wonderful-life": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-wonderful-life.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 172, // 2:52
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
+    "come-along": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-come-along.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 178, // 2:58
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "guns-for-hire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 224,
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
+    sucker: {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
       alwaysPreload: false,
       delay: 0,
@@ -839,22 +996,11 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    // "guns-for-hire": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 224,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-
     // "arsonists-lulluby": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-arsonists-lullaby.ogg",
     //   alwaysPreload: false,
     //   delay: 0,
-    //   duration: 263,
+    //   duration: 263, // 4:23
     //   loop: false,
     //   sync: true,
     //   volume: 0.5,
@@ -933,24 +1079,277 @@ export const Sounds = {
     // },
   },
   Ambient: {
-    "session-closed-ambience": {
-      path: "modules/eunos-kult-hacks/assets/sounds/ambient/session-closed-ambience.flac",
+    "ambient-academy": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-academy.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-ash-hill-development": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-ash-hill-development.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-bar": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-bar.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.1,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-birdsong": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-birdsong.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.1,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-creek": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-creek.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.1,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-creepy": { // Ash Hill, Pact Grove, East Tunnel ...
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-creepy.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.6,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-diner": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-diner.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-distant-combat": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-distant-combat.ogg",
       alwaysPreload: false,
       delay: 0,
       loop: true,
       sync: false,
       volume: 0.5,
       autoplay: false,
+      fadeInDuration: 5,
+      showInSoundMenu: true
     },
-    // "ambient-church": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-church.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   loop: true,
-    //   sync: false,
-    //   volume: 0.05,
-    //   autoplay: false,
-    // },
+    "ambient-farm": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-farm.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-fireplace-2": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-fire-1.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+      showInSoundMenu: true
+    },
+    "ambient-fireplace-3": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-fire-2.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: true
+    },
+    "ambient-forest-night": { // Wending, instead of crickets
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-forest-night.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-generic-buzz": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-generic-buzz.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.3,
+      autoplay: false,
+      showInSoundMenu: true,
+    },
+    "ambient-generic-vent": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-generic-vent.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-good-crowd": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-good-crowd.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.15,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-hall": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-hall.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.075,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-large-crowd": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-large-crowd.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-old-willow": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-old-willow.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-outdoor-crowd": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-outdoor-crowd.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.15,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-primary-school": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-primary-school.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-quiet-office": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-quiet-office.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-ranger-station": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-ranger-station.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.15,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-school": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-school.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.15,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-standing-stones": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-standing-stones.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.3,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-weeping-king": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-weeping-king.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-car-dirt-road": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-car-dirt-road.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-church": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-church.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
     "ambient-crickets": {
       path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-crickets.ogg",
       alwaysPreload: false,
@@ -959,87 +1358,17 @@ export const Sounds = {
       sync: false,
       volume: 0.05,
       autoplay: false,
+      showInSoundMenu: false,
     },
-    // "ambient-divebar": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-divebar.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   loop: true,
-    //   sync: false,
-    //   volume: 0.05,
-    //   autoplay: false,
-    // },
-    "ambient-eerie-forest": {
-      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-eerie-forest.ogg",
+    "ambient-divebar": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-divebar.ogg",
       alwaysPreload: false,
       delay: 0,
       loop: true,
       sync: false,
       volume: 0.05,
       autoplay: false,
-    },
-    "ambient-electricity-night": {
-      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-electricity-night.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      loop: true,
-      sync: false,
-      volume: 0.05,
-      autoplay: false,
-    },
-    // "ambient-fireplace": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-fireplace.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   loop: true,
-    //   sync: false,
-    //   volume: 0.05,
-    //   autoplay: false,
-    // },
-    "ambient-forest": {
-      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-forest.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      loop: true,
-      sync: false,
-      volume: 0.05,
-      autoplay: false,
-    },
-    "ambient-low-bass-rumble": {
-      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-low-bass-rumble.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      loop: true,
-      sync: false,
-      volume: 0.05,
-      autoplay: false,
-    },
-    // "ambient-medical-clinic": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-medical-clinic.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   loop: true,
-    //   sync: false,
-    //   volume: 0.05,
-    //   autoplay: false,
-    // },
-    // "ambient-underground": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-underground.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   loop: true,
-    //   sync: false,
-    //   volume: 0.05,
-    //   autoplay: false,
-    // },
-    "ambient-whispering-ghosts": {
-      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-whispering-ghosts.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      loop: true,
-      sync: false,
-      volume: 0.5,
-      autoplay: false,
+      showInSoundMenu: false,
     },
     "ambient-earthquake": {
       path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-earthquake.ogg",
@@ -1050,6 +1379,46 @@ export const Sounds = {
       volume: 0.75,
       autoplay: false,
     },
+    "ambient-eerie-forest": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-eerie-forest.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-electricity-night": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-electricity-night.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-fireplace": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-fireplace.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-forest": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-forest.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
     "ambient-gunfire": {
       path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-gunfire.ogg",
       alwaysPreload: false,
@@ -1058,18 +1427,118 @@ export const Sounds = {
       sync: false,
       volume: 0.05,
       autoplay: false,
+      showInSoundMenu: false,
     },
-    "ambient-car-dirt-road": {
-      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-car-dirt-road.ogg",
+    "ambient-low-bass-rumble": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-low-bass-rumble.ogg",
       alwaysPreload: false,
       delay: 0,
       loop: true,
       sync: false,
       volume: 0.05,
       autoplay: false,
-    }
+      showInSoundMenu: false,
+    },
+    "ambient-medical-clinic": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-medical-clinic.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "ambient-underground": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-underground.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+    },
+    "ambient-whispering-ghosts": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-whispering-ghosts.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "session-closed-ambience": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/session-closed-ambience.flac",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
   },
   Weather: {
+    "weather-wind-low-2": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-wind-low-2.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      fadeInDuration: 2,
+      loop: true,
+      sync: false,
+      volume: 0.75,
+      autoplay: false,
+    },
+    "weather-wind-low-1": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-wind-low-1.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      fadeInDuration: 2,
+      loop: true,
+      sync: false,
+      volume: 0.75,
+      autoplay: false,
+    },
+    "weather-wind-strong-2": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-wind-strong-2.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      fadeInDuration: 2,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "weather-wind-leafy": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-wind-leafy.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      fadeInDuration: 2,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "weather-wind-blustery": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-wind-blustery.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      fadeInDuration: 2,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+    },
+    "weather-wind-strong-1": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-wind-strong-1.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      fadeInDuration: 2,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+    },
     "weather-low-wind-hum": {
       path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-low-wind-hum.ogg",
       alwaysPreload: false,
@@ -1077,7 +1546,7 @@ export const Sounds = {
       fadeInDuration: 2,
       loop: true,
       sync: false,
-      volume: 0.04,
+      volume: 0.25,
       autoplay: false,
     },
     "weather-rain-light": {
@@ -1097,7 +1566,7 @@ export const Sounds = {
       fadeInDuration: 2,
       loop: true,
       sync: false,
-      volume: 0.04,
+      volume: 0.25,
       autoplay: false,
     },
     "weather-wind-low": {
@@ -1107,7 +1576,7 @@ export const Sounds = {
       fadeInDuration: 2,
       loop: true,
       sync: false,
-      volume: 0.04,
+      volume: 0.05,
       autoplay: false,
     },
     "weather-wind-medium": {
@@ -1117,7 +1586,7 @@ export const Sounds = {
       fadeInDuration: 2,
       loop: true,
       sync: false,
-      volume: 0.04,
+      volume: 0.05,
       autoplay: false,
     },
     "weather-wind-max": {
@@ -1127,11 +1596,88 @@ export const Sounds = {
       fadeInDuration: 2,
       loop: true,
       sync: false,
-      volume: 0.04,
+      volume: 0.1,
       autoplay: false,
-    }
+    },
+    "weather-lightning": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-lightning.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.08,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "weather-park-wind": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-park-wind.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
+    "weather-trees-wind": {
+      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-trees-wind.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+      showInSoundMenu: false,
+    },
   },
   Effects: {
+    "effect-angel-chorus": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-angel-chorus.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 0.75,
+      autoplay: false,
+      fadeInDuration: 2
+    },
+    "effect-church-bells": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-church-bells.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 0.75,
+      autoplay: false,
+      fadeInDuration: 2
+    },
+    "effect-shatter-illusion-1": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-shatter-illusion-1.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 0.75,
+      autoplay: false
+    },
+    "effect-shatter-illusion-2": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-shatter-illusion-2.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 0.75,
+      autoplay: false
+    },
+    "effect-shatter-illusion-3": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-shatter-illusion-3.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 0.75,
+      autoplay: false
+    },
     // "quote-session-1": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/effects/c01/quote-session-1.ogg",
     //   alwaysPreload: true,
@@ -1149,6 +1695,7 @@ export const Sounds = {
       sync: false,
       volume: 0.75,
       autoplay: false,
+      fadeInDuration: 2,
     },
     // "effect-car-crash": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-car-crash.ogg",
@@ -1185,7 +1732,7 @@ export const Sounds = {
       sync: false,
       volume: 1,
       autoplay: false,
-    }
+    },
   },
   Alerts: {
     "alert-hit-stability-up": {
@@ -1280,7 +1827,8 @@ export const Sounds = {
 
 // #region EASES ~
 export const EASES = {
-  flickerIn: "M0,0,0.00333,0,0.00667,0,0.01,0,0.01333,0,0.01667,0,0.02,0,0.02333,0,0.02667,0,0.03,0,0.03333,0,0.03667,0,0.04,0,0.04333,0,0.04667,0,0.05,0,0.05333,0,0.05667,0,0.06,0,0.06333,0,0.06667,0,0.07,0,0.07333,0,0.07667,0,0.08,0,0.08333,0,0.08667,0,0.09,0,0.09333,0,0.09667,0,0.1,0,0.10333,0,0.10667,0,0.11,0,0.11333,0,0.11667,0,0.12,0,0.12333,0,0.12667,0,0.13,0,0.13333,0,0.13667,0,0.14,0,0.14333,0,0.14667,0,0.15,0,0.15333,0,0.15667,0,0.16,0,0.16333,0,0.16667,0,0.17,0,0.17333,0,0.17667,0,0.18,0,0.18333,0,0.18667,0,0.19,0,0.19333,0,0.19667,0,0.2,0,0.20333,0,0.20667,0,0.21,0,0.21333,0,0.21667,0,0.22,0,0.22333,0,0.22667,0,0.23,0,0.23333,0,0.23667,0,0.24,0,0.24333,0,0.24667,0,0.25,0,0.25333,0,0.25667,0,0.26,0,0.26333,0,0.26667,0,0.27,0,0.27333,0,0.27667,0,0.28,0,0.28333,0,0.28667,0,0.29,0,0.29333,0,0.29667,0,0.3,0,0.30333,0,0.30667,0,0.31,0,0.31333,0,0.31667,0,0.32,0,0.32333,0,0.32667,0,0.33,0,0.33333,0,0.33667,0,0.34,0,0.34333,0,0.34667,0,0.35,0,0.35333,0,0.35667,0,0.36,0,0.36333,0,0.36667,0,0.37,0,0.37333,0,0.37667,0,0.38,0,0.38333,0,0.38667,0,0.39,0,0.39333,0,0.39667,0,0.4,0,0.40333,0,0.40667,0,0.41,0,0.41333,0,0.41667,0,0.42,0,0.42333,0,0.42667,0,0.43,0,0.43333,0,0.43667,0,0.44,0,0.44333,0,0.44667,0,0.45,0,0.45333,0,0.45667,0,0.46,0,0.46333,0,0.46667,0,0.47,0,0.47333,0.33333,0.47667,0.66667,0.48,1,0.48333,0.66667,0.48667,0.33333,0.49,0,0.49333,0,0.49667,0,0.5,0,0.50333,0,0.50667,0,0.51,0,0.51333,0,0.51667,0,0.52,0,0.52333,0,0.52667,0,0.53,0,0.53333,0,0.53667,0,0.54,0,0.54333,0,0.54667,0,0.55,0,0.55333,0,0.55667,0,0.56,0,0.56333,0,0.56667,0,0.57,0,0.57333,0,0.57667,0,0.58,0,0.58333,0,0.58667,0,0.59,0,0.59333,0,0.59667,0,0.6,0,0.60333,0,0.60667,0,0.61,0,0.61333,0.33333,0.61667,0.66667,0.62,1,0.62333,1,0.62667,1,0.63,1,0.63333,0.66667,0.63667,0.33333,0.64,0,0.64333,0,0.64667,0,0.65,0,0.65333,0.33333,0.65667,0.66667,0.66,1,0.66333,1,0.66667,1,0.67,1,0.67333,0.66667,0.67667,0.33333,0.68,0,0.68333,0.33333,0.68667,0.66667,0.69,1,0.69333,0.66667,0.69667,0.33333,0.7,0,0.70333,0.33333,0.70667,0.66667,0.71,1,0.71333,0.66667,0.71667,0.33333,0.72,0,0.72333,0.33333,0.72667,0.66667,0.73,1,0.73333,0.66667,0.73667,0.33333,0.74,0,0.74333,0,0.74667,0,0.75,0,0.75333,0.33333,0.75667,0.66667,0.76,1,0.76333,0.66667,0.76667,0.33333,0.77,0,0.77333,0,0.77667,0,0.78,0,0.78333,0,0.78667,0,0.79,0,0.79333,0,0.79667,0,0.8,0,0.80333,0,0.80667,0,0.81,0,0.81333,0.33333,0.81667,0.66667,0.82,1,0.82333,0.66667,0.82667,0.33333,0.83,0,0.83333,0.33333,0.83667,0.66667,0.84,1,0.84333,1,0.84667,1,0.85,1,0.85333,1,0.85667,1,0.86,1,0.86333,1,0.86667,1,0.87,1,0.87333,1,0.87667,1,0.88,1,0.88333,1,0.88667,1,0.89,1,0.89333,1,0.89667,1,0.9,1,0.90333,1,0.90667,1,0.91,1,0.91333,1,0.91667,1,0.92,1,0.92333,1,0.92667,1,0.93,1,0.93333,1,0.93667,1,0.94,1,0.94333,1,0.94667,1,0.95,1,0.95333,1,0.95667,1,0.96,1,0.96333,1,0.96667,1,0.97,1,0.97333,1,0.97667,1,0.98,1,0.98333,1,0.98667,1,0.99,1,0.99333,1,0.99667,1,1,1"
+  flickerIn:
+    "M0,0,0.00333,0,0.00667,0,0.01,0,0.01333,0,0.01667,0,0.02,0,0.02333,0,0.02667,0,0.03,0,0.03333,0,0.03667,0,0.04,0,0.04333,0,0.04667,0,0.05,0,0.05333,0,0.05667,0,0.06,0,0.06333,0,0.06667,0,0.07,0,0.07333,0,0.07667,0,0.08,0,0.08333,0,0.08667,0,0.09,0,0.09333,0,0.09667,0,0.1,0,0.10333,0,0.10667,0,0.11,0,0.11333,0,0.11667,0,0.12,0,0.12333,0,0.12667,0,0.13,0,0.13333,0,0.13667,0,0.14,0,0.14333,0,0.14667,0,0.15,0,0.15333,0,0.15667,0,0.16,0,0.16333,0,0.16667,0,0.17,0,0.17333,0,0.17667,0,0.18,0,0.18333,0,0.18667,0,0.19,0,0.19333,0,0.19667,0,0.2,0,0.20333,0,0.20667,0,0.21,0,0.21333,0,0.21667,0,0.22,0,0.22333,0,0.22667,0,0.23,0,0.23333,0,0.23667,0,0.24,0,0.24333,0,0.24667,0,0.25,0,0.25333,0,0.25667,0,0.26,0,0.26333,0,0.26667,0,0.27,0,0.27333,0,0.27667,0,0.28,0,0.28333,0,0.28667,0,0.29,0,0.29333,0,0.29667,0,0.3,0,0.30333,0,0.30667,0,0.31,0,0.31333,0,0.31667,0,0.32,0,0.32333,0,0.32667,0,0.33,0,0.33333,0,0.33667,0,0.34,0,0.34333,0,0.34667,0,0.35,0,0.35333,0,0.35667,0,0.36,0,0.36333,0,0.36667,0,0.37,0,0.37333,0,0.37667,0,0.38,0,0.38333,0,0.38667,0,0.39,0,0.39333,0,0.39667,0,0.4,0,0.40333,0,0.40667,0,0.41,0,0.41333,0,0.41667,0,0.42,0,0.42333,0,0.42667,0,0.43,0,0.43333,0,0.43667,0,0.44,0,0.44333,0,0.44667,0,0.45,0,0.45333,0,0.45667,0,0.46,0,0.46333,0,0.46667,0,0.47,0,0.47333,0.33333,0.47667,0.66667,0.48,1,0.48333,0.66667,0.48667,0.33333,0.49,0,0.49333,0,0.49667,0,0.5,0,0.50333,0,0.50667,0,0.51,0,0.51333,0,0.51667,0,0.52,0,0.52333,0,0.52667,0,0.53,0,0.53333,0,0.53667,0,0.54,0,0.54333,0,0.54667,0,0.55,0,0.55333,0,0.55667,0,0.56,0,0.56333,0,0.56667,0,0.57,0,0.57333,0,0.57667,0,0.58,0,0.58333,0,0.58667,0,0.59,0,0.59333,0,0.59667,0,0.6,0,0.60333,0,0.60667,0,0.61,0,0.61333,0.33333,0.61667,0.66667,0.62,1,0.62333,1,0.62667,1,0.63,1,0.63333,0.66667,0.63667,0.33333,0.64,0,0.64333,0,0.64667,0,0.65,0,0.65333,0.33333,0.65667,0.66667,0.66,1,0.66333,1,0.66667,1,0.67,1,0.67333,0.66667,0.67667,0.33333,0.68,0,0.68333,0.33333,0.68667,0.66667,0.69,1,0.69333,0.66667,0.69667,0.33333,0.7,0,0.70333,0.33333,0.70667,0.66667,0.71,1,0.71333,0.66667,0.71667,0.33333,0.72,0,0.72333,0.33333,0.72667,0.66667,0.73,1,0.73333,0.66667,0.73667,0.33333,0.74,0,0.74333,0,0.74667,0,0.75,0,0.75333,0.33333,0.75667,0.66667,0.76,1,0.76333,0.66667,0.76667,0.33333,0.77,0,0.77333,0,0.77667,0,0.78,0,0.78333,0,0.78667,0,0.79,0,0.79333,0,0.79667,0,0.8,0,0.80333,0,0.80667,0,0.81,0,0.81333,0.33333,0.81667,0.66667,0.82,1,0.82333,0.66667,0.82667,0.33333,0.83,0,0.83333,0.33333,0.83667,0.66667,0.84,1,0.84333,1,0.84667,1,0.85,1,0.85333,1,0.85667,1,0.86,1,0.86333,1,0.86667,1,0.87,1,0.87333,1,0.87667,1,0.88,1,0.88333,1,0.88667,1,0.89,1,0.89333,1,0.89667,1,0.9,1,0.90333,1,0.90667,1,0.91,1,0.91333,1,0.91667,1,0.92,1,0.92333,1,0.92667,1,0.93,1,0.93333,1,0.93667,1,0.94,1,0.94333,1,0.94667,1,0.95,1,0.95333,1,0.95667,1,0.96,1,0.96333,1,0.96667,1,0.97,1,0.97333,1,0.97667,1,0.98,1,0.98333,1,0.98667,1,0.99,1,0.99333,1,0.99667,1,1,1",
 } as const;
 // #endregion EASES
 
@@ -1298,1222 +1846,2325 @@ export declare namespace PCs {
 
   export interface GlobalData extends GlobalSettingsData {
     slot: "1" | "2" | "3" | "4" | "5";
-    actor: EunosActor & {system: ActorDataPC};
+    actor: EunosActor & { system: ActorDataPC };
     owner: User;
     isOwner: boolean;
   }
 
-  export interface FullData extends GlobalData, LocationSettingsData { }
+  export interface FullData extends GlobalData, LocationSettingsData {}
 }
 
 export declare namespace NPCs {
-
   export interface GlobalSettingsData {
     actorID: IDString;
   }
   export interface LocationSettingsData extends GlobalSettingsData {
     position: Point;
-    state: NPCState;
+    portraitState: NPCPortraitState;
+    nameState: NPCNameState;
   }
   export interface GlobalData extends GlobalSettingsData {
-    actor: EunosActor & {system: ActorDataNPC};
+    actor: EunosActor & { system: ActorDataNPC };
   }
-  export interface FullData extends GlobalData, LocationSettingsData { }
+  export interface FullData extends GlobalData, LocationSettingsData {}
 }
 
 // #endregion CHARACTERS
 
 // #region LOCATIONS ~
 export declare namespace Location {
-
   export namespace PCData {
     export type SettingsData = PCs.LocationSettingsData;
-    export type FullData = PCs.GlobalData & SettingsData;
+    export type FullData = PCs.FullData;
   }
 
   export namespace NPCData {
     export type SettingsData = NPCs.LocationSettingsData;
-    export type FullData = NPCs.GlobalData & SettingsData;
+    export type FullData = NPCs.FullData;
   }
 
   interface StaticSettingsData {
     name: string;
     description?: string;
     images: Record<string, string>;
-    mapTransforms: Array<{
-      selector: string;
-      properties: Record<string, number | string | undefined>;
-    }>;
+    mapTransforms: Array<
+      Array<{
+        selector: string;
+        properties: Record<string, number | string | undefined>;
+      }>
+    >;
+    audioData: Record<string, Partial<EunosMediaData>>;
+    isBright: boolean;
+    isIndoors: boolean;
+    region?: string;
   }
 
   interface DynamicSettingsData {
     currentImage: string | null;
     pcData: Record<IDString, PCData.SettingsData>;
     npcData: Record<IDString, NPCData.SettingsData>;
-    playlists: Record<string, Partial<EunosMediaData>>;
+    audioData: Record<string, Partial<EunosMediaData>>;
   }
 
-  export interface SettingsData extends StaticSettingsData, DynamicSettingsData {}
+  export interface SettingsData
+    extends StaticSettingsData,
+      DynamicSettingsData {}
 
   interface DynamicFullData {
     currentImage: string | null;
     pcData: Record<"1" | "2" | "3" | "4" | "5", PCData.FullData>;
     npcData: Record<IDString, NPCData.FullData>;
-    playlists: Record<string, EunosMedia<EunosMediaTypes.audio>>;
+    audioData: Record<string, EunosMedia<EunosMediaTypes.audio>>;
   }
 
-  export interface FullData extends StaticSettingsData, DynamicFullData {}
+  export interface FullData
+    extends Omit<StaticSettingsData, "audioData">,
+      DynamicFullData {}
 }
 
 export const LOCATIONS = {
-  "Nowhere": {
+  Nowhere: {
     name: "Nowhere",
     images: {},
     description: "",
+    audioData: {},
+    isBright: false,
+    isIndoors: false,
+    region: "",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "black",
-          boxShadow: "0 0 50vw black inset",
-          "--dramatic-hook-color": "white",
-          "--dramatic-hook-text-shadow-color": "black",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -400
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: -3500,
-          backgroundPositionY: -2826,
-          filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
-          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
-          backgroundPosition: "0px 0px",
-          backgroundRepeat: "no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.7) 0%, rgb(0, 0, 0) 5%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -400,
+          },
         },
-      },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: -3500,
+            backgroundPositionY: -2826,
+            filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
+            background:
+              "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
+            backgroundPosition: "0px 0px",
+            backgroundRepeat: "no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.7) 0%, rgb(0, 0, 0) 5%)",
+          },
+        },
+      ],
     ],
   },
   "Fire Access Trail South": {
     name: "Fire Access Trail",
     images: {
-      "Fire Road 1": "modules/eunos-kult-hacks/assets/images/locations/fire-road-1.webp",
-      "Fire Road Car Ahead": "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
+      "Fire Road 1":
+        "modules/eunos-kult-hacks/assets/images/locations/fire-road-1.webp",
+      "Fire Road Car Ahead":
+        "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
     },
+    audioData: {
+      "ambient-crickets": {},
+      "ambient-car-dirt-road": {},
+    },
+    isBright: false,
+    isIndoors: false,
+    region: "realWorld",
     description: "",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "black",
-          boxShadow: "0 0 50vw black inset",
-          "--dramatic-hook-color": "white",
-          "--dramatic-hook-text-shadow-color": "black",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -400
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: -2565,
-          backgroundPositionY: -2826,
-          filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
-          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
-          backgroundPosition: "0px 0px",
-          backgroundRepeat: "no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -400,
+          },
         },
-      },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: -2565,
+            backgroundPositionY: -2826,
+            filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
+            background:
+              "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
+            backgroundPosition: "0px 0px",
+            backgroundRepeat: "no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+          },
+        },
+      ],
     ],
   },
   "Fire Access Trail North": {
     name: "Fire Access Trail",
     images: {
-      "Fire Road 2": "modules/eunos-kult-hacks/assets/images/locations/fire-road-2.webp",
-      "Fire Road Car Ahead": "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
+      "Fire Road 2":
+        "modules/eunos-kult-hacks/assets/images/locations/fire-road-2.webp",
+      "Fire Road Car Ahead":
+        "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
     },
+    audioData: {
+      "ambient-crickets": {},
+      "ambient-forest": {},
+    },
+    isBright: false,
+    isIndoors: false,
+    region: "realWorld",
     description: "",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "black",
-          boxShadow: "0 0 50vw black inset",
-          "--dramatic-hook-color": "white",
-          "--dramatic-hook-text-shadow-color": "black",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -400
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: -2870,
-          backgroundPositionY: 1478,
-          filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
-          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
-          backgroundPosition: "0px 0px",
-          backgroundRepeat: "no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -400,
+          },
         },
-      },
-    ]/* [
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: -2870,
+            backgroundPositionY: 1478,
+            filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
+            transform:
+              "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
+            background:
+              "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-no-entry.webp')",
+            backgroundPosition: "0px 0px",
+            backgroundRepeat: "no-repeat",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -400
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: -2978,
-          backgroundPositionY: 1478,
-          filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(-0.997083, 0.0309705, -0.06976, 0, 0.0210364, -0.767068, -0.64122, 0, -0.0733696, -0.640817, 0.764179, 0, -3500, -3500, 0, 1)",
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.997083, 0.0309705, -0.06976, 0, 0.0210364, -0.767068, -0.64122, 0, -0.0733696, -0.640817, 0.764179, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
-        },
-      },
-    ] */,
+      ],
+    ],
   },
   "Willow's Wending Entry": {
     name: "Willow's Wending",
     images: {
-      "Polaroids - Missing": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-missing.webp",
-      "Polaroids - In Place": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-present.webp",
-      "Wending Depths 1": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
-      "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
-      "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
-      "Hollow King": "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
+      "Polaroids - Missing":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-missing.webp",
+      "Polaroids - In Place":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-present.webp",
+      "Wending Depths 1":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+      "Hollow King":
+        "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
+    audioData: {
+      "ambient-crickets": {},
+      "ambient-eerie-forest": {},
+      "ambient-low-bass-rumble": {},
+    },
+    isBright: false,
+    isIndoors: false,
+    region: "realWorld",
     description: "",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "black",
-          boxShadow: "0 0 50vw black inset",
-          "--dramatic-hook-color": "white",
-          "--dramatic-hook-text-shadow-color": "black",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -400
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: -2565,
-          backgroundPositionY: -1348,
-          filter: "hue-rotate(105deg) saturate(100%) brightness(1.5)",
-          transform: "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
-          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 5%, rgba(0, 0, 0, 0.7) 10%, rgb(0, 0, 0) 17%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -400,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: -2565,
+            backgroundPositionY: -1348,
+            filter: "hue-rotate(105deg) saturate(100%) brightness(1.5)",
+            transform:
+              "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
+            background:
+              "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 5%, rgba(0, 0, 0, 0.7) 10%, rgb(0, 0, 0) 17%)",
+          },
+        },
+      ],
+    ],
   },
   "Willow's Wending #1": {
     name: "Willow's Wending",
     images: {
-      "Wending Depths 1": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
-      "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
-      "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
-      "Futuristic Soldier": "modules/eunos-kult-hacks/assets/images/locations/futuristic-soldier.webp",
-      "Hollow King": "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
+      "Wending Depths 1":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+      "Futuristic Soldier":
+        "modules/eunos-kult-hacks/assets/images/locations/futuristic-soldier.webp",
+      "Hollow King":
+        "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
+    audioData: {
+      "ambient-forest-night": {},
+      "ambient-eerie-forest": {},
+      "ambient-low-bass-rumble": {},
+    },
+    isBright: false,
+    isIndoors: false,
+    region: "willowsWending",
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "black",
-          boxShadow: "0 0 50vw black inset",
-          "--dramatic-hook-color": "white",
-          "--dramatic-hook-text-shadow-color": "black",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: -543,
-          backgroundPositionY: -1283,
-          filter: "hue-rotate(87deg) saturate(100%) brightness(1)",
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
-          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -100,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: -543,
+            backgroundPositionY: -1283,
+            filter: "hue-rotate(87deg) saturate(100%) brightness(1)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
+            background:
+              "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+          },
+        },
+      ],
+    ],
   },
   "Willow's Wending #2": {
     name: "Willow's Wending",
     images: {
-      "Wending Depths 1": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
-      "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
-      "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
-      "Futuristic Soldier": "modules/eunos-kult-hacks/assets/images/locations/futuristic-soldier.webp",
-      "Hollow King": "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
+      "Wending Depths 1":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+      "Futuristic Soldier":
+        "modules/eunos-kult-hacks/assets/images/locations/futuristic-soldier.webp",
+      "Hollow King":
+        "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
+    audioData: {
+      "ambient-forest-night": {},
+      "ambient-eerie-forest": {},
+      "ambient-low-bass-rumble": {},
+    },
+    isBright: false,
+    isIndoors: false,
+    region: "willowsWending",
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "black",
-          boxShadow: "0 0 50vw black inset",
-          "--dramatic-hook-color": "white",
-          "--dramatic-hook-text-shadow-color": "black",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1674,
-          backgroundPositionY: -522,
-          filter: "hue-rotate(253deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
-          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 3%, rgba(0, 0, 0, 0.7) 6%, rgb(0, 0, 0) 12%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -100,
+          },
         },
-      },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1674,
+            backgroundPositionY: -522,
+            filter: "hue-rotate(253deg) saturate(100%) brightness(1)",
+            transform:
+              "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
+            background:
+              "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 3%, rgba(0, 0, 0, 0.7) 6%, rgb(0, 0, 0) 12%)",
+          },
+        },
+      ],
     ],
   },
   "Willow's Wending #3": {
     name: "Willow's Wending",
     images: {
-      "Wending Depths 1": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
-      "Wending Depths 2": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
-      "Wending Depths 3": "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
-      "Futuristic Soldier": "modules/eunos-kult-hacks/assets/images/locations/futuristic-soldier.webp",
-      "Hollow King": "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
+      "Wending Depths 1":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+      "Futuristic Soldier":
+        "modules/eunos-kult-hacks/assets/images/locations/futuristic-soldier.webp",
+      "Hollow King":
+        "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
+    audioData: {
+      "ambient-forest-night": {},
+      "ambient-eerie-forest": {},
+      "ambient-low-bass-rumble": {},
+      "weather-wind-max": {},
+    },
+    isBright: false,
+    isIndoors: false,
+    region: "willowsWending",
     description:
       "The thin, winding road named 'Willow's Wending' takes an unpredictably treacherous route through the pine forests of the Black Hills, the trees on either side so thick they defy attempts to peer into the surrounding woods.",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "black",
-          boxShadow: "0 0 50vw black inset",
-          "--dramatic-hook-color": "white",
-          "--dramatic-hook-text-shadow-color": "black",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: -1261,
-          backgroundPositionY: 565,
-          filter: "hue-rotate(-186deg) saturate(100%) brightness(1)",
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
-          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -100,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: -1261,
+            backgroundPositionY: 565,
+            filter: "hue-rotate(-186deg) saturate(100%) brightness(1)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
+            background:
+              "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+          },
+        },
+      ],
+    ],
   },
   "Ranger Station #1": {
     name: "Ranger Station #1",
     images: {},
+    audioData: {
+      "ambient-crickets": {},
+      "ambient-electricity-night": {},
+    },
+    isBright: false,
+    isIndoors: false,
+    region: "willowsWending",
     description: "",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "black",
-          boxShadow: "0 0 50vw black inset",
-          "--dramatic-hook-color": "white",
-          "--dramatic-hook-text-shadow-color": "black",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 500,
-          backgroundPositionY: 1696,
-          filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
-          transform: "matrix3d(0.999391, -0.0348995, 0, 0, 0.0275012, 0.787531, 0.615661, 0, -0.0214863, -0.615286, 0.788011, 0, -3500, -3500, 0, 1)",
-          background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.999391, -0.0348995, 0, 0, 0.0275012, 0.787531, 0.615661, 0, -0.0214863, -0.615286, 0.788011, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -100
+          }
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 565,
+            backgroundPositionY: 1761,
+            filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
+            transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-2deg) rotateX(38deg)",
+            background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-2deg) rotateX(38deg)",
+            background: "radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.7) 2%, rgb(0, 0, 0) 5%)",
+          },
+        },
+      ]
+      // [
+      //   {
+      //     selector: "body",
+      //     properties: {
+      //       background: "black",
+      //       boxShadow: "0 0 50vw black inset",
+      //       "--dramatic-hook-color": "white",
+      //       "--dramatic-hook-text-shadow-color": "black",
+      //     },
+      //   },
+      //   {
+      //     selector: "#STAGE",
+      //     properties: {
+      //       perspective: 1000,
+      //     },
+      //   },
+      //   {
+      //     selector: "#STAGE #SECTION-3D",
+      //     properties: {
+      //       z: -100,
+      //     },
+      //   },
+      //   {
+      //     selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+      //     properties: {
+      //       backgroundPositionX: 500,
+      //       backgroundPositionY: 1696,
+      //       filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
+      //       transform:
+      //         "matrix3d(0.999391, -0.0348995, 0, 0, 0.0275012, 0.787531, 0.615661, 0, -0.0214863, -0.615286, 0.788011, 0, -3500, -3500, 0, 1)",
+      //       background:
+      //         "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+      //     },
+      //   },
+      //   {
+      //     selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+      //     properties: {
+      //       transform:
+      //         "matrix3d(0.999391, -0.0348995, 0, 0, 0.0275012, 0.787531, 0.615661, 0, -0.0214863, -0.615286, 0.788011, 0, -3500, -3500, 0, 1)",
+      //       background:
+      //         "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+      //     },
+      //   },
+      // ],
+    ],
   },
   "Emma's Rise": {
     name: "Emma's Rise",
     images: {},
     description: "",
+    audioData: {},
+    isBright: true,
+    isIndoors: false,
+    region: "",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+            duration: 4,
+            ease: "power2.in",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -1000
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 826,
-          backgroundPositionY: 1652,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(0.0092613, 0.52984, 0.848047, 0, -0.998721, 0.0470522, -0.0184903, 0, -0.0496993, -0.846792, 0.529598, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+            duration: 4,
+            ease: "power2.in",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.0092613, 0.52984, 0.848047, 0, -0.998721, 0.0470522, -0.0184903, 0, -0.0496993, -0.846792, 0.529598, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgba(255, 255, 255, 0.75) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 100,
+            duration: 4,
+            ease: "power2.in",
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 739,
+            backgroundPositionY: 1565,
+            filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
+            transform:
+              "matrix(0.0174803, 0.999847, -0.999847, 0.0174803, -3500, -3500)",
+            background:
+              "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
+            duration: 4,
+            ease: "power2.in",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix(0.0174803, 0.999847, -0.999847, 0.0174803, -3500, -3500)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
+            duration: 4,
+            ease: "power2.in",
+          },
+        },
+      ],
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+            duration: 15,
+            ease: "back.out",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+            duration: 15,
+            ease: "back.out",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -1000,
+            duration: 15,
+            ease: "back.out",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 826,
+            backgroundPositionY: 1652,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.0092613, 0.52984, 0.848047, 0, -0.998721, 0.0470522, -0.0184903, 0, -0.0496993, -0.846792, 0.529598, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+            duration: 15,
+            ease: "back.out",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.0092613, 0.52984, 0.848047, 0, -0.998721, 0.0470522, -0.0184903, 0, -0.0496993, -0.846792, 0.529598, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgba(255, 255, 255, 0.75) 25%)",
+            duration: 15,
+            ease: "back.out",
+          },
+        },
+      ],
+    ],
+  },
+  "Town Square": {
+    name: "Town Square",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-outdoor-crowd": {},
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "townSquare",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 311,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1348,
+            backgroundPositionY: 2196,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Wainwright Academy": {
     name: "Wainwright Academy",
     images: {},
     description: "",
+    audioData: {
+      "ambient-academy": {},
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "academy",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1261,
-          backgroundPositionY: 1739,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -100,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1261,
+            backgroundPositionY: 1739,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Emma's Rise Primary School": {
     name: "Emma's Rise Primary School",
     images: {},
+    audioData: {
+      "ambient-primary-school": {},
+    },
+    isBright: true,
+    isIndoors: true,
     description: "",
+    region: "academy",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100,
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 957,
-          backgroundPositionY: 1630,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(-0.080072, -0.761847, -0.642789, 0, 0.98907, 0.0193729, -0.146169, 0, 0.123811, -0.647467, 0.751969, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.080072, -0.761847, -0.642789, 0, 0.98907, 0.0193729, -0.146169, 0, 0.123811, -0.647467, 0.751969, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 978,
+            backgroundPositionY: 1630,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-87.0001deg) rotateY(35.9997deg)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-87.0001deg) rotateY(35.9997deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Emma's Rise Middle School for Wayward Boys": {
     name: "Emma's Rise Middle School for Wayward Boys",
     images: {},
+    audioData: {
+      "ambient-school": {},
+    },
+    isBright: true,
+    isIndoors: true,
     description: "",
+    region: "academy",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100,
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1913,
-          backgroundPositionY: 1652,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(-0.0316297, 0.905755, 0.42262, 0, -0.997985, -0.0053527, -0.0632192, 0, -0.0549989, -0.423768, 0.904099, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.0316297, 0.905755, 0.42262, 0, -0.997985, -0.0053527, -0.0632192, 0, -0.0549989, -0.423768, 0.904099, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -100,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1913,
+            backgroundPositionY: 1652,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(-0.0316297, 0.905755, 0.42262, 0, -0.997985, -0.0053527, -0.0632192, 0, -0.0549989, -0.423768, 0.904099, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(-0.0316297, 0.905755, 0.42262, 0, -0.997985, -0.0053527, -0.0632192, 0, -0.0549989, -0.423768, 0.904099, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Town Hall": {
     name: "Town Hall",
     images: {},
     description: "",
+    audioData: {
+      "ambient-hall": {},
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "townSquare",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: 621
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1370,
-          backgroundPositionY: 2522,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-0.0001deg) rotateY(8.9998deg) rotateX(40deg)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-0.0001deg) rotateY(8.9998deg) rotateX(40deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1370,
+            backgroundPositionY: 2522,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-0.0001deg) rotateY(8.9998deg) rotateX(40deg)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-0.0001deg) rotateY(8.9998deg) rotateX(40deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Emma's Rise Community Center": {
+    name: "Emma's Rise Community Center",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-church": {},
+      "ambient-hall": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "townSquare",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 373,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1739,
+            backgroundPositionY: 2152,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(1, 0, 0, 0, 0, 0.87462, 0.48481, 0, 0, -0.48481, 0.87462, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(1, 0, 0, 0, 0, 0.87462, 0.48481, 0, 0, -0.48481, 0.87462, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Old Cemetery": {
+    name: "Old Cemetery",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-old-willow": {},
+      "ambient-creepy": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "kingsgraveEstate",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 559,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2043,
+            backgroundPositionY: 2022,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.0133706, 0.765924, 0.642792, 0, -0.999848, 0.0174542, 0, 0, -0.0112194, -0.642694, 0.766041, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.0133706, 0.765924, 0.642792, 0, -0.999848, 0.0174542, 0, 0, -0.0112194, -0.642694, 0.766041, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Lantern Way, East": {
+    name: "Lantern Way, East",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-standing-stones": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "kingsgraveEstate",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 745,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2043,
+            backgroundPositionY: 1957,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.491331, 0.786297, 0.374608, 0, -0.869914, 0.421823, 0.255568, 0, 0.042934, -0.451445, 0.891265, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.491331, 0.786297, 0.374608, 0, -0.869914, 0.421823, 0.255568, 0, 0.042934, -0.451445, 0.891265, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Lantern Way, West": {
+    name: "Lantern Way, West",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-standing-stones": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "kingsgraveEstate",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 745,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2043,
+            backgroundPositionY: 2304,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.445649, -0.874636, -0.190809, 0, 0.891007, 0.45399, 0, 0, 0.0866255, -0.170012, 0.981627, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.445649, -0.874636, -0.190809, 0, 0.891007, 0.45399, 0, 0, 0.0866255, -0.170012, 0.981627, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "First Bank of Emma's Rise": {
     name: "First Bank of Emma's Rise",
     images: {},
     description: "",
+    region: "townSquare",
+    audioData: {
+      "ambient-quiet-office": {},
+    },
+    isBright: true,
+    isIndoors: true,
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: 621
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1500,
-          backgroundPositionY: 2304,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1500,
+            backgroundPositionY: 2304,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Days Go By Pub": {
     name: "Days Go By Pub",
     images: {},
     description: "",
+    region: "townSquare",
+    audioData: {
+      "ambient-divebar": {},
+    },
+    isBright: true,
+    isIndoors: true,
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: 621
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1087,
-          backgroundPositionY: 2304,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(-0.0282302, -0.808527, -0.587781, 0, 0.999391, -0.0348943, 0, 0, -0.0205102, -0.587423, 0.80902, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.0282302, -0.808527, -0.587781, 0, 0.999391, -0.0348943, 0, 0, -0.0205102, -0.587423, 0.80902, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1065,
+            backgroundPositionY: 2261,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9997deg) rotateY(35.9997deg)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9997deg) rotateY(35.9997deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Danny's Diner": {
     name: "Danny's Diner",
     images: {},
     description: "",
+    region: "townSquare",
+    audioData: {
+      "ambient-diner": {},
+    },
+    isBright: true,
+    isIndoors: true,
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: 621
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1087,
-          backgroundPositionY: 2478,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(0.014125, -0.808895, -0.587784, 0, 0.999596, -0.0030655, 0.02824, 0, -0.0246451, -0.587946, 0.808525, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.014125, -0.808895, -0.587784, 0, 0.999596, -0.0030655, 0.02824, 0, -0.0246451, -0.587946, 0.808525, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
         },
-      },
-    ]/* [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1065,
+            backgroundPositionY: 2391,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-88.9999deg) rotateY(35.9997deg)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100,
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1087,
-          backgroundPositionY: 2370,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(0.0137513, -0.787891, -0.615661, 0, 0.979427, 0.134587, -0.150361, 0, 0.201328, -0.600928, 0.773533, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-88.9999deg) rotateY(35.9997deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.0137513, -0.787891, -0.615661, 0, 0.979427, 0.134587, -0.150361, 0, 0.201328, -0.600928, 0.773533, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
-        },
-      },
-    ] */
+      ],
+    ],
   },
   "Ranger Station #3": {
     name: "Ranger Station #3",
     images: {},
     description: "",
+    region: "townSquare",
+    audioData: {
+      "ambient-fireplace": {},
+      "ambient-ranger-station": {}
+    },
+    isBright: true,
+    isIndoors: true,
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -124
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 1391,
-          backgroundPositionY: 2152,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(-0.999239, -0.01744, 0.0348995, 0, -0.0090616, -0.766318, -0.642397, 0, 0.0379475, -0.642225, 0.765577, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.999239, -0.01744, 0.0348995, 0, -0.0090616, -0.766318, -0.642397, 0, 0.0379475, -0.642225, 0.765577, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
         },
-      },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1283,
+            backgroundPositionY: 2152,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(-0.999848, -0.0174507, 0, 0, 0.0149582, -0.857041, -0.515031, 0, 0.0089876, -0.514952, 0.857172, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(-0.999848, -0.0174507, 0, 0, 0.0149582, -0.857041, -0.515031, 0, 0.0089876, -0.514952, 0.857172, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
     ],
   },
   "Medical Clinic": {
     name: "Medical Clinic",
     images: {},
     description: "",
+    audioData: {
+      "ambient-medical-clinic": {},
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "holtFarms",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100,
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 804,
-          backgroundPositionY: 2630,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(-0.997412, -0.0174099, 0.06976, 0, -0.0291893, -0.78864, -0.614162, 0, 0.065708, -0.614608, 0.786091, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.997412, -0.0174099, 0.06976, 0, -0.0291893, -0.78864, -0.614162, 0, 0.065708, -0.614608, 0.786091, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 804,
+            backgroundPositionY: 2630,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(-0.999848, -0.0174507, 0, 0, 0.0152627, -0.874487, -0.48481, 0, 0.0084602, -0.484736, 0.87462, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(-0.999848, -0.0174507, 0, 0, 0.0152627, -0.874487, -0.48481, 0, 0.0084602, -0.484736, 0.87462, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Holt Family Lodge": {
     name: "Holt Family Lodge",
     images: {},
     description: "",
+    audioData: {
+      "ambient-fireplace-2": {},
+      "ambient-hall": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "holtFarms",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100,
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 587,
-          backgroundPositionY: 2783,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -100,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 587,
+            backgroundPositionY: 2783,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Holt Farms": {
     name: "Holt Farms",
     images: {},
     description: "",
+    audioData: {
+      "ambient-farm": {},
+      "ambient-birdsong": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "holtFarms",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100,
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 22,
-          backgroundPositionY: 2848,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: -100,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 22,
+            backgroundPositionY: 2848,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "The Greenhouse": {
     name: "The Greenhouse",
     images: {},
     description: "",
+    audioData: {
+      "ambient-generic-vent": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "holtFarms",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: -100,
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 0,
-          backgroundPositionY: 2978,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 435,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: -43,
+            backgroundPositionY: 3043,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "The Aerie": {
     name: "The Aerie",
     images: {},
     description: "",
+    audioData: {
+      "weather-wind-medium": {},
+      "ambient-birdsong": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "holtFarms",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1081,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: 100,
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: -543,
-          backgroundPositionY: 3087,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1081,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 100,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: -543,
+            backgroundPositionY: 3087,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "Beacon Hill": {
     name: "Beacon Hill",
     images: {},
     description: "",
+    audioData: {
+      "weather-wind-medium": {},
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "beaconHill",
     mapTransforms: [
-      {
-        selector: "body",
-        properties: {
-          background: "white",
-          boxShadow: "0 0 0vw transparent inset",
-          "--dramatic-hook-color": "black",
-          "--dramatic-hook-text-shadow-color": "white",
-        }
-      },
-      {
-        selector: "#STAGE",
-        properties: {
-          perspective: 1000,
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D",
-        properties: {
-          z: 100
-        }
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
-        properties: {
-          backgroundPositionX: 674,
-          backgroundPositionY: 2239,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
         },
-      },
-      {
-        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
-        properties: {
-          transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
-          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 100,
+          },
         },
-      },
-    ]
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 674,
+            backgroundPositionY: 2239,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Bell Tower": {
+    name: "Bell Tower",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-church": {},
+      "effect-church-bells": {loop: false}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "beaconHill",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 22,
+            backgroundPositionY: 2174,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(-0.0621504, -0.888837, -0.453989, 0, 0.997564, -0.069753, 0, 0, -0.0316671, -0.452883, 0.891007, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(-0.0621504, -0.888837, -0.453989, 0, 0.997564, -0.069753, 0, 0, -0.0316671, -0.452883, 0.891007, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Beacon Observatory": {
+    name: "Beacon Observatory",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-academy": {},
+      "ambient-quiet-office": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "beaconHill",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 174,
+            backgroundPositionY: 1935,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-93.9998deg) rotateY(26.9999deg)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-93.9998deg) rotateY(26.9999deg)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Beacon Library": {
+    name: "Beacon Library",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-academy": {},
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "beaconHill",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 391,
+            backgroundPositionY: 2174,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
   },
   "The East Tunnel": {
     name: "The East Tunnel",
     images: {},
     description: "",
+    audioData: {
+      "ambient-underground": {},
+      "ambient-creepy": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "eastTunnel",
     mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 100,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 3065,
+            backgroundPositionY: -370,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "The Weeping King": {
+    name: "The Weeping King",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-weeping-king": {},
+      "ambient-birdsong": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "residential",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          },
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 739,
+            backgroundPositionY: 739,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform:
+              "matrix3d(-0.0621505, -0.888838, -0.453987, 0, 0.998062, -0.0539028, -0.0311004, 0, 0.003172, -0.45504, 0.890465, 0, -3500, -3500, 0, 1)",
+            background:
+              "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform:
+              "matrix3d(-0.0621505, -0.888838, -0.453987, 0, 0.998062, -0.0539028, -0.0311004, 0, 0.003172, -0.45504, 0.890465, 0, -3500, -3500, 0, 1)",
+            background:
+              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Pact Grove": {
+    name: "Pact Grove",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-birdsong": {},
+      "ambient-creepy": {},
+      "ambient-old-willow": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "hollowood",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2435,
+            backgroundPositionY: 2326,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform: "matrix3d(-0.0549731, 0.786093, 0.615659, 0, -0.984895, -0.144086, 0.0960305, 0, 0.164197, -0.60108, 0.78214, 0, -3500, -3500, 0, 1)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "matrix3d(-0.0549731, 0.786093, 0.615659, 0, -0.984895, -0.144086, 0.0960305, 0, 0.164197, -0.60108, 0.78214, 0, -3500, -3500, 0, 1)",
+            background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ],
+    ],
+  },
+  "Old Bridge": {
+    name: "Old Bridge",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-creek": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "hollowood",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2630,
+            backgroundPositionY: 2152,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform: "matrix3d(-0.554731, 0.6161, 0.559191, 0, -0.808272, -0.558496, -0.18649, 0, 0.19741, -0.555431, 0.807791, 0, -3500, -3500, 0, 1)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "matrix3d(-0.554731, 0.6161, 0.559191, 0, -0.808272, -0.558496, -0.18649, 0, 0.19741, -0.555431, 0.807791, 0, -3500, -3500, 0, 1)",
+            background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ]
+    ],
+  },
+  "Old Tree Line": {
+    name: "Old Tree Line",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-old-willow": {},
+      "ambient-creepy": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "hollowood",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 373
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2783,
+            backgroundPositionY: 2065,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform: "matrix3d(-0.610574, 0.53076, 0.587787, 0, -0.790826, -0.448311, -0.416668, 0, 0.0423605, -0.719243, 0.693466, 0, -3500, -3500, 0, 1)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "matrix3d(-0.610574, 0.53076, 0.587787, 0, -0.790826, -0.448311, -0.416668, 0, 0.0423605, -0.719243, 0.693466, 0, -3500, -3500, 0, 1)",
+            background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ]
+    ]
+  },
+  "Old Willow": {
+    name: "Old Willow",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-old-willow": {},
+      "effect-angel-chorus": {loop: false}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "hollowood",
+    mapTransforms: [[
       {
         selector: "body",
         properties: {
@@ -2532,40 +4183,499 @@ export const LOCATIONS = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: 100,
+          z: 621
         }
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
         properties: {
-          backgroundPositionX: 3065,
-          backgroundPositionY: -370,
+          backgroundPositionX: 2652,
+          backgroundPositionY: 2696,
           filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
-          transform: "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
-          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat",
+          transform: "matrix3d(0.0149596, 0.857037, 0.515038, 0, -0.999848, 0.0174524, 0, 0, -0.0089886, -0.51496, 0.857167, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
         },
       },
       {
         selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
         properties: {
-          transform: "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
+          transform: "matrix3d(0.0149596, 0.857037, 0.515038, 0, -0.999848, 0.0174524, 0, 0, -0.0089886, -0.51496, 0.857167, 0, -3500, -3500, 0, 1)",
           background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
         },
       },
-    ]
+    ]]
   },
-
-
-
-
-
-  // Easy copy/paste template for new locations:
-  "": {
-    name: "",
+  "Standing Stones": {
+    name: "Standing Stones",
     images: {},
     description: "",
-    mapTransforms: []
+    audioData: {
+      "ambient-standing-stones": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "hollowood",
+    mapTransforms: [[
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 621
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 2870,
+          backgroundPositionY: 2348,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(0.0155487, 0.890872, 0.453989, 0, -0.999848, 0.0174507, 0, 0, -0.0079224, -0.45392, 0.891007, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.0155487, 0.890872, 0.453989, 0, -0.999848, 0.0174507, 0, 0, -0.0079224, -0.45392, 0.891007, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]]
   },
+  "Ranger Station #4": {
+    name: "Ranger Station #4",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-fireplace": {},
+      "ambient-ranger-station": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "hollowood",
+    mapTransforms: [[
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 621
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 2957,
+          backgroundPositionY: 2565,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(0.012971, 0.743034, 0.669128, 0, -0.999848, 0.0174542, 0, 0, -0.0116791, -0.669026, 0.743147, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.012971, 0.743034, 0.669128, 0, -0.999848, 0.0174542, 0, 0, -0.0116791, -0.669026, 0.743147, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]]
+  },
+  "Redemption House": {
+    name: "Redemption House",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-low-bass-rumble": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "townSquare",
+    mapTransforms: [[
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 621
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1739,
+          backgroundPositionY: 1978,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]]
+  },
+  "Ranger Station #2": {
+    name: "Ranger Station #2",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-fireplace": {},
+      "ambient-ranger-station": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "eastTunnel",
+    mapTransforms: [[
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 621
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 2674,
+          backgroundPositionY: 283,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]]
+  },
+  "Ash Hill": {
+    name: "Ash Hill",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-creepy": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "ashHill",
+    mapTransforms: [[
+      {
+        selector: "body",
+        properties: {
+          background: "white",
+          boxShadow: "0 0 0vw transparent inset",
+          "--dramatic-hook-color": "black",
+          "--dramatic-hook-text-shadow-color": "white",
+        }
+      },
+      {
+        selector: "#STAGE",
+        properties: {
+          perspective: 1000,
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D",
+        properties: {
+          z: 186
+        }
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        properties: {
+          backgroundPositionX: 1522,
+          backgroundPositionY: 2717,
+          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+          transform: "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+          background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+        },
+      },
+      {
+        selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+        properties: {
+          transform: "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+          background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+        },
+      },
+    ]]
+  },
+  "Ash Hill Development": {
+    name: "Ash Hill Development",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-creepy": {},
+      "ambient-ash-hill-development": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "ashHill",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 1739,
+            backgroundPositionY: 2783,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform: "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+            background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ]
+    ]
+  },
+  "Kingsgrave Estate": {
+    name: "Kingsgrave Estate",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-old-willow": {}
+    },
+    isBright: true,
+    isIndoors: false,
+    region: "kingsgraveEstate",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 186
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2043,
+            backgroundPositionY: 2457,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+            background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ]
+    ]
+  },
+  "Old Chapel": {
+    name: "Old Chapel",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-church": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "kingsgraveEstate",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 745
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2435,
+            backgroundPositionY: 2761,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotateX(40.0003deg)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotateX(40.0003deg)",
+            background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ]
+    ]
+  },
+  "Kingsgrave Manor": {
+    name: "Kingsgrave Manor",
+    images: {},
+    description: "",
+    audioData: {
+      "ambient-hall": {}
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "kingsgraveEstate",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "white",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 621
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2174,
+            backgroundPositionY: 2761,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform: "matrix3d(1, 0, 0, 0, 0, 0.766041, 0.642792, 0, 0, -0.642792, 0.766041, 0, -3500, -3500, 0, 1)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "matrix3d(1, 0, 0, 0, 0, 0.766041, 0.642792, 0, 0, -0.642792, 0.766041, 0, -3500, -3500, 0, 1)",
+            background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ]
+    ]
+  }
+
 };
 
 // #endregion

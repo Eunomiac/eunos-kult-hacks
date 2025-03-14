@@ -1,6 +1,6 @@
 import { Sounds, PRE_SESSION, type EunosMediaData } from "../scripts/constants";
 import { EunosMediaCategories, EunosMediaTypes, MediaLoadStatus, UserTargetRef } from "../scripts/enums";
-import { objDeepFlatten } from "../scripts/utilities";
+import { isEmpty, objDeepFlatten } from "../scripts/utilities";
 import EunosSockets from "./EunosSockets";
 // #region === SOUND FUNCTIONS AND VALUES ===
 
@@ -349,9 +349,10 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     }
   }
   get playing(): boolean {
-    // A media element is playing if it's not paused, not ended, and is ready to play
+    // A media element is playing if it's not paused, not ended, not muted, and is ready to play
     return !this.element.paused &&
            !this.element.ended &&
+           this.element.volume > 0 &&
            this.element.readyState > 2; // HAVE_CURRENT_DATA or higher
   }
 
@@ -437,21 +438,16 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     throw new Error(`Unsupported category: ${path}`);
   }
 
+  showInSoundMenu: boolean;
+
   constructor(mediaName: string, mediaData?: EunosMediaData & {type: T}) {
 
-    let data: EunosMediaData & {type: T};
-    if (mediaData) {
-      data = mediaData;
-    } else {
-      const soundData = Object.fromEntries(objDeepFlatten(Sounds, {isKeepingLastObject: true}).filter(([key]) => key === mediaName));
-      if (mediaName in soundData) {
-        data = {
-          type: EunosMediaTypes.audio,
-          ...soundData[mediaName]
-        } as EunosMediaData & {type: T};
-      } else {
-        throw new Error(`Media '${mediaName}' not found, and no configuration data was provided.`);
-      }
+    mediaData ??= {} as EunosMediaData & {type: T};
+    const staticData = (objDeepFlatten(Sounds, {isKeepingLastObject: true})
+      .find(([key]) => key === mediaName)?.[1]) ?? {} as EunosMediaData & {type: T};
+    const data = {
+      ...staticData,
+      ...mediaData
     }
 
     this.name = mediaName;
@@ -459,6 +455,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     this.displayDuration = data.displayDuration;
     this.#fadeInDuration = data.fadeInDuration ?? 0;
     this.reportPreloadStatus = data.reportPreloadStatus ?? false;
+    this.showInSoundMenu = data.showInSoundMenu ?? true;
     if (data.path) {
       this.path = data.path;
       if (!this.path) {
@@ -676,6 +673,8 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     fadeInDuration?: number;
   }, isSocketCalling = false): Promise<void> {
     const { volume, loop, sync, fadeInDuration } = options ?? {};
+    const isTweeningVolume = this.playing && typeof volume === "number" && this.volume !== volume;
+    const fromVolume = this.volume;
     this.volume = volume ?? this.volume;
     this.loop = loop ?? this.loop;
     this.sync = sync ?? this.sync;
@@ -705,7 +704,11 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     this.#element.loop = this.loop;
     try {
       await this.#element.play();
-      await gsap.to(this.#element, { volume: this.volume, duration: this.fadeInDuration, ease: "none" });
+      if (isTweeningVolume) {
+        await gsap.fromTo(this.#element, { volume: fromVolume }, { volume: this.volume, duration: this.fadeInDuration ?? 2, ease: "none" });
+      } else {
+        await gsap.to(this.#element, { volume: this.volume, duration: this.fadeInDuration, ease: "none" });
+      }
     } catch (error) {
       if (error instanceof Error && error.name === "NotAllowedError") {
         kLog.error("Playback prevented, setting up interaction handlers", error);
@@ -730,8 +733,10 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     }
     kLog.log(`Found media "${this.name}", killing it ...`);
     await gsap.to(this.#element, { volume: 0, duration: fadeDuration, ease: "none" });
-    kLog.log(`... Awaited fade of "${this.name}", unloading.`);
-    await this.unload();
+    kLog.log(`... Awaited fade of "${this.name}", pausing & restoring volume.`);
+    this.#element.pause();
+    this.#element.volume = this.volume;
+    // await this.unload();
   }
 
 
