@@ -55,8 +55,29 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     return Array.from(EunosMedia.Sounds.values()).filter((media) => media.category === category);
   }
 
-  static GetLoopingPlayingSounds(): EunosMedia<EunosMediaTypes.audio>[] {
-    return Array.from(EunosMedia.Sounds.values()).filter((media) => media.loop && media.playing);
+  static GetPlayingSounds(): EunosMedia<EunosMediaTypes.audio>[] {
+    return Array.from(EunosMedia.Sounds.values()).filter((media) => media.playing);
+  }
+
+  static async SyncPlayingSounds(): Promise<void> {
+    const soundData = await EunosSockets.getInstance().call<Record<string, number>>("requestSoundSync", UserTargetRef.gm, undefined, true);
+    const currentSounds = EunosMedia.GetPlayingSounds();
+
+    for (const sound of currentSounds) {
+      if (sound.name in soundData) {
+        const volume = soundData[sound.name]!;
+        void sound.play({volume});
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete soundData[sound.name];
+      } else {
+        void sound.kill();
+      }
+    }
+
+    for (const [soundName, volume] of Object.entries(soundData)) {
+      const sound = EunosMedia.GetMedia(soundName) as EunosMedia<EunosMediaTypes.audio>;
+      void sound.play({volume});
+    }
   }
 
   // #region === INITIALIZATION === ~
@@ -75,11 +96,8 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       })
     );
 
-    // Request sync of playing sounds from GM
-    void EunosSockets.getInstance().call("requestSoundSync", UserTargetRef.gm, {
-      userId: getUser().id!,
-    });
-
+    // Synchronize playing sounds with the GM
+    void EunosMedia.SyncPlayingSounds();
   }
   // #endregion INITIALIZATION
 
@@ -503,6 +521,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     }
     return this.preloadVideo();
   }
+
 
   private reportPreloadStatusToGM(): void {
     if (!this.reportPreloadStatus) { return; }

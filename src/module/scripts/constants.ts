@@ -15,7 +15,7 @@ export const SYSTEM_ID = "eunos-kult-hacks";
 
 export const MEDIA_PATHS = {
   PRESESSION_AMBIENT_AUDIO:
-    "modules/eunos-kult-hacks/assets/sounds/session-closed-ambience.flac",
+    "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-session-closed.ogg",
   INTRO_VIDEO:
     "modules/eunos-kult-hacks/assets/video/something-unholy-intro.webm",
   LOADING_SCREEN_ITEM:
@@ -936,66 +936,66 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    "wonderful-life": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-wonderful-life.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 172, // 2:52
-      loop: false,
-      sync: true,
-      volume: 0.75,
-      autoplay: false,
-    },
-    "come-along": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-come-along.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 178, // 2:58
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    "guns-for-hire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 224,
-      loop: false,
-      sync: true,
-      volume: 0.75,
-      autoplay: false,
-    },
-    sucker: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 220,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    playground: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 226,
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    home: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      loop: false,
-      sync: true,
-      duration: 229,
-      volume: 0.5,
-      autoplay: false,
-    },
+    // "wonderful-life": {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-wonderful-life.ogg",
+    //   alwaysPreload: false,
+    //   delay: 0,
+    //   duration: 172, // 2:52
+    //   loop: false,
+    //   sync: true,
+    //   volume: 0.75,
+    //   autoplay: false,
+    // },
+    // "come-along": {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-come-along.ogg",
+    //   alwaysPreload: false,
+    //   delay: 0,
+    //   duration: 178, // 2:58
+    //   loop: false,
+    //   sync: true,
+    //   volume: 0.5,
+    //   autoplay: false,
+    // },
+    // "guns-for-hire": {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+    //   alwaysPreload: false,
+    //   delay: 0,
+    //   duration: 224,
+    //   loop: false,
+    //   sync: true,
+    //   volume: 0.75,
+    //   autoplay: false,
+    // },
+    // sucker: {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
+    //   alwaysPreload: false,
+    //   delay: 0,
+    //   duration: 220,
+    //   loop: false,
+    //   sync: true,
+    //   volume: 0.5,
+    //   autoplay: false,
+    // },
+    // playground: {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
+    //   alwaysPreload: false,
+    //   delay: 0,
+    //   duration: 226,
+    //   loop: false,
+    //   sync: true,
+    //   volume: 0.5,
+    //   autoplay: false,
+    // },
+    // home: {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
+    //   alwaysPreload: false,
+    //   delay: 0,
+    //   loop: false,
+    //   sync: true,
+    //   duration: 229,
+    //   volume: 0.5,
+    //   autoplay: false,
+    // },
     // "arsonists-lulluby": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-arsonists-lullaby.ogg",
     //   alwaysPreload: false,
@@ -1467,8 +1467,8 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    "session-closed-ambience": {
-      path: "modules/eunos-kult-hacks/assets/sounds/ambient/session-closed-ambience.flac",
+    "ambient-session-closed": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-session-closed.ogg",
       alwaysPreload: false,
       delay: 0,
       loop: true,
@@ -1571,16 +1571,6 @@ export const Sounds = {
     },
     "weather-wind-low": {
       path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-wind-low.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      fadeInDuration: 2,
-      loop: true,
-      sync: false,
-      volume: 0.05,
-      autoplay: false,
-    },
-    "weather-wind-medium": {
-      path: "modules/eunos-kult-hacks/assets/sounds/weather/weather-wind-medium.ogg",
       alwaysPreload: false,
       delay: 0,
       fadeInDuration: 2,
@@ -1885,6 +1875,7 @@ export declare namespace Location {
 
   interface StaticSettingsData {
     name: string;
+    key: string;
     description?: string;
     images: Record<string, string>;
     mapTransforms: Array<
@@ -1910,6 +1901,28 @@ export declare namespace Location {
     extends StaticSettingsData,
       DynamicSettingsData {}
 
+  export interface SettingsData_Explicit {
+    // Static properties
+    name: string;
+    description?: string;
+    images: Record<string, string>;
+    mapTransforms: Array<
+      Array<{
+        selector: string;
+        properties: Record<string, number | string | undefined>;
+      }>
+    >;
+    isBright: boolean;
+    isIndoors: boolean;
+    region?: string;
+    audioData: Record<string, Partial<EunosMediaData>>;
+
+    // Dynamic properties
+    currentImage: string | null;
+    pcData: Record<IDString, PCData.SettingsData>;
+    npcData: Record<IDString, NPCData.SettingsData>;
+  }
+
   interface DynamicFullData {
     currentImage: string | null;
     pcData: Record<"1" | "2" | "3" | "4" | "5", PCData.FullData>;
@@ -1922,9 +1935,10 @@ export declare namespace Location {
       DynamicFullData {}
 }
 
-export const LOCATIONS = {
-  Nowhere: {
+export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
+  nowhere: {
     name: "Nowhere",
+    key: "nowhere",
     images: {},
     description: "",
     audioData: {},
@@ -1980,8 +1994,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Fire Access Trail South": {
+  fireAccessTrailSouth: {
     name: "Fire Access Trail",
+    key: "fireAccessTrailSouth",
     images: {
       "Fire Road 1":
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-1.webp",
@@ -2045,8 +2060,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Fire Access Trail North": {
+  fireAccessTrailNorth: {
     name: "Fire Access Trail",
+    key: "fireAccessTrailNorth",
     images: {
       "Fire Road 2":
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-2.webp",
@@ -2110,8 +2126,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Willow's Wending Entry": {
+  willowsWendingEntry: {
     name: "Willow's Wending",
+    key: "willowsWendingEntry",
     images: {
       "Polaroids - Missing":
         "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-missing.webp",
@@ -2182,8 +2199,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Willow's Wending #1": {
+  willowsWending1: {
     name: "Willow's Wending",
+    key: "willowsWending1",
     images: {
       "Wending Depths 1":
         "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
@@ -2253,8 +2271,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Willow's Wending #2": {
+  willowsWending2: {
     name: "Willow's Wending",
+    key: "willowsWending2",
     images: {
       "Wending Depths 1":
         "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
@@ -2324,8 +2343,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Willow's Wending #3": {
+  willowsWending3: {
     name: "Willow's Wending",
+    key: "willowsWending3",
     images: {
       "Wending Depths 1":
         "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
@@ -2396,8 +2416,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Ranger Station #1": {
+  rangerStation1: {
     name: "Ranger Station #1",
+    key: "rangerStation1",
     images: {},
     audioData: {
       "ambient-crickets": {},
@@ -2494,8 +2515,9 @@ export const LOCATIONS = {
       // ],
     ],
   },
-  "Emma's Rise": {
+  emmasRise: {
     name: "Emma's Rise",
+    key: "emmasRise",
     images: {},
     description: "",
     audioData: {},
@@ -2613,8 +2635,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Town Square": {
+  townSquare: {
     name: "Town Square",
+    key: "townSquare",
     images: {},
     description: "",
     audioData: {
@@ -2670,8 +2693,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Wainwright Academy": {
+  wainwrightAcademy: {
     name: "Wainwright Academy",
+    key: "wainwrightAcademy",
     images: {},
     description: "",
     audioData: {
@@ -2727,8 +2751,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Emma's Rise Primary School": {
+  emmasRisePrimarySchool: {
     name: "Emma's Rise Primary School",
+    key: "emmasRisePrimarySchool",
     images: {},
     audioData: {
       "ambient-primary-school": {},
@@ -2784,8 +2809,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Emma's Rise Middle School for Wayward Boys": {
+  emmasRiseMiddleSchoolForWaywardBoys: {
     name: "Emma's Rise Middle School for Wayward Boys",
+    key: "emmasRiseMiddleSchoolForWaywardBoys",
     images: {},
     audioData: {
       "ambient-school": {},
@@ -2841,8 +2867,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Town Hall": {
+  townHall: {
     name: "Town Hall",
+    key: "townHall",
     images: {},
     description: "",
     audioData: {
@@ -2898,8 +2925,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Emma's Rise Community Center": {
+  emmasRiseCommunityCenter: {
     name: "Emma's Rise Community Center",
+    key: "emmasRiseCommunityCenter",
     images: {},
     description: "",
     audioData: {
@@ -2956,8 +2984,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Old Cemetery": {
+  oldCemetery: {
     name: "Old Cemetery",
+    key: "oldCemetery",
     images: {},
     description: "",
     audioData: {
@@ -3014,8 +3043,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Lantern Way, East": {
+  lanternWayEast: {
     name: "Lantern Way, East",
+    key: "lanternWayEast",
     images: {},
     description: "",
     audioData: {
@@ -3071,8 +3101,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Lantern Way, West": {
+  lanternWayWest: {
     name: "Lantern Way, West",
+    key: "lanternWayWest",
     images: {},
     description: "",
     audioData: {
@@ -3128,8 +3159,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "First Bank of Emma's Rise": {
+  firstBankOfEmmasRise: {
     name: "First Bank of Emma's Rise",
+    key: "firstBankOfEmmasRise",
     images: {},
     description: "",
     region: "townSquare",
@@ -3185,8 +3217,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Days Go By Pub": {
+  daysGoByPub: {
     name: "Days Go By Pub",
+    key: "daysGoByPub",
     images: {},
     description: "",
     region: "townSquare",
@@ -3242,8 +3275,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Danny's Diner": {
+  dannysDiner: {
     name: "Danny's Diner",
+    key: "dannysDiner",
     images: {},
     description: "",
     region: "townSquare",
@@ -3299,8 +3333,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Ranger Station #3": {
+  rangerStation3: {
     name: "Ranger Station #3",
+    key: "rangerStation3",
     images: {},
     description: "",
     region: "townSquare",
@@ -3357,8 +3392,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Medical Clinic": {
+  medicalClinic: {
     name: "Medical Clinic",
+    key: "medicalClinic",
     images: {},
     description: "",
     audioData: {
@@ -3414,8 +3450,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Holt Family Lodge": {
+  holtFamilyLodge: {
     name: "Holt Family Lodge",
+    key: "holtFamilyLodge",
     images: {},
     description: "",
     audioData: {
@@ -3472,8 +3509,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Holt Farms": {
+  holtFarms: {
     name: "Holt Farms",
+    key: "holtFarms",
     images: {},
     description: "",
     audioData: {
@@ -3530,8 +3568,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "The Greenhouse": {
+  theGreenhouse: {
     name: "The Greenhouse",
+    key: "theGreenhouse",
     images: {},
     description: "",
     audioData: {
@@ -3587,8 +3626,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "The Aerie": {
+  theAerie: {
     name: "The Aerie",
+    key: "theAerie",
     images: {},
     description: "",
     audioData: {
@@ -3645,8 +3685,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Beacon Hill": {
+  beaconHill: {
     name: "Beacon Hill",
+    key: "beaconHill",
     images: {},
     description: "",
     audioData: {
@@ -3702,8 +3743,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Bell Tower": {
+  bellTower: {
     name: "Bell Tower",
+    key: "bellTower",
     images: {},
     description: "",
     audioData: {
@@ -3760,8 +3802,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Beacon Observatory": {
+  beaconObservatory: {
     name: "Beacon Observatory",
+    key: "beaconObservatory",
     images: {},
     description: "",
     audioData: {
@@ -3818,8 +3861,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Beacon Library": {
+  beaconLibrary: {
     name: "Beacon Library",
+    key: "beaconLibrary",
     images: {},
     description: "",
     audioData: {
@@ -3875,8 +3919,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "The East Tunnel": {
+  theEastTunnel: {
     name: "The East Tunnel",
+    key: "theEastTunnel",
     images: {},
     description: "",
     audioData: {
@@ -3933,8 +3978,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "The Weeping King": {
+  theWeepingKing: {
     name: "The Weeping King",
+    key: "theWeepingKing",
     images: {},
     description: "",
     audioData: {
@@ -3991,8 +4037,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Pact Grove": {
+  pactGrove: {
     name: "Pact Grove",
+    key: "pactGrove",
     images: {},
     description: "",
     audioData: {
@@ -4046,8 +4093,9 @@ export const LOCATIONS = {
       ],
     ],
   },
-  "Old Bridge": {
+  oldBridge: {
     name: "Old Bridge",
+    key: "oldBridge",
     images: {},
     description: "",
     audioData: {
@@ -4099,8 +4147,9 @@ export const LOCATIONS = {
       ]
     ],
   },
-  "Old Tree Line": {
+  oldTreeLine: {
     name: "Old Tree Line",
+    key: "oldTreeLine",
     images: {},
     description: "",
     audioData: {
@@ -4153,8 +4202,9 @@ export const LOCATIONS = {
       ]
     ]
   },
-  "Old Willow": {
+  oldWillow: {
     name: "Old Willow",
+    key: "oldWillow",
     images: {},
     description: "",
     audioData: {
@@ -4205,8 +4255,9 @@ export const LOCATIONS = {
       },
     ]]
   },
-  "Standing Stones": {
+  standingStones: {
     name: "Standing Stones",
+    key: "standingStones",
     images: {},
     description: "",
     audioData: {
@@ -4256,8 +4307,9 @@ export const LOCATIONS = {
       },
     ]]
   },
-  "Ranger Station #4": {
+  rangerStation4: {
     name: "Ranger Station #4",
+    key: "rangerStation4",
     images: {},
     description: "",
     audioData: {
@@ -4308,8 +4360,9 @@ export const LOCATIONS = {
       },
     ]]
   },
-  "Redemption House": {
+  redemptionHouse: {
     name: "Redemption House",
+    key: "redemptionHouse",
     images: {},
     description: "",
     audioData: {
@@ -4359,8 +4412,9 @@ export const LOCATIONS = {
       },
     ]]
   },
-  "Ranger Station #2": {
+  rangerStation2: {
     name: "Ranger Station #2",
+    key: "rangerStation2",
     images: {},
     description: "",
     audioData: {
@@ -4411,8 +4465,9 @@ export const LOCATIONS = {
       },
     ]]
   },
-  "Ash Hill": {
+  ashHill: {
     name: "Ash Hill",
+    key: "ashHill",
     images: {},
     description: "",
     audioData: {
@@ -4462,8 +4517,9 @@ export const LOCATIONS = {
       },
     ]]
   },
-  "Ash Hill Development": {
+  ashHillDevelopment: {
     name: "Ash Hill Development",
+    key: "ashHillDevelopment",
     images: {},
     description: "",
     audioData: {
@@ -4516,8 +4572,9 @@ export const LOCATIONS = {
       ]
     ]
   },
-  "Kingsgrave Estate": {
+  kingsgraveEstate: {
     name: "Kingsgrave Estate",
+    key: "kingsgraveEstate",
     images: {},
     description: "",
     audioData: {
@@ -4569,8 +4626,9 @@ export const LOCATIONS = {
       ]
     ]
   },
-  "Old Chapel": {
+  oldChapel: {
     name: "Old Chapel",
+    key: "oldChapel",
     images: {},
     description: "",
     audioData: {
@@ -4622,8 +4680,9 @@ export const LOCATIONS = {
       ]
     ]
   },
-  "Kingsgrave Manor": {
+  kingsgraveManor: {
     name: "Kingsgrave Manor",
+    key: "kingsgraveManor",
     images: {},
     description: "",
     audioData: {

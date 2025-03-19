@@ -14,12 +14,13 @@ import {
   getOwnedActors,
   getOwnedAndActiveActors,
   getActorFromRef,
-  camelCase,
   roundNum,
   randElem,
   shuffle,
   getDistance,
   timeline,
+  getTimeStamp,
+  camelCase,
 } from "../scripts/utilities";
 import {
   LOADING_SCREEN_DATA,
@@ -34,7 +35,7 @@ import {
   Sounds,
   EASES,
 } from "../scripts/constants";
-import type { EmptyObject } from "fvtt-types/utils";
+import type { EmptyObject, DeepPartial } from "fvtt-types/utils";
 import {
   GamePhase,
   UserTargetRef,
@@ -659,6 +660,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region STATIC METHODS ~
   static #lastPhaseChange: GamePhase | undefined;
+  static currentLocationLog: Maybe<keyof typeof LOCATIONS>;
+  static currentLocationDataLog: Maybe<Record<string, Location.SettingsData>>;
+
   static async Initialize() {
     // Register hook for game phase changes
     Hooks.on(
@@ -694,6 +698,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         });
       },
     );
+
+    this.currentLocationLog = getSetting("currentLocation");
+    this.currentLocationDataLog = getSetting("locationData") as Record<string, Location.SettingsData>;
 
     // Register hook to re-render GM overlaywhen any PC actor is updated
     Hooks.on("updateActor", (actor: Actor) => {
@@ -751,11 +758,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     >;
     refreshPCs: SocketFunction<void, void>;
     startVideoPlayback: SocketFunction<void, void>;
-    requestMediaSync: SocketFunction<
-      number,
-      { userId: string; mediaName: string }
-    >;
-    syncMedia: SocketFunction<void, { mediaName: string; timestamp: number }>;
+    requestMediaSync: AsyncSocketFunction<number, { mediaName: string }>;
     setLocation: SocketFunction<
       void,
       { fromLocation: string; toLocation: string; isGoingOutdoors: boolean }
@@ -764,10 +767,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     updatePCUI: SocketFunction<void, Record<IDString, PCState>>;
     spotlightPC: SocketFunction<void, { pcID: string }>;
     unspotlightPC: SocketFunction<void, { pcID: string }>;
-    updateNPCUI: SocketFunction<
-      void,
-      Record<IDString, { state?: NPCPortraitState; position?: Point }>
-    >;
     spotlightNPC: SocketFunction<void, { npcID: string }>;
     unspotlightNPC: SocketFunction<void, { npcID: string }>;
     playMedia: SocketFunction<
@@ -776,10 +775,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     >;
     killMedia: SocketFunction<void, { mediaName: string }>;
     requestSoundSync: SocketFunction<void, { userId: string }>;
-    syncSounds: SocketFunction<
-      void,
-      { sounds: Record<string, EunosMediaData> }
-    >;
     setIndoors: SocketFunction<void, { isIndoors: boolean }>;
   } = {
     changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
@@ -825,42 +820,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
 
     requestMediaSync: async ({
-      userId,
       mediaName,
     }: {
-      userId: string;
       mediaName: string;
     }) => {
       const media = EunosMedia.GetMedia(mediaName);
       const timestamp = media.currentTime;
       kLog.log(`GM returning media timestamp: ${timestamp} for ${mediaName}`);
-      // void EunosSockets.getInstance().call("syncMedia", userId, {
-      //   mediaName,
-      //   timestamp,
-      // });
       return timestamp;
-    },
-
-    syncMedia: async ({
-      mediaName,
-      timestamp,
-    }: {
-      mediaName: string;
-      timestamp: number;
-    }) => {
-      const media = EunosMedia.GetMedia(mediaName);
-      const currentTime = media.currentTime;
-      const timeDelta = Math.abs(timestamp - currentTime);
-      if (timeDelta > 5) {
-        kLog.log(
-          `Setting media timestamp: ${timestamp} for ${mediaName} (timeDelta: ${timeDelta})`,
-        );
-        media.currentTime = timestamp;
-      } else {
-        kLog.log(
-          `Media timestamp already synced: ${timestamp} for ${mediaName} (timeDelta: ${timeDelta})`,
-        );
-      }
     },
 
     setLocation: (data: {
@@ -891,30 +858,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     unspotlightPC: ({ pcID }: { pcID: string }) => {
       void EunosOverlay.instance.updatePCUI({ [pcID]: PCState.base });
     },
-    updateNPCUI: (
-      data: Record<IDString, { state?: NPCPortraitState; position?: Point }>,
-    ) => {
-      void EunosOverlay.instance.updateNPCUI(data, {
-        isUpdatingExplicitOnly: true,
-      });
-    },
+    // updateNPCUI: (
+    //   data: Record<IDString, { state?: NPCPortraitState; position?: Point }>,
+    // ) => {
+    //   void EunosOverlay.instance.updateNPCUI(data, {
+    //     isUpdatingExplicitOnly: true,
+    //   });
+    // },
 
     spotlightNPC: ({ npcID }: { npcID: string }) => {
-      void EunosOverlay.instance.updateNPCUI(
-        {
-          [npcID]: { portraitState: NPCPortraitState.spotlit },
-        },
-        { isShowingOnly: true, isUpdatingExplicitOnly: true },
-      );
+      void EunosOverlay.instance.spotlightNPC(npcID);
     },
 
     unspotlightNPC: ({ npcID }: { npcID: string }) => {
-      void EunosOverlay.instance.updateNPCUI(
-        {
-          [npcID]: { portraitState: NPCPortraitState.base },
-        },
-        { isShowingOnly: true, isUpdatingExplicitOnly: true },
-      );
+      void EunosOverlay.instance.unspotlightNPC(npcID);
     },
     playMedia: (data: {
       mediaName: string;
@@ -930,39 +887,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void media.kill(3);
     },
 
-    requestSoundSync: async ({ userId }: { userId: string }) => {
+    requestSoundSync: async () => {
       const playingSounds = Object.fromEntries(
-        await Promise.all(
-          EunosMedia.GetLoopingPlayingSounds().map(async (sound) => [
-            sound.name,
-            await sound.getSettingsData(),
-          ]),
-        ),
-      ) as Record<string, EunosMediaData>;
+        await Promise.all(EunosMedia.GetPlayingSounds()
+          .map(async (sound) => [sound.name, sound.volume] as const))
+      );
+
       kLog.log(
         `GM returning playing sounds: ${Object.keys(playingSounds).join(", ")}`,
         playingSounds,
       );
-      void EunosSockets.getInstance().call("syncSounds", userId, {
-        sounds: playingSounds,
-      });
-    },
 
-    syncSounds: async ({
-      sounds,
-    }: {
-      sounds: Record<string, EunosMediaData>;
-    }) => {
-      for (const [soundName, soundData] of Object.entries(sounds)) {
-        const sound = EunosMedia.GetMedia(soundName);
-        kLog.log(
-          `Syncing sound '${soundName}' to volume '${soundData.volume}' with fade-in '${soundData.fadeInDuration}'`,
-        );
-        void sound.play({
-          volume: soundData.volume,
-          fadeInDuration: soundData.fadeInDuration,
-        });
-      }
+      return playingSounds;
     },
 
     setIndoors: ({ isIndoors }: { isIndoors: boolean }) => {
@@ -1612,10 +1548,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   getAmbientAudio(isCreating = true): EunosMedia<EunosMediaTypes.audio> {
     if (!this.#ambientAudio) {
-      this.#ambientAudio = EunosMedia.Sounds.get("session-closed-ambience");
+      this.#ambientAudio = EunosMedia.Sounds.get("ambient-session-closed");
     }
     if (!this.#ambientAudio && isCreating) {
-      this.#ambientAudio = new EunosMedia("session-closed-ambience", {
+      this.#ambientAudio = new EunosMedia("ambient-session-closed", {
         type: EunosMediaTypes.audio,
         path: MEDIA_PATHS.PRESESSION_AMBIENT_AUDIO,
         volume: 0.5,
@@ -2417,7 +2353,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionRunning Methods
   private async initialize_SessionRunning(): Promise<void> {
     void this.buildPCPortraitTimelines();
-    void this.initializeLocation(true);
+    void this.initializeLocation();
     addClassToDOM("session-running");
     await this.fadeOutBlackdrop();
     void this.updatePCUI();
@@ -2444,7 +2380,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     addClassToDOM("session-running");
     kLog.log("Fading Out Backdrop");
     // setTimeout(() => {
-    void this.initializeLocation(true);
+    void this.initializeLocation();
     // }, 1000);
     await this.fadeOutBlackdrop();
     void this.updatePCUI();
@@ -2882,7 +2818,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private getDefaultLocationPCData(): Array<Location.PCData.SettingsData> {
-    const pcGlobalData = this.getPCsGlobalData();
+    const pcGlobalData = this.getPCsGlobalSettingsData();
     const pcData: Array<Location.PCData.SettingsData> = [];
     Object.values(pcGlobalData).forEach((data) => {
       pcData.push({
@@ -3596,7 +3532,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const changeDisplayLines: string[] = [];
     const stateDisplayStrings: string[] = [];
     this.PCUIChanges.forEach((state, id) => {
-      stateDisplayStrings.push(
+      changeDisplayLines.push(
         `<div class="change-log-entry change-log-entry-pc"><strong>${getActorFromRef(id)?.name}</strong> is now ${state.toUpperCase()}</div>`,
       );
     });
@@ -3608,6 +3544,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         stateDisplayStrings.push(`N: ${change.nameState.toUpperCase()}`);
       }
       let stateString = stateDisplayStrings.join(" and ");
+      stateDisplayStrings.length = 0; // Clear array by setting length to 0
       if ("position" in change && change.position) {
         stateString += ` at {${change.position.x}, ${change.position.y}}`;
       }
@@ -3676,41 +3613,28 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async pushUIChanges(): Promise<void> {
+
+    const timer = getTimeStamp();
+
     // Add the 'disabled' class to #NPCS-GM to prevent button usage while updating.
+    kLog.log(`[pushUIChanges ${timer()}] Adding Disabled Class`);
     this.npcs$.addClass("disabled");
 
-    // Check whether there are any PCUIChanges to push
-    if (EunosOverlay.instance.PCUIChanges.size > 0) {
-      void EunosSockets.getInstance().call(
-        "updatePCUI",
-        UserTargetRef.all,
-        Object.fromEntries(EunosOverlay.instance.PCUIChanges),
-      );
-    }
-
-    // Check whether there are any NPCUIChanges to push
-    if (EunosOverlay.instance.NPCUIChanges.size > 0) {
-      // If there are both, add a delay to stagger the animations that result from the two calls
-      if (EunosOverlay.instance.PCUIChanges.size > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-      }
-      void EunosSockets.getInstance().call(
-        "updateNPCUI",
-        UserTargetRef.all,
-        Object.fromEntries(EunosOverlay.instance.NPCUIChanges),
-      );
-    }
-
-    const locData = EunosOverlay.instance.getLocationSettingsData(
+    kLog.log(`[pushUIChanges ${timer()}] Getting Current Location Data`);
+    const locData = this.getLocationSettingsData(
       getSetting("currentLocation"),
     );
-    EunosOverlay.instance.PCUIChanges.forEach((state, actorID) => {
+
+    kLog.log(`[pushUIChanges ${timer()}] Updating PCUIChanges`);
+    this.PCUIChanges.forEach((state, actorID) => {
       locData.pcData[actorID] ??= {} as Location.PCData.SettingsData;
       Object.assign(locData.pcData[actorID], {
         state,
       });
     });
-    EunosOverlay.instance.NPCUIChanges.forEach(
+
+    kLog.log(`[pushUIChanges ${timer()}] Updating NPCUIChanges`);
+    this.NPCUIChanges.forEach(
       ({ portraitState, nameState, position }, actorID) => {
         if (portraitState === NPCPortraitState.removed) {
           // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -3726,36 +3650,25 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       },
     );
 
-    await EunosOverlay.instance.setLocationData(
+    kLog.log(`[pushUIChanges ${timer()}] Setting Location Data`);
+    await this.setLocationData(
       getSetting("currentLocation"),
-      EunosOverlay.instance.deriveLocationFullData(locData),
+      locData,
     );
 
     // Clear the changes
-    EunosOverlay.instance.clearUIChanges();
+    kLog.log(`[pushUIChanges ${timer()}] Clearing UI Changes`);
+    this.clearUIChanges();
 
     // Remove the 'disabled' class from #NPCS-GM to allow button usage again.
+    kLog.log(`[pushUIChanges ${timer()}] Removing Disabled Class`);
     this.npcs$.removeClass("disabled");
   }
 
   private clearUIChanges(): void {
-    EunosOverlay.instance.PCUIChanges.clear();
-    EunosOverlay.instance.NPCUIChanges.clear();
+    this.PCUIChanges.clear();
+    this.NPCUIChanges.clear();
     this.refreshChangesDisplay();
-  }
-
-  private getPCState(
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    pcID: IDString | "1" | "2" | "3" | "4" | "5",
-    location?: string,
-  ): PCState {
-    location ??= getSetting("currentLocation");
-    const locData = this.getLocationData(location).pcData;
-    if (pcID in locData) {
-      return locData[pcID as "1" | "2" | "3" | "4" | "5"].state;
-    }
-    const pcData = this.extractPCUIDataFromFullData(locData);
-    return pcData?.[pcID] ?? PCState.base;
   }
 
   private extractPCUIDataFromFullData(
@@ -3937,7 +3850,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         break;
     }
   }
-  // Get current state of PCUI
   // #endregion PC PANEL ~
 
   // #region NPC PANEL ~
@@ -4129,7 +4041,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       if (!(npc instanceof EunosActor)) return;
 
-      // Queue the updateNPCUI call
+      // Queue the update call
       this.queueUIChanges({
         [npc.id!]: {
           position: { x, y },
@@ -4733,6 +4645,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           let npcContainer$ = this.npcs$.find(
             `.npc-portrait[data-actor-id="${npcID}"]`,
           );
+          kLog.log(`Seeking NPC container for NPC ${npcID}`, { npcContainer$ });
           if (!npcContainer$.length) {
             if (portraitState === NPCPortraitState.removed || portraitState === NPCPortraitState.invisible) {
               return;
@@ -4742,7 +4655,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               position,
             );
           }
-          // const gogglesState = Boolean(this.isOutdoors && this.isLocationBright && actor.getGogglesImageSrc()) ? "goggles" : "noGoggles";
+          const gogglesState = (this.isOutdoors && this.isLocationBright)
+            ? "goggles"
+            : "noGoggles";
           if (getUser().isGM) {
             return;
           }
@@ -4751,7 +4666,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               npcContainer$,
               portraitState,
               nameState,
-              undefined, // gogglesState,
+              gogglesState,
               position,
             ),
             (index * TIMELINE_STAGGER_AMOUNT) / numChanges,
@@ -4769,6 +4684,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     actor: EunosActor,
     position?: Point,
   ): Promise<JQuery> {
+    // First check whether there's an existing portrait, and return that if there is.
+    const existingNPC = this.npcs$.find(`.npc-portrait[data-actor-id="${actor.id}"]`);
+    if (existingNPC.length) {
+      return existingNPC;
+    }
+
     if (!position) {
       // Attempt to retrieve it from current location
       const currentLocation = getSetting("currentLocation");
@@ -4802,41 +4723,34 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Now append the element
     npcContainer$.appendTo(this.npcs$);
 
-    // Set the position
-    kLog.log(`updating npc portrait position to ${position.x}, ${position.y}`);
-
     await gsap.set(npcContainer$[0]!, {
       xPercent: -50,
       yPercent: -50,
       x: position.x,
-      y: position.y,
-      scale: getUser().isGM ? 0.5 : 1,
+      y: position.y
     });
 
-    // Update shadow skew for newly rendered portrait
-    await this.updateShadowSkew(npcContainer$[0]!);
+    void gsap.set(npcContainer$[0]!.querySelector(".npc-portrait-shadow"), {
+      skewX: this.getShadowSkewX(npcContainer$[0]!),
+    });
 
     // Build timelines for the new NPC
     this.buildNPCPortraitTimeline(npcContainer$);
     this.buildNPCNameTimeline(npcContainer$);
     this.buildNPCGogglesTimeline(npcContainer$);
 
-    await gsap.set(npcContainer$[0]!, {
+    void gsap.set(npcContainer$[0]!, {
       opacity: 1,
     });
 
     return npcContainer$;
   }
 
-  async updateShadowSkew(element: HTMLElement) {
+  getShadowSkewX(element: HTMLElement) {
     const xPos = gsap.getProperty(element, "x") as number;
     const viewportWidth = EunosOverlay.PC_COLLISION_X;
     const normalizedPos = (xPos / viewportWidth) * 2 - 1; // -1 to 1
-    const skewAngle = -normalizedPos * 40; // -20 to 20 degrees
-
-    await gsap.set(element.querySelector(".npc-portrait-shadow"), {
-      skewX: skewAngle,
-    });
+    return -normalizedPos * 40; // -20 to 20 degrees
   }
 
   private getNPCStatusFromOverlay(npcContainer$: JQuery): {
@@ -4863,7 +4777,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     };
   }
 
-  private getNPCDataFromOverlay(): Record<string, NPCs.FullData> {
+  private getNPCDataFromOverlay(isVisibleOnly = false): Record<string, NPCs.FullData> {
     const npcContainers$ = this.npcs$.children();
     const npcData: Record<string, NPCs.FullData> = {};
     npcContainers$.each((i, el) => {
@@ -4873,8 +4787,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         $(el).remove();
         return;
       }
+      const npcStatus = this.getNPCStatusFromOverlay($(el));
+      if (isVisibleOnly && [NPCPortraitState.removed, NPCPortraitState.invisible].includes(npcStatus.portraitState)) {
+        return;
+      }
       npcData[npcID] = {
-        ...this.getNPCStatusFromOverlay($(el)),
+        ...npcStatus,
         actor: getActorFromRef(npcID) as EunosActor & { system: ActorDataNPC },
         actorID: npcID,
       };
@@ -4882,139 +4800,205 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return npcData;
   }
 
-  public async updateNPCUI(
-    data: Record<
-      IDString,
-      {
-        portraitState?: NPCPortraitState;
-        nameState?: NPCNameState;
-        position?: Point;
-      }
-    >,
-    options: {
-      isHidingOnly?: boolean;
-      isShowingOnly?: boolean;
-      isUpdatingExplicitOnly?: boolean;
-    },
-  ) {
-    data = JSON.parse(JSON.stringify(data)) as typeof data;
-    kLog.log("updateNPCUI", { data, options });
-
-    if (options.isHidingOnly && options.isShowingOnly) {
-      throw new Error("Cannot set both isHidingOnly and isShowingOnly to true");
-    }
-
-    if (!options.isShowingOnly && !options.isUpdatingExplicitOnly) {
-      // First, identify all NPCs that are currently in the overlay
-      const currentNPCs = Object.fromEntries(
-        Array.from(this.npcs$.children()).map((el) => [
-          $(el).attr("data-actor-id") as IDString,
-          this.getNPCStatusFromOverlay($(el)),
-        ]),
-      );
-
-      // Second, identify all NPCs that are in the overlay but not in the data; add them to the data with the removed state
-      Object.keys(currentNPCs)
-        .filter((npcID) => !data[npcID])
-        .forEach((npcID) => {
-          data[npcID] = {
-            portraitState: NPCPortraitState.removed,
-            nameState: NPCNameState.base,
-          };
-        });
-    }
+  public async refreshNPCUI_Hide() {
+    // Get currently-visible NPCs data from overlay
+    const visibleNPCs = this.getNPCDataFromOverlay(true);
+    // Get actual npc data from settings
+    const locationNPCData = this.getLocationNPCData();
+    // Get NPCs that are visible in the overlay but absent OR invisible in the settings
+    // Because all of these NPCs will not be visible to players, we can ignore name and goggles states
+    const NPCsToHide = Object.fromEntries(Object.keys(visibleNPCs)
+      .filter((npcID) => {
+        return !locationNPCData[npcID]
+          || [NPCPortraitState.removed, NPCPortraitState.invisible].includes(locationNPCData[npcID].portraitState);
+      })
+      .map((npcID) => {
+        // Set the portrait state to "invisible" if invisible in the settings, "removed" otherwise
+        const npcData = visibleNPCs[npcID]!;
+        npcData.portraitState = locationNPCData[npcID]?.portraitState === NPCPortraitState.invisible
+          ? NPCPortraitState.invisible
+          : NPCPortraitState.removed;
+        return [npcID, npcData];
+      })
+    );
 
     if (getUser().isGM) {
-      Object.entries(data).forEach(
-        ([npcID, { portraitState, nameState, position }]) => {
-          void this.updateNPCUI_GM(npcID, {
-            portraitState,
-            nameState,
-            position,
-          });
-        },
-      );
-      return;
+      void this.updateNPCUI_GM();
+      return { tl: gsap.timeline() };
     }
 
-    if (options.isShowingOnly) {
-      // Remove from data any NPCs that are NPCPortraitState.removed or invisible
-      Object.keys(data).forEach((npcID) => {
-        if (
-          data[npcID]!.portraitState === NPCPortraitState.removed ||
-          data[npcID]!.portraitState === NPCPortraitState.invisible
-        ) {
-          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-          delete data[npcID];
-        }
-      });
-    }
-
-    if (options.isHidingOnly) {
-      // Remove from data any NPCs that are NOT NPCPortraitState.removed or NPCPortraitState.invisible
-      Object.keys(data).forEach((npcID) => {
-        if (
-          data[npcID]!.portraitState !== NPCPortraitState.removed &&
-          data[npcID]!.portraitState !== NPCPortraitState.invisible
-        ) {
-          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-          delete data[npcID];
-        }
-      });
-    }
-    const { tl } = await this.buildNPCUIUpdateTimeline(data);
-    tl.play();
+    // Update the UI for the hidden NPCs
+    const { tl } = await this.buildNPCUIUpdateTimeline(NPCsToHide);
+    // tl.play();
+    return { tl };
   }
 
+  public async refreshNPCUI_Show() {
+    // The refreshNPCUI_Hide method will have already hidden all NPCs on the overlay that are not in settings
+    // so we can simplify this method by just showing the NPCs that are in settings
+    const locationNPCData = this.getLocationNPCData();
+    const NPCsToUpdate = Object.fromEntries(Object.keys(locationNPCData)
+      .filter((npcID) => ![NPCPortraitState.removed, NPCPortraitState.invisible].includes(locationNPCData[npcID]?.portraitState))
+      .map((npcID) => {
+        const npcData = locationNPCData[npcID]!;
+        if (getUser().isGM) {
+          void this.updateNPCUI_GM(npcID, npcData);
+        }
+        return [npcID, npcData];
+      }));
+    if (getUser().isGM) { return { tl: gsap.timeline() }; }
+    const { tl } = await this.buildNPCUIUpdateTimeline(NPCsToUpdate);
+    // tl.play();
+    return { tl };
+  }
+
+  public async refreshNPCUI_All() {
+    const timelines = (await Promise.all([
+      this.refreshNPCUI_Hide(),
+      this.refreshNPCUI_Show(),
+    ])).map(({ tl }) => tl) as [gsap.core.Timeline, gsap.core.Timeline];
+    timelines[1].delay(0.5);
+    return timelines;
+  }
+
+  public async spotlightNPC(npcID: IDString) {
+    // Get NPC overlay data
+    const npcData = this.getNPCDataFromOverlay(true)[npcID];
+    if (!npcData) {
+      return;
+    }
+    const npcContainer$ = this.npcs$.find(`.npc-portrait[data-actor-id="${npcID}"]`);
+    // Get current portrait state, and store it as a JQuery data variable on npcContainer$, so unspotlight can return to it
+    const currentPortraitState = npcContainer$.attr("data-portrait-state") as NPCPortraitState;
+    npcContainer$.data("currentPortraitState", currentPortraitState);
+    npcData.portraitState = NPCPortraitState.spotlit;
+    const tl = this.buildNPCTransitionTimeline(npcContainer$, NPCPortraitState.spotlit);
+    tl.play();
+    if (getUser().isGM) {
+      void this.updateNPCUI_GM(npcID, npcData);
+    }
+  }
+
+  public async unspotlightNPC(npcID: IDString) {
+    // Get NPC overlay data
+    const npcData = this.getNPCDataFromOverlay(true)[npcID];
+    if (!npcData) {
+      return;
+    }
+    const npcContainer$ = this.npcs$.find(`.npc-portrait[data-actor-id="${npcID}"]`);
+    const currentPortraitState = npcContainer$.data("currentPortraitState") as Maybe<NPCPortraitState> ?? NPCPortraitState.base;
+    npcData.portraitState = currentPortraitState;
+    const tl = this.buildNPCTransitionTimeline(npcContainer$, currentPortraitState);
+    tl.play();
+    if (getUser().isGM) {
+      void this.updateNPCUI_GM(npcID, npcData);
+    }
+  }
+
+  public async refreshUI(diffData: DeepPartial<Location.SettingsData>) {
+    const { currentImage, pcData, npcData, audioData } = diffData;
+
+    kLog.log("refreshUI", diffData);
+
+    if (currentImage) {
+      void this.refreshLocationImage(currentImage);
+    }
+
+    if (pcData) {
+      void this.updatePCUI();
+    }
+
+    if (npcData) {
+      void this.refreshNPCUI_All();
+    }
+
+    if (audioData) {
+      void EunosMedia.SyncPlayingSounds();
+    }
+  }
+
+  /**
+   * Updates the UI for all NPCs when called without parameters,
+   * or for a specific NPC when called with an ID and data
+   */
+  private async updateNPCUI_GM(): Promise<void>;
   private async updateNPCUI_GM(
     npcID: IDString,
     data: {
       portraitState?: NPCPortraitState;
       nameState?: NPCNameState;
       position?: Point;
+    }
+  ): Promise<void>;
+  private async updateNPCUI_GM(
+    npcID?: IDString,
+    data?: {
+      portraitState?: NPCPortraitState;
+      nameState?: NPCNameState;
+      position?: Point;
     },
-  ) {
-    kLog.log("Updating NPC UI (GM)", { npcID, data });
-    let npcContainer$ = EunosOverlay.instance.npcs$.find(
-      `.npc-portrait[data-actor-id="${npcID}"]`,
-    );
-    if (!npcContainer$.length) {
-      npcContainer$ = await this.renderNPCPortrait(
-        getActorFromRef(npcID) as EunosActor,
-        data.position,
-      );
-    }
-    let { portraitState, nameState, position } = data;
-    // If no state, determine from class name of npcContainer
-    portraitState ??= this.getNPCStatusFromOverlay(npcContainer$).portraitState;
-    nameState ??= this.getNPCStatusFromOverlay(npcContainer$).nameState;
+  ): Promise<void> {
 
-    const gogglesState =
-      this.isOutdoors &&
-      this.isLocationBright &&
-      getActorFromRef(npcID)!.getGogglesImageSrc()
-        ? "goggles"
-        : "noGoggles";
+    // If no NPC ID is given, recursively call this function for each NPC in the overlay and in the settings data
+    if (!npcID) {
+      // Retrieve the current settings data
+      const currentLocation = getSetting("currentLocation");
+      const currentLocationData = this.getLocationData(currentLocation);
 
-    kLog.log(
-      "Updating NPC UI (GM): portraitState, nameState, gogglesState from getNPCStatus",
-      { portraitState, nameState, gogglesState },
-    );
-
-    if (position) {
-      gsap.set(npcContainer$, {
-        xPercent: -50,
-        yPercent: -50,
-        x: position.x,
-        y: position.y,
-        scale: 1,
-        zIndex: position.y,
+      // Identify NPCs in the GM overlay that are not in the settings data.
+      const npcContainers$ = this.npcs$.children();
+      npcContainers$.each((i, el) => {
+        const npcID = $(el).attr("data-actor-id") as Maybe<string>;
+        if (npcID && !currentLocationData.npcData[npcID]) {
+          void this.updateNPCUI_GM(npcID, {portraitState: NPCPortraitState.removed});
+        }
       });
+      return;
     }
 
-    this.updateNPCPortraitState(npcContainer$, portraitState);
-    this.updateNPCNameState(npcContainer$, nameState);
-    this.updateNPCGogglesState(npcContainer$, gogglesState);
+    if (npcID && data) {
+      kLog.log("Updating NPC UI (GM)", { npcID, data });
+      let npcContainer$ = EunosOverlay.instance.npcs$.find(
+        `.npc-portrait[data-actor-id="${npcID}"]`,
+      );
+      if (!npcContainer$.length) {
+        npcContainer$ = await this.renderNPCPortrait(
+          getActorFromRef(npcID) as EunosActor,
+          data.position,
+        );
+      }
+      let { portraitState, nameState, position } = data;
+      // If no state, determine from class name of npcContainer
+      portraitState ??= this.getNPCStatusFromOverlay(npcContainer$).portraitState;
+      nameState ??= this.getNPCStatusFromOverlay(npcContainer$).nameState;
+
+      const gogglesState =
+        this.isOutdoors &&
+        this.isLocationBright &&
+        getActorFromRef(npcID)!.getGogglesImageSrc()
+          ? "goggles"
+          : "noGoggles";
+
+      kLog.log(
+        "Updating NPC UI (GM): portraitState, nameState, gogglesState from getNPCStatus",
+        { portraitState, nameState, gogglesState },
+      );
+
+      if (position) {
+        gsap.set(npcContainer$, {
+          xPercent: -50,
+          yPercent: -50,
+          x: position.x,
+          y: position.y,
+          scale: 1,
+          zIndex: position.y,
+        });
+      }
+
+      this.updateNPCPortraitState(npcContainer$, portraitState);
+      this.updateNPCNameState(npcContainer$, nameState);
+      this.updateNPCGogglesState(npcContainer$, gogglesState);
+    }
   }
 
   private updateNPCPortraitState(
@@ -5138,6 +5122,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!(location in LOCATIONS)) {
       return {
         name: location,
+        key: camelCase(location),
         images: {},
         description: "",
         mapTransforms: [],
@@ -5146,7 +5131,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         isIndoors: false,
       };
     }
-    return LOCATIONS[location as KeyOf<typeof LOCATIONS>];
+    return LOCATIONS[location]!;
   }
   private getLocationDefaultDynamicSettingsData(): Location.DynamicSettingsData {
     return {
@@ -5177,13 +5162,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     } else {
       // If hard-coded map transforms are available, use them, overwriting setting data.
       const staticMapTransforms =
-        LOCATIONS[location as KeyOf<typeof LOCATIONS>]?.mapTransforms;
+        LOCATIONS[location]?.mapTransforms;
       if (staticMapTransforms) {
         settingData[location].mapTransforms = staticMapTransforms;
       }
       // If hard-coded audio data is available, use it, overwriting setting data.
       const staticAudioData =
-        LOCATIONS[location as KeyOf<typeof LOCATIONS>]?.audioData;
+        LOCATIONS[location]?.audioData;
       if (staticAudioData) {
         settingData[location].audioData = staticAudioData;
       }
@@ -5222,8 +5207,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return pcFullData;
   }
   private getLocationNPCData(
-    npcLocationData: Record<IDString, Location.NPCData.SettingsData>,
+    npcLocationData?: Record<IDString, Location.NPCData.SettingsData>,
   ): Record<IDString, Location.NPCData.FullData> {
+    npcLocationData ??= this.getLocationData(
+      getSetting("currentLocation"),
+    ).npcData;
     const npcFullData: Record<IDString, Location.NPCData.FullData> = {};
     Object.entries(npcLocationData).forEach(([id, data]) => {
       const actor = getActors().find((a) => a.id === id);
@@ -5242,6 +5230,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Object.entries(audioData).forEach(([id, data]) => {
       if (EunosMedia.Sounds.has(id)) {
         audioFullData[id] = EunosMedia.Sounds.get(id)!;
+        return;
       }
       const thisAudioData = {
         type: EunosMediaTypes.audio,
@@ -5312,14 +5301,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const currentLocation = getSetting("currentLocation");
 
     // Sort the keys of LOCATIONS by the region property, and then the name, DISCOUNTING the word "the" if it appears at the start
-    const sortedLocations = Object.keys(LOCATIONS).sort((a, b) => {
-      const regionA = LOCATIONS[a as KeyOf<typeof LOCATIONS>].region;
-      const regionB = LOCATIONS[b as KeyOf<typeof LOCATIONS>].region;
-      if (regionA === regionB) {
-        return a.replace(/^the\b\s*/i, "").localeCompare(b.replace(/^the\b\s*/i, ""));
-      }
-      return regionA.localeCompare(regionB);
-    });
+    const sortedLocations = Object.keys(LOCATIONS)
+      .sort((a, b) => {
+        const regionA = LOCATIONS[a]!.region ?? "";
+        const regionB = LOCATIONS[b]!.region ?? "";
+        if (regionA === regionB) {
+          return a.replace(/^the\b\s*/i, "").localeCompare(b.replace(/^the\b\s*/i, ""));
+        }
+        return regionA.localeCompare(regionB);
+      });
 
     new Dialog({
       title: "Go To Location",
@@ -5330,8 +5320,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           ${sortedLocations
             .map(
               (loc) =>
-                `<div class="location-button ${loc === currentLocation ? "selected" : ""} location-region-${LOCATIONS[loc as KeyOf<typeof LOCATIONS>].region}"
-                  data-location="${loc}">${loc}</div>`,
+                `<div class="location-button ${loc === currentLocation ? "selected" : ""} location-region-${LOCATIONS[loc]!.region}"
+                  data-location="${loc}">${LOCATIONS[loc]!.name}</div>`,
             )
             .join("")}
         </div>
@@ -5393,14 +5383,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     ).find((data) => data.actorID === actor.id)!;
   }
 
-  private async setLocationData(location: string, data: Location.FullData) {
-    const curData = getSetting("locationData");
-    curData[location] = await this.deriveLocationSettingsData(data);
-    kLog.log("WOULD have set isOutdoors to TRUE because we're setting location data.");
-    await Promise.all([
-      setSetting("locationData", curData),
-      // setSetting("isOutdoors", true),
-    ]);
+  private async setLocationData(location: string, data: Location.SettingsData) {
+    const fullLocationData = getSetting("locationData");
+    fullLocationData[location] = data;
+    await setSetting("locationData", fullLocationData);
   }
 
   public async updateWeatherAudio() {
@@ -5433,12 +5419,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     kLog.log(`Setting isOutdoors to ${!isIndoors} because we're calling setIndoors.`);
     await setSetting("isOutdoors", !isIndoors);
-    void EunosSockets.getInstance().call("setIndoors", UserTargetRef.all, {
-      isIndoors,
-    });
   }
 
-  private async goIndoors() {
+  public async goIndoors() {
     if ((this.#goToLocationTimeline?.progress() ?? 1) < 1) {
       kLog.log("Waiting for goToLocation to finish");
       await this.#goToLocationTimeline;
@@ -5460,7 +5443,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
 
     // 4. Toggle goggles for all NPCs
-    await this.updateNPCUI(this.getNPCDataFromOverlay(), {});
+    (await this.refreshNPCUI_Show()).tl.play();
   }
 
   public async goOutdoors() {
@@ -5486,25 +5469,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
 
     // 4. Toggle goggles for all NPCs
-    await this.updateNPCUI(this.getNPCDataFromOverlay(), {});
+    (await this.refreshNPCUI_Show()).tl.play();
   }
 
   public async resetLocationData(location?: string) {
     location ??= getSetting("currentLocation");
-    const defaultData = this.deriveLocationFullData(
-      this.getLocationDefaultSettingsData(location),
-    );
-    await this.setLocationData(location, defaultData);
+    await this.setLocationData(location, this.getLocationDefaultSettingsData(location));
   }
 
   public async resetAllLocationData() {
     const locData = getSetting("locationData");
-    Object.keys(locData).forEach((location) => {
-      locData[location] = this.deriveLocationFullData(
-        this.getLocationDefaultSettingsData(location),
-      );
+    const newLocData: Record<string, Location.SettingsData> = {};
+    Object.keys(LOCATIONS).forEach((location) => {
+      newLocData[location] = this.getLocationDefaultSettingsData(location);
     });
-    await setSetting("locationData", locData);
+    await setSetting("locationData", newLocData);
     getNotifier().info("All location data reset");
   }
 
@@ -5552,121 +5531,162 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #endregion
 
-  public async initializeLocation(isStartingWithPCs = true) {
-    const location = getSetting("currentLocation");
-    // if (isZoomingIn) {
-    //   await gsap.timeline()
-    //     .fromTo(".distant-overlay-layer", {scale: 0.3, filter: "blur(5px)"}, {scale: 1, duration: 10, ease: "power2.in"})
-    //     .fromTo(".distant-overlay-layer", {opacity: 1}, {opacity: 0, duration: 3, ease: "power2.out"}, ">=-1")
-    // }
-    await this.goToLocation(null, location, /* isStartingWithPCs */ false);
+  public async initializeLocation() {
+    await this.goToLocation(null, getSetting("currentLocation"), false);
   }
 
-  public async setLocation(location: string) {
+  /**
+   * Sets the current location for all users and updates related settings.
+   * This method handles the high-level location change logic including:
+   * - Weather effects based on location brightness
+   * - Indoor/outdoor state tracking
+   * - Global location settings updates
+   * @param location - The ID/key of the location to set as the current location
+   * @returns Promise that resolves when location is set and all settings are updated
+   * @throws Will not throw but logs error if location data is missing
+   */
+  public async setLocation(location: string): Promise<void> {
+    // Only GMs can change location - early return for players
     if (!getUser().isGM) {
       return;
     }
-    const fromLocation = getSetting("currentLocation");
-    const fromLocationData = this.getLocationData(fromLocation);
-    const locationData = this.getLocationData(location);
+
+    // Get data for both the current and target locations to handle transitions
+    const fromLocation = getSetting("currentLocation"); // Get current location before change
+    const fromLocationData = this.getLocationData(fromLocation); // Load current location data
+    const locationData = this.getLocationData(location); // Load target location data
+
+    // Validate the target location exists to prevent invalid state
     if (!locationData) {
       kLog.error(`Location ${location} not found`);
       return;
     }
-    // If the location is NOT bright, make sure the weather-lightning effect is NOT playing.
+
+    // Update weather effects based on location brightness
+    // Weather settings are stored as a map of effect names to volume levels
     const weatherSoundSettings = getSetting("weatherAudio") ?? {};
     if (!locationData.isBright) {
+      // For dark locations, completely remove the lightning effect from settings
       delete weatherSoundSettings["weather-lightning"];
     } else {
+      // For bright locations, set lightning to a low ambient level (8% volume)
       weatherSoundSettings["weather-lightning"] = 0.08;
     }
     await setSetting("weatherAudio", weatherSoundSettings);
 
-    const isCurrentlyIndoors =
-      !getSetting("isOutdoors") && fromLocationData.isIndoors;
+    // Update core location settings atomically
     kLog.log("Setting isOutdoors to TRUE because we're setting a new location.");
-    await Promise.all([
-      setSetting("currentLocation", location),
-      setSetting("isOutdoors", true),
-    ]);
-    void EunosSockets.getInstance().call("setLocation", UserTargetRef.all, {
-      fromLocation,
-      toLocation: location,
-      isGoingOutdoors: isCurrentlyIndoors,
-    });
 
-    // void this.render({ parts: ["pcs", "npcs"] });
+    // Set outdoor state first to ensure proper state during transition
+    await setSetting("isOutdoors", true);
+
+    // Then update the location to trigger the transition
+    await setSetting("currentLocation", location);
   }
 
-  public async setLocationImage(imageKey?: string, location?: string) {
+  /**
+   * Sets the current display image for a location and propagates the change.
+   * Handles validation of image keys and updates location data storage.
+   * @param imageKey - Optional key of image to set from location's image list. If omitted, clears current image
+   * @param location - Optional location ID to update. Defaults to current active location
+   * @returns Promise that resolves when image is set and data is saved
+   * @throws Will not throw but logs error if location or image key is invalid
+   */
+  public async setLocationImage(imageKey?: string, location?: string): Promise<void> {
+    // Default to current location if none specified
     location ??= getSetting("currentLocation");
     const locationData = this.getLocationData(location);
+
+    // Validate location exists before attempting updates
     if (!locationData) {
       kLog.error("Location not found", { location });
       return;
     }
+
+    // Handle image key updates with validation
     if (!imageKey) {
+      // No image key provided - clear current image
       locationData.currentImage = null;
     } else if (!(imageKey in locationData.images)) {
+      // Invalid image key - log error and clear current image
       kLog.error("Image key not found", { imageKey, location });
       locationData.currentImage = null;
     } else {
+      // Valid image key - update current image
       locationData.currentImage = imageKey;
     }
-    await this.setLocationData(location, locationData);
 
-    // Refresh for all clients through socket
-    kLog.log("refreshing location image", {
-      imgKey: locationData.currentImage ?? "",
-    });
-    void EunosSockets.getInstance().call("refreshLocationImage", "all", {
-      imgKey: locationData.currentImage ?? "",
-    });
+    // Persist updated location data to storage
+    await this.setLocationData(location, locationData);
   }
 
+  // Timeline references for managing animations
   #stageWaverTimeline: Maybe<gsap.core.Timeline>;
   #goToLocationTimeline: Maybe<gsap.core.Timeline>;
 
+  /**
+   * Orchestrates the complete transition animation and state updates when moving between locations.
+   * Handles:
+   * - Visual transitions (fade outs, movements, etc)
+   * - Audio crossfades
+   * - UI element updates (NPCs, PCs, location cards)
+   * - Special effects (lightning, stage effects)
+   * - Map transformations
+   * @param fromLocation - Starting location ID or null if no previous location
+   * @param toLocation - Destination location ID to transition to
+   * @param isGoingOutdoors - Boolean flag indicating if transitioning from indoors to outdoors
+   * @returns Promise resolving to the GSAP timeline controlling the transition, or undefined if error
+   * @throws Will not throw but logs error if destination location is invalid
+   */
   public async goToLocation(
     fromLocation: string | null,
     toLocation: string,
     isGoingOutdoors: boolean,
-  ) {
+  ): Promise<gsap.core.Timeline | undefined> {
+    // Cancel any in-progress transition to prevent animation conflicts
     if (this.#goToLocationTimeline) {
       this.#goToLocationTimeline.kill();
     }
 
+    // Handle outdoor transition effects if needed
     if (isGoingOutdoors) {
-      await this.goOutdoors();
+      await this.goOutdoors(); // Triggers outdoor transition animation sequence
     }
 
+    // Load location data for both source and destination
     const locationData = this.getLocationData(toLocation);
     const fromLocationData = fromLocation
       ? this.getLocationData(fromLocation)
       : null;
+
+    // Validate destination location exists
     if (!locationData) {
       kLog.error("Location not found", { location: toLocation });
       return;
     }
 
+    // Log detailed transition information for debugging
     kLog.log(`[goToLocation] ${fromLocation} -> ${toLocation}`, {
       [`From${fromLocation} Data`]: fromLocationData,
       [`To ${toLocation} Data`]: JSON.parse(JSON.stringify(locationData)) as typeof locationData,
     });
 
+    // Initialize persistent stage wave animation if not already running
+    // Creates subtle movement in the stage background
     if (!this.#stageWaverTimeline) {
       this.#stageWaverTimeline = gsap
         .timeline({ repeat: -1, yoyo: true, repeatRefresh: true })
         .to(this.stage3D$, {
-          rotationX: "random(-5, 5, 1)",
-          rotationY: "random(-5, 5, 1)",
-          rotationZ: "random(-5, 5, 1)",
-          ease: "sine.inOut",
-          duration: 25,
-          repeatRefresh: true,
+          rotationX: "random(-5, 5, 1)", // Random rotation on X axis
+          rotationY: "random(-5, 5, 1)", // Random rotation on Y axis
+          rotationZ: "random(-5, 5, 1)", // Random rotation on Z axis
+          ease: "sine.inOut", // Smooth sinusoidal easing
+          duration: 25, // 25 second animation cycle
+          repeatRefresh: true, // Generate new random values each cycle
         });
     }
 
+    // Extract all needed data from location configuration
     let {
       name,
       images,
@@ -5679,63 +5699,69 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       isIndoors,
     } = locationData;
 
+    // Get previous location's audio data for transition handling
     const { audioData: fromAudioData } = fromLocationData ?? {
       audioData: {} as Record<string, EunosMediaData>,
     };
 
-    // If the location is indoors, assume we're starting outdoors -- and don't play internal audio.
+    // Clear audio data for indoor locations to prevent outdoor sounds playing inside
     if (isIndoors) {
       audioData = {};
     }
 
-    // If the location is NOT bright, make sure the weather-lightning effect is NOT playing.
+    // Handle lightning effects based on location brightness
     const lightningAudio = EunosMedia.GetMedia("weather-lightning");
     if (!locationData.isBright) {
+      // For dark locations, fade out lightning over 2 seconds
       await lightningAudio.kill(2);
     } else {
       const lightningVolume = Sounds.Weather["weather-lightning"].volume;
       if (name === "Emma's Rise") {
+        // Special handling for Emma's Rise location
+        // Kill lightning immediately, then restart with fade after delay
         await lightningAudio.kill(0);
         setTimeout(() => {
           void lightningAudio.play().then(() => {
-            gsap.fromTo(lightningAudio.element, { volume: 1 }, { volume: lightningVolume, duration: 10, ease: "none" });
+            gsap.fromTo(lightningAudio.element,
+              { volume: 1 }, // Start at full volume
+              { volume: lightningVolume, duration: 10, ease: "none" } // Fade to configured volume
+            );
           });
-        }, 5000);
+        }, 5000); // 5 second delay before lightning starts
       } else {
+        // For other bright locations, just play lightning normally
         void lightningAudio.play();
       }
     }
 
-    // Get keys that exist in fromAudioData but not in audioData (audio to stop)
+    // Determine which audio tracks need to stop/start for the transition
     const audioKeysToStop = Object.keys(fromAudioData).filter(
-      (key): key is string => !(key in audioData),
+      (key): key is string => !(key in audioData), // Audio in old location but not new
     );
-
-    // Get keys that exist in audioData but not in fromAudioData (audio to start)
     const audioKeysToStart = Object.keys(audioData).filter(
-      (key): key is string => !(key in fromAudioData),
+      (key): key is string => !(key in fromAudioData), // Audio in new location but not old
     );
 
-    // Construct a timeline that will animate all of the map transforms smoothly and simultaneously
-
+    // Create main transition timeline
     const timeline = gsap.timeline({ paused: true });
-
     const curImgSrc = currentImage ? images[currentImage] : "";
 
-    // Animate out the location card
+    // Phase 1: Animate out current location card
     timeline.to(
       this.locationContainer$,
       {
-        y: "-=200",
-        x: "-=100",
-        filter: "blur(30px)",
-        opacity: 0,
-        duration: 0.5,
-        ease: "power2.out",
+        y: "-=200", // Move up 200px
+        x: "-=100", // Move left 100px
+        filter: "blur(30px)", // Heavy blur effect
+        opacity: 0, // Fade to transparent
+        duration: 0.5, // Half second animation
+        ease: "power2.out", // Ease out for smooth exit
         onComplete: () => {
+          // Update location card content while it's invisible
           this.locationName$.text(name);
           this.locationImage$.attr("src", curImgSrc ?? "");
           this.locationDescription$.html(description ?? "");
+          // Reset position/properties instantly
           gsap.to(this.locationContainer$, {
             y: 0,
             x: 0,
@@ -5746,19 +5772,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           });
         },
       },
-      0,
+      0, // Start at timeline beginning
     );
 
-    // // Refresh the GM overlay
-    // if (getUser().isGM) {
-    //   timeline.call(() => {
-    //     void this.render({ parts: ["pcsGM", "npcsGM"] });
-    //   }, [], 0);
-    // }
-
+    // Add marker for movement phase start
     timeline.addLabel("startMoving_0");
 
-    // Stop any audio that is no longer playing at this location
+    // Phase 2: Stop old audio tracks with 5 second fadeout
     timeline.call(
       () => {
         audioKeysToStop.forEach((key) => {
@@ -5769,17 +5789,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       "startMoving_0",
     );
 
-    // Update the NPC UI with the hidden data only
-    timeline.call(
-      () => {
-        kLog.log("Updating NPC UIs, HIDING NPCs", JSON.parse(JSON.stringify(npcData)));
-        void this.updateNPCUI(npcData, { isHidingOnly: true });
-      },
-      [],
-      0,
-    );
+    // Phase 3: Hide NPC UI elements
+    timeline.add((await this.refreshNPCUI_Hide()).tl, "startMoving_0");
 
-    // Restore brightness to stage background if necessary
+    // Phase 4: Restore stage brightness if currently dimmed
     if (
       (gsap.getProperty("#STAGE", "filter") as Maybe<string>)?.includes(
         "brightness(0)",
@@ -5788,18 +5801,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       timeline.to(
         "#STAGE",
         {
-          filter: "brightness(1)",
-          duration: 1,
-          ease: "none",
+          filter: "brightness(1)", // Restore full brightness
+          duration: 1, // 1 second fade
+          ease: "none", // Linear brightness change
         },
         "startMoving_0",
-      );
+    );
     }
 
-    // Apply map transforms for this specific location
+    // Phase 5: Apply map transforms sequentially
     mapTransforms.forEach((transforms, setIndex) => {
       transforms.forEach(({ selector, properties }, index) => {
         if (mapTransforms.length === 1) {
+          // Single transform set - simple transition
           kLog.log("Applying single map transform at startMoving_0", {
             selector,
             properties,
@@ -5808,24 +5822,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             selector,
             {
               duration: 5,
-              ease: "back.out(0.1)",
+              ease: "back.out(0.1)", // Slight overshoot
               ...properties,
             },
             "startMoving_0",
           );
         } else {
-          // The ease depends on the number of transforms and whether this is the first or last transform
-          // First transform: power3.in
-          // Last transform: power3.out
-          // Middle transforms: power3.out if index is odd, power3.in if index is even
+          // Multiple transform sets - complex transition
+          // Ease varies based on position in sequence for smooth chain effect
           const ease =
             setIndex === 0
-              ? "power3.in"
+              ? "power3.in" // Strong acceleration at start
               : setIndex === mapTransforms.length - 1
-                ? "power3.out"
+                ? "power3.out" // Strong deceleration at end
                 : setIndex % 2 === 0
-                  ? "power3.out"
-                  : "power3.in";
+                  ? "power3.out" // Alternating deceleration
+                  : "power3.in"; // Alternating acceleration
           kLog.log(
             `Applying map transform ${index === 0 ? `at startMoving_${setIndex} at ${timeline.duration()}` : "with last transform"} - ${ease}`,
             { selector, properties, ease },
@@ -5841,29 +5853,31 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           );
         }
       });
+      // Add marker for next transform set
       kLog.log(
         `Adding label startMoving_${setIndex + 1} at ${timeline.duration()}`,
       );
       timeline.addLabel(`startMoving_${setIndex + 1}`);
     });
 
+    // Add marker for movement end
     kLog.log("Adding label stopMoving at", timeline.duration());
-    timeline.addLabel("stopMoving", "-=0.5");
+    timeline.addLabel("stopMoving", "-=0.5"); // Overlap slightly with last transform
 
-    // Fade in the location card
+    // Phase 6: Fade in location card if there's an image
     if (curImgSrc) {
       timeline.to(
         this.locationContainer$,
         {
           opacity: 1,
           duration: 1,
-          ease: "power3.inOut",
+          ease: "power3.inOut", // Smooth fade in/out
         },
         "stopMoving",
       );
     }
 
-    // Start playing audio, but begin fading it in 3 seconds before "stopMoving"
+    // Phase 7: Start new audio tracks with 5 second fadein
     timeline.call(
       () => {
         audioKeysToStart.forEach((key) => {
@@ -5871,23 +5885,25 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         });
       },
       [],
-      "stopMoving-=3",
+      "stopMoving-=3", // Start 3 seconds before movement ends
     );
 
+    // Phase 8: Show NPC UI elements
+    timeline.add((await this.refreshNPCUI_Show()).tl, "stopMoving-=3");
+
+    // Phase 9: Update PC UI
     timeline.call(
       () => {
-        kLog.log("Updating PC and NPC UIs, SHOWING NPCs", JSON.parse(JSON.stringify(npcData)));
+        kLog.log("Updating PC UIs", JSON.parse(JSON.stringify(npcData)));
         void this.updatePCUI(pcData);
-        void this.updateNPCUI(npcData, { isShowingOnly: true });
       },
       [],
-      getUser().isGM ? 1 : "stopMoving",
+      getUser().isGM ? 1 : "stopMoving", // Different timing for GM vs player
     );
 
+    // Store timeline reference and start playback
     this.#goToLocationTimeline = timeline;
-
-    await timeline /* .timeScale(0.25) */
-      .play();
+    timeline.play();
 
     return timeline;
   }

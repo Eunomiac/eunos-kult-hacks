@@ -22,7 +22,7 @@ declare global {
     getStabilityPenaltyFor(move: EunosItem): number;
     getStabilityConditionsPenalty(): Promise<number>;
     getPortraitImage(type: "bg" | "fg"): string;
-    getGogglesImageSrc(): Maybe<string>;
+    getGogglesImageSrc(): string;
     moveroll(moveID: string): Promise<void>;
   }
 }
@@ -442,17 +442,14 @@ export default function registerEunosActor(): void {
       return img.replace(".webp", "-fg-color.webp");
     }
 
-    getGogglesImageSrc(): Maybe<string> {
-      if (this.isPC()) {
-        return;
-      }
-      if (/-\d+\.webp$/.test(this.img as string)) {
+    getGogglesImageSrc(): string {
+      if (!this.isPC() && /-\d+\.webp$/.test(this.img as string)) {
         return (this.img as string).replace(
           /-(\d+)\.webp$/,
           "-$1-goggles.webp",
         );
       }
-      return;
+      return this.img as string;
     }
 
     override async displayRollResult(

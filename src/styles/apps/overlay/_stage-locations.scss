@@ -49,6 +49,10 @@
       mask-repeat: no-repeat;
       mask-position: center;
 
+      &[src=""] {
+        display: none;
+      }
+
     }
 
 }

@@ -98,15 +98,8 @@ export interface SocketEvents {
     };
   };
   requestSoundSync: {
-    data: {
-      userId: string;
-    };
-    return: Record<string, EunosMediaData>;
-  };
-  syncSounds: {
-    data: {
-      sounds: Record<string, EunosMediaData>;
-    };
+    data?: never;
+    return: Record<string, number>;
   };
   playMedia: {
     data: {

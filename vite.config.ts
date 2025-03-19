@@ -221,7 +221,7 @@ function minifyPlugin(): Vite.Plugin {
         return esbuild.transform(code, {
           keepNames: true,
           minifyIdentifiers: false,
-          minifySyntax: true,
+          minifySyntax: false,
           minifyWhitespace: true,
         });
       },
@@ -239,22 +239,15 @@ function cssUrlRewritePlugin(command: string): Vite.Plugin {
   return {
     name: "css-url-rewrite",
     transform(code, id) {
-      // Only process CSS and SCSS files
       if (!id.match(/\.s?css$/)) return null;
 
-      // For production build: replace module paths with relative paths
       if (isProduction) {
-        return code.replace(
-          /url\(['"]modules\/eunos-kult-hacks\/assets\//g,
-          "url('./assets/"
-        );
+        // Replace "modules/eunos-kult-hacks/assets/" with "./assets/"
+        return code.replace(/modules\/eunos-kult-hacks\/assets\//g, "./assets/");
       }
 
-      // For development: replace relative paths with module paths
-      return code.replace(
-        /url\(['"]\.\/(assets)\//g,
-        "url('modules/eunos-kult-hacks/$1/"
-      );
+      // Replace "./assets/" with "modules/eunos-kult-hacks/assets/"
+      return code.replace(/\.\/(assets\/)/g, "modules/eunos-kult-hacks/$1");
     }
   };
 }

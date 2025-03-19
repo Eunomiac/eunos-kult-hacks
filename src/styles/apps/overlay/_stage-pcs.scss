@@ -64,6 +64,7 @@
     flex-grow: 1;
     height: 100%;
     flex-basis: 20%;
+    bottom: -50px;
     // background: rgba(255, 0, 0, 0.2);
     // outline: 2px dotted red;
     transform-style: preserve-3d;
@@ -78,6 +79,7 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 20;
+      display: none;
 
       .pc-spotlight {
         position: absolute;
@@ -92,23 +94,23 @@
 
     &:nth-of-type(1) {
       .pc-portrait-shadow {
-        bottom: 20px;
+        bottom: 0px;
         transform: skewX(40deg) scaleY(0.7);
       }
       .pc-portrait-container {
-        bottom: 20px;
+        bottom: 0px;
         transform: translate(-50%, 0%) skewY(-5deg) scale(0.9);
       }
     }
 
     &:nth-of-type(2) {
       .pc-portrait-shadow {
-        bottom: 30px;
+        bottom: 0px;
         transform: skewX(20deg) scaleY(0.7);
       }
       .pc-portrait-container {
         // left: 15%;
-        bottom: 30px;
+        bottom: 0px;
         transform: translate(-50%, 0%) skewY(-2.5deg) scale(0.95);
       }
     }
@@ -120,7 +122,7 @@
       //   }
       // }
       .pc-portrait-shadow {
-        bottom: 20px;
+        bottom: 0px;
         transform: skewX(0deg) scaleY(0.7);
       }
       .pc-portrait-container {
@@ -140,28 +142,28 @@
       //   }
       // }
       .pc-portrait-shadow {
-        bottom: 30px;
+        bottom: 0px;
         transform: skewX(-20deg) scaleY(0.7);
       }
       .pc-portrait-container {
         // transform-origin: right center;
         // left: unset;
         // right: 25%;
-        bottom: 30px;
+        bottom: 0px;
         transform: translate(-50%, 0%) skewY(2.5deg) scale(0.95);
       }
     }
 
     &:nth-of-type(5) {
       .pc-portrait-shadow {
-        bottom: 20px;
+        bottom: 0px;
         transform: skewX(-40deg) scaleY(0.7);
       }
       .pc-portrait-container {
         // transform-origin: right center;
         // left: unset;
         // right: 25%;
-        bottom: 20px;
+        bottom: 0px;
         transform: translate(-50%, 0%) skewY(5deg) scale(0.9);
       }
     }

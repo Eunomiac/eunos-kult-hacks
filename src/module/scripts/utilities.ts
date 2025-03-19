@@ -478,6 +478,8 @@ const tCase = (str: unknown): Capitalize<string> => String(str).split(/\s/)
  */
 const camelCase = (str: string | number | boolean): string => {
   return String(str)
+    // Remove all non-alphanumeric characters except spaces/hyphens/underscores
+    .replace(/[^a-zA-Z0-9\s\-_]/g, "")
     // Convert separators to spaces
     .replace(/[-_]+/g, " ")
     // Handle word boundaries, keeping first letter lowercase
@@ -2671,11 +2673,30 @@ function yieldToMain(): Promise<void> {
   });
 }
 
+/**
+ * Storage for timestamp references, mapping unique IDs to timestamps
+ */
 const timeRefs: Record<IDString, number> = {};
+
+/**
+ * Creates a closure that measures elapsed time from when it was created.
+ * This function generates a unique ID, stores the current timestamp,
+ * and returns a function that calculates seconds elapsed since creation.
+ *
+ * @returns A function that returns the number of seconds elapsed since getTimeStamp() was called
+ *
+ * @example
+ * const timer = getTimeStamp();
+ * // Do some work...
+ * console.log(timer()); // Logs seconds elapsed
+ */
 function getTimeStamp() {
+  // Generate unique ID for this timer instance
   const id = getID();
+  // Store current timestamp for this ID
   timeRefs[id] = Date.now();
 
+  // Return closure that calculates elapsed time in seconds
   return function() {
     return (Date.now() - timeRefs[id]!) / 1000;
   }

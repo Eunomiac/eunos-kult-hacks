@@ -59,6 +59,13 @@
       "type": "Item",
       "system": "k4lt",
       "path": "packs/custom-items"
+    },
+    {
+      "label": "Generic NPCs",
+      "name": "generic-npcs",
+      "type": "Actor",
+      "system": "k4lt",
+      "path": "packs/generic-npcs"
     }
   ],
   "relationships": {

@@ -3,8 +3,9 @@ import {getSetting, formatDateAsISO} from "./utilities.ts";
 import {EunosMediaCategories, GamePhase, PCTargetRef} from "./enums.ts";
 import EunosOverlay from "../apps/EunosOverlay";
 import fields = foundry.data.fields;
-import {LOCATIONS} from "./constants.ts";
+import {LOCATIONS, type Location} from "./constants.ts";
 import EunosMedia from "../apps/EunosMedia.ts";
+import type {DeepPartial} from "fvtt-types/utils";
 // #endregion
 
 
@@ -108,17 +109,6 @@ export default function registerSettings() {
     type: Boolean,
     default: false
   });
-  getSettings().register("eunos-kult-hacks", "currentLocation", {
-    name: "Current Location",
-    hint: "The name of the current location.",
-    scope: "world",
-    choices: Object.fromEntries(
-      Object.keys(LOCATIONS).map(key => [key, key])
-    ) as { [K in keyof typeof LOCATIONS]?: string },
-    config: true,
-    type: String,
-    default: "Willow's Wending" as keyof typeof LOCATIONS,
-  });
   getSettings().register("eunos-kult-hacks", "isOutdoors", {
     name: "Is Outdoors",
     hint: "Whether the current scene is set outdoors of the currentLocation.",
@@ -126,6 +116,13 @@ export default function registerSettings() {
     config: false,
     type: Boolean,
     default: true,
+    onChange: (value) => {
+      if (value) {
+        void EunosOverlay.instance.goOutdoors();
+      } else {
+        void EunosOverlay.instance.goIndoors();
+      }
+    }
   });
   getSettings().register("eunos-kult-hacks", "weatherAudio", {
     name: "Weather Audio",
@@ -138,6 +135,27 @@ export default function registerSettings() {
       void EunosOverlay.instance.updateWeatherAudio();
     }
   });
+  getSettings().register("eunos-kult-hacks", "currentLocation", {
+    name: "Current Location",
+    hint: "The name of the current location.",
+    scope: "world",
+    choices: Object.fromEntries(
+      Object.keys(LOCATIONS).map(key => [key, key])
+    ) as { [K in keyof typeof LOCATIONS]?: string },
+    config: true,
+    type: String,
+    default: "Willow's Wending" as keyof typeof LOCATIONS,
+    onChange: (value) => {
+      // Get the previous location
+      const prevLocation = EunosOverlay.currentLocationLog ?? null;
+      void EunosOverlay.instance.goToLocation(
+        prevLocation,
+        value,
+        getSetting("isOutdoors") || true
+      );
+      EunosOverlay.currentLocationLog = value;
+    }
+  });
   getSettings().register("eunos-kult-hacks", "locationData", {
     name: "Location Data",
     hint: "Data for all configured locations.",
@@ -146,7 +164,8 @@ export default function registerSettings() {
     type: Object,
     default: {
       "Willow's Wending Entry": {
-        name: "Willow's Wending",
+        name: "Willow's Wending Entry",
+        key: "willowsWendingEntry",
         images: {},
         currentImage: null,
         mapTransforms: [],
@@ -156,6 +175,31 @@ export default function registerSettings() {
         isBright: false,
         isIndoors: false,
       }
+    },
+    onChange: (value) => {
+      // Get the current data before it's updated
+      const oldValue = EunosOverlay.currentLocationDataLog ?? {};
+
+      kLog.log("Location data BEFORE and AFTER", {
+        "1) before": JSON.parse(JSON.stringify(oldValue)) as Record<string, Location.SettingsData>,
+        "2) after": JSON.parse(JSON.stringify(value)) as Record<string, Location.SettingsData>,
+      });
+
+      const diff = foundry.utils.diffObject(oldValue, value) as DeepPartial<Record<string, Location.SettingsData>>;
+
+      kLog.log("Location data DIFF", {
+        "3) diff": JSON.parse(JSON.stringify(diff)) as DeepPartial<Record<string, Location.SettingsData>>,
+        "4) diff other direction": JSON.parse(JSON.stringify(foundry.utils.diffObject(value, oldValue))) as DeepPartial<Record<string, Location.SettingsData>>,
+      });
+
+      // If the changed data includes data for the current location, update the current location
+      const curLocation = game.settings?.get("eunos-kult-hacks", "currentLocation") as string;
+      const diffData = diff[curLocation];
+      kLog.log("Current location & diffData", {curLocation, diffData});
+      if (diffData) {
+        void EunosOverlay.instance.refreshUI(diffData);
+      }
+      EunosOverlay.currentLocationDataLog = value as Record<string, Location.SettingsData>;
     }
   })
   getSettings().register("eunos-kult-hacks", "sessionScribeDeck", {
