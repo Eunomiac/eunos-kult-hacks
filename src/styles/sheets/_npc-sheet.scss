@@ -69,6 +69,8 @@
             }
           }
 
+
+
           .npc-bio {
             display: flex;
             flex-direction: row;
@@ -85,6 +87,32 @@
               input {
                 color: black;
               }
+            }
+          }
+
+          .npc-short-description-block {
+            width: 90%;
+            text-align: right;
+
+            .npc-short-description-text {
+              font-family: var(--font-primary);
+              // font-weight: 600;
+              text-transform: lowercase;
+              font-size: 40px;
+              // font-style: italic;
+              line-height: 1;
+              margin-top: -10px;
+              margin-bottom: 10px;
+
+              * {
+                line-height: 1 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+            }
+
+            input[type="text"] {
+              font-family: "Pragmata Pro";
             }
           }
 

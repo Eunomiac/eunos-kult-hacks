@@ -43,7 +43,7 @@
     justify-content: center;
     font-size: 48px;
     color: var(--K4-dGOLD);
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, scale 0.3s ease;
 
     pointer-events: none;
     opacity: 0;
@@ -190,7 +190,7 @@
       transform: translate(-50%, 0%);
       bottom: 25px;
       transform-origin: left bottom;
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease, scale 0.3s ease;
       pointer-events: all;
       cursor: pointer;
       // padding: 0 10%;
@@ -273,7 +273,7 @@
             // margin: 30px;
             overflow: hidden;
             // filter: grayscale(0.75);
-            transition: all 0.3s ease;
+            // transition: all 0.3s ease;
           }
 
           .pc-portrait-smoke {
@@ -693,7 +693,7 @@
         border-radius: 50px / 70px;
         overflow: hidden;
         cursor: pointer;
-        transition: all 0.3s ease;
+        // transition: all 0.3s ease;
         transform-origin: 0% 0%;
 
         // &:hover,
@@ -704,10 +704,10 @@
         //   scale: 1.05;
         // }
 
-        &.pc-portrait-container-dimmed {
-          opacity: 1;
-          filter: grayscale(1) brightness(0.5) blur(2px);
-        }
+        // &.pc-portrait-container-dimmed {
+        //   opacity: 1;
+        //   filter: grayscale(1) brightness(0.5) blur(2px);
+        // }
 
         .pc-portrait {
           width: 100%;
@@ -1252,7 +1252,7 @@
         left: 50%;
         // transform: translate(-50%, -50%);
         transform-origin: 0% 0%;
-        transition: all 0.25s ease;
+        // transition: all 0.25s ease;
 
         // &:hover,
         // &.pc-portrait-container-dimmed:hover {

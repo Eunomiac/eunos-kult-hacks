@@ -150,8 +150,7 @@ export default function registerSettings() {
       const prevLocation = EunosOverlay.currentLocationLog ?? null;
       void EunosOverlay.instance.goToLocation(
         prevLocation,
-        value,
-        getSetting("isOutdoors") || true
+        value
       );
       EunosOverlay.currentLocationLog = value;
     }
@@ -171,7 +170,7 @@ export default function registerSettings() {
         mapTransforms: [],
         pcData: {},
         npcData: {},
-        audioData: {},
+        audioDataIndoors: {},
         isBright: false,
         isIndoors: false,
       }

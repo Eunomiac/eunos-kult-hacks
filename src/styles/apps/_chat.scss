@@ -9,7 +9,7 @@
 
     .message-header {
       position: absolute;
-      transition: 0.5s;
+      transition: opacity 0.5s;
       top: -15px;
       right: 0;
       background: linear-gradient(to top, transparent 49%, white 50%);

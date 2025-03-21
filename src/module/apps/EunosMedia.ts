@@ -111,7 +111,10 @@ export default class EunosMedia<T extends EunosMediaTypes> {
   loop: boolean;
   mute: boolean;
   sync: boolean;
-  volume: number;
+  #volume: number;
+  originalVolume: number;
+  isDampened: boolean;
+  dampeningFactor: number;
   autoplay: boolean;
   displayDuration?: number;
   alwaysPreload: boolean;
@@ -194,6 +197,13 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       throw new Error(`No element could be found for EunosMedia instance ${this.name}`);
     }
     return this.#element;
+  }
+
+  get volume(): number {
+    if (this.isDampened) {
+      return this.#volume * this.dampeningFactor;
+    }
+    return this.#volume;
   }
 
   get category(): EunosMediaCategories {
@@ -506,7 +516,10 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     this.loop = data.loop ?? false;
     this.mute = data.mute ?? false;
     this.sync = data.sync ?? false;
-    this.volume = data.volume ?? 1;
+    this.#volume = data.volume ?? 1;
+    this.originalVolume = this.#volume;
+    this.isDampened = false;
+    this.dampeningFactor = data.dampeningFactor ?? 0.1;
     this.autoplay = data.autoplay ?? false;
     if (this.type === EunosMediaTypes.video) {
       EunosMedia.Videos.set(this.name, this as EunosMedia<EunosMediaTypes.video>);
@@ -685,6 +698,18 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     this.loadedMap.delete(this.name);
   }
 
+
+  dampenAudio(audioFactor = 0.1): void {
+    this.isDampened = true;
+    const targetVolume = this.originalVolume * audioFactor;
+    gsap.to(this.#element, { volume: targetVolume, duration: 1, ease: "none" });
+  }
+
+  unDampenAudio(): void {
+    this.isDampened = false;
+    gsap.to(this.#element, { volume: this.originalVolume, duration: 1, ease: "none" });
+  }
+
   async play(options?: {
     volume?: number;
     loop?: boolean;
@@ -694,7 +719,8 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     const { volume, loop, sync, fadeInDuration } = options ?? {};
     const isTweeningVolume = this.playing && typeof volume === "number" && this.volume !== volume;
     const fromVolume = this.volume;
-    this.volume = volume ?? this.volume;
+
+
     this.loop = loop ?? this.loop;
     this.sync = sync ?? this.sync;
     this.#fadeInDuration = fadeInDuration ?? this.#fadeInDuration;
@@ -728,6 +754,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       } else {
         await gsap.to(this.#element, { volume: this.volume, duration: this.fadeInDuration, ease: "none" });
       }
+      kLog.log(`Faded in media ${this.name} from ${fromVolume} to ${this.volume} = ${this.#element.volume}`);
     } catch (error) {
       if (error instanceof Error && error.name === "NotAllowedError") {
         kLog.error("Playback prevented, setting up interaction handlers", error);

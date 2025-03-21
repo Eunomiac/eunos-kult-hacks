@@ -538,6 +538,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         },
       });
     },
+    openNPCSheet(event: PointerEvent, target: HTMLElement): void {
+      const npcID = target.dataset["actorId"];
+      if (!npcID) return;
+      const actor = getActors().find((actor) => actor.id === npcID);
+      // @ts-expect-error - force is not typed
+      actor?.sheet?.render({ force: true });
+    },
     async pushUIChanges(
       event: PointerEvent,
       target: HTMLElement,
@@ -761,7 +768,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     requestMediaSync: AsyncSocketFunction<number, { mediaName: string }>;
     setLocation: SocketFunction<
       void,
-      { fromLocation: string; toLocation: string; isGoingOutdoors: boolean }
+      { fromLocation: string; toLocation: string; }
     >;
     refreshLocationImage: SocketFunction<void, { imgKey: string }>;
     updatePCUI: SocketFunction<void, Record<IDString, PCState>>;
@@ -833,12 +840,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     setLocation: (data: {
       fromLocation: string;
       toLocation: string;
-      isGoingOutdoors: boolean;
     }) => {
       void EunosOverlay.instance.goToLocation(
         data.fromLocation,
         data.toLocation,
-        data.isGoingOutdoors,
       );
     },
 
@@ -2352,6 +2357,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region SessionRunning Methods
   private async initialize_SessionRunning(): Promise<void> {
+    // Kill countdown if it's running
+    await this.killCountdown(true, true);
     void this.buildPCPortraitTimelines();
     void this.initializeLocation();
     addClassToDOM("session-running");
@@ -2376,6 +2383,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   async sync_SessionRunning() {
+    // Kill countdown if it's running
+    await this.killCountdown(true, true);
     void this.buildPCPortraitTimelines();
     addClassToDOM("session-running");
     kLog.log("Fading Out Backdrop");
@@ -2659,7 +2668,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   /** Plays the intro video from the start */
   public async playIntroVideo(isPlayingQuote = false): Promise<void> {
     // Reset volume in case it was faded out
-    this.introVideo.volume = 1;
+    this.introVideo.element.volume = 1;
 
     // Add ended event listener before playing
     this.introVideo.element.addEventListener(
@@ -3656,6 +3665,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           nameState,
           position,
         });
+        const actor = getActors().find((actor) => actor.id === actorID);
+        if (actor
+          && [
+            foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.INHERIT,
+            foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE
+          ].includes(actor.ownership["default"])
+          && nameState === NPCNameState.base
+          && [NPCPortraitState.base, NPCPortraitState.dimmed].includes(portraitState)
+        ) {
+          void actor.update({ownership: { default: foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED }});
+        }
       },
     );
 
@@ -4147,7 +4167,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           autoAlpha: 0,
           // skewX: -30,
-          scale: getUser().isGM ? 1 : 2,
+          scale: getUser().isGM ? 1 : 0.5,
           filter: "brightness(5) blur(300px)",
         },
         {
@@ -4159,6 +4179,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           ease: "power2.out",
         },
         0,
+      )
+      .fromTo(
+        portraitNameContainer$,
+        {
+          scale: getUser().isGM ? 1 : 0.5,
+        },
+        {
+          scale: getUser().isGM ? 1 : 0.8,
+          duration: 1,
+          ease: "power2.out"
+        },
+        0
       )
       .fromTo(
         portraitShadow$,
@@ -4212,6 +4244,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         duration: 1,
         ease: "power2.out",
       })
+      .to(
+        portraitNameContainer$,
+        {
+          scale: 1,
+          duration: 1,
+          ease: "power2.out",
+        },
+        0,
+      )
       .to(
         portraitShadow$,
         {
@@ -4907,7 +4948,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   public async refreshUI(diffData: DeepPartial<Location.SettingsData>) {
-    const { currentImage, pcData, npcData, audioData } = diffData;
+    const { currentImage, pcData, npcData, audioDataIndoors } = diffData;
 
     kLog.log("refreshUI", diffData);
 
@@ -4923,7 +4964,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void this.refreshNPCUI_All();
     }
 
-    if (audioData) {
+    if (audioDataIndoors) {
       void EunosMedia.SyncPlayingSounds();
     }
   }
@@ -5148,7 +5189,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         images: {},
         description: "",
         mapTransforms: [],
-        audioData: {},
+        audioDataIndoors: {},
         isBright: true,
         isIndoors: false,
       };
@@ -5161,8 +5202,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       pcData: Object.fromEntries(
         this.getDefaultLocationPCData().map((data) => [data.actorID, data]),
       ),
-      npcData: {} as Record<IDString, Location.NPCData.SettingsData>,
-      audioData: {} as Record<string, EunosMediaData>,
+      npcData: {} as Record<IDString, Location.NPCData.SettingsData>
     };
   }
   private getLocationDefaultSettingsData(
@@ -5190,9 +5230,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
       // If hard-coded audio data is available, use it, overwriting setting data.
       const staticAudioData =
-        LOCATIONS[location]?.audioData;
+        LOCATIONS[location]?.audioDataIndoors;
       if (staticAudioData) {
-        settingData[location].audioData = staticAudioData;
+        settingData[location].audioDataIndoors = staticAudioData;
       }
       const fullSettingsData: Location.SettingsData = {
         ...this.getLocationDefaultDynamicSettingsData(),
@@ -5246,10 +5286,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return npcFullData;
   }
   private getLocationAudioData(
-    audioData: Record<string, Partial<EunosMediaData>>,
+    audioDataIndoors: Record<string, Partial<EunosMediaData>>,
   ): Record<string, EunosMedia<EunosMediaTypes.audio>> {
     const audioFullData: Record<string, EunosMedia<EunosMediaTypes.audio>> = {};
-    Object.entries(audioData).forEach(([id, data]) => {
+    Object.entries(audioDataIndoors).forEach(([id, data]) => {
       if (EunosMedia.Sounds.has(id)) {
         audioFullData[id] = EunosMedia.Sounds.get(id)!;
         return;
@@ -5265,56 +5305,41 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private deriveLocationFullData(
     settingsData: Location.SettingsData,
   ): Location.FullData {
-    const { pcData, npcData, audioData } = settingsData;
+    const { key, pcData, npcData, audioDataIndoors, audioDataOutdoors } = settingsData;
 
     const pcFullData = this.getLocationPCData(pcData);
     const npcFullData = this.getLocationNPCData(npcData);
-    const playlistFullData = this.getLocationAudioData(audioData);
 
     const fullData: Location.FullData = {
       ...settingsData,
       pcData: pcFullData,
       npcData: npcFullData,
-      audioData: playlistFullData,
+      audioDataIndoors: undefined,
+      audioDataOutdoors: undefined,
     };
+
+    if (key in LOCATIONS && LOCATIONS[key]) {
+      const locationData = LOCATIONS[key];
+
+      // Override audio data in settings with LOCATIONS data if available
+      if (locationData.audioDataIndoors) {
+        fullData.audioDataIndoors = this.getLocationAudioData(locationData.audioDataIndoors);
+      }
+      if (locationData.audioDataOutdoors) {
+        fullData.audioDataOutdoors = this.getLocationAudioData(locationData.audioDataOutdoors);
+      }
+    } else {
+      if (audioDataIndoors) {
+        const audioIndoorsFullData = this.getLocationAudioData(audioDataIndoors);
+        fullData.audioDataIndoors = audioIndoorsFullData;
+      }
+      if (audioDataOutdoors) {
+        const audioOutdoorsFullData = this.getLocationAudioData(audioDataOutdoors);
+        fullData.audioDataOutdoors = audioOutdoorsFullData;
+      }
+    }
+
     return fullData;
-  }
-  private async deriveLocationSettingsData(
-    fullData: Location.FullData,
-  ): Promise<Location.SettingsData> {
-    const { pcData, npcData, audioData, currentImage, ...staticData } =
-      fullData;
-    const pcSettingsData: Record<IDString, Location.PCData.SettingsData> =
-      Object.fromEntries(
-        Object.entries(pcData).map(([slot, data]) => [
-          data.actorID,
-          { ...data, slot },
-        ]),
-      );
-    const npcSettingsData: Record<IDString, Location.NPCData.SettingsData> =
-      npcData;
-    // Convert playlist data to settings format by getting settings data for each media entry
-    const playlistSettingsData: Record<string, EunosMediaData> =
-      Object.fromEntries(
-        await Promise.all(
-          Object.entries(audioData).map(
-            async ([id, media]: [
-              string,
-              EunosMedia<EunosMediaTypes.audio>,
-            ]) => {
-              const settingsData = await media.getSettingsData();
-              return [id, settingsData];
-            },
-          ),
-        ),
-      ) as Record<string, EunosMediaData>;
-    return {
-      ...staticData,
-      currentImage,
-      pcData: pcSettingsData,
-      npcData: npcSettingsData,
-      audioData: playlistSettingsData,
-    };
   }
   // #endregion Assembling Location Data ~
 
@@ -5425,10 +5450,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Object.entries(weatherAudio).forEach(([mediaName, volume]) => {
       const media = EunosMedia.GetMedia(mediaName);
       if (media) {
-        if (!this.isOutdoors) {
-          volume *= 0.1;
-        }
         void media.play({volume});
+        if (!this.isOutdoors) {
+          // If we're indoors, dampen the audio
+          media.dampenAudio();
+        } else {
+          media.unDampenAudio();
+        }
       }
     });
   }
@@ -5476,20 +5504,43 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return goIndoorsTimeline;
   }
 
+  public isIndoors: boolean = false;
+
+  public canGoIndoors(locationName?: string) {
+    locationName ??= getSetting("currentLocation");
+    const locationData = this.getLocationData(locationName);
+    return locationData.isIndoors;
+  }
+
   public async goIndoors() {
+    if (!this.canGoIndoors()) {
+      return;
+    }
     if ((this.#goToLocationTimeline?.progress() ?? 1) < 1) {
       kLog.log("Waiting for goToLocation to finish");
       await this.#goToLocationTimeline;
     }
     await this.updateWeatherAudio();
 
-    const {key, audioData} = this.getLocationData();
+    const {key, audioDataIndoors, audioDataOutdoors} = this.getLocationData();
 
-    // 2. Fade in audioData from location.
-    const locationSounds = audioData;
-    Object.values(locationSounds).forEach((media) => {
-      void media.play();
-    });
+    // 1. Dampen all outdoor audio, UNLESS it also appears in audioDataIndoors
+    if (audioDataOutdoors) {
+      Object.values(audioDataOutdoors).forEach((media) => {
+        if (audioDataIndoors?.[media.name]) {
+          media.unDampenAudio();
+        } else {
+          media.dampenAudio();
+        }
+      });
+    }
+
+    // 2. Fade in any audioDataIndoors from location.
+    if (audioDataIndoors) {
+      Object.values(audioDataIndoors).forEach((media) => {
+        void media.play({fadeInDuration: 2});
+      });
+    }
 
     // 3. Get 'goIndoors' timeline, attached as '{locationKey}-goIndoors' on the JQuery #BLACKOUT-LAYER element
     let goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`) as Maybe<gsap.core.Timeline>;
@@ -5497,31 +5548,40 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       goIndoorsTimeline = this.buildGoIndoorsTimeline();
     }
     goIndoorsTimeline.play();
+    this.isIndoors = true;
   }
 
   public async goOutdoors() {
+    if (!this.canGoIndoors()) {
+      return;
+    }
     if ((this.#goToLocationTimeline?.progress() ?? 1) < 1) {
       kLog.log("Waiting for goToLocation to finish");
       await this.#goToLocationTimeline;
     }
     await this.updateWeatherAudio();
 
-    // 2. Kill all ambient audio.
-    EunosMedia.GetMediaByCategory(EunosMediaCategories.Ambient)
-      .filter((media) => media.playing)
-      .forEach((media) => {
+    const {key, audioDataIndoors, audioDataOutdoors} = this.getLocationData();
+
+    // 1. Kill all indoor audio, UNLESS it also appears in audioDataOutdoors
+    if (audioDataIndoors) {
+      Object.values(audioDataIndoors).forEach((media) => {
         void media.kill(1);
       });
+    }
 
-    const {key} = this.getLocationData();
+    // 2. Fade in any audioDataOutdoors from the location
+    if (audioDataOutdoors) {
+      Object.values(audioDataOutdoors).forEach((media) => {
+        void media.play({fadeInDuration: 2});
+        media.unDampenAudio();
+      });
+    }
 
     // 3. Get 'goIndoors' timeline, attached as '{locationKey}-goIndoors' on the JQuery #BLACKOUT-LAYER element, reverse it
     const goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`) as Maybe<gsap.core.Timeline>;
-    if (!goIndoorsTimeline) {
-      kLog.error("No goIndoors timeline found for location", {location: key});
-      return;
-    }
-    goIndoorsTimeline.reverse();
+    goIndoorsTimeline?.reverse();
+    this.isIndoors = false;
   }
 
   public async resetLocationData(location?: string) {
@@ -5584,7 +5644,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion
 
   public async initializeLocation() {
-    await this.goToLocation(null, getSetting("currentLocation"), false);
+    await this.goToLocation(null, getSetting("currentLocation"));
   }
 
   /**
@@ -5686,23 +5746,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
    * - Map transformations
    * @param fromLocation - Starting location ID or null if no previous location
    * @param toLocation - Destination location ID to transition to
-   * @param isGoingOutdoors - Boolean flag indicating if transitioning from indoors to outdoors
    * @returns Promise resolving to the GSAP timeline controlling the transition, or undefined if error
    * @throws Will not throw but logs error if destination location is invalid
    */
   public async goToLocation(
     fromLocation: string | null,
     toLocation: string,
-    isGoingOutdoors: boolean,
+    // isGoingOutdoors: boolean,
   ): Promise<gsap.core.Timeline | undefined> {
-    // Cancel any in-progress transition to prevent animation conflicts
+    // Await any in-progress transition to prevent animation conflicts
     if (this.#goToLocationTimeline) {
-      this.#goToLocationTimeline.kill();
+      await this.#goToLocationTimeline;
     }
 
-    // Handle outdoor transition effects if needed
-    if (isGoingOutdoors) {
-      await this.goOutdoors(); // Triggers outdoor transition animation sequence
+    // If we're supposed to be outdoors, but we're indoors, go outdoors first
+    if (getSetting("isOutdoors") && this.isIndoors) {
+      await this.goOutdoors();
     }
 
     // Load location data for both source and destination
@@ -5739,27 +5798,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
 
     // Extract all needed data from location configuration
-    let {
+    const {
       name,
       images,
       currentImage,
       description,
       pcData,
       npcData,
-      audioData,
+      audioDataIndoors,
+      audioDataOutdoors,
       mapTransforms,
       isIndoors,
     } = locationData;
 
-    // Get previous location's audio data for transition handling
-    const { audioData: fromAudioData } = fromLocationData ?? {
-      audioData: {} as Record<string, EunosMediaData>,
-    };
-
-    // Clear audio data for indoor locations to prevent outdoor sounds playing inside
-    if (isIndoors) {
-      audioData = {};
-    }
+    const audioData = audioDataOutdoors ?? audioDataIndoors ?? {};
 
     // Handle lightning effects based on location brightness
     const lightningAudio = EunosMedia.GetMedia("weather-lightning");
@@ -5786,13 +5838,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
     }
 
-    // Determine which audio tracks need to stop/start for the transition
-    const audioKeysToStop = Object.keys(fromAudioData).filter(
-      (key): key is string => !(key in audioData), // Audio in old location but not new
-    );
-    const audioKeysToStart = Object.keys(audioData).filter(
-      (key): key is string => !(key in fromAudioData), // Audio in new location but not old
-    );
+    // Get all currently-playing audio, but exclude any that are in the weather settings data
+    const weatherAudio = getSetting("weatherAudio");
+    const playingAudio = EunosMedia.GetPlayingSounds()
+      .filter((media) => !(media.name in weatherAudio));
+
+    // Get all audio from the new location
+    const newLocationAudio = Object.values(audioData);
+
+    // Separate audio to be killed from audio to be started
+    const audioToKill = playingAudio.filter((media) => !(media.name in audioData));
+    const audioToStart = newLocationAudio;
 
     // Create main transition timeline
     const timeline = gsap.timeline({ paused: true });
@@ -5833,8 +5889,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Phase 2: Stop old audio tracks with 5 second fadeout
     timeline.call(
       () => {
-        audioKeysToStop.forEach((key) => {
-          void EunosMedia.Sounds.get(key)?.kill(5);
+        audioToKill.forEach((media) => {
+          void media.kill(5);
         });
       },
       [],
@@ -5935,18 +5991,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Phase 7: Start new audio tracks with 5 second fadein
     timeline.call(
       () => {
-        audioKeysToStart.forEach((key) => {
-          void EunosMedia.Sounds.get(key)?.play({ fadeInDuration: 5 });
+        audioToStart.forEach((media) => {
+          void media.play({ fadeInDuration: 5 });
         });
       },
       [],
       "stopMoving-=3", // Start 3 seconds before movement ends
     );
 
-    // Phase 8: Show NPC UI elements
+    // Phase 8: If supposed to be indoors, but we're outdoors, go indoors
+    if (!getSetting("isOutdoors") && !this.isIndoors) {
+      timeline.add(() => void this.goIndoors(), "stopMoving");
+    }
+
+    // Phase 9: Show NPC UI elements
     timeline.add((await this.refreshNPCUI_Show()).tl, "stopMoving-=3");
 
-    // Phase 9: Update PC UI & GM NPC UI
+    // Phase 10: Update PC UI & GM NPC UI
     timeline.call(
       () => {
         kLog.log("Updating UIs", JSON.parse(JSON.stringify(npcData)));

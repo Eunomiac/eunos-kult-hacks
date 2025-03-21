@@ -907,9 +907,11 @@ export interface EunosMediaData {
   mute?: boolean;
   sync?: boolean;
   volume?: number;
+  dampeningFactor?: number;
   autoplay?: boolean;
   reportPreloadStatus?: boolean;
   showInSoundMenu?: boolean;
+
 }
 /**
  * Map of sound names to their HTMLAudioElement instances
@@ -1884,7 +1886,8 @@ export declare namespace Location {
         properties: Record<string, number | string | undefined>;
       }>
     >;
-    audioData: Record<string, Partial<EunosMediaData>>;
+    audioDataIndoors?: Record<string, Partial<EunosMediaData>>;
+    audioDataOutdoors?: Record<string, Partial<EunosMediaData>>;
     isBright: boolean;
     isIndoors: boolean;
     region?: string;
@@ -1894,7 +1897,6 @@ export declare namespace Location {
     currentImage: string | null;
     pcData: Record<IDString, PCData.SettingsData>;
     npcData: Record<IDString, NPCData.SettingsData>;
-    audioData: Record<string, Partial<EunosMediaData>>;
   }
 
   export interface SettingsData
@@ -1915,7 +1917,8 @@ export declare namespace Location {
     isBright: boolean;
     isIndoors: boolean;
     region?: string;
-    audioData: Record<string, Partial<EunosMediaData>>;
+    audioDataIndoors?: Record<string, Partial<EunosMediaData>>;
+    audioDataOutdoors?: Record<string, Partial<EunosMediaData>>;
 
     // Dynamic properties
     currentImage: string | null;
@@ -1927,11 +1930,12 @@ export declare namespace Location {
     currentImage: string | null;
     pcData: Record<"1" | "2" | "3" | "4" | "5", PCData.FullData>;
     npcData: Record<IDString, NPCData.FullData>;
-    audioData: Record<string, EunosMedia<EunosMediaTypes.audio>>;
+    audioDataIndoors?: Record<string, EunosMedia<EunosMediaTypes.audio>>;
+    audioDataOutdoors?: Record<string, EunosMedia<EunosMediaTypes.audio>>;
   }
 
   export interface FullData
-    extends Omit<StaticSettingsData, "audioData">,
+    extends Omit<StaticSettingsData, "audioDataIndoors" | "audioDataOutdoors">,
       DynamicFullData {}
 }
 
@@ -1941,7 +1945,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "nowhere",
     images: {},
     description: "",
-    audioData: {},
     isBright: false,
     isIndoors: false,
     region: "",
@@ -2003,7 +2006,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Fire Road Car Ahead":
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
     },
-    audioData: {
+    audioDataOutdoors: {
       "ambient-crickets": {},
       "ambient-car-dirt-road": {},
     },
@@ -2069,7 +2072,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Fire Road Car Ahead":
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
     },
-    audioData: {
+    audioDataOutdoors: {
       "ambient-crickets": {},
       "ambient-forest": {},
     },
@@ -2143,7 +2146,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
-    audioData: {
+    audioDataOutdoors: {
       "ambient-crickets": {},
       "ambient-eerie-forest": {},
       "ambient-low-bass-rumble": {},
@@ -2214,7 +2217,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
-    audioData: {
+    audioDataOutdoors: {
       "ambient-forest-night": {},
       "ambient-eerie-forest": {},
       "ambient-low-bass-rumble": {},
@@ -2286,7 +2289,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
-    audioData: {
+    audioDataOutdoors: {
       "ambient-forest-night": {},
       "ambient-eerie-forest": {},
       "ambient-low-bass-rumble": {},
@@ -2358,7 +2361,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
-    audioData: {
+    audioDataOutdoors: {
       "ambient-forest-night": {},
       "ambient-eerie-forest": {},
       "ambient-low-bass-rumble": {},
@@ -2420,7 +2423,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #1",
     key: "rangerStation1",
     images: {},
-    audioData: {
+    audioDataOutdoors: {
+      "ambient-electricity-night": {},
+      "ambient-crickets": {},
+    },
+    audioDataIndoors: {
       "ambient-fireplace-3": {},
       "ambient-generic-vent": {},
     },
@@ -2520,7 +2527,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "emmasRise",
     images: {},
     description: "",
-    audioData: {},
+    audioDataOutdoors: {},
     isBright: true,
     isIndoors: false,
     region: "",
@@ -2640,8 +2647,8 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "townSquare",
     images: {},
     description: "",
-    audioData: {
-      "ambient-outdoor-crowd": {},
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
     },
     isBright: true,
     isIndoors: false,
@@ -2698,7 +2705,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "wainwrightAcademy",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-academy": {},
     },
     isBright: true,
@@ -2755,7 +2765,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise Primary School",
     key: "emmasRisePrimarySchool",
     images: {},
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-primary-school": {},
     },
     isBright: true,
@@ -2813,7 +2826,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise Middle School for Wayward Boys",
     key: "emmasRiseMiddleSchoolForWaywardBoys",
     images: {},
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-school": {},
     },
     isBright: true,
@@ -2872,7 +2888,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "townHall",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-hall": {},
     },
     isBright: true,
@@ -2926,7 +2945,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "emmasRiseCommunityCenter",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-church": {},
       "ambient-hall": {}
     },
@@ -2985,7 +3007,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "oldCemetery",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-old-willow": {},
       "ambient-creepy": {}
     },
@@ -3044,7 +3069,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "lanternWayEast",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-standing-stones": {}
     },
     isBright: true,
@@ -3102,7 +3130,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "lanternWayWest",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-standing-stones": {}
     },
     isBright: true,
@@ -3161,7 +3192,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     images: {},
     description: "",
     region: "townSquare",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-quiet-office": {},
     },
     isBright: true,
@@ -3219,7 +3253,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     images: {},
     description: "",
     region: "townSquare",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-divebar": {},
     },
     isBright: true,
@@ -3277,7 +3314,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     images: {},
     description: "",
     region: "townSquare",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-diner": {},
     },
     isBright: true,
@@ -3335,7 +3375,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     images: {},
     description: "",
     region: "townSquare",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-fireplace": {},
       "ambient-ranger-station": {}
     },
@@ -3393,8 +3436,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "medicalClinic",
     images: {},
     description: "",
-    audioData: {
+    audioDataIndoors: {
       "ambient-medical-clinic": {},
+    },
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
     },
     isBright: true,
     isIndoors: true,
@@ -3451,7 +3497,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "holtFamilyLodge",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+      "ambient-farm": {}
+    },
+    audioDataIndoors: {
       "ambient-fireplace-2": {},
       "ambient-hall": {}
     },
@@ -3510,7 +3560,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "holtFarms",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "ambient-farm": {},
       "ambient-birdsong": {}
     },
@@ -3569,8 +3619,12 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "theGreenhouse",
     images: {},
     description: "",
-    audioData: {
+    audioDataIndoors: {
       "ambient-generic-vent": {}
+    },
+    audioDataOutdoors: {
+      "ambient-farm": {},
+      "ambient-birdsong": {}
     },
     isBright: true,
     isIndoors: true,
@@ -3627,7 +3681,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "theAerie",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "weather-wind-blustery": {},
       "ambient-birdsong": {}
     },
@@ -3686,7 +3740,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "beaconHill",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "weather-wind-blustery": {},
     },
     isBright: true,
@@ -3744,7 +3798,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "bellTower",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-church": {},
       "effect-church-bells": {loop: false}
     },
@@ -3803,7 +3860,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "beaconObservatory",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-academy": {},
       "ambient-quiet-office": {}
     },
@@ -3862,7 +3922,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "beaconLibrary",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-blustery": {},
+    },
+    audioDataIndoors: {
       "ambient-academy": {},
     },
     isBright: true,
@@ -3920,7 +3983,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "theEastTunnel",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-low-wind-hum": {},
+    },
+    audioDataIndoors: {
       "ambient-underground": {},
       "ambient-creepy": {}
     },
@@ -3979,7 +4045,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "theWeepingKing",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "ambient-weeping-king": {},
       "ambient-birdsong": {}
     },
@@ -4038,7 +4104,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "pactGrove",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "ambient-birdsong": {},
       "ambient-creepy": {},
       "ambient-old-willow": {}
@@ -4094,8 +4160,9 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "oldBridge",
     images: {},
     description: "",
-    audioData: {
-      "ambient-creek": {}
+    audioDataOutdoors: {
+      "ambient-creek": {},
+      "weather-trees-wind": {}
     },
     isBright: true,
     isIndoors: false,
@@ -4148,7 +4215,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "oldTreeLine",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "ambient-old-willow": {},
       "ambient-creepy": {}
     },
@@ -4203,7 +4270,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "oldWillow",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "ambient-old-willow": {},
       "effect-angel-chorus": {loop: false}
     },
@@ -4256,7 +4323,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "standingStones",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "ambient-standing-stones": {}
     },
     isBright: true,
@@ -4308,7 +4375,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "rangerStation4",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-fireplace": {},
       "ambient-ranger-station": {}
     },
@@ -4361,7 +4431,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "redemptionHouse",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-low-bass-rumble": {}
     },
     isBright: true,
@@ -4413,7 +4486,12 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "rangerStation2",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+      "ambient-old-willow": {},
+      "ambient-creepy": {}
+    },
+    audioDataIndoors: {
       "ambient-fireplace": {},
       "ambient-ranger-station": {}
     },
@@ -4466,8 +4544,9 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "ashHill",
     images: {},
     description: "",
-    audioData: {
-      "ambient-creepy": {}
+    audioDataOutdoors: {
+      "ambient-creepy": {},
+      "weather-wind-blustery": {}
     },
     isBright: true,
     isIndoors: false,
@@ -4518,7 +4597,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "ashHillDevelopment",
     images: {},
     description: "",
-    audioData: {
+    audioDataIndoors: {
       "ambient-creepy": {},
       "ambient-ash-hill-development": {}
     },
@@ -4573,7 +4652,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "kingsgraveEstate",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
       "ambient-old-willow": {}
     },
     isBright: true,
@@ -4627,7 +4706,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "oldChapel",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-church": {}
     },
     isBright: true,
@@ -4681,7 +4763,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     key: "kingsgraveManor",
     images: {},
     description: "",
-    audioData: {
+    audioDataOutdoors: {
+      "weather-wind-leafy": {},
+    },
+    audioDataIndoors: {
       "ambient-hall": {}
     },
     isBright: true,

@@ -20,6 +20,20 @@
         </div>
       </div>
       {{/if}}
+      {{#if (test owner "||" system.isShortDescVisible)}}
+      {{#if owner}}
+      <div class="npc-short-description-block">
+        <input id="npc-short-description-block" type="text" class="border-rect" value="{{system.shortDescription}}"
+          name="system.shortDescription" />
+      </div>
+      {{else}}{{#if system.shortDescription}}
+      <div class="npc-short-description-block">
+        <div class="npc-short-description-text">
+          {{{system.shortDescription}}}
+        </div>
+      </div>
+      {{/if}}{{/if}}
+      {{/if}}
       <div class="description-block">
         <div class="section-label">{{localize "k4lt.Description"}}</div>
         <div class="free-text">

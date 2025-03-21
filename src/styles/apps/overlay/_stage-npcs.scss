@@ -15,6 +15,7 @@
     width: 150px;
     height: 200px;
     transform-style: preserve-3d;
+    pointer-events: auto;
     // transition: all 1s ease;
 
     // &[data-goggles-state="goggles"] {
@@ -72,6 +73,7 @@
 
     .npc-portrait-name-container {
       background: rgba(0, 0, 0, 1);
+      transform-origin: center center;
     }
 
     .npc-portrait-controls {
@@ -263,7 +265,7 @@
     background-color: rgba(255, 255, 255, 0.2);
     pointer-events: none;
     transform-style: preserve-3d;
-    transform: translate(-50%, -50%) scale(0.5);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -272,6 +274,12 @@
     height: auto;
     width: 150px;
     opacity: 0;
+    cursor: pointer;
+
+    &[data-name-state="invisible"],
+    &[data-name-state="shrouded"] {
+      pointer-events: none !important;
+    }
 
     .npc-portrait-container {
       position: static;
@@ -398,7 +406,7 @@
     .npc-portrait-name-container {
       position: absolute;
       opacity: 0;
-      transform-origin: left top;
+      transform-origin: center top;
       scale: 1;
       left: 50%;
       // transform: translate(-50%, -50%);
@@ -420,6 +428,19 @@
         text-wrap: balance;
         // position: absolute;
         // outline: 1px dotted red;
+      }
+
+      .npc-portrait-short-description {
+        color: var(--K4-bGREY);
+        text-align: center;
+
+        * {
+          margin: 0 !important;
+          padding: 0 !important;
+          line-height: 1 !important;
+          font-weight: normal !important;
+          // font-style: normal !important;
+        }
       }
     }
   }

@@ -63,7 +63,6 @@ export interface SocketEvents {
     data: {
       fromLocation: string;
       toLocation: string;
-      isGoingOutdoors: boolean;
     };
   };
   refreshLocationImage: {

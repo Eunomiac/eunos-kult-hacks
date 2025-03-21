@@ -5,6 +5,7 @@ const ActorSchemaNPC = {
   home: new fields.StringField(),
   creaturetype: new fields.StringField(),
   shortDescription: new fields.StringField(),
+  isShortDescVisible: new fields.BooleanField({initial: false}),
   harm: new fields.SchemaField({
     value: new fields.NumberField(),
     min: new fields.NumberField(),

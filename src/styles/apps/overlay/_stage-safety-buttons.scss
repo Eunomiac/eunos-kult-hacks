@@ -31,7 +31,7 @@
     border-left: none;
     border-radius: 0 10px 10px 0;
     pointer-events: all;
-    transition: all 0.2s ease-in-out;
+    transition: opacity 0.2s ease-in-out, width 0.2s ease-in-out;
     transform-origin: left;
     opacity: 0.25;
 
