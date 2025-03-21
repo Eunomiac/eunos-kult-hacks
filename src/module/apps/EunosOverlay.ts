@@ -3486,6 +3486,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(hookContainer$[index - 1] as HTMLElement);
   }
 
+  #dramaticHookTimeline: Maybe<gsap.core.Timeline>;
+
+  private get dramaticHookTimeline(): gsap.core.Timeline {
+    if (!this.#dramaticHookTimeline) {
+      this.#dramaticHookTimeline = this.buildDramaticHookTimeline();
+    }
+    return this.#dramaticHookTimeline;
+  }
+
   private buildDramaticHookTimeline(): gsap.core.Timeline {
     const activeActors = getOwnedActors().filter(
       (actor) => actor.isPC() && getOwnerOfDoc(actor)?.id !== getUser().id,
@@ -3513,7 +3522,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.pcMasterTimelines[actor.id!]?.seek(0);
     });
     if (!getUser().isGM) {
-      this.buildDramaticHookTimeline().play();
+      this.dramaticHookTimeline.play();
     }
   }
 
@@ -4686,7 +4695,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   ): Promise<JQuery> {
     // First check whether there's an existing portrait, and return that if there is.
     const existingNPC = this.npcs$.find(`.npc-portrait[data-actor-id="${actor.id}"]`);
+    kLog.log(`renderNPCPortrait: existingNPC for ${actor.name}`, { existingNPC });
     if (existingNPC.length) {
+      kLog.log("renderNPCPortrait: returning existing NPC", { existingNPC });
       return existingNPC;
     }
 
@@ -4953,15 +4964,26 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           void this.updateNPCUI_GM(npcID, {portraitState: NPCPortraitState.removed});
         }
       });
+
+      // Now update all NPCs in setting data
+      const npcData = this.getLocationNPCData();
+      for (const npcID in npcData) {
+        void this.updateNPCUI_GM(npcID, npcData[npcID] as {
+          portraitState?: NPCPortraitState;
+          nameState?: NPCNameState;
+          position?: Point;
+        });
+      }
       return;
     }
 
     if (npcID && data) {
-      kLog.log("Updating NPC UI (GM)", { npcID, data });
       let npcContainer$ = EunosOverlay.instance.npcs$.find(
         `.npc-portrait[data-actor-id="${npcID}"]`,
       );
-      if (!npcContainer$.length) {
+      kLog.log("Updating NPC UI (GM)", { npcID, data, npcContainer$ });
+      if (!npcContainer$.length && data.portraitState !== NPCPortraitState.removed) {
+        kLog.log(`Rendering NPC portrait for ${getActorFromRef(npcID)?.name}`, { npcID, data });
         npcContainer$ = await this.renderNPCPortrait(
           getActorFromRef(npcID) as EunosActor,
           data.position,
@@ -5421,6 +5443,39 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await setSetting("isOutdoors", !isIndoors);
   }
 
+  private buildGoIndoorsTimeline() {
+    const {key} = this.getLocationData();
+    const underLayer$ = this.stage3D$.find(".under-layer");
+    const backgroundLayer$ = this.stage3D$.find(".background-layer");
+    const goIndoorsTimeline = gsap.timeline({
+      paused: true,
+      onReverseComplete: () => {
+        void this.refreshNPCUI_Show().then(({tl}) => tl.play());
+      },
+      onComplete: () => {
+        void this.refreshNPCUI_Show().then(({tl}) => tl.play());
+      },
+    })
+      .to(underLayer$, {
+        background:
+          "radial-gradient(circle at 50% 50%, transparent 2%, rgb(123 46 0 / 75%) 4%, rgb(0 0 0) 6%)",
+        duration: 1,
+        ease: "power2.inOut",
+      })
+      .to([
+        underLayer$[0],
+        backgroundLayer$[0]
+      ], {
+        rotationX: 0,
+        rotationY: 0,
+        z: 500,
+        duration: 1,
+        ease: "power2.inOut"
+      }, 0);
+    $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`, goIndoorsTimeline);
+    return goIndoorsTimeline;
+  }
+
   public async goIndoors() {
     if ((this.#goToLocationTimeline?.progress() ?? 1) < 1) {
       kLog.log("Waiting for goToLocation to finish");
@@ -5428,22 +5483,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     await this.updateWeatherAudio();
 
+    const {key, audioData} = this.getLocationData();
+
     // 2. Fade in audioData from location.
-    const locationSounds = this.getLocationData().audioData;
+    const locationSounds = audioData;
     Object.values(locationSounds).forEach((media) => {
       void media.play();
     });
 
-    // 3. Animate canvas background radial gradient shadow stops
-    gsap.to(this.stage3D$.find(".under-layer"), {
-      background:
-        "radial-gradient(circle at 50% 50%, transparent 2%, rgb(123 46 0 / 75%) 4%, rgb(0 0 0) 6%)",
-      duration: 1,
-      ease: "power2.inOut",
-    });
-
-    // 4. Toggle goggles for all NPCs
-    (await this.refreshNPCUI_Show()).tl.play();
+    // 3. Get 'goIndoors' timeline, attached as '{locationKey}-goIndoors' on the JQuery #BLACKOUT-LAYER element
+    let goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`) as Maybe<gsap.core.Timeline>;
+    if (!goIndoorsTimeline) {
+      goIndoorsTimeline = this.buildGoIndoorsTimeline();
+    }
+    goIndoorsTimeline.play();
   }
 
   public async goOutdoors() {
@@ -5460,16 +5513,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         void media.kill(1);
       });
 
-    // 3. Animate canvas background radial gradient shadow stops
-    gsap.to(this.stage3D$.find(".under-layer"), {
-      background:
-        "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
-      duration: 1,
-      ease: "power2.inOut",
-    });
+    const {key} = this.getLocationData();
 
-    // 4. Toggle goggles for all NPCs
-    (await this.refreshNPCUI_Show()).tl.play();
+    // 3. Get 'goIndoors' timeline, attached as '{locationKey}-goIndoors' on the JQuery #BLACKOUT-LAYER element, reverse it
+    const goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`) as Maybe<gsap.core.Timeline>;
+    if (!goIndoorsTimeline) {
+      kLog.error("No goIndoors timeline found for location", {location: key});
+      return;
+    }
+    goIndoorsTimeline.reverse();
   }
 
   public async resetLocationData(location?: string) {
@@ -5675,7 +5727,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Creates subtle movement in the stage background
     if (!this.#stageWaverTimeline) {
       this.#stageWaverTimeline = gsap
-        .timeline({ repeat: -1, yoyo: true, repeatRefresh: true })
+        .timeline({ paused: true, repeat: -1, yoyo: true, repeatRefresh: true })
         .to(this.stage3D$, {
           rotationX: "random(-5, 5, 1)", // Random rotation on X axis
           rotationY: "random(-5, 5, 1)", // Random rotation on Y axis
@@ -5818,6 +5870,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             selector,
             properties,
           });
+          if ("z" in properties && typeof properties["z"] === "number") {
+            properties["z"] = Math.min(200, properties["z"]);
+          }
           timeline.to(
             selector,
             {
@@ -5891,11 +5946,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Phase 8: Show NPC UI elements
     timeline.add((await this.refreshNPCUI_Show()).tl, "stopMoving-=3");
 
-    // Phase 9: Update PC UI
+    // Phase 9: Update PC UI & GM NPC UI
     timeline.call(
       () => {
-        kLog.log("Updating PC UIs", JSON.parse(JSON.stringify(npcData)));
+        kLog.log("Updating UIs", JSON.parse(JSON.stringify(npcData)));
         void this.updatePCUI(pcData);
+        void this.updateNPCUI_GM();
       },
       [],
       getUser().isGM ? 1 : "stopMoving", // Different timing for GM vs player

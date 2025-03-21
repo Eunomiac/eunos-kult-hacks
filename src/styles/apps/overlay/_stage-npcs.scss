@@ -15,7 +15,7 @@
     width: 150px;
     height: 200px;
     transform-style: preserve-3d;
-    transition: all 1s ease;
+    // transition: all 1s ease;
 
     // &[data-goggles-state="goggles"] {
     //   .npc-portrait-image-base {
@@ -271,6 +271,7 @@
   .npc-portrait {
     height: auto;
     width: 150px;
+    opacity: 0;
 
     .npc-portrait-container {
       position: static;
@@ -396,6 +397,7 @@
 
     .npc-portrait-name-container {
       position: absolute;
+      opacity: 0;
       transform-origin: left top;
       scale: 1;
       left: 50%;
@@ -421,60 +423,60 @@
       }
     }
   }
-  .npc-portrait-invisible {
-    visibility: hidden;
-    .npc-portrait-frame,
-    .npc-portrait-name,
-    .npc-portrait-shadow {
-      visibility: hidden;
-    }
-  }
-  .npc-portrait-dimmed {
-    .npc-smoke-effect-container {
-      visibility: hidden;
-    }
-    .npc-portrait-frame,
-    .npc-portrait-name-container {
-      scale: 0.8;
-      filter: grayscale(1) brightness(0.5) blur(2px);
-    }
-  }
-  .npc-portrait-base {
-    .npc-smoke-effect-container {
-      visibility: hidden;
-    }
-    .npc-portrait-frame,
-    .npc-portrait-name-container {
-      scale: 1;
-      filter: grayscale(0) brightness(1) blur(0px);
+  // .npc-portrait-invisible {
+  //   visibility: hidden;
+  //   .npc-portrait-frame,
+  //   .npc-portrait-name,
+  //   .npc-portrait-shadow {
+  //     visibility: hidden;
+  //   }
+  // }
+  // .npc-portrait-dimmed {
+  //   .npc-smoke-effect-container {
+  //     visibility: hidden;
+  //   }
+  //   .npc-portrait-frame,
+  //   .npc-portrait-name-container {
+  //     scale: 0.8;
+  //     filter: grayscale(1) brightness(0.5) blur(2px);
+  //   }
+  // }
+  // .npc-portrait-base {
+  //   .npc-smoke-effect-container {
+  //     visibility: hidden;
+  //   }
+  //   .npc-portrait-frame,
+  //   .npc-portrait-name-container {
+  //     scale: 1;
+  //     filter: grayscale(0) brightness(1) blur(0px);
 
-      &.npc-portrait-name {
-        // scale: 1.25;
-      }
-    }
-  }
-  .npc-portrait-name-invisible {
-    .npc-portrait-name-container {
-      visibility: hidden;
-      .npc-portrait-name {
-        filter: blur(50px);
-      }
-    }
-  }
-  .npc-portrait-name-shrouded {
-    .npc-portrait-name-container {
-      .npc-portrait-name {
-        filter: blur(50px);
-      }
-    }
-  }
-  .npc-portrait-name-base {
-    .npc-portrait-name-container {
-      .npc-portrait-name {
-        filter: blur(0px);
-      }
-    }
-  }
+  //     &.npc-portrait-name {
+  //       // scale: 1.25;
+  //     }
+  //   }
+  // }
+  // .npc-portrait-name-invisible {
+  //   .npc-portrait-name-container {
+  //     visibility: hidden;
+  //     .npc-portrait-name {
+  //       filter: blur(50px);
+  //     }
+  //   }
+  // }
+  // .npc-portrait-name-shrouded {
+  //   .npc-portrait-name-container {
+  //     .npc-portrait-name {
+  //       filter: blur(50px);
+  //     }
+  //   }
+  // }
+  // .npc-portrait-name-base {
+  //   .npc-portrait-name-container {
+  //     .npc-portrait-name {
+  //       filter: blur(0px);
+  //     }
+  //   }
+  // }
 }
 
 #NPCS-GM {
