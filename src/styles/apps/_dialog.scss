@@ -6,7 +6,9 @@
   &.blurred-bg-dialog {
     padding: 0px;
     background: transparent;
-    .window-header { display: none;}
+    .window-header {
+      display: none;
+    }
     .window-content {
       padding: 0;
       width: 100%;
@@ -24,8 +26,8 @@
             text-align: center;
             color: var(--K4-bGOLD);
             background: black;
-            width: calc(100% + 60px);
-            margin-left: -0px;
+            width: 100%;
+            // margin-left: -0px;
             line-height: 40px;
             display: block;
             pointer-events: none;
@@ -34,6 +36,80 @@
       }
     }
 
+    &.assign-dramatic-hook-dialog {
+      border: none;
+      width: 800px !important;
+      .window-content {
+        .dialog-content {
+          margin: 0;
+          .form-group {
+            // margin-bottom: 40px;
+            .hook-container {
+              display: flex;
+              gap: 5px;
+              padding-right: 70px;
+              .hook-prefix {
+                white-space: nowrap;
+                font-size: 16px;
+                padding: 0 10px;
+                line-height: 26px;
+                height: 26px;
+                filter: brightness(1.5);
+                font-family: var(--font-primary);
+                font-weight: 1000;
+                color: var(--K4-bbGOLD);
+                text-align: right;
+                padding-right: 0;
+                background: #1b1b1b;
+                filter: brightness(1.5);
+              }
+
+              textarea {
+                // width: 100%;
+                font-size: 16px;
+                border: none;
+                font-family: var(--font-primary);
+                font-weight: 1000;
+                color: var(--K4-bbGOLD);
+                max-height: 26px;
+                height: 26px;
+                line-height: 26px;
+                padding: 0 10px;
+                padding-left: 0;
+                min-height: unset;
+                background: #1b1b1b;
+                resize: none;
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                box-shadow: none;
+              }
+            }
+          }
+        }
+        .dialog-buttons {
+          .one {
+            // transform: translateX(-50%);
+            // left: 50%;
+            bottom: 0;
+            right: unset;
+            left: unset;
+            transform: none;
+            margin: 0;
+            right: 0;
+            height: 24px;
+            line-height: 24px;
+            font-size: 16px;
+            padding: 0 10px;
+            background: var(--K4-bbGOLD);
+            color: var(--K4-dBLACK);
+            font-weight: 1000;
+            border: none;
+
+          }
+        }
+      }
+    }
     .dialog-buttons {
       .dialog-button {
         box-shadow: none !important;
@@ -59,7 +135,8 @@
         &.one {
           position: absolute;
           bottom: 0;
-          right: 10px;
+          left: 50%;
+          transform: translateX(-50%);
           pointer-events: auto;
           max-width: 100px;
           margin-bottom: 10px;
@@ -73,18 +150,15 @@
             filter: brightness(1.5);
             color: var(--K4-dBLACK);
           }
-
         }
       }
     }
   }
 
   .window-header {
-
   }
   .window-content {
     .dialog-content {
-
       .dialog-engage-in-combat {
         width: 600px;
         .weapon-list {
@@ -157,6 +231,7 @@
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
           gap: 10px;
           width: 100%;
+          margin-bottom: 40px;
 
           .condition-button {
             display: flex;
@@ -169,7 +244,10 @@
             padding: 10px 15px;
             font-size: 1.1em;
             cursor: pointer;
-            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            transition:
+              background 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease;
             opacity: 0.5;
             box-shadow: none;
             font-style: italic;
@@ -197,7 +275,6 @@
                 filter: grayscale(1);
               }
             }
-
 
             &.active {
               opacity: 1;
@@ -287,7 +364,6 @@
             }
           }
 
-
           .attribute-button {
             background: var(--bg-color);
             color: var(--fg-color);
@@ -299,7 +375,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: none;
-
 
             &.selected {
               background: var(--bg-color-hover);
@@ -395,11 +470,19 @@
           }
           &.location-region-townSquare {
             --fg-color: rgb(50, 50, 50);
-            --bg-color: rgb(255, 223, 0); // Gold/yellow for central gathering place
+            --bg-color: rgb(
+              255,
+              223,
+              0
+            ); // Gold/yellow for central gathering place
           }
           &.location-region-kingsgraveEstate {
             --fg-color: rgb(255, 255, 255);
-            --bg-color: rgb(72, 61, 139); // Dark slate blue for regal/grave setting
+            --bg-color: rgb(
+              72,
+              61,
+              139
+            ); // Dark slate blue for regal/grave setting
           }
           &.location-region-holtFarms {
             --fg-color: rgb(50, 50, 50);
@@ -407,7 +490,11 @@
           }
           &.location-region-beaconHill {
             --fg-color: rgb(50, 50, 50);
-            --bg-color: rgb(255, 140, 0); // Dark orange for beacon/warning light
+            --bg-color: rgb(
+              255,
+              140,
+              0
+            ); // Dark orange for beacon/warning light
           }
           &.location-region-eastTunnel {
             --fg-color: rgb(255, 255, 255);
@@ -455,7 +542,10 @@
   .dialog-buttons {
     .dialog-button[disabled] {
       opacity: 0.5;
-    }
       pointer-events: none;
+    }
+    .dialog-button {
+      box-shadow: none;
+    }
   }
 }

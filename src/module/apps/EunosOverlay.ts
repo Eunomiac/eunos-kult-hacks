@@ -123,6 +123,64 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         $(journalPage.sheet!.element).addClass("session-scribe-open");
       }
     },
+    dramaticHookCandleClick(event: PointerEvent, target: HTMLElement) {
+      const targetActorId = target.dataset["targetActorId"];
+      const userActorId = target.dataset["userActorId"];
+      if (!targetActorId) {
+        kLog.error("No targetActorId found for dramatic hook candle click");
+        return;
+      }
+      if (!userActorId) {
+        kLog.error("No userActorId found for dramatic hook candle click");
+        return;
+      }
+
+      const userPC = getActors().find((actor) => actor.id === userActorId);
+      if (!userPC || !userPC.isPC()) {
+        kLog.error("No pc found for userActorId", { userActorId });
+        return;
+      }
+      const targetPC = getActors().find((actor) => actor.id === targetActorId);
+      if (!targetPC || !targetPC.isPC()) {
+        kLog.error("No pc found for targetActorId", { targetActorId });
+        return;
+      }
+
+      new Dialog({
+        title: "Assign Dramatic Hook",
+        content: `
+          <div class="form-group">
+            <label>Hook for ${targetPC.name}</label>
+            <div class='hook-container'>
+            <span class='hook-prefix'>I should</span><textarea name="hook" rows="1">${userPC.system.dramatichooks.assignedHook || ''}</textarea>
+            </div>
+          </div>
+        `,
+        buttons: {
+          one: {
+            label: "Ok",
+            callback: async (html) => {
+              const hook = $(html).find("[name=hook]").val() as string;
+              await userPC.update({
+                system: {
+                  dramatichooks: {
+                    assignedHook: hook
+                  }
+                }
+              });
+            }
+          },
+          cancel: {
+            label: "❌",
+            callback: () => null
+          },
+        },
+        render: function(html: HTMLElement | JQuery) {
+          $(html).closest(".app.window-app.dialog").addClass("blurred-bg-dialog assign-dramatic-hook-dialog");
+        },
+        default: "one"
+      }).render(true);
+    },
     conditionCardClick(event: PointerEvent, target: HTMLElement) {
       const pcId = $(target).closest("[data-pc-id]").attr("data-pc-id");
       if (!pcId) {
@@ -6521,6 +6579,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Object.assign(context, {
       sessionScribeID: getSetting("sessionScribe"),
       chainBG: AlertPaths["LINK"]!.cssCode,
+      userActorID: getActor()?.id ?? "",
     });
     if (!getUser().isGM) {
       const dramaticHookAssignment = getSetting("dramaticHookAssignments")[

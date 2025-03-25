@@ -41,7 +41,7 @@
           <img class="pc-portrait-nameplate" src="{{getNameplateImage actor}}" />
         </div>
         {{#if (eq ../dramaticHookCandleID actorID)}}
-        <div class="dramatic-hook-candle-indicator">
+        <div class="dramatic-hook-candle-indicator" data-user-actor-id="{{../userActorID}}" data-target-actor-id="{{actorID}}" data-action="dramaticHookCandleClick">
           <i class="fa-solid fa-masks-theater"></i>
         </div>
         {{/if}}

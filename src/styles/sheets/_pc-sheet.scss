@@ -63,7 +63,6 @@
             padding: 0;
             margin-left: 0;
             margin-right: 4px;
-
           }
 
           .item-controls {
@@ -121,9 +120,6 @@
 
             .is-equipped-container,
             .reload-container {
-
-
-
               position: absolute;
               top: 50%;
               transform: translate(0%, -50%);
@@ -149,7 +145,6 @@
                 --icon-shadow: var(--K4-ddGOLD);
                 color: var(--K4-GOLD);
                 left: -21px;
-
               }
 
               &.reload-container {
@@ -159,11 +154,9 @@
                 right: -24px;
 
                 a:hover {
-
                   animation: icon-pulse 2.5s infinite;
                 }
               }
-
 
               @keyframes icon-pulse {
                 0% {
@@ -220,14 +213,14 @@
             padding: 0 5px;
             order: 2;
 
-            .item-name, .item-name * {
+            .item-name,
+            .item-name * {
               font-weight: bold;
               font-style: italic;
               // pointer-events: none;
               box-shadow: none !important;
               text-shadow: none !important;
               cursor: default !important;
-
             }
 
             img {
@@ -274,28 +267,28 @@
           margin-bottom: 0px;
 
           + .weapon-attack-block {
-          // margin-top: -2px;
-          // background: color-mix(in srgb, var(--K4-ddRED) 50%, transparent);
-          border-top: none;
-          border-bottom: 2px solid var(--K4-RED);
-          // border-width: 3px;
-          // border-top: 3px solid var(--K4-RED);
+            // margin-top: -2px;
+            // background: color-mix(in srgb, var(--K4-ddRED) 50%, transparent);
+            border-top: none;
+            border-bottom: 2px solid var(--K4-RED);
+            // border-width: 3px;
+            // border-top: 3px solid var(--K4-RED);
           }
 
           .dotline {
             .dot {
-            border: 1px solid var(--K4-bGOLD);
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-            width: 6px;
-            &.empty {
-              background: transparent;
-            }
+              border: 1px solid var(--K4-bGOLD);
+              border-bottom-left-radius: 0;
+              border-bottom-right-radius: 0;
+              width: 6px;
+              &.empty {
+                background: transparent;
+              }
 
-            &.filled {
-              background: var(--K4-bGOLD);
+              &.filled {
+                background: var(--K4-bGOLD);
+              }
             }
-          }
           }
         }
         .weapon-attack-block {
@@ -365,18 +358,18 @@
               // place-self: flex-end;
 
               .dot {
-              border: 1px solid black;
-              border-bottom-left-radius: 0;
-              border-bottom-right-radius: 0;
-              width: 6px;
-              &.empty {
-                background: transparent;
-              }
+                border: 1px solid black;
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+                width: 6px;
+                &.empty {
+                  background: transparent;
+                }
 
-              &.filled {
-                background: black;
+                &.filled {
+                  background: black;
+                }
               }
-            }
             }
           }
 
@@ -428,7 +421,8 @@
         &.relationship-list {
           .move-card {
             background: var(--relation-bg-color);
-            border: var(--relation-border-size) var(--relation-border-style) var(--relation-border-color);
+            border: var(--relation-border-size) var(--relation-border-style)
+              var(--relation-border-color);
             // box-sizing: content-box;
 
             .move-info.item-name {
@@ -470,7 +464,6 @@
                 font-weight: bold;
               }
             }
-
           }
         }
 
@@ -672,6 +665,7 @@
             display: flex;
             justify-content: flex-start;
             margin-top: 0px;
+            min-height: 35px;
             // margin-bottom: 20px;
             // background: rgba(0, 0, 0, 0.25);
             padding-left: 20px;
@@ -765,27 +759,168 @@
         }
 
         #Conditions {
+          .two-column {
+            display: flex;
+            gap: 10px;
           .stability-conditions {
+            padding: 0;
+            flex-basis: 100%;
+
             .stability-section,
             .wounds-section {
-              select {
-                margin-bottom: 5px;
-              }
-              .stability-states {
-                font-style: italic;
-                font-size: 14px;
-              }
-              .stability-modifiers,
-              .wound-modifiers {
-                margin-left: 0px;
-                .stability-modifier,
-                .wound-modifier {
-                  text-align: left;
-                  font-size: 14px;
-                  .move-name {
-                    font-size: 14px;
+              pointer-events: none;
+
+              &.stability-section {
+                padding: 0;
+                pointer-events: none;
+                .stability-controls {
+                  display: flex;
+                  justify-content: stretch;
+                  gap: 5px;
+                  flex-wrap: nowrap;
+                  pointer-events: none;
+
+                  .stability-value-container {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    gap: 5px;
+                    background: var(--bg-color-row);
+                    padding: 3px 0px;
+                    border-radius: 15px;
+                    margin-bottom: 5px;
+
+                    &.stability-broken {
+                      --bg-color-value: var(--K4-bRED);
+                      --fg-color-value: var(--K4-bWHITE);
+                      --bg-color-row: var(--K4-dBLACK);
+                      --fg-color-label: var(--K4-bRED);
+
+                      .stability-value {
+                        display: none;
+                      }
+                      .stability-label {
+                        font-size: 30px;
+                        text-align: center;
+                        width: 100%;
+                      }
+                    }
+                    &.stability-critical {
+                      --bg-color-value: var(--K4-bRED);
+                      --fg-color-value: var(--K4-bWHITE);
+                      --bg-color-row: var(--K4-dRED);
+                      --fg-color-label: var(--K4-bWHITE);
+                      .stability-label {
+                        font-size: 20px;
+                      }
+                    }
+                    &.stability-serious {
+                      --bg-color-value: var(--K4-ddRED);
+                      --fg-color-value: var(--K4-bRED);
+                      --bg-color-row: transparent;
+                      --fg-color-label: var(--K4-bRED);
+                      .stability-label {
+                        font-size: 20px;
+                      }
+                    }
+                    &.stability-moderate {
+                      --bg-color-value: transparent;
+                      --fg-color-value: var(--K4-RED);
+                      --bg-color-row: transparent;
+                      --fg-color-label: var(--K4-RED);
+                      .stability-value {
+                        border-color: transparent;
+                        background: transparent;
+                      }
+                    }
+                    &.stability-composed {
+                      --bg-color-value: transparent;
+                      --fg-color-value: var(--K4-BLACK);
+                      --bg-color-row: transparent;
+                      --fg-color-label: var(--K4-BLACK);
+
+                      .stability-value {
+                        font-weight: normal;
+                        font-weight: 600;
+                        border-color: transparent;
+                      }
+                      .stability-label {
+                        font-weight: 600;
+                      }
+                    }
+                    .stability-value {
+                      margin-left: 10px;
+                      display: block;
+                      height: 30px;
+                      width: 30px;
+                      line-height: 26px;
+                      font-size: 18px;
+                      font-weight: 1000;
+                      background: var(--bg-color-value);
+                      border-radius: 15px;
+                      color: var(--fg-color-value);
+                      border: 3px solid var(--fg-color-value);
+                    }
+
+                    .stability-label {
+                      display: block;
+                      height: 30px;
+                      width: 30px;
+                      line-height: 30px;
+                      font-size: 16px;
+                      font-weight: 1000;
+                      white-space: nowrap;
+                      color: var(--fg-color-label);
+                    }
                   }
-                  // white-space: nowrap;
+
+                  .stability-minus,
+                  .stability-plus {
+                    line-height: 36px;
+                    pointer-events: all !important;
+                    cursor: pointer;
+                  }
+                }
+                .stability-states {
+                  font-style: italic;
+                  font-size: 14px;
+                }
+
+                .stability-modifiers,
+                .wound-modifiers {
+                  margin-left: 0px;
+                  .stability-modifier,
+                  .wound-modifier {
+                    text-align: left;
+                    font-size: 14px;
+                    .move-name {
+                      font-size: 14px;
+                    }
+                    // white-space: nowrap;
+                  }
+                }
+              }
+
+              &.wounds-section {
+                .two-column-wound {
+
+                  .wound,
+                  input[type="text"] {
+                    pointer-events: all;
+                  }
+                }
+
+                .wound-modifiers {
+                  margin-left: 0px;
+                  .wound-modifier {
+                    text-align: left;
+                    font-size: 14px;
+                    .move-name {
+                      font-size: 14px;
+                    }
+                    // white-space: nowrap;
+                  }
                 }
               }
             }
@@ -804,6 +939,7 @@
               }
             }
           }
+        }
         }
       }
     }
@@ -850,7 +986,6 @@
                   .move-roll {
                     pointer-events: none;
                   }
-
                 }
               }
             }
@@ -868,8 +1003,6 @@
     }
   }
 }
-
-
 
 .armor-value {
   position: relative;

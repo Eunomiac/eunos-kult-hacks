@@ -27,6 +27,7 @@ const ActorSchemaPC = {
     dramatichook1: getDramaticHookField(),
     dramatichook2: getDramaticHookField(),
     assigningFor: new fields.StringField(),
+    assignedHook: new fields.StringField()
   }),
   majorwound1: getWoundField(),
   majorwound2: getWoundField(),

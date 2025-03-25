@@ -938,6 +938,47 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
+    "white-rabbit": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-white-rabbit.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 155,
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
+    "mad-hatter": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 209,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "world-on-fire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 146,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+
+    home: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: true,
+      duration: 229,
+      volume: 0.5,
+      autoplay: false,
+    },
     // "wonderful-life": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-wonderful-life.ogg",
     //   alwaysPreload: false,
@@ -988,16 +1029,6 @@ export const Sounds = {
     //   volume: 0.5,
     //   autoplay: false,
     // },
-    // home: {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   loop: false,
-    //   sync: true,
-    //   duration: 229,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
     // "arsonists-lulluby": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-arsonists-lullaby.ogg",
     //   alwaysPreload: false,
@@ -1009,16 +1040,7 @@ export const Sounds = {
     //   autoplay: false,
     // },
 
-    // "world-on-fire": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-world-on-fire.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 146,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
+
     // "panic-room": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-panic-room.ogg",
     //   alwaysPreload: false,
@@ -1039,16 +1061,7 @@ export const Sounds = {
     //   volume: 0.5,
     //   autoplay: false,
     // },
-    // "mad-hatter": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 209,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
+
     // "broken-crown": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-broken-crown.ogg",
     //   alwaysPreload: false,
@@ -5071,17 +5084,17 @@ export const LOADING_SCREEN_DATA = {
 
 // #region STABILITY ~
 export const STABILITY_VALUES = [
-  { value: 10, label: "10 - Composed" },
-  { value: 9, label: "9 - Moderate Stress" },
-  { value: 8, label: "8 - Moderate Stress" },
-  { value: 7, label: "7 - Serious Stress" },
-  { value: 6, label: "6 - Serious Stress" },
-  { value: 5, label: "5 - Serious Stress" },
-  { value: 4, label: "4 - Critical Stress" },
-  { value: 3, label: "3 - Critical Stress" },
-  { value: 2, label: "2 - Critical Stress" },
-  { value: 1, label: "1 - Critical Stress" },
-  { value: 0, label: "0 - Broken: Draw from the KULT Tarot" },
+  { value: 0, label: "<div class='stability-value-container stability-broken'><span class='stability-value'>0</span><span class='stability-label'>Broken</span></div>" },
+  { value: 1, label: "<div class='stability-value-container stability-critical'><span class='stability-value'>1</span><span class='stability-label'>Critical Stress</span></div>" },
+  { value: 2, label: "<div class='stability-value-container stability-critical'><span class='stability-value'>2</span><span class='stability-label'>Critical Stress</span></div>" },
+  { value: 3, label: "<div class='stability-value-container stability-critical'><span class='stability-value'>3</span><span class='stability-label'>Critical Stress</span></div>" },
+  { value: 4, label: "<div class='stability-value-container stability-critical'><span class='stability-value'>4</span><span class='stability-label'>Critical Stress</span></div>" },
+  { value: 5, label: "<div class='stability-value-container stability-serious'><span class='stability-value'>5</span><span class='stability-label'>Serious Stress</span></div>" },
+  { value: 6, label: "<div class='stability-value-container stability-serious'><span class='stability-value'>6</span><span class='stability-label'>Serious Stress</span></div>" },
+  { value: 7, label: "<div class='stability-value-container stability-serious'><span class='stability-value'>7</span><span class='stability-label'>Serious Stress</span></div>" },
+  { value: 8, label: "<div class='stability-value-container stability-moderate'><span class='stability-value'>8</span><span class='stability-label'>Moderate Stress</span></div>" },
+  { value: 9, label: "<div class='stability-value-container stability-moderate'><span class='stability-value'>9</span><span class='stability-label'>Moderate Stress</span></div>" },
+  { value: 10, label: "<div class='stability-value-container stability-composed'><span class='stability-value'>10</span><span class='stability-label'>Composed</span></div>" },
 ];
 
 export const STABILITY_STATES = [

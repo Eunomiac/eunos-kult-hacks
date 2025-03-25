@@ -93,6 +93,18 @@ select.uneditable {
   }
 }
 
+.free-text textarea {
+  width: 100%;
+  min-height: 24px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  resize: none;
+  overflow: hidden; /* Prevents scrollbar from appearing */
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
 input[readonly] {
   background: transparent;
   box-shadow: none !important;

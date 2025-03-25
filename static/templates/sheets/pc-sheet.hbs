@@ -293,11 +293,8 @@
         <div class="right-middle-column stability-conditions">
           <div class="section-label">{{localize "k4lt.Stability"}}</div>
           <div class="flex-column stability-section">
-            <div>
-              <select name="system.stability.value">
-                {{selectOptions system.stabilityValues selected=system.stability.value valueAttr="value"
-                labelAttr="label"}}
-              </select>
+            <div class="stability-controls">
+              {{{lookup (lookup system.stabilityValues system.stability.value) "label"}}}
               <a class="stability-minus" title="{{localize " k4lt.MinusStability"}}"><i
                   class="fas fa-minus-circle"></i></a>
               <a class="stability-plus" title="{{localize " k4lt.PlusStability"}}"><i
@@ -357,7 +354,7 @@
           <div class="section-label">Stability Conditions</div>
 
 
-          <div>
+ <div>
             <div class="condition-section">
               <img id="conditionAngry" class="condition-checkbox"
                 src="{{getConditionsImage system.conditionAngry.state}}">
@@ -366,8 +363,7 @@
             {{#if (eq system.conditionAngry.state "checked")}}
             <div class="condition-question">Who or what are you angry at?</div>
             <div class="free-text">
-              {{editor system.conditionAngry.answer1 target="system.conditionAngry.answer1" button=true owner=owner
-              editable=editable}}
+              <textarea name="system.conditionAngry.answer">{{system.conditionAngry.answer}}</textarea>
             </div>
             {{/if}}
           </div>
@@ -379,8 +375,7 @@
             {{#if (eq system.conditionSad.state "checked")}}
             <div class="condition-question">What are you sad about?</div>
             <div class="free-text">
-              {{editor system.conditionSad.answer1 target="system.conditionSad.answer1" button=true owner=owner
-              editable=editable}}
+              <textarea name="system.conditionSad.answer">{{system.conditionSad.answer}}</textarea>
             </div>
             {{/if}}
           </div>
@@ -393,8 +388,7 @@
             {{#if (eq system.conditionScared.state "checked")}}
             <div class="condition-question">What are you afraid of?</div>
             <div class="free-text">
-              {{editor system.conditionScared.answer1 target="system.conditionScared.answer1" button=true owner=owner
-              editable=editable}}
+              <textarea name="system.conditionScared.answer">{{system.conditionScared.answer}}</textarea>
             </div>
             {{/if}}
           </div>
@@ -407,8 +401,7 @@
             {{#if (eq system.conditionGuiltRidden.state "checked")}}
             <div class="condition-question">What do you feel you guilty about?</div>
             <div class="free-text">
-              {{editor system.conditionGuiltRidden.answer1 target="system.conditionGuiltRidden.answer1" button=true
-              owner=owner editable=editable}}
+              <textarea name="system.conditionGuiltRidden.answer">{{system.conditionGuiltRidden.answer}}</textarea>
             </div>
             {{/if}}
           </div>
@@ -421,9 +414,7 @@
             {{#if (eq system.conditionObsessed.state "checked")}}
             <div class="condition-question">What are you obsessed with?</div>
             <div class="free-text">
-              {{editor system.conditionObsessed.answer1 target="system.conditionObsessed.answer1" button=true
-              owner=owner
-              editable=editable}}
+              <textarea name="system.conditionObsessed.answer">{{system.conditionObsessed.answer}}</textarea>
             </div>
             {{/if}}
           </div>
@@ -436,8 +427,7 @@
             {{#if (eq system.conditionDistracted.state "checked")}}
             <div class="condition-question">What are you distracted by?</div>
             <div class="free-text">
-              {{editor system.conditionDistracted.answer1 target="system.conditionDistracted.answer1" button=true
-              owner=owner editable=editable}}
+              <textarea name="system.conditionDistracted.answer">{{system.conditionDistracted.answer}}</textarea>
             </div>
             {{/if}}
           </div>
@@ -456,8 +446,7 @@
             </div>
             <div class="condition-question">What is haunting you?</div>
             <div class="free-text">
-              {{editor system.conditionHaunted.answer target="system.conditionHaunted.answer" button=true owner=owner
-              editable=editable}}
+              <textarea name="system.conditionHaunted.answer">{{system.conditionHaunted.answer}}</textarea>
             </div>
             {{/if}}
           </div>

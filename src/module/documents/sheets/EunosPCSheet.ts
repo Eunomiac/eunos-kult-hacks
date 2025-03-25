@@ -22,7 +22,7 @@ export default function overridePCSheet() {
         system: ActorDataPC;
       };
       Object.assign(data, {
-        isGM: getUser().isGM
+        isGM: getUser().isGM,
       });
       return data;
     }
@@ -35,6 +35,27 @@ export default function overridePCSheet() {
         return;
       }
       const actor = this.actor as EunosActor & { system: ActorDataPC };
+
+      // Add auto-resize functionality for textareas
+      const textareas = html.find("textarea");
+
+      const autoResize = (textarea: HTMLElement) => {
+        const scrollPos = textarea.scrollTop;
+        textarea.style.height = "0";
+        const newHeight = Math.max(
+          textarea.scrollHeight, // Content height
+          24, // Minimum height
+        );
+        textarea.style.height = `${newHeight}px`;
+        textarea.scrollTop = scrollPos;
+      };
+
+      textareas.each((i, el: HTMLElement) => {
+        autoResize(el);
+        $(el).on("input", function () {
+          autoResize(this);
+        });
+      });
 
       html.find(".lock-sheet-button").on("click", () => {
         const isLocked = !actor.system.isSheetLocked;
@@ -55,6 +76,7 @@ export default function overridePCSheet() {
       if (!this.actor.isOwner && !getUser().isGM) {
         return;
       }
+
       html
         .find(".item-delete")
         .off("click")
@@ -161,7 +183,7 @@ export default function overridePCSheet() {
                   header: `${actor.name} Loses Stability!`,
                   body: `${actor.name} is now ${actor.stabilityState}.`,
                   target: UserTargetRef.all,
-                  soundName: "alert-hit-stability-down"
+                  soundName: "alert-hit-stability-down",
                 });
               },
               (error: unknown) => {
@@ -201,7 +223,7 @@ export default function overridePCSheet() {
                   header: `${actor.name} Gains Stability!`,
                   body: `${actor.name} is now ${actor.stabilityState}.`,
                   target: UserTargetRef.all,
-                  soundName: "alert-hit-stability-up"
+                  soundName: "alert-hit-stability-up",
                 });
               },
               (error: unknown) => {
@@ -270,7 +292,7 @@ export default function overridePCSheet() {
             header: `${actor.name} Reloads!`,
             body: `${actor.name} reloads their ${item.name}.`,
             target: UserTargetRef.all,
-            soundName: "alert-hit-stability-up"
+            soundName: "alert-hit-stability-up",
           });
         });
 
@@ -310,7 +332,10 @@ export default function overridePCSheet() {
             })
             .then(() => {
               this.render();
-              void EunosSockets.getInstance().call("refreshPCs", UserTargetRef.gm);
+              void EunosSockets.getInstance().call(
+                "refreshPCs",
+                UserTargetRef.gm,
+              );
               void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
             });
         });
@@ -352,7 +377,10 @@ export default function overridePCSheet() {
             })
             .then(() => {
               this.render();
-              void EunosSockets.getInstance().call("refreshPCs", UserTargetRef.gm);
+              void EunosSockets.getInstance().call(
+                "refreshPCs",
+                UserTargetRef.gm,
+              );
             });
         });
     }
