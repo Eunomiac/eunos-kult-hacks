@@ -20,9 +20,10 @@ declare global {
     get availableWeapons(): EunosItem[];
     getWoundPenaltyFor(move: EunosItem): number;
     getStabilityPenaltyFor(move: EunosItem): number;
-    getStabilityConditionsPenalty(): Promise<number>;
+    getStabilityConditionsPenalty(): Promise<number|null>;
     getPortraitImage(type: "bg" | "fg"): string;
     getGogglesImageSrc(): string;
+    askForAttribute(): Promise<string|null>;
     moveroll(moveID: string): Promise<void>;
   }
 }
@@ -281,9 +282,9 @@ export default function registerEunosActor(): void {
       return mod;
     }
 
-    async getStabilityConditionsPenalty(): Promise<number> {
+    async getStabilityConditionsPenalty(): Promise<number|null> {
       if (!this.isPC()) {
-        return 0;
+        return null;
       }
       const conditionMap = {
         Angry: this.system.conditionAngry,
@@ -297,17 +298,18 @@ export default function registerEunosActor(): void {
       function formatConditionRow(
         conditions: Array<keyof typeof conditionMap>,
       ) {
-        return `<div class="flex-row">
-        ${conditions
-          .map(
-            (condition) => `
-          <span class="condition-checkbox">
-            <input type="checkbox" name="condition-${condition}" id="condition-${condition}" checked>
-            <label for="condition-${condition}">${condition}</label>
-          </span>
-        `,
-          )
-          .join("")}
+        return `<div class="condition-buttons">
+          ${conditions
+            .map(
+              (condition) => `
+            <button class="condition-button active" data-condition="${condition}">
+              <span class="active-icon">✅</span>
+              <span class="inactive-icon">❌</span>
+              <span class="condition-label">${condition.replace("GuiltRidden", "Guilt-Ridden")}</span>
+            </button>
+          `,
+            )
+            .join("")}
         </div>`;
       }
       const activeConditions = Object.keys(conditionMap).filter(
@@ -319,34 +321,51 @@ export default function registerEunosActor(): void {
         return 0;
       }
       const hinderingConditions = await new Promise<
-        Record<keyof typeof conditionMap, boolean>
+        Record<keyof typeof conditionMap, boolean> | null
       >((resolve) => {
         new Dialog({
           title: "Relevant Conditions",
-          content: `<div class="stability-condition-dialog"><label>Which Stability Conditions Apply to This Roll?</label>${formatConditionRow(activeConditions)}</div>`,
+          content: `
+            <div class="stability-condition-dialog">
+              <label>Disable Inapplicable Conditions</label>
+              ${formatConditionRow(activeConditions)}
+            </div>`,
           default: "one",
           buttons: {
             one: {
               label: "Ok",
-              callback: () => {
+              callback: (html: HTMLElement | JQuery) => {
                 resolve(
                   Object.fromEntries(
                     activeConditions.map((condition) => [
                       condition,
-                      // Check if checkbox is checked
-                      (
-                        document.getElementById(
-                          `condition-${condition}`,
-                        ) as HTMLInputElement
-                      ).checked,
+                      $(html)
+                        .find(`button[data-condition="${condition}"]`)
+                        .hasClass("active"),
                     ]),
                   ) as Record<keyof typeof conditionMap, boolean>,
                 );
               },
             },
+            cancel: {
+              label: "❌",
+              callback: () => {
+                resolve(null);
+              },
+            },
           },
+          render: (html: HTMLElement | JQuery) => {
+            $(html).closest(".app.window-app.dialog").addClass("blurred-bg-dialog stability-condition-dialog");
+            $(html).find('.condition-button').on("click", function(event) {
+              event.preventDefault();
+              $(event.currentTarget).toggleClass('active');
+            });
+          }
         }).render(true);
       });
+      if (hinderingConditions === null) {
+        return null;
+      }
       kultLogger("Hindering Conditions => ", hinderingConditions);
       kultLogger(
         "Hindering Conditions total => ",
@@ -511,6 +530,56 @@ export default function registerEunosActor(): void {
       await ChatMessage.create(chatData);
     }
 
+    async askForAttribute(): Promise<string|null> {
+      const passiveAttributes = ["Reflexes", "Willpower", "Fortitude"];
+      const mainAttributes = ["Reason", "Intuition", "Perception", "Coolness", "Violence", "Charisma", "Soul"];
+
+      function formatAttributeButtons(attributes: string[]) {
+        return `<div class="attribute-buttons">
+          ${attributes
+            .map(
+              (attribute) => `
+            <button class="attribute-button" data-attribute="${attribute.toLowerCase()}">
+              <span class="attribute-label">${getLocalizer().localize(`k4lt.${attribute}`)}</span>
+            </button>
+          `,
+            )
+            .join("")}
+        </div>`;
+      }
+
+      const result = await new Promise<string|null>((resolve) => {
+        new Dialog({
+          title: getLocalizer().localize("k4lt.AskAttribute"),
+          content: `
+            <div class="attribute-select-dialog">
+              <label>Select Attribute</label>
+              ${formatAttributeButtons(passiveAttributes)}
+              ${formatAttributeButtons(mainAttributes)}
+              ${formatAttributeButtons(["None"])}
+            </div>
+          `,
+          buttons: {
+            cancel: {
+              label: "❌",
+              callback: () => { resolve(null) }
+            }
+          },
+          render: (html: HTMLElement | JQuery) => {
+            $(html).closest(".app.window-app.dialog").addClass("blurred-bg-dialog attribute-select-dialog");
+            $(html).find('.attribute-button').on('click', function(event) {
+              const value = $(event.currentTarget).data('attribute') as string;
+              resolve(value);
+              $(event.currentTarget).closest(".dialog").find(".close").trigger("click");
+            });
+          },
+          default: "cancel"
+        }).render(true);
+      });
+
+      return result;
+    }
+
     override async moveroll(moveID: string) {
       if (!this.isPC()) {
         return;
@@ -533,8 +602,12 @@ export default function registerEunosActor(): void {
         if (moveSystemType === "active") {
           const attr =
             move.system.attributemod == "ask"
-              ? await this._attributeAsk()
+              ? await this.askForAttribute()
               : move.system.attributemod;
+
+          if (attr === null) {
+            return;
+          }
 
           kultLogger("Attribute => ", attr);
 
@@ -553,6 +626,9 @@ export default function registerEunosActor(): void {
           const stabilityPenalty = this.getStabilityPenaltyFor(move);
           const stabilityConditionsPenalty =
             await this.getStabilityConditionsPenalty();
+          if (stabilityConditionsPenalty === null) {
+            return;
+          }
           const situation =
             woundPenalty + stabilityPenalty + stabilityConditionsPenalty;
           const forward: number = this.system.forward ?? 0;
@@ -562,31 +638,44 @@ export default function registerEunosActor(): void {
 
           if (specialflag === 3) {
             // Endure Injury
-            const boxoutput = await new Promise<{ harm_value: number }>(
+            const boxoutput = await new Promise<{ harm_value: number | null }>(
               (resolve) => {
                 new Dialog({
                   title: getLocalizer().localize("k4lt.EndureInjury"),
-                  content: `<div class="endure-harm-dialog"><label>${getLocalizer().localize("k4lt.EndureInjuryDialog")}</label><input id="harm_value" data-type="number" type="number"></div>`,
-                  default: "one",
+                  content: `
+                    <div class="endure-harm-dialog">
+                      <label>Incoming Harm</label>
+                      <div class="harm-buttons">
+                        ${[1, 2, 3, 4, 5, 6].map(num =>
+                          `<button class="harm-button" data-value="${num}">${num}</button>`
+                        ).join('')}
+                      </div>
+                    </div>`,
                   buttons: {
-                    one: {
-                      label: "Ok",
+                    cancel: {
+                      label: "❌",
                       callback: () => {
-                        resolve({
-                          harm_value: Number(
-                            (
-                              document.getElementById(
-                                "harm_value",
-                              ) as HTMLInputElement
-                            ).value,
-                          ),
-                        });
+                        resolve({ harm_value: null });
                       },
                     },
                   },
+                  render: function(html: HTMLElement | JQuery) {
+                    $(html).closest(".app.window-app.dialog").addClass("blurred-bg-dialog endure-harm-dialog");
+                    $(html).find('.harm-button').on('click', function(event) {
+                      const value = Number((event.currentTarget).dataset['value']);
+                      resolve({ harm_value: value });
+                      $(event.currentTarget).closest(".dialog").find(".close").trigger("click");
+                    });
+                  },
+                  default: "cancel"
                 }).render(true);
-              },
+              }
             );
+
+            if (boxoutput.harm_value === null) {
+              return;
+            }
+
             harm = boxoutput.harm_value;
             ongoing += this.armor;
           } else if (specialflag === 4) {
@@ -596,7 +685,7 @@ export default function registerEunosActor(): void {
               this,
             );
             const dialogOutput = await new Promise<
-              Maybe<{ weapon: EunosItem; index: number }>
+              Maybe<{ weapon: EunosItem; index: number }> | null
             >((resolve) => {
               new Dialog({
                 title: "Select Attack",
@@ -647,8 +736,10 @@ export default function registerEunosActor(): void {
                     },
                   },
                   cancel: {
-                    icon: '<i class="fas fa-times"></i>',
-                    label: "Cancel",
+                    label: "❌",
+                    callback: () => {
+                      resolve(null);
+                    },
                   },
                 },
                 render: (html) => {
@@ -691,10 +782,12 @@ export default function registerEunosActor(): void {
                 default: "submit",
               }).render(true);
             });
+            if (dialogOutput === null) {
+              return;
+            }
             if (
-              dialogOutput &&
-              dialogOutput.weapon &&
-              dialogOutput.index !== undefined
+              dialogOutput?.weapon &&
+              dialogOutput?.index !== undefined
             ) {
               secondChatMessageContent =
                 dialogOutput.weapon.getAttackChatMessage(dialogOutput.index);

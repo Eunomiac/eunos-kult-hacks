@@ -2,6 +2,83 @@
   height: auto !important;
   width: auto !important;
   min-width: 500px;
+
+  &.blurred-bg-dialog {
+    padding: 0px;
+    background: transparent;
+    .window-header { display: none;}
+    .window-content {
+      padding: 0;
+      width: 100%;
+      background: transparent;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px); /* For Safari support */
+
+      .dialog-content {
+        margin-bottom: 10px;
+        > div {
+          padding: 0;
+          > label {
+            font-size: 24px;
+            font-weight: 1000;
+            text-align: center;
+            color: var(--K4-bGOLD);
+            background: black;
+            width: calc(100% + 60px);
+            margin-left: -0px;
+            line-height: 40px;
+            display: block;
+            pointer-events: none;
+          }
+        }
+      }
+    }
+
+    .dialog-buttons {
+      .dialog-button {
+        box-shadow: none !important;
+        &.cancel {
+          position: absolute;
+          pointer-events: auto;
+          top: 5px;
+          right: 5px;
+          width: 40px;
+          background: var(--K4-ddRED);
+          color: var(--K4-bRED);
+          border: 1px solid var(--K4-bRED);
+          border-radius: 3px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: all 0.3s ease;
+
+          &:hover {
+            filter: brightness(1.5);
+          }
+        }
+
+        &.one {
+          position: absolute;
+          bottom: 0;
+          right: 10px;
+          pointer-events: auto;
+          max-width: 100px;
+          margin-bottom: 10px;
+          background: var(--K4-bbGOLD);
+          font-weight: 1000;
+          font-size: 24px;
+          font-family: var(--font-primary-smallcaps);
+          text-transform: lowercase;
+
+          &:hover {
+            filter: brightness(1.5);
+            color: var(--K4-dBLACK);
+          }
+
+        }
+      }
+    }
+  }
+
   .window-header {
 
   }
@@ -16,6 +93,233 @@
           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
           gap: 0px;
           margin-top: 10px;
+        }
+      }
+
+      // Add the new endure harm dialog styles here
+      .endure-harm-dialog {
+        // padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+
+        label {
+          font-size: 1.2em;
+          text-align: center;
+        }
+
+        .harm-buttons {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 10px;
+          width: 100%;
+          justify-items: center;
+
+          .harm-button {
+            background: var(--K4-dBLACK);
+            color: var(--K4-GOLD);
+            border: 1px solid var(--K4-GOLD);
+            border-radius: 3px;
+            // padding: 5px 20px;
+            font-size: 48px;
+            height: 60px;
+            width: 60px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+
+            &:hover {
+              background: var(--K4-dRED);
+              color: var(--K4-bWHITE);
+              border-color: var(--K4-bRED);
+              box-shadow: 0 0 5px var(--K4-bRED);
+            }
+          }
+        }
+      }
+
+      // Add the stability condition dialog styles
+      .stability-condition-dialog {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+
+        label {
+          font-size: 1.2em;
+          text-align: center;
+        }
+
+        .condition-buttons {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 10px;
+          width: 100%;
+
+          .condition-button {
+            display: flex;
+            align-items: center;
+            // gap: 10px;
+            background: var(--K4-bGREY);
+            color: var(--K4-dGREY);
+            border: 1px solid var(--K4-bbGOLD);
+            border-radius: 3px;
+            padding: 10px 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            opacity: 0.5;
+            box-shadow: none;
+            font-style: italic;
+
+            .active-icon,
+            .inactive-icon {
+              font-size: 24px;
+              font-weight: 1000;
+              text-align: center;
+              color: var(--K4-bGOLD);
+              // background: black;
+              // width: calc(100% + 60px);
+              // margin-left: -0px;
+              font-style: normal;
+
+              &.active-icon {
+                opacity: 0;
+                display: none;
+                filter: grayscale(1) invert(1) sepia(1) brightness(2);
+              }
+
+              &.inactive-icon {
+                opacity: 1;
+                display: block;
+                filter: grayscale(1);
+              }
+            }
+
+
+            &.active {
+              opacity: 1;
+              background: var(--K4-dGOLD);
+              color: var(--K4-bbGOLD);
+              box-shadow: 0 0 5px var(--K4-GOLD);
+              font-weight: 1000;
+              font-style: normal;
+
+              .active-icon {
+                opacity: 1;
+                display: block;
+              }
+              .inactive-icon {
+                opacity: 0;
+                display: none;
+              }
+            }
+
+            &:hover {
+              background: var(--K4-BLACK);
+              color: var(--K4-bGOLD);
+              border-color: var(--K4-bGOLD);
+            }
+
+            &:last-child:nth-child(odd) {
+              grid-column: 1 / -1;
+              max-width: 50%;
+              margin: 0 auto;
+            }
+
+            i {
+              opacity: 0;
+              transition: opacity 0.2s ease;
+              display: none;
+            }
+
+            .condition-label {
+              flex-grow: 1;
+              text-align: center;
+              font-size: 24px;
+            }
+          }
+        }
+      }
+
+      // Add the attribute selection dialog styles
+      .attribute-select-dialog {
+        // padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 0px;
+        margin-bottom: 10px;
+
+        .attribute-buttons {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          width: 100%;
+          padding: 0 20px;
+
+          &:nth-of-type(1) {
+            --bg-color: var(--K4-WHITE);
+            --fg-color: var(--K4-BLACK);
+            --bg-color-hover: var(--K4-bWHITE);
+            --fg-color-hover: var(--K4-ddBLACK);
+          }
+          &:nth-of-type(2) {
+            --bg-color: var(--K4-ddGOLD);
+            --fg-color: var(--K4-bGOLD);
+            --bg-color-hover: var(--K4-bGOLD);
+            --fg-color-hover: var(--K4-bWHITE);
+          }
+          &:nth-of-type(3) {
+            --bg-color: var(--K4-GREY);
+            --fg-color: var(--K4-WHITE);
+            --bg-color-hover: var(--K4-bGOLD);
+            --fg-color-hover: var(--K4-ddBLACK);
+          }
+
+          // This will center the last item if it's alone in its row
+          &:not(:first-of-type) {
+            .attribute-button:last-child {
+              grid-column: 2;
+            }
+          }
+
+
+          .attribute-button {
+            background: var(--bg-color);
+            color: var(--fg-color);
+            border: 1px solid var(--fg-color);
+            border-radius: 3px;
+            font-weight: 1000;
+            padding: 10px 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: none;
+
+
+            &.selected {
+              background: var(--bg-color-hover);
+              color: var(--fg-color-hover);
+              border-color: var(--fg-color-hover);
+              box-shadow: 0 0 5px var(--fg-color-hover);
+            }
+
+            &:hover {
+              background: var(--bg-color-hover);
+              color: var(--fg-color-hover);
+              border-color: var(--fg-color-hover);
+            }
+
+            .attribute-label {
+              display: block;
+              text-align: center;
+              font-size: 20px;
+            }
+          }
         }
       }
 
@@ -151,7 +455,7 @@
   .dialog-buttons {
     .dialog-button[disabled] {
       opacity: 0.5;
-      pointer-events: none;
     }
+      pointer-events: none;
   }
 }
