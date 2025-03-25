@@ -1,0 +1,13 @@
+# Summary of Chapter One — "ARRIVAL"
+- **Roman Larson** senses he’s being hunted by a mysterious force. He arrives with a small group of animals (two dogs, a horse named Morgan, and a raven named Edgar) and is guiding **Morgan Harvey** by horseback toward Emma’s Rise.
+- **Alistair Kingsgrave** drives a black Mercedes, and experiences a terrifying manifestation of the Tallyman while on the road.
+- **Jesús de Costa** follows in an old truck, notices Alistair’s erratic driving, and pulls over to help—only for the Tallyman to appear in Alistair’s back seat.
+- When Jesús opens fire, the Tallyman deflects the bullets and disables Jesús’s truck. Jesús grabs essentials and flees in Alistair’s car.
+- **Elijah Montgomery Lee** communes with the Hollow King, sees a signpost displaying four Polaroids: one of himself, and three of people he doesn't recognize.
+- Roman is warned that "The Howling that Follows the Silence" approaches, and then both he and Morgan hear its bloodcurdling howl—a howl that Morgan recognizes as the same sound he heard during his disastrous student expedition in the caves beneath Kentucky.
+- Everyone converges at the signpost, where the Polaroids confirm they’re all strangely connected. Jesús produces a fifth Polaroid, one that depicts Roman Larson (whose Polaroid was missing from the signpost).
+- Elijah affixes all five Polaroids to their positions on the signpost, and the forest seems to part, revealing Willow's Wending: the path to Emma's Rise. Guided by Elijah's cryptic warnings, the five proceed down the Wending.
+- Amidst howling winds and a sudden earthquake, the five come under rifle fire from unknown assailants in the woods around them.
+- Jesús panics and flees down the wending, getting separated from the group.
+- While seeking cover from the rifle fire, Roman confronts a ranger armed with futuristic technology, who identifies himself as "Ranger Nineteen". Roman expresses a desire to join, at which point Ranger Nineteen vanishes into the mists.
+- The session ends with the group scattered, their journey through the wending unfinished and uncertain.

@@ -25,6 +25,9 @@
       <div class="npc-short-description-block">
         <input id="npc-short-description-block" type="text" class="border-rect" value="{{system.shortDescription}}"
           name="system.shortDescription" />
+        <div class="npc-short-description-visibility">
+          <input type="checkbox" name="system.isShortDescVisible" {{checked system.isShortDescVisible}} />
+        </div>
       </div>
       {{else}}{{#if system.shortDescription}}
       <div class="npc-short-description-block">

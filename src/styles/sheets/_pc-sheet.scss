@@ -66,15 +66,6 @@
 
           }
 
-          .item-name {
-            display: flex;
-            flex-wrap: nowrap;
-            justify-content: stretch;
-            align-items: flex-start;
-            width: fit-content;
-            color: var(--fg-color);
-          }
-
           .item-controls {
             position: absolute;
             bottom: 0;
@@ -739,9 +730,13 @@
       .sheet-body {
         #Stats {
           .middle-section {
+            display: flex;
+            gap: 10px;
+
             .attribute-column {
               transform-origin: top right;
               scale: 90%;
+              flex: 0 0 auto;
 
               .attribute-box {
                 select,
@@ -760,6 +755,11 @@
                   font-weight: 1000;
                 }
               }
+            }
+
+            .advantage-box {
+              flex: 1;
+              min-width: 0;
             }
           }
         }
