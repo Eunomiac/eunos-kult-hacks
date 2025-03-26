@@ -938,6 +938,16 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
+    home: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: true,
+      duration: 229,
+      volume: 0.5,
+      autoplay: false,
+    },
     "white-rabbit": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-white-rabbit.ogg",
       alwaysPreload: false,
@@ -969,16 +979,6 @@ export const Sounds = {
       autoplay: false,
     },
 
-    home: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      loop: false,
-      sync: true,
-      duration: 229,
-      volume: 0.5,
-      autoplay: false,
-    },
     // "wonderful-life": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-wonderful-life.ogg",
     //   alwaysPreload: false,
@@ -1531,7 +1531,7 @@ export const Sounds = {
       fadeInDuration: 2,
       loop: true,
       sync: false,
-      volume: 0.5,
+      volume: 0.35,
       autoplay: false,
     },
     "weather-wind-blustery": {

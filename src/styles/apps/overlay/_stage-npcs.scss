@@ -35,6 +35,8 @@
         height: 100%;
         overflow: hidden;
         transform-origin: center bottom;
+
+
       }
     }
 
@@ -194,7 +196,8 @@
     }
 
 
-    .npc-smoke-effect-container {
+
+    .npc-smoke-effect {
       position: absolute;
       bottom: 0px;
       height: 1024px;
@@ -203,21 +206,28 @@
       bottom: -60px;
       transform: translate(-50%, 0);
       pointer-events: none;
-
-      .npc-smoke-effect {
-        position: absolute;
-        bottom: 0px;
-        height: 1024px;
-        width: 512px;
-        left: calc(50% + 25px);
-        bottom: -60px;
-        transform: translate(-50%, 0);
-        pointer-events: none;
-        border: none;
-        // opacity: 0; // Not needed since visibility: hidden is set inline
-      }
+      border: none;
+      opacity: 0; // Initial state for GSAP autoAlpha
     }
 
+
+    // Remove or comment out the old container structure
+    // .npc-smoke-effect-container {
+    //   position: absolute;
+    //   bottom: 0px;
+    //   height: 1024px;
+    //   width: 512px;
+    //   left: calc(50% + 25px);
+    //   bottom: -60px;
+    //   transform: translate(-50%, 0);
+    //   pointer-events: none;
+    //
+    //   .npc-smoke-effect {
+    //     height: 100%;
+    //     border: none;
+    //     display: none;
+    //   }
+    // }
   }
   .npc-drag-guideline {
     position: absolute;

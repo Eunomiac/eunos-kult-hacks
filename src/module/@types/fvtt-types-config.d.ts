@@ -70,6 +70,7 @@ declare global {
     "eunos-kult-hacks.sessionScribeDeck": string[];
     "eunos-kult-hacks.sessionScribe": string;
     "eunos-kult-hacks.dramaticHookAssignments": Record<string, string>;
+    "eunos-kult-hacks.introVideoFilename": string;
   }
 
 
