@@ -890,6 +890,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       mediaName: string;
     }) => {
       const media = EunosMedia.GetMedia(mediaName);
+      if (!media) {
+        kLog.error(`Media ${mediaName} not found`);
+        return 0;
+      }
       const timestamp = media.currentTime;
       kLog.log(`GM returning media timestamp: ${timestamp} for ${mediaName}`);
       return timestamp;
@@ -942,11 +946,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }) => {
       data.mediaData ??= {};
       const media = EunosMedia.GetMedia(data.mediaName);
+      if (!media) {
+        kLog.error(`Media ${data.mediaName} not found`);
+        return;
+      }
       void media.play(data.mediaData, false);
     },
 
     killMedia: (data: { mediaName: string }) => {
       const media = EunosMedia.GetMedia(data.mediaName);
+      if (!media) {
+        kLog.error(`Media ${data.mediaName} not found`);
+        return;
+      }
       void media.kill(3);
     },
 
@@ -2496,7 +2508,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get introVideo(): EunosMedia<EunosMediaTypes.video> {
     if (!this.#introVideo) {
       this.#introVideo = new EunosMedia("intro-video", {
-        path: "modules/eunos-kult-hacks/assets/video/something-unholy-intro.webm",
+        path: `modules/eunos-kult-hacks/assets/video/${getSetting("introVideoFilename")}`,
         type: EunosMediaTypes.video,
         parentSelector: "#TOP-ZINDEX-MASK",
         autoplay: false,
@@ -2504,7 +2516,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         sync: true,
         loop: false,
         mute: false,
-        volume: 1,
+        volume: 0.65,
         alwaysPreload: true,
         reportPreloadStatus: true,
       });
@@ -2747,7 +2759,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Schedule playback of session quote if intro video is just starting
     if (this.introVideo.currentTime <= 2) {
       const sessionQuoteName = `quote-session-${getSetting("chapterNumber")}`;
-      void EunosMedia.GetMedia(sessionQuoteName)?.play();
+      const quoteMedia = EunosMedia.GetMedia(sessionQuoteName);
+      if (quoteMedia) {
+        void quoteMedia.play();
+      }
     }
 
     // Schedule animating-out of black bars (or set them instantly if intro video has been playing for too long)
@@ -5868,10 +5883,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Handle lightning effects based on location brightness
     const lightningAudio = EunosMedia.GetMedia("weather-lightning");
-    if (!locationData.isBright) {
+    if (lightningAudio && !locationData.isBright) {
       // For dark locations, fade out lightning over 2 seconds
       await lightningAudio.kill(2);
-    } else {
+    } else if (lightningAudio) {
       const lightningVolume = Sounds.Weather["weather-lightning"].volume;
       if (name === "Emma's Rise") {
         // Special handling for Emma's Rise location
@@ -5887,7 +5902,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         }, 5000); // 5 second delay before lightning starts
       } else {
         // For other bright locations, just play lightning normally
-        void lightningAudio.play();
+        void lightningAudio?.play();
       }
     }
 

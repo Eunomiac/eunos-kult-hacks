@@ -41,13 +41,13 @@ export default class EunosMedia<T extends EunosMediaTypes> {
   static VideoExtensions: string[] = ["mp4", "webm"];
   // #endregion STATIC PROPERTIES
 
-  static GetMedia(mediaName: string): EunosMedia<EunosMediaTypes.audio | EunosMediaTypes.video> {
+  static GetMedia(mediaName: string): Maybe<EunosMedia<EunosMediaTypes.audio | EunosMediaTypes.video>> {
     if (EunosMedia.Sounds.has(mediaName)) {
       return EunosMedia.Sounds.get(mediaName)!;
     } else if (EunosMedia.Videos.has(mediaName)) {
       return EunosMedia.Videos.get(mediaName)!;
     } else {
-      throw new Error(`Media ${mediaName} not found`);
+      return undefined;
     }
   }
 
@@ -75,8 +75,8 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     }
 
     for (const [soundName, volume] of Object.entries(soundData)) {
-      const sound = EunosMedia.GetMedia(soundName) as EunosMedia<EunosMediaTypes.audio>;
-      void sound.play({volume});
+      const sound = EunosMedia.GetMedia(soundName);
+      void sound?.play({volume});
     }
   }
 
@@ -102,7 +102,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
   // #endregion INITIALIZATION
 
   #type: T;
-  #element: T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement;
+  #element: Maybe<T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement>;
   #category: EunosMediaCategories = EunosMediaCategories.Video;
   path: string;
   name: string;
@@ -682,7 +682,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
 
     // Wait for the emptied event which fires when the media element has been reset
     await new Promise<void>(resolve => {
-      this.#element.addEventListener('emptied', () => { resolve() }, { once: true });
+      this.#element!.addEventListener('emptied', () => { resolve() }, { once: true });
     });
 
     // Restore the source and set preload to "metadata"
@@ -698,14 +698,39 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     this.loadedMap.delete(this.name);
   }
 
+  async reinitialize(): Promise<void> {
+    // First unload the current media
+    await this.unload();
+
+    // Clear the element reference so it will be recreated
+    this.#element = undefined;
+
+    // Clear metadata and preload promises
+    this.#metadata = undefined;
+    this.#metadataPreloadPromise = undefined;
+    this.#canPlayPreloadPromise = undefined;
+
+    // If this media is set to always preload, preload it again
+    if (this.alwaysPreload) {
+      await this.preload();
+    }
+  }
 
   dampenAudio(audioFactor = 0.1): void {
+    if (!this.#element) {
+      kLog.error("Cannot dampen audio for media that has not been initialized", this);
+      return;
+    }
     this.isDampened = true;
     const targetVolume = this.originalVolume * audioFactor;
     gsap.to(this.#element, { volume: targetVolume, duration: 1, ease: "none" });
   }
 
   unDampenAudio(): void {
+    if (!this.#element) {
+      kLog.error("Cannot unDampen audio for media that has not been initialized", this);
+      return;
+    }
     this.isDampened = false;
     gsap.to(this.#element, { volume: this.originalVolume, duration: 1, ease: "none" });
   }
@@ -716,6 +741,10 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     sync?: boolean;
     fadeInDuration?: number;
   }, isSocketCalling = false): Promise<void> {
+    if (!this.#element) {
+      kLog.error("Cannot play media that has not been initialized", this);
+      return;
+    }
     const { volume, loop, sync, fadeInDuration } = options ?? {};
     const isTweeningVolume = this.playing && typeof volume === "number" && this.volume !== volume;
     const fromVolume = this.volume;

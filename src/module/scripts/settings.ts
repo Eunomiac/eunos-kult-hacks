@@ -225,6 +225,18 @@ export default function registerSettings() {
     type: Object,
     default: {},
   });
+  getSettings().register("eunos-kult-hacks", "introVideoFilename", {
+    name: "Intro Video Filename",
+    hint: "The filename (with extension) of the video to play during session start. File must be located in modules/eunos-kult-hacks/assets/video/",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "something-unholy-intro.webm",
+    onChange: (value) => {
+      // Reinitialize the intro video when the filename changes
+      void EunosOverlay.instance.introVideo.reinitialize();
+    }
+  });
 }
 
 

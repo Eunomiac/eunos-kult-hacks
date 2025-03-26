@@ -3,13 +3,6 @@
     <div class="npc-portrait-frame">
       <img class="npc-portrait-image npc-portrait-image-base" src="{{actor.img}}" />
       <img class="npc-portrait-image npc-portrait-image-goggles" src="{{getGogglesImg actor}}" />
-      <video
-        class="npc-smoke-effect"
-        playsinline
-        muted
-        src="modules/eunos-kult-hacks/assets/video/smoke-pillar-{{#if (isLocationBright)}}dark{{else}}bright{{/if}}.webm"
-        style="visibility: hidden;"
-      ></video>
     </div>
   </div>
   <div class="npc-portrait-name-container">
@@ -21,4 +14,11 @@
   <div class="npc-portrait-shadow">
     <img class="npc-portrait-shadow-image" src="{{actor.img}}" />
   </div>
+  <video
+    class="npc-smoke-effect"
+    playsinline
+    muted
+    src="modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-{{#if (isLocationBright)}}dark{{else}}bright{{/if}}.webm"
+    style="visibility: hidden;"
+  ></video>
 </div>
