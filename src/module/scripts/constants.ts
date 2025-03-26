@@ -938,6 +938,16 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
+    home: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: true,
+      duration: 229,
+      volume: 0.5,
+      autoplay: false,
+    },
     "white-rabbit": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-white-rabbit.ogg",
       alwaysPreload: false,
