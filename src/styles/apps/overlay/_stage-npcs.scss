@@ -205,9 +205,16 @@
       pointer-events: none;
 
       .npc-smoke-effect {
-        height: 100%;
+        position: absolute;
+        bottom: 0px;
+        height: 1024px;
+        width: 512px;
+        left: calc(50% + 25px);
+        bottom: -60px;
+        transform: translate(-50%, 0);
+        pointer-events: none;
         border: none;
-        display: none;
+        // opacity: 0; // Not needed since visibility: hidden is set inline
       }
     }
 

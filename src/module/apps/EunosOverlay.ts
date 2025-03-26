@@ -4658,35 +4658,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         if (portraitState !== NPCPortraitState.invisible && portraitState !== NPCPortraitState.removed) {
           subTl.call(
             () => {
-              const src = this.isLocationBright
-              ? "modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-dark.webp"
-              : "modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-bright.webp";
-            smokeEffect$
-              .attr("src", "")
-              .css("display", "block")
-              .attr("src", src);
-          },
-          [],
-          0,
-        )
+              const videoElement = smokeEffect$[0] as HTMLVideoElement;
+              videoElement.currentTime = 0; // Reset to start
+              void videoElement.play();
+            },
+            [],
+            0,
+          )
+          // Fade in smoke
+          .to(
+            smokeEffect$,
+            {
+              autoAlpha: 1,
+              duration: 0.1,
+            },
+            0,
+          )
 
-        // Fade in smoke
-        .to(
-          smokeEffect$,
-          {
-            opacity: 1,
-            duration: 0.1,
-          },
-          0,
-        )
-
-        // After smoke is visible, start portrait transition
-        .add(
-          portraitTimeline.tweenFromTo(
-            NPCPortraitState.invisible,
-            portraitState,
-          ),
-          SMOKE_EFFECT_DELAY,
+          // After smoke is visible, start portrait transition
+          .add(
+            portraitTimeline.tweenFromTo(
+              NPCPortraitState.invisible,
+              portraitState,
+            ),
+            SMOKE_EFFECT_DELAY,
           )
         }
 
