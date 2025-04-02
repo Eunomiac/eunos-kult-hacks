@@ -18,7 +18,13 @@
     class="npc-smoke-effect"
     playsinline
     muted
-    src="modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-{{#if (isLocationBright)}}dark{{else}}bright{{/if}}.webm"
+    crossorigin="anonymous"
+    preload="auto"
     style="visibility: hidden;"
-  ></video>
+  >
+    <source
+      src="modules/eunos-kult-hacks/assets/images/stage/npc-frame/smoke-pillar-{{#if (isLocationBright)}}dark{{else}}bright{{/if}}.webm"
+      type="video/webm"
+    />
+  </video>
 </div>

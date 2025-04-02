@@ -8,7 +8,7 @@
   pointer-events: none;
   visibility: hidden;
   height: fit-content;
-  width: fit-content;
+  width: 100%;
 
   .aurora {
     position: absolute;
@@ -44,6 +44,7 @@
     display: flex;
     flex-direction: column;
     filter: drop-shadow(0px 0px 0px rgba(0, 0, 0, 0.55));
+    overflow: visible;
     // text-shadow:
     //   0 0 10px rgba(255, 255, 255, 1);
 
@@ -51,19 +52,100 @@
       position: absolute;
       pointer-events: none;
       user-select: none;
-      display: block;
+      display: flex;
+      justify-content: center;
       color: var(--K4-bbGOLD);
       font-family: var(--font-decorative);
       font-size: 12em;
       transform-origin: center center;
       height: 150px;
+      width: 100%;
+      overflow: visible;
       &.glitch-top {
         position: relative;
-        clip-path: inset(0 0 48% 0);
+        clip-path: inset(0 0 50% 0);
       }
 
       &.glitch-bottom {
-        clip-path: inset(48% 0 0 0);
+        clip-path: inset(50% 0 0 0);
+      }
+
+      span {
+        &:first-child {
+          margin-left: 20px;
+        }
+
+        overflow: visible;
+        display: inline-block; // This helps with animations
+        position: relative; // This helps with individual character effects
+        transition: all 0.3s ease;
+        // text-shadow: 0 0 8px var(--K4-bbGOLD);
+
+        // Base styles for all spans
+        &[data-char=":"] {
+          margin: 0 0.025em;
+          color: var(--K4-bbGOLD);
+          opacity: 0.8;
+        }
+
+        // Progressive styling based on position
+        &[data-pos="1"] {
+          filter: blur(2px) grayscale(0.5) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+
+        &[data-pos="2"] {
+          filter: blur(2px) grayscale(0.5) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+
+        &[data-pos="3"] {
+          filter: blur(3px) grayscale(0.5) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+
+        &[data-pos="4"] {
+          filter: blur(4px) grayscale(0.5) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+
+        &[data-pos="5"] {
+          filter: blur(4px) grayscale(0.5) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+
+        &[data-pos="6"] {
+          filter: blur(5px) grayscale(0.6) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+        &[data-pos="7"] {
+          filter: blur(7px) grayscale(1) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+        &[data-pos="8"] {
+          filter: blur(10px) grayscale(1) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+        &[data-pos="9"] {
+          filter: blur(10px) grayscale(1) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+        &[data-pos="10"] {
+          filter: blur(10px) grayscale(1) brightness(0.25);
+          color: var(--K4-bbGOLD);
+        }
+
+        // Significant digits (pos="0") remain at full opacity
+        &[data-pos="0"] {
+          filter: blur(0);
+          opacity: 1;
+          color: var(--K4-bbGOLD);
+        }
+
+        // Hide all non-significant digits (any position except 0)
+        &[data-pos]:not([data-pos="0"]):not(:nth-last-child(-n + 4)) {
+          display: none !important;
+        }
       }
     }
 

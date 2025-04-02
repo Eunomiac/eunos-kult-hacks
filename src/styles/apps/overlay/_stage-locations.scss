@@ -1,22 +1,21 @@
 
 #LOCATIONS {
+
+  --center-x: calc(50% - 0.5 * var(--sidebar-width));
   display: block;
   position: fixed;
-  height: 100%;
-  width: 100%;
   pointer-events: none;
   position: absolute;
+  transform-origin: center;
   transform: translate(-50%, -50%);
-  top: 15%;
-  left: calc(70% - 0.5 * var(--sidebar-width));
-  // z-index: 1000;
-  // border-radius: 30px;
-  // border: 10px solid var(--K4-GOLD);
-  // background: rgba(0, 0, 0, 0.5);
-  // padding: 20px;
-  // backdrop-filter: blur(10px);
-  height: 30vh;
-  width: 35vw;
+  top: 50%;
+  left: var(--center-x);
+  // Remove these positioning styles:
+  // transform: translate(-50%, -50%);
+  // top: 15%;
+  // left: calc(70% - 0.5 * var(--sidebar-width));
+  // height: 30vh;
+  // width: 35vw;
   // overflow: hidden;
 
   // visibility: hidden; // !important;
@@ -49,8 +48,14 @@
       mask-repeat: no-repeat;
       mask-position: center;
 
+      border: none;
+
       &[src=""] {
         display: none;
+      }
+
+      ~ .location-image {
+        margin-top: -100%;
       }
 
     }

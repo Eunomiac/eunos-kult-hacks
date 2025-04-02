@@ -1340,6 +1340,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         repeatDelay,
       })
       .addLabel("glitch")
+      // Target the entire text container for skew effects
       .to(glitchText$, {
         duration: 0.1,
         skewX: "random([20,-20])",
@@ -1356,39 +1357,28 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .add("split", 0)
 
       .to(glitchTop$, { duration: 0.5, x: -30, ease: "power4.inOut" }, "split")
-      .to(
-        glitchBottom$,
-        { duration: 0.5, x: 30, ease: "power4.inOut" },
-        "split",
-      )
-      .to(
-        glitchText$,
-        { duration: 0.08, textShadow: "-13px -13px 0px var(--K4-dRED)" },
-        "split",
-      )
+      .to(glitchBottom$, { duration: 0.5, x: 30, ease: "power4.inOut" }, "split")
+      .to(glitchText$, {
+        duration: 0.08,
+        textShadow: "-13px -13px 0px var(--K4-dRED)"
+      }, "split")
       .to(this.countdown$, { duration: 0, scale: 1.2 }, "split")
       .to(this.countdown$, { duration: 0, scale: 1 }, "+=0.02")
-      .to(
-        glitchText$,
-        { duration: 0.08, textShadow: "0px 0px 0px var(--K4-dRED)" },
-        "+=0.09",
-      )
+      .to(glitchText$, {
+        duration: 0.08,
+        textShadow: "0px 0px 0px var(--K4-dRED)"
+      }, "+=0.09")
       .to(glitchText$, { duration: 0.02, color: "#FFF" }, "-=0.05")
       .to(glitchText$, { duration: 0.02, color: "var(--K4-bGOLD)" })
-      .to(
-        glitchText$,
-        { duration: 0.03, textShadow: "13px 13px 0px #FFF" },
-        "split",
-      )
-      .to(
-        glitchText$,
-        {
-          duration: 0.08,
-          textShadow: "0px 0px 0px transparent",
-          clearProps: "textShadow",
-        },
-        "+=0.01",
-      )
+      .to(glitchText$, {
+        duration: 0.03,
+        textShadow: "13px 13px 0px #FFF"
+      }, "split")
+      .to(glitchText$, {
+        duration: 0.08,
+        textShadow: "0px 0px 0px transparent",
+        clearProps: "textShadow",
+      }, "+=0.01")
       .to(glitchTop$, { duration: 0.2, x: 0, ease: "power4.inOut" })
       .to(glitchBottom$, { duration: 0.2, x: 0, ease: "power4.inOut" })
       .to(glitchText$, { duration: 0.02, scaleY: 1.1, ease: "power4.inOut" })
@@ -1460,14 +1450,33 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private updateCountdownText() {
     const timeLeft = countdownUntil();
     const textElements$ = this.countdown$.find(".glitch-text");
-    textElements$.text(
-      [
-        String(timeLeft.days).padStart(2, "0"),
-        String(timeLeft.hours).padStart(2, "0"),
-        String(timeLeft.minutes).padStart(2, "0"),
-        String(timeLeft.seconds).padStart(2, "0"),
-      ].join(":"),
-    );
+
+    const formattedText = [
+      String(timeLeft.days).padStart(2, "0"),
+      String(timeLeft.hours).padStart(2, "0"),
+      String(timeLeft.minutes).padStart(2, "0"),
+      String(timeLeft.seconds).padStart(2, "0"),
+    ].join(":");
+
+    const firstSignificantPos = formattedText.split("")
+      .findIndex(char => char !== "0" && char !== ":");
+
+    const significantPos = firstSignificantPos === -1
+      ? formattedText.length - 1
+      : firstSignificantPos;
+
+    const spanWrappedText = formattedText
+      .split("")
+      .map((char, index) => {
+        const posFromSignificant = index < significantPos
+          ? significantPos - index
+          : 0;
+
+        return `<span data-pos="${posFromSignificant}" data-char="${char}">${char}</span>`;
+      })
+      .join("");
+
+    textElements$.html(spanWrappedText);
     return timeLeft;
   }
 
@@ -5255,6 +5264,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         name: location,
         key: camelCase(location),
         images: {},
+        position: {
+          top: 0,
+          right: "var(--sidebar-width)",
+          width: "35vw"
+        },
         description: "",
         mapTransforms: [],
         audioDataIndoors: {},
@@ -5282,33 +5296,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     };
   }
   private getLocationSettingsData(location: string): Location.SettingsData {
-    const settingData = getSettings().get(
-      "eunos-kult-hacks",
-      "locationData",
-    ) as Record<string, Location.SettingsData>;
 
-    if (!(location in settingData) || !settingData[location]) {
-      settingData[location] = this.getLocationDefaultSettingsData(location);
-    } else {
-      // If hard-coded map transforms are available, use them, overwriting setting data.
-      const staticMapTransforms =
-        LOCATIONS[location]?.mapTransforms;
-      if (staticMapTransforms) {
-        settingData[location].mapTransforms = staticMapTransforms;
-      }
-      // If hard-coded audio data is available, use it, overwriting setting data.
-      const staticAudioData =
-        LOCATIONS[location]?.audioDataIndoors;
-      if (staticAudioData) {
-        settingData[location].audioDataIndoors = staticAudioData;
-      }
-      const fullSettingsData: Location.SettingsData = {
-        ...this.getLocationDefaultDynamicSettingsData(),
-        ...settingData[location],
-      };
-      settingData[location] = fullSettingsData;
+    const finalSettingData = {
+      ...this.getLocationDefaultDynamicSettingsData(),
+      ...getSettings().get("eunos-kult-hacks", "locationData")[location],
+      ...this.getLocationDefaultStaticSettingsData(location),
     }
-    return settingData[location];
+
+    return finalSettingData;
   }
   private getLocationPCData(
     pcLocationData?: Record<IDString, Location.PCData.SettingsData>,
@@ -5678,10 +5673,31 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const timeline = gsap.timeline();
     const curSrc = this.locationImage$.attr("src") ?? "";
     const newSrc = imgKey ? locData.images[imgKey]! : "";
-    kLog.log("refreshing location image", { curSrc, newSrc });
-    if (curSrc === newSrc) {
-      return;
+
+    // Apply position properties if they exist
+    if (locData.position) {
+      const { center, ...cssProps } = locData.position;
+
+      const gsapProps: gsap.TweenVars = {
+        ...cssProps,
+        duration: 0.5,
+        ease: "power2.out",
+      };
+
+      // If center coordinates are provided, use them for positioning
+      if (center) {
+        gsapProps.xPercent = -50;
+        gsapProps.yPercent = -50;
+        gsapProps.x = center.x;
+        gsapProps.y = center.y;
+      }
+
+      timeline.to(this.locationContainer$, gsapProps);
     }
+
+    // Continue with existing image swap logic
+    if (curSrc === newSrc) return;
+
     timeline
       .to(this.locationImage$, {
         opacity: 0,
@@ -5691,11 +5707,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .call(() => {
         this.locationImage$.attr("src", newSrc);
       });
+
     if (newSrc) {
       timeline
         .to(this.locationContainer$, {
-          y: 0,
-          x: 0,
           opacity: 1,
           filter: "blur(0)",
           duration: 0,
@@ -5713,6 +5728,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   public async initializeLocation() {
     await this.goToLocation(null, getSetting("currentLocation"));
+
+    const locationData = this.getLocationData(getSetting("currentLocation"));
+    if (locationData.currentImage) {
+      await this.refreshLocationImage(locationData.currentImage);
+    }
   }
 
   /**
@@ -5733,7 +5753,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Get data for both the current and target locations to handle transitions
     const fromLocation = getSetting("currentLocation"); // Get current location before change
-    const fromLocationData = this.getLocationData(fromLocation); // Load current location data
     const locationData = this.getLocationData(location); // Load target location data
 
     // Validate the target location exists to prevent invalid state
@@ -5994,9 +6013,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             selector,
             properties,
           });
-          if ("z" in properties && typeof properties["z"] === "number") {
-            properties["z"] = Math.min(200, properties["z"]);
-          }
           timeline.to(
             selector,
             {

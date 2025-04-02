@@ -938,6 +938,26 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
+    "guns-for-hire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 224,
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
+    "way-down-we-go": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 214,
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
     "white-rabbit": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-white-rabbit.ogg",
       alwaysPreload: false,
@@ -978,120 +998,96 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-
-    // "wonderful-life": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-wonderful-life.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 172, // 2:52
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.75,
-    //   autoplay: false,
-    // },
-    // "come-along": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-come-along.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 178, // 2:58
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-    // "guns-for-hire": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 224,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.75,
-    //   autoplay: false,
-    // },
-    // sucker: {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 220,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-    // playground: {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 226,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-    // "arsonists-lulluby": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-arsonists-lullaby.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 263, // 4:23
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-
-
-    // "panic-room": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-panic-room.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 199,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-    // "to-ashes-and-blood": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-to-ashes-and-blood.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 243,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-
-    // "broken-crown": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-broken-crown.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 229,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-    // twelve: {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-twelve.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 153,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
-    // "way-down-we-go": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
-    //   alwaysPreload: false,
-    //   delay: 0,
-    //   duration: 214,
-    //   loop: false,
-    //   sync: true,
-    //   volume: 0.5,
-    //   autoplay: false,
-    // },
+    "wonderful-life": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-wonderful-life.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 172, // 2:52
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
+    "come-along": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-come-along.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 178, // 2:58
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    sucker: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 220,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    playground: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-playground.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 226,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "arsonists-lulluby": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-arsonists-lullaby.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 263, // 4:23
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "panic-room": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-panic-room.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 199,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "to-ashes-and-blood": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-to-ashes-and-blood.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 243,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "broken-crown": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-broken-crown.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 229,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    twelve: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-twelve.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 153,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
   },
   Ambient: {
     "ambient-academy": {
@@ -1893,6 +1889,15 @@ export declare namespace Location {
     key: string;
     description?: string;
     images: Record<string, string>;
+    position?: {
+      top?: gsap.TweenValue;
+      left?: gsap.TweenValue;
+      right?: gsap.TweenValue;
+      bottom?: gsap.TweenValue;
+      center?: { x: gsap.TweenValue; y: gsap.TweenValue };
+      height?: gsap.TweenValue;
+      width?: gsap.TweenValue;
+    };
     mapTransforms: Array<
       Array<{
         selector: string;
@@ -1957,6 +1962,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Nowhere",
     key: "nowhere",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     isBright: false,
     isIndoors: false,
@@ -2018,6 +2028,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-1.webp",
       "Fire Road Car Ahead":
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
+    },
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
     },
     audioDataOutdoors: {
       "ambient-crickets": {},
@@ -2084,6 +2099,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-2.webp",
       "Fire Road Car Ahead":
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
+    },
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
     },
     audioDataOutdoors: {
       "ambient-crickets": {},
@@ -2159,6 +2179,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     audioDataOutdoors: {
       "ambient-crickets": {},
       "ambient-eerie-forest": {},
@@ -2229,6 +2254,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         "modules/eunos-kult-hacks/assets/images/locations/futuristic-soldier.webp",
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
+    },
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
     },
     audioDataOutdoors: {
       "ambient-forest-night": {},
@@ -2302,6 +2332,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     audioDataOutdoors: {
       "ambient-forest-night": {},
       "ambient-eerie-forest": {},
@@ -2374,6 +2409,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     audioDataOutdoors: {
       "ambient-forest-night": {},
       "ambient-eerie-forest": {},
@@ -2436,6 +2476,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #1",
     key: "rangerStation1",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     audioDataOutdoors: {
       "ambient-electricity-night": {},
       "ambient-crickets": {},
@@ -2539,6 +2584,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise",
     key: "emmasRise",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {},
     isBright: true,
@@ -2659,6 +2709,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Town Square",
     key: "townSquare",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -2686,7 +2741,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 311,
+            z: 200,
           },
         },
         {
@@ -2717,6 +2772,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Wainwright Academy",
     key: "wainwrightAcademy",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -2778,6 +2838,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise Primary School",
     key: "emmasRisePrimarySchool",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     audioDataOutdoors: {
       "weather-wind-leafy": {},
     },
@@ -2808,7 +2873,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -2839,6 +2904,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise Middle School for Wayward Boys",
     key: "emmasRiseMiddleSchoolForWaywardBoys",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     audioDataOutdoors: {
       "weather-wind-leafy": {},
     },
@@ -2900,6 +2970,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Town Hall",
     key: "townHall",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -2957,6 +3032,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise Community Center",
     key: "emmasRiseCommunityCenter",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -2988,7 +3068,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 373,
+            z: 200,
           },
         },
         {
@@ -3019,6 +3099,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Cemetery",
     key: "oldCemetery",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -3050,7 +3135,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 559,
+            z: 200,
           },
         },
         {
@@ -3081,6 +3166,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Lantern Way, East",
     key: "lanternWayEast",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -3111,7 +3201,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 745,
+            z: 200,
           },
         },
         {
@@ -3142,6 +3232,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Lantern Way, West",
     key: "lanternWayWest",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -3172,7 +3267,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 745,
+            z: 200,
           },
         },
         {
@@ -3203,6 +3298,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "First Bank of Emma's Rise",
     key: "firstBankOfEmmasRise",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     region: "townSquare",
     audioDataOutdoors: {
@@ -3233,7 +3333,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -3264,6 +3364,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Days Go By Pub",
     key: "daysGoByPub",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     region: "townSquare",
     audioDataOutdoors: {
@@ -3294,7 +3399,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -3325,6 +3430,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Danny's Diner",
     key: "dannysDiner",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     region: "townSquare",
     audioDataOutdoors: {
@@ -3355,7 +3465,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -3386,6 +3496,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #3",
     key: "rangerStation3",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     region: "townSquare",
     audioDataOutdoors: {
@@ -3417,7 +3532,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -3448,6 +3563,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Medical Clinic",
     key: "medicalClinic",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataIndoors: {
       "ambient-medical-clinic": {},
@@ -3478,7 +3598,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -3509,6 +3629,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Holt Family Lodge",
     key: "holtFamilyLodge",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -3572,6 +3697,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Holt Farms",
     key: "holtFarms",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-farm": {},
@@ -3631,6 +3761,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "The Greenhouse",
     key: "theGreenhouse",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataIndoors: {
       "ambient-generic-vent": {}
@@ -3662,7 +3797,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 435,
+            z: 200,
           },
         },
         {
@@ -3693,6 +3828,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "The Aerie",
     key: "theAerie",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3752,6 +3892,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Beacon Hill",
     key: "beaconHill",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3810,6 +3955,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Bell Tower",
     key: "bellTower",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3841,7 +3991,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -3872,6 +4022,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Beacon Observatory",
     key: "beaconObservatory",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3903,7 +4058,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -3934,6 +4089,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Beacon Library",
     key: "beaconLibrary",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3964,7 +4124,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -3991,10 +4151,15 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       ],
     ],
   },
-  theEastTunnel: {
-    name: "The East Tunnel",
-    key: "theEastTunnel",
+  eastTunnelEntrance: {
+    name: "East Tunnel Entrance",
+    key: "eastTunnelEntrance",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-low-wind-hum": {},
@@ -4053,10 +4218,89 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       ],
     ],
   },
+  theEastTunnel: {
+    name: "The East Tunnel",
+    key: "theEastTunnel",
+    images: {
+      "Polaroids - Missing":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-missing.webp",
+      "Polaroids - In Place":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-present.webp",
+      "Wending Depths 1":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
+      "Wending Depths 2":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
+      "Wending Depths 3":
+        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
+      "Hollow King":
+        "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
+    },
+    position: {
+      // left: "50%",
+      top: "45%",
+      width: "80vw"
+    },
+    description: "",
+    audioDataOutdoors: {},
+    audioDataIndoors: {
+      "ambient-underground": {},
+      "ambient-creepy": {}
+    },
+    isBright: false,
+    isIndoors: true,
+    region: "eastTunnel",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 1215
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 3065,
+            backgroundPositionY: -370,
+            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
+            transform: "matrix(0, 1, -1, 0, -3500, -3500)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "matrix(0, 1, -1, 0, -3500, -3500)",
+            background: "radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.5) 3%, rgb(0 0 0) 6%)",
+          },
+        },
+      ]
+    ]
+  },
   theWeepingKing: {
     name: "The Weeping King",
     key: "theWeepingKing",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-weeping-king": {},
@@ -4085,7 +4329,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621,
+            z: 200,
           },
         },
         {
@@ -4116,6 +4360,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Pact Grove",
     key: "pactGrove",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-birdsong": {},
@@ -4145,7 +4394,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621
+            z: 200
           }
         },
         {
@@ -4172,6 +4421,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Bridge",
     key: "oldBridge",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-creek": {},
@@ -4200,7 +4454,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621
+            z: 200
           }
         },
         {
@@ -4227,6 +4481,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Tree Line",
     key: "oldTreeLine",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-old-willow": {},
@@ -4255,7 +4514,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 373
+            z: 200
           }
         },
         {
@@ -4282,6 +4541,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Willow",
     key: "oldWillow",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-old-willow": {},
@@ -4309,7 +4573,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: 621
+          z: 200
         }
       },
       {
@@ -4335,6 +4599,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Standing Stones",
     key: "standingStones",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-standing-stones": {}
@@ -4361,7 +4630,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: 621
+          z: 200
         }
       },
       {
@@ -4387,6 +4656,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #4",
     key: "rangerStation4",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -4417,7 +4691,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: 621
+          z: 200
         }
       },
       {
@@ -4443,6 +4717,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Redemption House",
     key: "redemptionHouse",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -4472,7 +4751,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: 621
+          z: 200
         }
       },
       {
@@ -4498,6 +4777,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #2",
     key: "rangerStation2",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -4530,7 +4814,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       {
         selector: "#STAGE #SECTION-3D",
         properties: {
-          z: 621
+          z: 200
         }
       },
       {
@@ -4556,6 +4840,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ash Hill",
     key: "ashHill",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-creepy": {},
@@ -4609,6 +4898,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ash Hill Development",
     key: "ashHillDevelopment",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataIndoors: {
       "ambient-creepy": {},
@@ -4637,7 +4931,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621
+            z: 200
           }
         },
         {
@@ -4664,6 +4958,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Kingsgrave Estate",
     key: "kingsgraveEstate",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "ambient-old-willow": {}
@@ -4718,6 +5017,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Chapel",
     key: "oldChapel",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -4748,7 +5052,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 745
+            z: 200
           }
         },
         {
@@ -4775,6 +5079,11 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Kingsgrave Manor",
     key: "kingsgraveManor",
     images: {},
+    position: {
+      top: 0,
+      right: "var(--sidebar-width)",
+      width: "35vw"
+    },
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -4805,7 +5114,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D",
           properties: {
-            z: 621
+            z: 200
           }
         },
         {
