@@ -14,7 +14,7 @@
 		"discord": "Eunomiac#8172"
 	}],
   "socket": true,
-  "esmodules": ["scripts/CustomEase.js", "eunos-kult-hacks.js"],
+  "esmodules": ["greensock/esm/all.js", "eunos-kult-hacks.js"],
   "scripts": ["greensock/dist/gsap.min.js"],
   "styles": ["styles.css"],
   "packs": [

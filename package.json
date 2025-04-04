@@ -43,6 +43,9 @@
     "vite-plugin-static-copy": "^2.2.0",
     "vite-tsconfig-paths": "^5.1.4"
   },
+  "dependencies": {
+    "gsap": "^3.12.5"
+  },
   "overrides": {
     "@types/earcut": "3.0.0"
   },

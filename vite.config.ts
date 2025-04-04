@@ -45,6 +45,56 @@ const foundryPackagePath = getFoundryPackagePath(packageType, packageID);
 // await symlinkFoundryPackage(packageType, packageID, foundryHostData);
 
 /**
+ * Custom plugin to handle the Foundry VTT module system for GSAP integration.
+ */
+function foundryPlugin(): Vite.Plugin {
+  const usesFoundryPlugin = Symbol("foundry-plugin");
+  const externalsSourceMap = new Map([
+    ["gsap", "scripts/greensock/esm/all.js"]
+  ]);
+  console.log("ACTIVATING FOUNDRY PLUGIN");
+
+  return {
+    name: "foundry-plugin",
+
+    resolveId(source) {
+      if (externalsSourceMap.has(source)) {
+        const id = externalsSourceMap.get(source);
+        if (id) {
+          return {
+            id,
+            // This is used to make sure that there's no later transformations during production.
+            external: "absolute",
+            meta: {
+              [usesFoundryPlugin]: true
+            }
+          };
+        }
+      }
+      return null;
+    },
+
+    load(id) {
+      const moduleInfo = this.getModuleInfo(id);
+
+      if (moduleInfo == null) {
+        return null;
+      }
+
+      // During a production build since all of the Foundry imports are external it never even gets here, like one might expect.
+      // However development doesn't completely understand external, see https://github.com/vitejs/vite/issues/6582
+      if (usesFoundryPlugin in moduleInfo.meta) {
+        // By default all imports (or in this case a re-export) will get recursively handled by Vite.
+        // The tag `/* @vite-ignore */` is used to avoid an error when trying to resolve `id` again.
+        return `export * from /* @vite-ignore */ ${JSON.stringify(id)};`;
+      }
+
+      return null;
+    }
+  };
+}
+
+/**
  * Custom plugin to open one or more Chrome profiles with specific flags when the Vite server starts.
  */
 function openChromePlugin(): Vite.Plugin {
@@ -74,6 +124,7 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
     checker({ typescript: { buildMode: true } }),
     tsconfigPaths(),
     foundryEntrypointsPlugin(),
+    foundryPlugin(),
     openChromePlugin(),
     // Add the CSS URL plugin here
     cssUrlRewritePlugin(command),
@@ -112,6 +163,9 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
       },
       target: "es2023",
       rollupOptions: {
+        external: [
+          "gsap/all"
+        ],
         output: {
           assetFileNames: ({ names }): string => {
             if (names.includes("eunos-kult-hacks.css")) {
@@ -125,6 +179,12 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
     },
     optimizeDeps: {
       entries: [],
+    },
+    resolve: {
+      preserveSymlinks: true,
+      alias: {
+        "gsap/all": path.resolve(__dirname, "static/scripts/greensock/esm/all.js")
+      }
     },
     server: {
       port: devServerPort,
