@@ -6,6 +6,8 @@
 @use "overlay/top-zindex-mask";
 @use "overlay/location-plotting-panel";
 @use "overlay/max-zindex-bars";
+@use "overlay/stage-end-phase";
+
 html {
 	position: static;
 	transform-origin: center center;
@@ -52,7 +54,8 @@ html {
       #NPCS-GM,
       #STAGE,
       #VIDEO-STATUS-PANEL,
-      #STAGE-CHANGES-LOG {
+      #STAGE-CHANGES-LOG,
+      #STAGE-END-PHASE {
         visibility: hidden;
       }
     }
@@ -72,7 +75,8 @@ html {
       #PCS-GM,
       #STAGE,
       // #VIDEO-STATUS-PANEL,
-      #STAGE-CHANGES-LOG {
+      #STAGE-CHANGES-LOG,
+      #STAGE-END-PHASE {
         visibility: hidden;
       }
     }
@@ -92,7 +96,8 @@ html {
       // #NPCS-GM,
       // #STAGE,
       #VIDEO-STATUS-PANEL,
-      #STAGE-CHANGES-LOG {
+      #STAGE-CHANGES-LOG,
+      #STAGE-END-PHASE {
         visibility: hidden;
       }
     }
@@ -111,8 +116,9 @@ html {
       // #PCS-GM,
       // #NPCS-GM,
       // #STAGE,
-      #VIDEO-STATUS-PANEL/* ,
-      #STAGE-CHANGES-LOG */ {
+      #VIDEO-STATUS-PANEL, /* ,
+      #STAGE-CHANGES-LOG, */
+      #STAGE-END-PHASE {
         visibility: hidden;
       }
     }
@@ -131,8 +137,18 @@ html {
       #NPCS-GM,
       // #STAGE,
       #VIDEO-STATUS-PANEL,
-      #STAGE-CHANGES-LOG {
+      #STAGE-CHANGES-LOG,
+      // #STAGE-END-PHASE
+      {
         visibility: hidden;
+      }
+
+      #sidebar {
+        visibility: hidden;
+      }
+
+      #STAGE-END-PHASE {
+        width: 100%;
       }
     }
   }

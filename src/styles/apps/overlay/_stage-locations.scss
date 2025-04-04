@@ -1,83 +1,60 @@
-
 #LOCATIONS {
 
-  --center-x: calc(50% - 0.5 * var(--sidebar-width));
   display: block;
-  position: fixed;
+  top: 0;
+  left: 0;
   pointer-events: none;
   position: absolute;
-  transform-origin: center;
-  transform: translate(-50%, -50%);
-  top: 50%;
-  left: var(--center-x);
-  // Remove these positioning styles:
-  // transform: translate(-50%, -50%);
-  // top: 15%;
-  // left: calc(70% - 0.5 * var(--sidebar-width));
-  // height: 30vh;
-  // width: 35vw;
-  // overflow: hidden;
+  transform-origin: center center;
+  height: 100vh;
+  width: calc(100vw - var(--sidebar-width));
+  transform-style: preserve-3d;
+  perspective: 1000px;
 
-  // visibility: hidden; // !important;
-
-  .location-name {
-    font-family: var(--font-primary-smallcaps);
-    font-size: 32px;
-    color: var(--K4-dBLACK);
-
-    text-align: center;
-    height: 40px;
-    width: 100%;
-    background: var(--K4-dGOLD);
-    opacity: 0;
+  * {
+    transform-style: preserve-3d;
   }
 
-  .location-image-wrapper {
-    height: 100%;
-    width: 100%;
-    filter: drop-shadow(10px 10px 5px var(--K4-dBLACK));
+  .location-wrapper {
+    position: absolute;
 
-    .location-image {
-      height: 100%;
-      width: 100%;
-      object-fit: cover;
-
-      mask-image: url("modules/eunos-kult-hacks/assets/backgrounds/torn-paper-mask-wide.webp");
-      // mask-image: url("./assets/backgrounds/torn-paper-mask-wide.webp"); // For Production
-      mask-size: 100% 100%;
-      mask-repeat: no-repeat;
-      mask-position: center;
-
-      border: none;
-
-      &[src=""] {
-        display: none;
-      }
-
-      ~ .location-image {
-        margin-top: -100%;
-      }
-
+    .location-name {
+      visibility: hidden;
+      font-family: var(--font-primary-smallcaps);
+      font-size: 32px;
+      text-align: center;
     }
 
-}
+    .location-image-wrapper {
+      visibility: hidden;
+      position: absolute;
+      filter: drop-shadow(10px 10px 5px var(--K4-dBLACK));
 
-  .location-description {
-    position: absolute;
-    bottom: 5px;
-    padding: 5px;
-    font-family: var(--font-primary);
-    font-size: 16px;
-    color: var(--K4-bWHITE);
-    text-shadow:
-      0 0 2px var(--K4-dBLACK),
-      0 0 2px var(--K4-dBLACK),
-      0 0 2px var(--K4-dBLACK),
-      0 0 2px var(--K4-dBLACK),
-      0 0 2px var(--K4-dBLACK),
-      0 0 2px var(--K4-dBLACK),
-      0 0 2px var(--K4-dBLACK),
-      0 0 2px var(--K4-dBLACK);
-    text-align: justify;
+      // outline: 4px solid red;
+
+      .location-image {
+        visibility: hidden;
+
+        object-fit: cover;
+        position: absolute;
+        transform-origin: center center;
+
+        mask-image: url("modules/eunos-kult-hacks/assets/backgrounds/torn-paper-mask-wide.webp");
+        mask-size: 100% 100%;
+        mask-repeat: no-repeat;
+        mask-position: center;
+
+        border: none;
+      }
+    }
+
+    .location-description {
+      visibility: hidden;
+      position: absolute;
+      padding: 5px;
+      font-family: var(--font-primary);
+      font-size: 16px;
+      text-align: justify;
+    }
   }
 }

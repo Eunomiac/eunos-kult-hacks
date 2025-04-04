@@ -1,6 +1,6 @@
 // #region IMPORTS ~
 import {getSetting, formatDateAsISO} from "./utilities.ts";
-import {EunosMediaCategories, GamePhase, PCTargetRef} from "./enums.ts";
+import {EunosMediaCategories, GamePhase, PCTargetRef, LocationImageModes} from "./enums.ts";
 import EunosOverlay from "../apps/EunosOverlay";
 import fields = foundry.data.fields;
 import {LOCATIONS, type Location} from "./constants.ts";
@@ -166,6 +166,7 @@ export default function registerSettings() {
         name: "Willow's Wending Entry",
         key: "willowsWendingEntry",
         images: {},
+        imageMode: LocationImageModes.UpperLeft,
         currentImage: null,
         mapTransforms: [],
         pcData: {},
@@ -177,7 +178,7 @@ export default function registerSettings() {
     },
     onChange: (value) => {
       // Get the current data before it's updated
-      const oldValue = EunosOverlay.currentLocationDataLog ?? {};
+      const oldValue = JSON.parse(JSON.stringify(EunosOverlay.currentLocationDataLog ?? {})) as Record<string, Location.SettingsData>;
 
       kLog.log("Location data BEFORE and AFTER", {
         "1) before": JSON.parse(JSON.stringify(oldValue)) as Record<string, Location.SettingsData>,
@@ -236,6 +237,20 @@ export default function registerSettings() {
       // Reinitialize the intro video when the filename changes
       void EunosOverlay.instance.introVideo.reinitialize();
     }
+  });
+  getSettings().register("eunos-kult-hacks", "endPhaseQuestion", {
+    name: "End Phase Question",
+    hint: "Which question we are on during the ending phase of a game session.",
+    scope: "world",
+    config: false,
+    type: Number, // 0 = uninitialied; 1-3 = question number; 4 = end session
+    default: 0,
+    onChange: (value) => {
+      if (value > 0) {
+        void EunosOverlay.instance.transitionToEndPhaseQuestion(value);
+      }
+    }
+
   });
 }
 

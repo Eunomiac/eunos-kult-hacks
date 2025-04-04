@@ -7,6 +7,7 @@ import {
   NPCPortraitState,
   NPCNameState,
   EunosMediaTypes,
+  LocationImageModes
 } from "./enums";
 import type ActorDataPC from "../data-model/ActorDataPC";
 import type ActorDataNPC from "../data-model/ActorDataNPC";
@@ -938,16 +939,6 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    "guns-for-hire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 224,
-      loop: false,
-      sync: true,
-      volume: 0.75,
-      autoplay: false,
-    },
     "way-down-we-go": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
       alwaysPreload: false,
@@ -968,16 +959,6 @@ export const Sounds = {
       volume: 0.75,
       autoplay: false,
     },
-    home: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      loop: false,
-      sync: true,
-      duration: 229,
-      volume: 0.5,
-      autoplay: false,
-    },
     "mad-hatter": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
       alwaysPreload: false,
@@ -985,6 +966,26 @@ export const Sounds = {
       duration: 209,
       loop: false,
       sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "guns-for-hire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 224,
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
+    home: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-home.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: true,
+      duration: 229,
       volume: 0.5,
       autoplay: false,
     },
@@ -1889,15 +1890,7 @@ export declare namespace Location {
     key: string;
     description?: string;
     images: Record<string, string>;
-    position?: {
-      top?: gsap.TweenValue;
-      left?: gsap.TweenValue;
-      right?: gsap.TweenValue;
-      bottom?: gsap.TweenValue;
-      center?: { x: gsap.TweenValue; y: gsap.TweenValue };
-      height?: gsap.TweenValue;
-      width?: gsap.TweenValue;
-    };
+    imageMode: LocationImageModes;
     mapTransforms: Array<
       Array<{
         selector: string;
@@ -1906,6 +1899,7 @@ export declare namespace Location {
     >;
     audioDataIndoors?: Record<string, Partial<EunosMediaData>>;
     audioDataOutdoors?: Record<string, Partial<EunosMediaData>>;
+    audioDataByImage?: Record<string, Record<string, Partial<EunosMediaData>>>;
     isBright: boolean;
     isIndoors: boolean;
     region?: string;
@@ -1937,7 +1931,7 @@ export declare namespace Location {
     region?: string;
     audioDataIndoors?: Record<string, Partial<EunosMediaData>>;
     audioDataOutdoors?: Record<string, Partial<EunosMediaData>>;
-
+    audioDataByImage?: Record<string, Record<string, Partial<EunosMediaData>>>;
     // Dynamic properties
     currentImage: string | null;
     pcData: Record<IDString, PCData.SettingsData>;
@@ -1950,23 +1944,103 @@ export declare namespace Location {
     npcData: Record<IDString, NPCData.FullData>;
     audioDataIndoors?: Record<string, EunosMedia<EunosMediaTypes.audio>>;
     audioDataOutdoors?: Record<string, EunosMedia<EunosMediaTypes.audio>>;
+    audioDataByImage?: Record<string, Record<string, EunosMedia<EunosMediaTypes.audio>>>;
   }
 
   export interface FullData
-    extends Omit<StaticSettingsData, "audioDataIndoors" | "audioDataOutdoors">,
+    extends Omit<StaticSettingsData, "audioDataIndoors" | "audioDataOutdoors" | "audioDataByImage">,
       DynamicFullData {}
 }
+
+export const LOCATION_IMAGE_MODES = {
+  [LocationImageModes.CentralFull]: {
+    locationWrapper: {
+      css: {
+        top: "1%",
+        left: "5%",
+        height: "90%",
+        width: "90%"
+      }
+    },
+    locationImageWrapper: {
+      css: {
+        bottom: "1%",
+        height: "300%",
+        width: "100%"
+      }
+    },
+    locationImage: {
+      css: {
+        height: "auto",
+        width: "100%",
+        bottom: 0,
+        transformOrigin: "center center"
+      }
+    }
+  },
+  [LocationImageModes.Central]: {
+    locationWrapper: {
+      css: {
+        top: "12%",
+        left: "15%",
+        height: "70%",
+        width: "70%"
+      }
+    },
+    locationImageWrapper: {
+      css: {
+        bottom: "1%",
+        height: "300%",
+        width: "100%"
+      }
+    },
+    locationImage: {
+      css: {
+        width: "100%",
+        bottom: 0,
+      }
+    }
+  },
+  [LocationImageModes.TwoPanelFold]: {
+    locationWrapper: { css: {} },
+    locationImageWrapper: { css: {} },
+    locationImage: { css: {} }
+  },
+  [LocationImageModes.UpperRight]: {
+    locationWrapper: {
+      css: {
+        top: 0,
+        right: 0,
+        width: "35vw"
+      }
+    },
+    locationImageWrapper: {
+      css: {
+        bottom: "5%",
+        height: "300%",
+        width: "100%"
+      }
+    },
+    locationImage: {
+      css: {
+        width: "100%",
+        bottom: 0,
+      }
+    }
+  },
+  [LocationImageModes.UpperLeft]: {
+    locationWrapper: { css: {} },
+    locationImageWrapper: { css: {} },
+    locationImage: { css: {} }
+  }
+} as const;
 
 export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
   nowhere: {
     name: "Nowhere",
     key: "nowhere",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     isBright: false,
     isIndoors: false,
@@ -2029,11 +2103,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Fire Road Car Ahead":
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
     },
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "ambient-crickets": {},
       "ambient-car-dirt-road": {},
@@ -2100,11 +2170,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Fire Road Car Ahead":
         "modules/eunos-kult-hacks/assets/images/locations/fire-road-car-ahead.webp",
     },
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "ambient-crickets": {},
       "ambient-forest": {},
@@ -2179,11 +2245,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "ambient-crickets": {},
       "ambient-eerie-forest": {},
@@ -2255,11 +2317,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "ambient-forest-night": {},
       "ambient-eerie-forest": {},
@@ -2332,11 +2390,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "ambient-forest-night": {},
       "ambient-eerie-forest": {},
@@ -2409,11 +2463,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       "Hollow King":
         "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
     },
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "ambient-forest-night": {},
       "ambient-eerie-forest": {},
@@ -2476,11 +2526,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #1",
     key: "rangerStation1",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "ambient-electricity-night": {},
       "ambient-crickets": {},
@@ -2584,11 +2630,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise",
     key: "emmasRise",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {},
     isBright: true,
@@ -2709,11 +2751,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Town Square",
     key: "townSquare",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -2772,11 +2810,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Wainwright Academy",
     key: "wainwrightAcademy",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -2838,11 +2872,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise Primary School",
     key: "emmasRisePrimarySchool",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "weather-wind-leafy": {},
     },
@@ -2904,11 +2934,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise Middle School for Wayward Boys",
     key: "emmasRiseMiddleSchoolForWaywardBoys",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     audioDataOutdoors: {
       "weather-wind-leafy": {},
     },
@@ -2970,11 +2996,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Town Hall",
     key: "townHall",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3032,11 +3054,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Emma's Rise Community Center",
     key: "emmasRiseCommunityCenter",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3099,11 +3117,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Cemetery",
     key: "oldCemetery",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -3166,11 +3180,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Lantern Way, East",
     key: "lanternWayEast",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -3232,11 +3242,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Lantern Way, West",
     key: "lanternWayWest",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -3298,11 +3304,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "First Bank of Emma's Rise",
     key: "firstBankOfEmmasRise",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     region: "townSquare",
     audioDataOutdoors: {
@@ -3364,11 +3366,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Days Go By Pub",
     key: "daysGoByPub",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     region: "townSquare",
     audioDataOutdoors: {
@@ -3430,11 +3428,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Danny's Diner",
     key: "dannysDiner",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     region: "townSquare",
     audioDataOutdoors: {
@@ -3496,11 +3490,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #3",
     key: "rangerStation3",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     region: "townSquare",
     audioDataOutdoors: {
@@ -3563,11 +3553,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Medical Clinic",
     key: "medicalClinic",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataIndoors: {
       "ambient-medical-clinic": {},
@@ -3629,11 +3615,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Holt Family Lodge",
     key: "holtFamilyLodge",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -3697,11 +3679,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Holt Farms",
     key: "holtFarms",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-farm": {},
@@ -3761,11 +3739,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "The Greenhouse",
     key: "theGreenhouse",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataIndoors: {
       "ambient-generic-vent": {}
@@ -3828,11 +3802,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "The Aerie",
     key: "theAerie",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3892,11 +3862,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Beacon Hill",
     key: "beaconHill",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -3955,11 +3921,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Bell Tower",
     key: "bellTower",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -4022,11 +3984,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Beacon Observatory",
     key: "beaconObservatory",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -4089,11 +4047,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Beacon Library",
     key: "beaconLibrary",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-blustery": {},
@@ -4154,12 +4108,10 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
   eastTunnelEntrance: {
     name: "East Tunnel Entrance",
     key: "eastTunnelEntrance",
-    images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
+    images: {
+      "1) Outside Entrance": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/1-east-tunnel-entrance.webp",
     },
+    imageMode: LocationImageModes.Central,
     description: "",
     audioDataOutdoors: {
       "weather-low-wind-hum": {},
@@ -4222,29 +4174,91 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "The East Tunnel",
     key: "theEastTunnel",
     images: {
-      "Polaroids - Missing":
-        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-missing.webp",
-      "Polaroids - In Place":
-        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-polaroids-present.webp",
-      "Wending Depths 1":
-        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-1.webp",
-      "Wending Depths 2":
-        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-2.webp",
-      "Wending Depths 3":
-        "modules/eunos-kult-hacks/assets/images/locations/willows-wending-depths-3.webp",
-      "Hollow King":
-        "modules/eunos-kult-hacks/assets/images/locations/hollow-king.webp",
+      "1) Outside Entrance": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/1-east-tunnel-entrance.webp",
+      "2) Inside Entrance": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/2-east-tunnel-inside-entrance.webp",
+      "3) Single-File Tunnel": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/3-east-tunnel-single-file-tunnel.webp",
+      "4) Fork": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/4-east-tunnel-fork.webp",
+      "5A) Fork: Hum": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/5a-east-tunnel-fork-hum.webp",
+      "5B) Hum: Habitation": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/5b-east-tunnel-hum-habitation.webp",
+      "5C) Hum: Closed Door": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/5c-east-tunnel-hum-closed-door.webp",
+      "5D) Hum: Open Door": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/5d-east-tunnel-hum-open-door.webp",
+      "6A) Fork: Whispers": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/6a-east-tunnel-fork-whispers.webp",
+      "6B) Whispers: Vertical Shaft": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/6b-east-tunnel-whispers-vertical-shaft.webp",
+      "6C) Whispers: Submerged Tunnel": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/6c-east-tunnel-whispers-submerged-tunnel.webp",
+      "7) Sleeping Statue": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/7-east-tunnel-sleeping-statue.webp"
     },
-    position: {
-      // left: "50%",
-      top: "45%",
-      width: "80vw"
-    },
+    imageMode: LocationImageModes.Central,
     description: "",
     audioDataOutdoors: {},
     audioDataIndoors: {
       "ambient-underground": {},
       "ambient-creepy": {}
+    },
+    audioDataByImage: {
+      "1) Outside Entrance": {
+        "weather-low-wind-hum": {},
+      },
+      "2) Inside Entrance": {
+        "ambient-underground": {volume: 0.03},
+        "ambient-creepy": {volume: 0.2},
+        "ambient-generic-buzz": {volume: 0.5}
+      },
+      "3) Single-File Tunnel": {
+        "ambient-low-bass-rumble": {volume: 0.1}
+      },
+      "4) Fork": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-generic-buzz": {volume: 0.5},
+        "ambient-whispering-ghosts": {volume: 0.3}
+      },
+      "5A) Fork: Hum": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-generic-buzz": {volume: 0.5},
+
+      },
+      "5B) Hum: Habitation": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-generic-buzz": {volume: 0.7},
+
+      },
+      "5C) Hum: Closed Door": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-generic-buzz": {volume: 0.9},
+
+      },
+      "5D) Hum: Open Door": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-generic-buzz": {volume: 1},
+
+      },
+      "6A) Fork: Whispers": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-whispering-ghosts": {volume: 0.01}
+
+      },
+      "6B) Whispers: Vertical Shaft": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-whispering-ghosts": {volume: 0.02},
+        "ambient-creek": {volume: 0.1}
+
+      },
+      "6C) Whispers: Submerged Tunnel": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-whispering-ghosts": {volume: 0.03},
+        "ambient-creek": {volume: 0.3}
+      },
+      "7) Sleeping Statue": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+      }
     },
     isBright: false,
     isIndoors: true,
@@ -4254,7 +4268,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "body",
           properties: {
-            background: "black",
+            background: "rgb(10, 10, 10)",
             boxShadow: "0 0 0vw transparent inset",
             "--dramatic-hook-color": "white",
             "--dramatic-hook-text-shadow-color": "black",
@@ -4296,11 +4310,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "The Weeping King",
     key: "theWeepingKing",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-weeping-king": {},
@@ -4360,11 +4370,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Pact Grove",
     key: "pactGrove",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-birdsong": {},
@@ -4421,11 +4427,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Bridge",
     key: "oldBridge",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-creek": {},
@@ -4481,11 +4483,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Tree Line",
     key: "oldTreeLine",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-old-willow": {},
@@ -4541,11 +4539,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Willow",
     key: "oldWillow",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-old-willow": {},
@@ -4599,11 +4593,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Standing Stones",
     key: "standingStones",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-standing-stones": {}
@@ -4656,11 +4646,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #4",
     key: "rangerStation4",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -4717,11 +4703,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Redemption House",
     key: "redemptionHouse",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -4777,11 +4759,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ranger Station #2",
     key: "rangerStation2",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -4840,11 +4818,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ash Hill",
     key: "ashHill",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-creepy": {},
@@ -4898,11 +4872,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Ash Hill Development",
     key: "ashHillDevelopment",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataIndoors: {
       "ambient-creepy": {},
@@ -4958,11 +4928,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Kingsgrave Estate",
     key: "kingsgraveEstate",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "ambient-old-willow": {}
@@ -5017,11 +4983,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Old Chapel",
     key: "oldChapel",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -5079,11 +5041,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     name: "Kingsgrave Manor",
     key: "kingsgraveManor",
     images: {},
-    position: {
-      top: 0,
-      right: "var(--sidebar-width)",
-      width: "35vw"
-    },
+    imageMode: LocationImageModes.UpperRight,
     description: "",
     audioDataOutdoors: {
       "weather-wind-leafy": {},
@@ -5625,6 +5583,17 @@ export const WEAPON_SUBCLASSES = {
   ],
 } as const;
 // #endregion
+
+export const NPC_PORTRAIT = {
+  size: {
+    width: 150,
+    height: 200
+  },
+  viewportCollisions: {
+    x: 1350,
+    y: 425
+  }
+};
 
 /** Pre-session sequence timing constants */
 export const PRE_SESSION = {

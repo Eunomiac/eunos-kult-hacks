@@ -93,7 +93,7 @@
     }
 
     .loading-screen-item-title {
-      top: 30%;
+      top: 25%;
       left: 25%;
       font-family: var(--font-primary-smallcaps);
       text-transform: lowercase;
@@ -118,7 +118,7 @@
       color: var(--loading-screen-item-subtitle-color);
       font-size: 24px;
       text-align: center;
-      top: calc(30% + 64px);
+      top: calc(25% + 64px);
       left: 30%;
       width: 400px;
       text-align: center;
@@ -129,7 +129,7 @@
       font-family: var(--font-primary);
       color: var(--loading-screen-item-home-color);
       font-size: 20px;
-      top: calc(30% + 64px + 24px + 4px);
+      top: calc(25% + 64px + 24px + 4px);
       left: 30%;
       width: 400px;
       text-align: right;
@@ -147,7 +147,7 @@
       line-height: 28px;
       width: 500px;
       text-align: left;
-      top: calc(30% + 64px + 48px + 32px);
+      top: calc(25% + 64px + 48px + 32px);
       left: 25%;
     }
   }

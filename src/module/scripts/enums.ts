@@ -26,6 +26,14 @@ export enum EunosMediaCategories {
   Video = "Video"
 }
 
+export enum LocationImageModes {
+  CentralFull = "CentralFull",
+  Central = "Central",
+  TwoPanelFold = "TwoPanelFold",
+  UpperRight = "UpperRight",
+  UpperLeft = "UpperLeft"
+}
+
 export enum PCTargetRef {
   all = "all",
   self = "self",

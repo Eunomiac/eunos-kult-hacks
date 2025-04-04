@@ -71,6 +71,7 @@ declare global {
     "eunos-kult-hacks.sessionScribe": string;
     "eunos-kult-hacks.dramaticHookAssignments": Record<string, string>;
     "eunos-kult-hacks.introVideoFilename": string;
+    "eunos-kult-hacks.endPhaseQuestion": number;
   }
 
 

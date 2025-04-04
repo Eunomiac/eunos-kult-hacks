@@ -206,6 +206,11 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     return this.#volume;
   }
 
+  set volume(volume: number) {
+    this.#volume = volume;
+    void gsap.to(this.element, { volume: this.#volume, duration: 1, ease: "none" });
+  }
+
   get category(): EunosMediaCategories {
     if (!this.#category) {
       if (this.path) {
@@ -749,7 +754,9 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     const isTweeningVolume = this.playing && typeof volume === "number" && this.volume !== volume;
     const fromVolume = this.volume;
 
-
+    if (volume) {
+      this.volume = volume;
+    }
     this.loop = loop ?? this.loop;
     this.sync = sync ?? this.sync;
     this.#fadeInDuration = fadeInDuration ?? this.#fadeInDuration;

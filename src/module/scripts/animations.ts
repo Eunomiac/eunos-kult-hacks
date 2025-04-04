@@ -1,3 +1,5 @@
+import { assertIs } from "./utilities";
+
 /** Defines which side the overlay item should appear from */
 export enum OverlayItemSide {
   Left = "left",
@@ -29,7 +31,61 @@ export function initializeGSAP(): void {
     force3D: true,
     nullTargetWarn: false
   });
-
+  gsap.registerEffect({
+    name: "splashPopText",
+    extendTimeline: true,
+    defaults: {
+      duration: 5,
+      ease: "expo.inOut",
+      delay: 0
+    },
+    effect: (targets: HTMLElement[]|JQuery, config = {}) => {
+      const targets$ = $(targets);
+      const {duration, ease, delay} = config as {duration: number, ease: string, delay: number};
+      gsap.set(targets$, {filter: "blur(0px) drop-shadow(20px 20px 10px black)"});
+      const targetContainer$ = targets$.parents(".question-text");
+      const timeToStaggerTargets = (0.1 * targets$.length) / 2;
+      return gsap.timeline({delay})
+        .to(targetContainer$, {
+          autoAlpha: 1,
+          duration: 0.1,
+          ease: "none"
+        }, 0)
+        .fromTo(targetContainer$, {
+          x: "-=100"
+        }, {
+          x: "+=100",
+          // scale: 1.5,
+          duration: duration,
+          ease: "slow(0.1, 1, false)"
+        }, 0)
+        .fromTo(targets$,
+          {
+            filter: "blur(200px) drop-shadow(20px 20px 30px black)"
+          },
+          {
+            filter: "blur(0px) drop-shadow(20px 20px 10px black)",
+            duration: (0.2 * duration),
+            ease,
+            stagger: {
+              each: 0.15,
+              ease: "none",
+              from: "start"
+            }
+          },
+          0.1)
+        .from(targets$, {
+          duration: 0.1,
+          autoAlpha: 0,
+          ease: "none",
+          stagger: {
+            each: 0.15,
+            ease: "none",
+            from: "start"
+          }
+        }, 0);
+    }
+  });
   // Register custom effects
   gsap.registerEffect({
     name: "displayOverlayItem",

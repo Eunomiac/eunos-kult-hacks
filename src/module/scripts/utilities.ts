@@ -3,6 +3,8 @@ import { PRE_SESSION } from "./constants";
 import EunosItem from "../documents/EunosItem";
 import Document = foundry.abstract.Document;
 import type ActorDataPC from "../data-model/ActorDataPC";
+// eslint-disable-next-line
+import {gsap, Draggable as Dragger, RoughEase, CustomEase, InertiaPlugin, CustomWiggle, ExpoScaleEase, SlowMo, EasePack, Flip, Observer, MotionPathPlugin, PixiPlugin, TextPlugin, MorphSVGPlugin, SplitText, GSDevTools} from "gsap/all";
 
 // #region ▒▒▒▒▒▒▒ [HELPERS] Internal Functions, Data & References Used by Utility Functions ▒▒▒▒▒▒▒ ~
 
@@ -435,6 +437,60 @@ const checkAny = <T>(items: T[], test: (item: T) => boolean): boolean => items.s
 
 // A combining test function that accepts an array of unknown values and a single-value test function. It will return 'true' if the test function fails for all values.
 const checkAllFail = <T>(items: T[], test: (item: T) => boolean): boolean => !checkAny(items, test);
+
+
+/**
+ * Asserts that a given value is of a specified type.
+ * Throws an error if the value is not of the expected type.
+ *
+ * @param val - The value to check.
+ * @param type - The expected type of the value.
+ * @throws Error - If the value is not of the expected type.
+ *
+ * This function uses a generic type parameter `T` to specify the expected type.
+ */
+// Overload 1: Just check that value is defined
+function assertIs<T>(val: T): NonNullable<T>;
+// Overload 2: Check that value is of specified type while preserving original type
+function assertIs<T, S extends "string" | "number" | "boolean" | "object" | "symbol" | "bigint" | "function" | "undefined">(
+  val: T,
+  type: S
+): NonNullable<T & (
+  S extends "string" ? string :
+  S extends "number" ? number :
+  S extends "boolean" ? boolean :
+  S extends "object" ? object :
+  S extends "symbol" ? symbol :
+  S extends "bigint" ? bigint :
+  S extends "function" ? (...args: unknown[]) => unknown :
+  unknown
+)>;
+// Overload 3: Check that value is instance of specified class while preserving original type
+function assertIs<T, C>(val: T, type: new(...args: unknown[]) => C): NonNullable<T & C>;
+// Implementation
+function assertIs<T, C>(val: T, type?: (new(...args: unknown[]) => C) | string): T {
+  if (type === undefined) {
+    // Case 1: Nothing passed - assert value is defined
+    if (val === undefined) {
+      throw new Error("Value is undefined!");
+    }
+    return val as NonNullable<T>;
+  } else if (typeof type === "string") {
+    // Case 2: String passed - check typeof
+    if (typeof val !== type) {
+      throw new Error(`Value ${String(val)} is not a ${String(type)}!`);
+    }
+    // TypeScript can't express the exact conditional type in the implementation
+    // so we use a type assertion for the return value
+    return val as NonNullable<T>;
+  } else {
+    // Case 3: Class passed - check instanceof
+    if (!(val instanceof type)) {
+      throw new Error(`Value ${String(val)} is not an instance of ${type.name}!`);
+    }
+    return val as NonNullable<T & C>;
+  }
+}
 
 // #endregion ▄▄▄▄▄ BOOLEAN ▄▄▄▄▄
 
@@ -3176,7 +3232,7 @@ export {
   sortByLastWord, sortDocsByLastWord,
 
   // ████████ BOOLEAN: Combining & Manipulating Boolean Tests ████████
-  checkAll, checkAny, checkAllFail,
+  checkAll, checkAny, checkAllFail, assertIs,
 
   // ████████ REGEXP: Regular Expressions, Replacing, Matching ████████
   testRegExp,
@@ -3245,7 +3301,7 @@ export {
   // ■■■■■■■ GreenSock ■■■■■■■
   timeline, get, set, getGSAngleDelta, getNearestLabel, reverseRepeatingTimeline,
 
-  /* TextPlugin, Flip, MotionPathPlugin,*/
+  gsap, Dragger, RoughEase, CustomEase, InertiaPlugin, CustomWiggle, ExpoScaleEase, SlowMo, EasePack, Flip, Observer, MotionPathPlugin, PixiPlugin, TextPlugin, MorphSVGPlugin, SplitText, GSDevTools,
 
   distributeByPosition,
 

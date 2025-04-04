@@ -15,18 +15,23 @@ import {
   getOwnedAndActiveActors,
   getActorFromRef,
   roundNum,
+  SplitText,
+  SlowMo,
   randElem,
   shuffle,
   getDistance,
   timeline,
   getTimeStamp,
   camelCase,
+  assertIs,
 } from "../scripts/utilities";
 import {
   LOADING_SCREEN_DATA,
   PRE_SESSION,
   MEDIA_PATHS,
   LOCATIONS,
+  NPC_PORTRAIT,
+  LOCATION_IMAGE_MODES,
   type Location,
   type PCs,
   type EunosMediaData,
@@ -40,6 +45,7 @@ import {
   GamePhase,
   UserTargetRef,
   AlertType,
+  LocationImageModes,
   MediaLoadStatus,
   EunosMediaTypes,
   PCTargetRef,
@@ -612,6 +618,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     clearUIChanges(event: PointerEvent, target: HTMLElement): void {
       EunosOverlay.instance.clearUIChanges();
     },
+    async beginXPQuestions(event: PointerEvent, target: HTMLElement): Promise<void> {
+      if (!getUser().isGM) { return; }
+      void setSetting("endPhaseQuestion", 1);
+    },
+    async approveXPQuestion(event: PointerEvent, target: HTMLElement): Promise<void> {
+      if (!getUser().isGM) { return; }
+      const questionNumber = getSetting("endPhaseQuestion");
+      kLog.log("approveXPQuestion", { questionNumber });
+      await Promise.all(getOwnedActors().map(async (actor) => {
+        return actor.awardXP();
+      }));
+      void setSetting("endPhaseQuestion", questionNumber + 1);
+    },
+    async denyXPQuestion(event: PointerEvent, target: HTMLElement): Promise<void> {
+      if (!getUser().isGM) { return; }
+      const questionNumber = getSetting("endPhaseQuestion");
+      void setSetting("endPhaseQuestion", questionNumber + 1);
+    }
   };
 
   // #endregion ACTIONS
@@ -720,13 +744,27 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       template:
         "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-changes-log.hbs",
     },
+    stageEndPhase: {
+      template:
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-end-phase.hbs",
+    },
   };
   // #endregion STATIC CONFIGURATION
 
   // #region STATIC METHODS ~
   static #lastPhaseChange: GamePhase | undefined;
   static currentLocationLog: Maybe<keyof typeof LOCATIONS>;
-  static currentLocationDataLog: Maybe<Record<string, Location.SettingsData>>;
+  static #currentLocationDataLog: Maybe<Record<string, Location.SettingsData>>;
+
+  static get currentLocationDataLog() {
+    kLog.log(`Retrieving currentLocationDataLog for location ${this.currentLocationLog}`, {currentLocationDataLog: this.#currentLocationDataLog});
+    return this.#currentLocationDataLog;
+  }
+
+  static set currentLocationDataLog(value: Maybe<Record<string, Location.SettingsData>>) {
+    kLog.log(`Setting currentLocationDataLog for location ${this.currentLocationLog}`, {currentLocationDataLog: value});
+    this.#currentLocationDataLog = JSON.parse(JSON.stringify(value)) as Record<string, Location.SettingsData>;
+  }
 
   static async Initialize() {
     // Register hook for game phase changes
@@ -925,6 +963,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     unspotlightPC: ({ pcID }: { pcID: string }) => {
       void EunosOverlay.instance.updatePCUI({ [pcID]: PCState.base });
     },
+
     // updateNPCUI: (
     //   data: Record<IDString, { state?: NPCPortraitState; position?: Point }>,
     // ) => {
@@ -1228,6 +1267,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(changesLog);
   }
 
+  get endPhase$() {
+    const endPhase = this.element.querySelector(
+      "#STAGE-END-PHASE",
+    ) as Maybe<HTMLElement>;
+    if (!endPhase) {
+      throw new Error("End phase not found");
+    }
+    return $(endPhase);
+  }
   // #endregion DOM ELEMENT GETTERS
 
   // #region ===== PRE-SESSION MANAGEMENT & GAME PHASE CONTROL =====
@@ -2439,7 +2487,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Kill countdown if it's running
     await this.killCountdown(true, true);
     void this.buildPCPortraitTimelines();
-    void this.initializeLocation();
+    void this.goToLocation(null);
     addClassToDOM("session-running");
     await this.fadeOutBlackdrop();
     void this.updatePCUI();
@@ -2468,7 +2516,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     addClassToDOM("session-running");
     kLog.log("Fading Out Backdrop");
     // setTimeout(() => {
-    void this.initializeLocation();
+    void this.goToLocation(null);
     // }, 1000);
     await this.fadeOutBlackdrop();
     void this.updatePCUI();
@@ -2486,22 +2534,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionEnding Methods
   private async initialize_SessionEnding(): Promise<void> {
     addClassToDOM("session-ending");
-    kLog.log(
-      "Would initialize SessionEnding phase",
-      "Setting up dramatic hook UI and session summary",
-    );
+    EunosMedia.GetPlayingSounds().forEach((sound) => {
+      void sound.kill();
+    });
   }
 
   async sync_SessionEnding() {
     addClassToDOM("session-ending");
+    EunosMedia.GetPlayingSounds().forEach((sound) => {
+      void sound.kill();
+    });
   }
 
   private async cleanup_SessionEnding(): Promise<void> {
     removeClassFromDOM("session-ending");
-    kLog.log(
-      "Would cleanup SessionEnding phase",
-      "Cleaning up dramatic hook UI and session summary",
-    );
   }
   // #endregion SessionEnding Methods
 
@@ -3996,10 +4042,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return this.#dragDrop;
   }
 
-  private static readonly PORTRAIT_SIZE = { width: 150, height: 200 };
-  private static readonly PC_COLLISION_X = 1350;
-  private static readonly PC_COLLISION_Y = 425;
-
   private dragPreview?: JQuery;
   private dragGuidelineX?: JQuery;
   private dragGuidelineY?: JQuery;
@@ -4057,10 +4099,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Create guidelines
     this.dragGuidelineY = $(
       '<div class="npc-drag-guideline drag-guideline-y"></div>',
-    ).css({ top: `${EunosOverlay.PC_COLLISION_Y}px` });
+    ).css({ top: `${NPC_PORTRAIT.viewportCollisions.y}px` });
     this.dragGuidelineX = $(
       '<div class="npc-drag-guideline drag-guideline-x"></div>',
-    ).css({ left: `${EunosOverlay.PC_COLLISION_X}px` });
+    ).css({ left: `${NPC_PORTRAIT.viewportCollisions.x}px` });
 
     this.npcs$.append(this.dragGuidelineY, this.dragGuidelineX);
 
@@ -4088,13 +4130,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     const stageRect = stage.getBoundingClientRect();
     const x =
-      event.clientX - stageRect.left - EunosOverlay.PORTRAIT_SIZE.width / 2;
+      event.clientX - stageRect.left - NPC_PORTRAIT.size.width / 2;
     const y =
-      event.clientY - stageRect.top - EunosOverlay.PORTRAIT_SIZE.height / 2;
+      event.clientY - stageRect.top - NPC_PORTRAIT.size.height / 2;
 
     this.dragPreview.css({
-      width: `${EunosOverlay.PORTRAIT_SIZE.width}px`,
-      height: `${EunosOverlay.PORTRAIT_SIZE.height}px`,
+      width: `${NPC_PORTRAIT.size.width}px`,
+      height: `${NPC_PORTRAIT.size.height}px`,
       position: "absolute",
       border: "2px dashed #fff",
       borderRadius: "50%",
@@ -4248,17 +4290,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         portraitContainer$,
         {
           autoAlpha: 0,
+          y: "-=100",
           // skewX: -30,
           scale: getUser().isGM ? 1 : 0.5,
           filter: "brightness(5) blur(300px)",
         },
         {
           autoAlpha: 1,
+          y: 0,
           // skewX: 0,
           scale: getUser().isGM ? 1 : 0.8,
           filter: "brightness(0.5) blur(0px)",
-          duration: 1,
-          ease: "power2.out",
+          duration: 0.5,
+          ease: "none",
         },
         0,
       )
@@ -4269,8 +4313,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         },
         {
           scale: getUser().isGM ? 1 : 0.8,
-          duration: 1,
-          ease: "power2.out"
+          duration: 0.5,
+          ease: "none"
         },
         0
       )
@@ -4286,9 +4330,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           filter: "brightness(0) blur(10px)",
           autoAlpha: 0.5,
           duration: 0.25,
-          ease: "power2.out",
+          ease: "none",
         },
-        0.75,
+        0.25,
       )
       .call(() => {
         npcContainer$.attr("data-portrait-state", NPCPortraitState.dimmed);
@@ -4324,14 +4368,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         scale: 1,
         filter: "brightness(1) blur(0px)",
         duration: 1,
-        ease: "power2.out",
+        ease: "none",
       })
       .to(
         portraitNameContainer$,
         {
           scale: 1,
           duration: 1,
-          ease: "power2.out",
+          ease: "none",
         },
         0,
       )
@@ -4342,7 +4386,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           filter: "brightness(0) blur(5px)",
           autoAlpha: 0.8,
           duration: 1,
-          ease: "power2.out",
+          ease: "none",
         },
         0,
       )
@@ -4365,7 +4409,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(portraitContainer$, {
         filter: "brightness(1.5) blur(0px)",
         duration: 1,
-        ease: "power2.out",
+        ease: "none",
       })
       .call(() => {
         npcContainer$.attr("data-portrait-state", NPCPortraitState.spotlit);
@@ -4406,7 +4450,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         },
         {
           duration: 1,
-          ease: "power2.out",
+          ease: "none",
           scale: 1,
           autoAlpha: 1,
           x: 0,
@@ -4427,7 +4471,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         },
         {
           autoAlpha: 1,
-          ease: "power2.out",
+          ease: "none",
           duration: 0.5,
         },
         0.5,
@@ -4451,7 +4495,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(portraitName$, {
         filter: "blur(0px)",
         duration: 1,
-        ease: "power2.out",
+        ease: "none",
       })
       .call(() => {
         npcContainer$.attr("data-name-state", NPCNameState.base);
@@ -4549,7 +4593,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           {
             autoAlpha: 0,
             duration: 1,
-            ease: "power2.out",
+            ease: "none",
           },
           0,
         )
@@ -4561,7 +4605,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           {
             autoAlpha: 1,
             duration: 1,
-            ease: "power2.out",
+            ease: "none",
           },
           0,
         )
@@ -4586,7 +4630,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (getUser().isGM) {
       return gsap.timeline();
     }
-    const SMOKE_EFFECT_DELAY = 1.5;
+    const SMOKE_EFFECT_DELAY = 1.15;
 
     const npcID = npcContainer$.attr("data-actor-id") as IDString;
     const smokeEffect$ = npcContainer$.find(".npc-smoke-effect");
@@ -4622,6 +4666,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       y: position.y,
       duration: 1,
       ease: "power2.out",
+      onComplete: () => {
+        void gsap.set(npcContainer$[0]!.querySelector(".npc-portrait-shadow"), {
+          skewX: this.getShadowSkewX(npcContainer$[0]!),
+        });
+      }
     });
 
     // Create timeline of tweenTo's to update portrait, name, and goggles
@@ -4677,7 +4726,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       subTl
         // First set initial position and goggles image instantly
         .add(positionTimeline.duration(0), 0)
-        .add(gogglesTimeline.tweenTo(gogglesState), 0);
+        .add(gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }), 0);
         // Start smoke effect IF new portrait state is not invisible/removed
         if (portraitState !== NPCPortraitState.invisible && portraitState !== NPCPortraitState.removed) {
           subTl.call(
@@ -4704,15 +4753,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             portraitTimeline.tweenFromTo(
               NPCPortraitState.invisible,
               portraitState,
+              { ease: "power2.in" },
             ),
             SMOKE_EFFECT_DELAY,
           )
         }
 
         // Add goggles and name transitions in parallel with portrait
-        subTl.add(gogglesTimeline.tweenTo(gogglesState), SMOKE_EFFECT_DELAY)
+        subTl.add(gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }), SMOKE_EFFECT_DELAY)
         .add(
-          nameTimeline.tweenFromTo(NPCNameState.invisible, nameState),
+          nameTimeline.tweenFromTo(NPCNameState.invisible, nameState, { ease: "power2.inOut" }),
           SMOKE_EFFECT_DELAY + timeOffset,
         );
 
@@ -4734,15 +4784,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         portraitState,
       )
     ) {
-      tl.add(portraitTimeline.tweenTo(portraitState), 0);
-      tl.add(nameTimeline.tweenTo(NPCNameState.invisible), timeOffset);
+      tl.add(portraitTimeline.tweenTo(portraitState, { ease: "power2.inOut" }), 0);
+      tl.add(nameTimeline.tweenTo(NPCNameState.invisible, { ease: "power2.inOut" }), timeOffset);
       tl.duration(1);
       kLog.log("buildNPCTransitionTimeline: TO invis/removed", { tl });
     } else {
-      tl.add(portraitTimeline.tweenTo(portraitState), 0);
-      tl.add(nameTimeline.tweenTo(nameState), timeOffset);
+      tl.add(portraitTimeline.tweenTo(portraitState, { ease: "power4.in" }), 0);
+      tl.add(nameTimeline.tweenTo(nameState, { ease: "power2.in" }), timeOffset);
       tl.add(positionTimeline, "<");
-      tl.add(gogglesTimeline.tweenTo(gogglesState), "<");
+      tl.add(gogglesTimeline.tweenTo(gogglesState, { ease: "power2.in" }), "<");
       tl.duration(1);
       kLog.log("buildNPCTransitionTimeline: GENERIC", { tl });
     }
@@ -4764,7 +4814,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   ): Promise<{ tl: gsap.core.Timeline }> {
     const masterTl = gsap.timeline({ paused: true });
 
-    const TIMELINE_STAGGER_AMOUNT = 0.25;
+    const TIMELINE_STAGGER_AMOUNT = 2;
     const numChanges = Object.keys(data).length;
     await Promise.all(
       Object.entries(data).map(
@@ -4877,7 +4927,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   getShadowSkewX(element: HTMLElement) {
     const xPos = gsap.getProperty(element, "x") as number;
-    const viewportWidth = EunosOverlay.PC_COLLISION_X;
+    const viewportWidth = NPC_PORTRAIT.viewportCollisions.x;
     const normalizedPos = (xPos / viewportWidth) * 2 - 1; // -1 to 1
     return -normalizedPos * 40; // -20 to 20 degrees
   }
@@ -5264,11 +5314,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         name: location,
         key: camelCase(location),
         images: {},
-        position: {
-          top: 0,
-          right: "var(--sidebar-width)",
-          width: "35vw"
-        },
+        imageMode: LocationImageModes.UpperRight,
         description: "",
         mapTransforms: [],
         audioDataIndoors: {},
@@ -5368,7 +5414,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private deriveLocationFullData(
     settingsData: Location.SettingsData,
   ): Location.FullData {
-    const { key, pcData, npcData, audioDataIndoors, audioDataOutdoors } = settingsData;
+    const { key, pcData, npcData, audioDataIndoors, audioDataOutdoors, audioDataByImage } = settingsData;
 
     const pcFullData = this.getLocationPCData(pcData);
     const npcFullData = this.getLocationNPCData(npcData);
@@ -5379,6 +5425,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       npcData: npcFullData,
       audioDataIndoors: undefined,
       audioDataOutdoors: undefined,
+      audioDataByImage: undefined,
     };
 
     if (key in LOCATIONS && LOCATIONS[key]) {
@@ -5391,6 +5438,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (locationData.audioDataOutdoors) {
         fullData.audioDataOutdoors = this.getLocationAudioData(locationData.audioDataOutdoors);
       }
+      if (locationData.audioDataByImage) {
+        fullData.audioDataByImage = {};
+        for (const [imgKey, audioData] of Object.entries(locationData.audioDataByImage)) {
+          fullData.audioDataByImage[imgKey] = this.getLocationAudioData(audioData);
+        }
+      }
     } else {
       if (audioDataIndoors) {
         const audioIndoorsFullData = this.getLocationAudioData(audioDataIndoors);
@@ -5399,6 +5452,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (audioDataOutdoors) {
         const audioOutdoorsFullData = this.getLocationAudioData(audioDataOutdoors);
         fullData.audioDataOutdoors = audioOutdoorsFullData;
+      }
+      if (audioDataByImage) {
+        fullData.audioDataByImage = {};
+        for (const [imgKey, audioData] of Object.entries(audioDataByImage)) {
+          fullData.audioDataByImage[imgKey] = this.getLocationAudioData(audioData);
+        }
       }
     }
 
@@ -5499,6 +5558,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await setSetting("locationData", fullLocationData);
   }
 
+  public async resetLocationData(location?: string) {
+    location ??= getSetting("currentLocation");
+    await this.setLocationData(location, this.getLocationDefaultSettingsData(location));
+  }
+
+  public async resetAllLocationData() {
+    const locData = getSetting("locationData");
+    const newLocData: Record<string, Location.SettingsData> = {};
+    Object.keys(LOCATIONS).forEach((location) => {
+      newLocData[location] = this.getLocationDefaultSettingsData(location);
+    });
+    await setSetting("locationData", newLocData);
+    getNotifier().info("All location data reset");
+  }
+
+  // #endregion Getting & Setting Location Data & Location PC Data ~
+
+  // #region Updating Weather Audio ~
   public async updateWeatherAudio() {
     const weatherAudio = getSetting("weatherAudio");
     const currentWeatherAudio = EunosMedia.GetMediaByCategory(EunosMediaCategories.Weather)
@@ -5523,7 +5600,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
     });
   }
+  // #endregion Updating Weather Audio ~
 
+  // #region Updating Indoors/Outdoors State ~
   public async setIndoors(isIndoors: boolean) {
     const locData = this.getLocationData();
     if (!locData.isIndoors) {
@@ -5646,94 +5725,198 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     goIndoorsTimeline?.reverse();
     this.isIndoors = false;
   }
+  // #endregion Updating Indoors/Outdoors State ~
 
-  public async resetLocationData(location?: string) {
+  // #region Location Image Control ~
+
+  /**
+   * Sets the current display image for a location and propagates the change.
+   * Handles validation of image keys and updates location data storage.
+   * @param imageKey - Optional key of image to set from location's image list. If omitted, clears current image
+   * @param location - Optional location ID to update. Defaults to current active location
+   * @returns Promise that resolves when image is set and data is saved
+   * @throws Will not throw but logs error if location or image key is invalid
+   */
+  #initializeLocationWrapper() {
+    const locationWrapper$ = this.locationContainer$.find(".location-wrapper");
+    const locationImageWrapper$ = locationWrapper$.find(".location-image-wrapper");
+    const locationImage$ = locationImageWrapper$.find("img");
+
+    const imageMode = this.getLocationData().imageMode;
+    const {locationWrapper, locationImageWrapper, locationImage} = LOCATION_IMAGE_MODES[imageMode];
+    gsap.set(locationWrapper$, locationWrapper.css);
+    gsap.set(locationImageWrapper$, locationImageWrapper.css);
+    gsap.set(locationImage$, locationImage.css);
+
+    kLog.log("Initialized location wrapper", {locationWrapper$, locationImageWrapper$, locationImage$, locationWrapper, locationImageWrapper, locationImage});
+  }
+
+  public async setLocationImage(imageKey?: string, location?: string): Promise<void> {
+    if (!getUser().isGM) { return; }
+    // Default to current location if none specified
     location ??= getSetting("currentLocation");
-    await this.setLocationData(location, this.getLocationDefaultSettingsData(location));
+    const locationData = assertIs(this.getLocationData(location));
+
+    // Handle image key updates with validation
+    if (!imageKey) {
+      // No image key provided - clear current image
+      locationData.currentImage = null;
+    } else if (!(imageKey in locationData.images)) {
+      // Invalid image key - log error and clear current image
+      kLog.error("Image key not found", { imageKey, location });
+      locationData.currentImage = null;
+    } else {
+      // Valid image key - update current image
+      locationData.currentImage = imageKey;
+    }
+
+    // Persist updated location data to storage
+    await this.setLocationData(location, locationData);
   }
 
-  public async resetAllLocationData() {
-    const locData = getSetting("locationData");
-    const newLocData: Record<string, Location.SettingsData> = {};
-    Object.keys(LOCATIONS).forEach((location) => {
-      newLocData[location] = this.getLocationDefaultSettingsData(location);
+  #getVisibleImageWrapper(): JQuery|null {
+    const visibleImageWrapper$ = this.locationContainer$.find(".location-image-wrapper").filter((index, element) => {
+      return $(element).find("img").attr("src") !== "";
     });
-    await setSetting("locationData", newLocData);
-    getNotifier().info("All location data reset");
+    return visibleImageWrapper$.length > 0 ? visibleImageWrapper$ : null;
   }
 
-  public async refreshLocationImage(imgKey: string) {
-    const locData = this.getLocationData(getSetting("currentLocation"));
-    if (imgKey && !locData.images[imgKey]) {
-      kLog.error("Location not found", {
-        location: getSetting("currentLocation"),
-      });
-      return;
+  #getInvisibleImageWrapper(): JQuery {
+    const visibleImageWrapper$ = this.#getVisibleImageWrapper();
+    if (!visibleImageWrapper$) {
+      return $(assertIs(this.locationContainer$.find(".location-image-wrapper")[0]));
     }
-    const timeline = gsap.timeline();
-    const curSrc = this.locationImage$.attr("src") ?? "";
-    const newSrc = imgKey ? locData.images[imgKey]! : "";
+    return $(assertIs(this.locationContainer$.find(".location-image-wrapper").not(visibleImageWrapper$)[0]));
+  }
 
-    // Apply position properties if they exist
-    if (locData.position) {
-      const { center, ...cssProps } = locData.position;
-
-      const gsapProps: gsap.TweenVars = {
-        ...cssProps,
-        duration: 0.5,
-        ease: "power2.out",
-      };
-
-      // If center coordinates are provided, use them for positioning
-      if (center) {
-        gsapProps.xPercent = -50;
-        gsapProps.yPercent = -50;
-        gsapProps.x = center.x;
-        gsapProps.y = center.y;
-      }
-
-      timeline.to(this.locationContainer$, gsapProps);
+  #buildFadeOutImageTimeline(): gsap.core.Timeline|null {
+    const visibleImageWrapper$ = this.#getVisibleImageWrapper();
+    kLog.log(`Building fade out image timeline`, {visibleImageWrapper$});
+    if (!visibleImageWrapper$) {
+      return null;
     }
-
-    // Continue with existing image swap logic
-    if (curSrc === newSrc) return;
-
-    timeline
-      .to(this.locationImage$, {
-        opacity: 0,
-        duration: 0.5,
+    const visibleImages$ = visibleImageWrapper$.find("img");
+    const timeline = gsap.timeline()
+      .to(visibleImageWrapper$, {
+        rotateX: 45,
+        duration: 1,
         ease: "power2.out",
       })
+      .to(visibleImageWrapper$, {
+        duration: 0.25,
+        autoAlpha: 0,
+        ease: "power2.out"
+      }, 0.75)
       .call(() => {
-        this.locationImage$.attr("src", newSrc);
+        kLog.log(`Fade out image timeline complete`, {visibleImageWrapper$});
+        visibleImageWrapper$.find("img").attr("src", "");
       });
+    return timeline;
+  }
 
-    if (newSrc) {
-      timeline
-        .to(this.locationContainer$, {
-          opacity: 1,
-          filter: "blur(0)",
-          duration: 0,
-          ease: "none",
-        })
-        .to(
-          this.locationImage$,
-          { opacity: 1, duration: 0.5, ease: "power2.in" },
-          "<",
-        );
+  #buildFadeInImageTimeline(imgKey: string|null): gsap.core.Timeline|null {
+    if (!imgKey) {
+      return null;
     }
+    const invisibleImageWrapper$ = this.#getInvisibleImageWrapper();
+    kLog.log(`Building fade in image timeline`, {invisibleImageWrapper$});
+    const invisibleImage$ = invisibleImageWrapper$.find("img");
+    const locData = this.getLocationData();
+    const imgSrc = assertIs(locData.images[imgKey]);
+
+    // invisibleImageWrapper$.find("img").attr("src", imgSrc);
+
+    const timeline = gsap.timeline()
+      .fromTo(invisibleImage$, {
+        autoAlpha: 0
+      }, {
+        autoAlpha: 1,
+        filter: "brightness(0.5) blur(10px)",
+        // scale: 0.6,
+        duration: 0,
+        ease: "none"
+      })
+      .call(() => {
+        kLog.log(`Fade in image timeline started`, {invisibleImage$});
+        invisibleImage$.attr("src", imgSrc);
+      })
+      .fromTo(invisibleImageWrapper$, {
+        autoAlpha: 0,
+        rotateX: -45, // Rotate back around X axis
+        rotateY: 0,  // No side-to-side rotation initially
+      }, {
+        // Will animate to these default values
+        autoAlpha: 1,
+        rotateX: 0,
+        rotateY: 0,
+        // z: 0,
+        // scale: 1,
+        // height: "100%",
+        // width: "100%",
+        // filter: "blur(0px)",
+        duration: 2,
+        ease: "back.out"
+      })
+      .to(invisibleImage$, {
+        autoAlpha: 1,
+        // scale: 1,
+        filter: "brightness(1) blur(0px)",
+        duration: 2,
+        ease: "power2.out"
+      }, 0.1);
+    return timeline;
+  }
+
+
+  public async fadeOutLocationImage(): Promise<void> {
+    await this.#buildFadeOutImageTimeline()?.play();
+  }
+
+  public async fadeInLocationImage(imgKey: string|null): Promise<void> {
+    await this.#buildFadeInImageTimeline(imgKey)?.play();
+  }
+
+  public async refreshLocationImage(imgKey: string|null): Promise<void> {
+    const timelines = [
+      this.#buildFadeOutImageTimeline(),
+      this.#buildFadeInImageTimeline(imgKey),
+    ].filter(Boolean) as gsap.core.Timeline[];
+
+    kLog.log(`Refreshing location image to key: ${imgKey}`, {timelines});
+
+    const tl = gsap.timeline();
+    for (const t of timelines) {
+      tl.add(t, "<+=0.25");
+    }
+
+    // If the location has audioDataByImage, and if this imgKey has associated audioData, then that audio data overrides all other audio (including weather).
+    if (imgKey) {
+      const locData = this.getLocationData();
+      if (locData.audioDataByImage?.[imgKey]) {
+        const audioToPlay = locData.audioDataByImage[imgKey];
+        const audioPlaying = EunosMedia.GetPlayingSounds();
+        const audioToKill = audioPlaying.filter((media) => !(media.name in audioToPlay));
+        audioToKill.forEach((media) => {
+          void media.kill(2);
+        });
+        Object.entries(audioToPlay).forEach(([mediaName, media]) => {
+          // We must first retrieve any specific settings for this audio from the audioDataByImage object and apply them.
+          const locSettingsData = this.getLocationSettingsData(locData.key);
+          const audioSettings = locSettingsData.audioDataByImage?.[imgKey]?.[mediaName];
+          if (audioSettings) {
+            void media.play(audioSettings);
+          } else {
+            void media.play();
+          }
+        });
+      }
+    }
+    await tl.play();
   }
 
   // #endregion
 
-  public async initializeLocation() {
-    await this.goToLocation(null, getSetting("currentLocation"));
-
-    const locationData = this.getLocationData(getSetting("currentLocation"));
-    if (locationData.currentImage) {
-      await this.refreshLocationImage(locationData.currentImage);
-    }
-  }
+  // #REGION INITIALIZING & TRANSITIONING LOCATIONS ~
 
   /**
    * Sets the current location for all users and updates related settings.
@@ -5783,42 +5966,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await setSetting("currentLocation", location);
   }
 
-  /**
-   * Sets the current display image for a location and propagates the change.
-   * Handles validation of image keys and updates location data storage.
-   * @param imageKey - Optional key of image to set from location's image list. If omitted, clears current image
-   * @param location - Optional location ID to update. Defaults to current active location
-   * @returns Promise that resolves when image is set and data is saved
-   * @throws Will not throw but logs error if location or image key is invalid
-   */
-  public async setLocationImage(imageKey?: string, location?: string): Promise<void> {
-    // Default to current location if none specified
-    location ??= getSetting("currentLocation");
-    const locationData = this.getLocationData(location);
-
-    // Validate location exists before attempting updates
-    if (!locationData) {
-      kLog.error("Location not found", { location });
-      return;
-    }
-
-    // Handle image key updates with validation
-    if (!imageKey) {
-      // No image key provided - clear current image
-      locationData.currentImage = null;
-    } else if (!(imageKey in locationData.images)) {
-      // Invalid image key - log error and clear current image
-      kLog.error("Image key not found", { imageKey, location });
-      locationData.currentImage = null;
-    } else {
-      // Valid image key - update current image
-      locationData.currentImage = imageKey;
-    }
-
-    // Persist updated location data to storage
-    await this.setLocationData(location, locationData);
-  }
-
   // Timeline references for managing animations
   #stageWaverTimeline: Maybe<gsap.core.Timeline>;
   #goToLocationTimeline: Maybe<gsap.core.Timeline>;
@@ -5838,9 +5985,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
    */
   public async goToLocation(
     fromLocation: string | null,
-    toLocation: string,
+    toLocation?: string,
     // isGoingOutdoors: boolean,
   ): Promise<gsap.core.Timeline | undefined> {
+    toLocation ??= getSetting("currentLocation");
     // Await any in-progress transition to prevent animation conflicts
     if (this.#goToLocationTimeline) {
       await this.#goToLocationTimeline;
@@ -5894,11 +6042,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       npcData,
       audioDataIndoors,
       audioDataOutdoors,
+      audioDataByImage,
       mapTransforms,
       isIndoors,
     } = locationData;
 
-    const audioData = audioDataOutdoors ?? audioDataIndoors ?? {};
+    const imgAudio = (currentImage && audioDataByImage?.[currentImage]) || null;
+    const imgAudioData = toLocation && currentImage
+      ? this.getLocationSettingsData(toLocation).audioDataByImage?.[currentImage] ?? null
+      : null;
+    const audioData = imgAudio ?? audioDataOutdoors ?? audioDataIndoors ?? {};
 
     // Handle lightning effects based on location brightness
     const lightningAudio = EunosMedia.GetMedia("weather-lightning");
@@ -5939,36 +6092,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Create main transition timeline
     const timeline = gsap.timeline({ paused: true });
-    const curImgSrc = currentImage ? images[currentImage] : "";
 
-    // Phase 1: Animate out current location card
-    timeline.to(
-      this.locationContainer$,
-      {
-        y: "-=200", // Move up 200px
-        x: "-=100", // Move left 100px
-        filter: "blur(30px)", // Heavy blur effect
-        opacity: 0, // Fade to transparent
-        duration: 0.5, // Half second animation
-        ease: "power2.out", // Ease out for smooth exit
-        onComplete: () => {
-          // Update location card content while it's invisible
-          this.locationName$.text(name);
-          this.locationImage$.attr("src", curImgSrc ?? "");
-          this.locationDescription$.html(description ?? "");
-          // Reset position/properties instantly
-          gsap.to(this.locationContainer$, {
-            y: 0,
-            x: 0,
-            filter: "blur(0)",
-            opacity: 0,
-            duration: 0,
-            ease: "none",
-          });
-        },
-      },
-      0, // Start at timeline beginning
-    );
+    // Phase 1: Animate out current location image
+    const fadeOutTimeline = this.#buildFadeOutImageTimeline();
+    const fadeInTimeline = this.#buildFadeInImageTimeline(currentImage);
+    if (fadeOutTimeline) {
+      timeline.add(fadeOutTimeline, 0);
+    }
 
     // Add marker for movement phase start
     timeline.addLabel("startMoving_0");
@@ -6059,24 +6189,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     kLog.log("Adding label stopMoving at", timeline.duration());
     timeline.addLabel("stopMoving", "-=0.5"); // Overlap slightly with last transform
 
-    // Phase 6: Fade in location card if there's an image
-    if (curImgSrc) {
-      timeline.to(
-        this.locationContainer$,
-        {
-          opacity: 1,
-          duration: 1,
-          ease: "power3.inOut", // Smooth fade in/out
-        },
-        "stopMoving",
-      );
+    // Phase 6: Fade in location image, if there is one
+    if (fadeInTimeline) {
+      fadeInTimeline.eventCallback("onStart", () => {
+        kLog.display(`Initializing location wrapper for location '${toLocation}'`);
+        this.#initializeLocationWrapper();
+      })
+      timeline.add(fadeInTimeline, "stopMoving");
     }
 
     // Phase 7: Start new audio tracks with 5 second fadein
     timeline.call(
       () => {
         audioToStart.forEach((media) => {
-          void media.play({ fadeInDuration: 5 });
+          if (imgAudioData) {
+            void media.play(imgAudioData[media.name]);
+          } else {
+            void media.play({ fadeInDuration: 5 });
+          }
         });
       },
       [],
@@ -6108,7 +6238,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     return timeline;
   }
-
   // #endregion LOCATIONS
 
   // #region LOCATION PLOTTING PANEL ~
@@ -6226,6 +6355,77 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion Location Plotting ~
 
   // #endregion STAGE CONTROL
+
+  // #region END PHASE ~
+
+  #fadeOutQuestion(question$: JQuery): gsap.core.Timeline {
+    const splitQuestionTextChars = question$.find(".question-text").children();
+
+    return gsap.timeline()
+      .to(splitQuestionTextChars, {
+        autoAlpha: 0,
+        duration: 1,
+        filter: "blur(10px)",
+        x: "+=50",
+        y: "-=100",
+        ease: "power3.out",
+        stagger: {
+          from: "start",
+          amount: 0.5
+        }
+      })
+  }
+
+  #fadeInQuestion(question$: JQuery): gsap.core.Timeline {
+    const split = new SplitText(question$.find(".question-text")[0]!, {type: "chars,words"});
+    return (gsap.effects["splashPopText"] as GSAPEffectFunction)(split.chars) as gsap.core.Timeline;
+
+    // const splitQuestionText = new SplitText(, { type: "words,chars" });
+
+    // return gsap.timeline()
+    //   .to(question$.find(".question-text"), {
+    //     autoAlpha: 1,
+    //     duration: 0.25
+    //   })
+    //   .fromTo(splitQuestionText.chars, {
+    //     autoAlpha: 0,
+    //     filter: "blur(10px)",
+    //     x: "-=50",
+    //     y: "+=100",
+    //   }, {
+    //     autoAlpha: 1,
+    //     filter: "blur(0px)",
+    //     x: 0,
+    //     y: 0,
+    //     duration: 1,
+    //     ease: "power3.in",
+    //     stagger: {
+    //       from: "start",
+    //       amount: 0.5
+    //     }
+    //   });
+  }
+
+  public async transitionToEndPhaseQuestion(questionNumber: number): Promise<void> {
+    kLog.log("transitioning to end phase question", questionNumber);
+    const lastQuestion = questionNumber - 1;
+    if (lastQuestion > 0) {
+      const lastQuestion$ = this.endPhase$.find(`[data-question-number="${lastQuestion}"]`);
+      if (lastQuestion$.length > 0) {
+        await this.#fadeOutQuestion(lastQuestion$);
+      }
+    }
+    if (questionNumber < 4) {
+      const currentQuestion$ = this.endPhase$.find(`[data-question-number="${questionNumber}"]`);
+      if (currentQuestion$.length > 0) {
+        await this.#fadeInQuestion(currentQuestion$);
+      }
+    }
+  }
+
+
+  // #endregion END PHASE ~
+
 
   // #region LISTENERS ~
 
@@ -6674,31 +6874,31 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.makePlottingControls();
     this.addSafetyButtonListeners();
 
-    // Clear and render NPCs for current location
-    setTimeout(() => {
-      const currentLocation = getSetting("currentLocation");
-      const locationData = this.getLocationData(currentLocation);
-      if (locationData?.npcData) {
-        if (getUser().isGM) {
-          Object.entries(locationData.npcData).forEach(
-            ([npcID, { portraitState, nameState, position }]) => {
-              void this.updateNPCUI_GM(npcID, {
-                portraitState,
-                nameState,
-                position,
-              });
-            },
-          );
-          return;
-        }
-        this.npcs$.empty();
-        void this.buildNPCUIUpdateTimeline(locationData.npcData).then(
-          ({ tl }) => {
-            tl.play();
-          },
-        );
-      }
-    }, 5000);
+    // // Clear and render NPCs for current location
+    // setTimeout(() => {
+    //   const currentLocation = getSetting("currentLocation");
+    //   const locationData = this.getLocationData(currentLocation);
+    //   if (locationData?.npcData) {
+    //     if (getUser().isGM) {
+    //       Object.entries(locationData.npcData).forEach(
+    //         ([npcID, { portraitState, nameState, position }]) => {
+    //           void this.updateNPCUI_GM(npcID, {
+    //             portraitState,
+    //             nameState,
+    //             position,
+    //           });
+    //         },
+    //       );
+    //       return;
+    //     }
+    //     this.npcs$.empty();
+    //     void this.buildNPCUIUpdateTimeline(locationData.npcData).then(
+    //       ({ tl }) => {
+    //         tl.play();
+    //       },
+    //     );
+    //   }
+    // }, 5000);
     this.#dragDrop.forEach((d) => {
       // Bind to the sidebar actors list
       const sidebarActors = document.querySelector(
@@ -6722,28 +6922,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }, 2000);
     }
   }
-
-  // private formatControlValue(
-  //   controlType: string,
-  //   property: string,
-  //   value: number|string,
-  // ): string {
-  //   switch (property) {
-  //     case "hue-rotate":
-  //     case "rotationX":
-  //     case "rotationY":
-  //     case "rotationZ":
-  //       return `${Math.round(Number(value))}°`;
-  //     case "saturate":
-  //       return Number(value).toFixed(2);
-  //     case "circlePositionX":
-  //     case "circlePositionY":
-  //     case "gradientStopPercentage":
-  //       return `${Math.round(Number(value))}%`;
-  //     default:
-  //       return String(value);
-  //   }
-  // }
 
   private makePlottingControls() {
     // Confirm that location plotting panel is visible

@@ -276,7 +276,7 @@
   // Drag preview styling
   .npc-portrait-preview {
     position: absolute;
-    width: 150px; // These values should match EunosOverlay.PORTRAIT_SIZE
+    width: 150px; // These values should match NPC_PORTRAIT.size
     height: 200px;
     border: 2px dashed #fff;
     background-color: rgba(255, 255, 255, 0.2);

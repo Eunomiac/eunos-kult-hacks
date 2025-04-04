@@ -25,6 +25,7 @@ declare global {
     getGogglesImageSrc(): string;
     askForAttribute(): Promise<string|null>;
     moveroll(moveID: string): Promise<void>;
+    awardXP(): Promise<void>;
   }
 }
 
@@ -428,6 +429,23 @@ export default function registerEunosActor(): void {
         return "Wounded";
       }
       return "";
+    }
+
+    get nextXPKey(): "advancementExp1" | "advancementExp2" | "advancementExp3" | "advancementExp4" | "advancementExp5" {
+      if (!this.isPC()) {
+        throw new Error("nextXPKey is only available for PCs");
+      }
+      const curXP = Math.max(0, (["advancementExp1", "advancementExp2", "advancementExp3", "advancementExp4", "advancementExp5"] as const)
+        .findIndex((xp) => this.system[xp].state === "none"));
+      return `advancementExp${curXP + 1}` as "advancementExp1" | "advancementExp2" | "advancementExp3" | "advancementExp4" | "advancementExp5";
+    }
+
+    public async awardXP(): Promise<void> {
+      if (!this.isPC()) {
+        throw new Error("awardXP is only available for PCs");
+      }
+      const xpKey = this.nextXPKey;
+      await this.update({ system: { [xpKey]: { state: "checked" } } });
     }
 
     getPortraitImage(type: "bg" | "fg"): string {

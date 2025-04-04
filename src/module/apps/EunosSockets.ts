@@ -116,6 +116,11 @@ export interface SocketEvents {
       isIndoors: boolean;
     };
   };
+  proceedEndPhase: {
+    data: {
+      questionNumber: number|"end";
+    };
+  };
 }
 
 export type SocketEventName = keyof SocketEvents;
