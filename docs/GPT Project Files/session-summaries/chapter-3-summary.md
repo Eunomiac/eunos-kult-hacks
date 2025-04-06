@@ -1,0 +1,18 @@
+- We begin in **Mayor Wainwright's** office at the **Town Hall**, where he is meeting with **Morgan Harvey** to discuss the **East Tunnel**.
+- **Mayor Wainright** strongly emphasizes the urgency of building the tunnel to connect Emma’s Rise with the outside world, for without an alternative to Willow's Wending, there is no way to leave.
+    - **Morgan Harvey** accepts the urgency and agrees to begin immediately, rather than delve into the town’s seemingly impossible phenomena.
+    - Searching for their scattered friends, Morgan meets up with **Jesús de Costa** and **Roman Larson**, but first sends Mayor Wainright off to fetch extra welding goggles for Roman’s animals.
+- The group proceeds to **Ranger Station #2**, where they meet **Gestalt**—a hive-mind consciousness simultaneously controlling three bodies: two men, one blonde and one dark-haired, and one woman.
+    - The Mayor explains that Gestalt arrived in Emma's Rise over a century ago, meaning that he came from Elysium's far future where "tripartate bifurcated psychosurgery" enables the splitting of minds to control multiple bodies.
+- Gestalt outfits Morgan, Roman, and Jesús with an arsenal of weapons and protective gear, many of them plainly from a future time, as "precautions" against "possible" dangers in the tunnels beneath Emma's Rise.
+- At the entrance to the **East Tunnel**, Jesús clumsily pierces the Illusion–but it is Morgan who sees the impossible as a result: a vision of the nine students lost during his ill-fated Kentucky expedition, standing in the East Tunnel, staring back at him.
+- **Mayor Wainright** fixates on the half-completed tunnel, insisting it’s the key to Emma’s Rise’s salvation. He reveals the **Modwin Group** once controlled tunnel construction but, after failing to make progress for decades, was ousted and replaced by his own hiring of Morgan Harvey.
+- In conversation with Gestalt, Jesús feels a sting in his shoulder as one of them touches him.
+- Jesús abruptly decides to sneak off, but Roman notices his absence and alerts the party. One of Gestalt turns back in pursuit. Roman demands more explanations from the mayor about the town’s bizarre nature.
+- **Elijah Montgomery Lee** remains preoccupied with a private task at the **Pact Grove**, conferring with two elders known as Miss Wynn and Father Wakefield. They lament the town’s fate but see no way to avert it.
+    - Suddenly and in mid-sentence, everything fades to black for Elijah
+- Meanwhile, at **Kingsgrave Manor**, **Barbara Kingsgrave** clings to **Alistair**, overjoyed to have him home.
+- Alistair, having just met the woman, politely maintains his distance and begins to explore the manor.
+    - Beginning in the basement, Alistair finds it oddly barren of shelves, stored furniture, even load-bearing pillars.
+    - He discovers the sand-covered floor hides layers upon layers of old bloodstains.
+    - Methodically searching the walls for hidden compartments, he finds one when he accidentally knocks it open, sending an arsenal of medieval weaponry clattering to the ground with a racket that undoubtedly would have alerted the entire house.

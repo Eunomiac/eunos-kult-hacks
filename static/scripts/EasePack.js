@@ -209,4 +209,7 @@ for (var p in EasePack) {
 }
 
 _getGSAP() && gsap.registerPlugin(SlowMo);
+
+Object.assign(globalThis, { SlowMo, RoughEase, ExpoScaleEase });
+
 export { EasePack as default };

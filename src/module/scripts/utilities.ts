@@ -4,7 +4,6 @@ import EunosItem from "../documents/EunosItem";
 import Document = foundry.abstract.Document;
 import type ActorDataPC from "../data-model/ActorDataPC";
 // eslint-disable-next-line
-import {gsap, Draggable as Dragger, RoughEase, CustomEase, InertiaPlugin, CustomWiggle, ExpoScaleEase, SlowMo, EasePack, Flip, Observer, MotionPathPlugin, PixiPlugin, TextPlugin, MorphSVGPlugin, SplitText, GSDevTools} from "gsap/all";
 
 // #region ▒▒▒▒▒▒▒ [HELPERS] Internal Functions, Data & References Used by Utility Functions ▒▒▒▒▒▒▒ ~
 
@@ -3300,8 +3299,6 @@ export {
 
   // ■■■■■■■ GreenSock ■■■■■■■
   timeline, get, set, getGSAngleDelta, getNearestLabel, reverseRepeatingTimeline,
-
-  gsap, Dragger, RoughEase, CustomEase, InertiaPlugin, CustomWiggle, ExpoScaleEase, SlowMo, EasePack, Flip, Observer, MotionPathPlugin, PixiPlugin, TextPlugin, MorphSVGPlugin, SplitText, GSDevTools,
 
   distributeByPosition,
 

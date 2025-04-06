@@ -194,15 +194,15 @@ Hooks.on("init", () => {
 
 Hooks.on("ready", () => {
   void preloadHandlebarTemplates().then(async () => {
+    if (game?.user?.isGM) {
+      kLog.display("GM User Detected", 0);
+      addClassToDOM("gm-user");
+    }
     await RunInitializer(InitializerMethod.Initialize);
     overridePCSheet();
     overrideNPCSheet();
     overrideItemSheet();
     await RunInitializer(InitializerMethod.PostInitialize);
-    if (game?.user?.isGM) {
-      kLog.display("GM User Detected", 0);
-      addClassToDOM("gm-user");
-    }
   });
 
   replaceBasicMovesHook();

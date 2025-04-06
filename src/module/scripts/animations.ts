@@ -35,55 +35,52 @@ export function initializeGSAP(): void {
     name: "splashPopText",
     extendTimeline: true,
     defaults: {
-      duration: 5,
-      ease: "expo.inOut",
+      duration: 2.5,
+      ease: "none",
       delay: 0
     },
     effect: (targets: HTMLElement[]|JQuery, config = {}) => {
       const targets$ = $(targets);
       const {duration, ease, delay} = config as {duration: number, ease: string, delay: number};
-      gsap.set(targets$, {filter: "blur(0px) drop-shadow(20px 20px 10px black)"});
+      // gsap.set(targets$, {filter: "blur(0px) drop-shadow(20px 20px 10px black)"});
       const targetContainer$ = targets$.parents(".question-text");
-      const timeToStaggerTargets = (0.1 * targets$.length) / 2;
+      const timeToStaggerTargets = duration / targets$.length;
       return gsap.timeline({delay})
-        .to(targetContainer$, {
+        .fromTo(targetContainer$, {
+          autoAlpha: 0,
+        }, {
           autoAlpha: 1,
           duration: 0.1,
           ease: "none"
         }, 0)
-        .fromTo(targetContainer$, {
-          x: "-=100"
-        }, {
-          x: "+=100",
-          // scale: 1.5,
-          duration: duration,
-          ease: "slow(0.1, 1, false)"
-        }, 0)
+        // .fromTo(targetContainer$, {
+        //   x: "-=500"
+        // }, {
+        //   x: "+=500",
+        //   // scale: 1.5,
+        //   duration: duration,
+        //   ease: "slow(0.1, 2, false)"
+        // }, 0)
         .fromTo(targets$,
           {
-            filter: "blur(200px) drop-shadow(20px 20px 30px black)"
+            autoAlpha: 0,
+            filter: "blur(200px)",
+            scale: 3
           },
           {
-            filter: "blur(0px) drop-shadow(20px 20px 10px black)",
-            duration: (0.2 * duration),
+            autoAlpha: 1,
+            filter: "blur(0px)",
+            scale: 1,
+            duration,
             ease,
             stagger: {
-              each: 0.15,
-              ease: "none",
+              // amount: duration,
+              each: timeToStaggerTargets,
+              ease: "power2.inOut",
               from: "start"
             }
           },
           0.1)
-        .from(targets$, {
-          duration: 0.1,
-          autoAlpha: 0,
-          ease: "none",
-          stagger: {
-            each: 0.15,
-            ease: "none",
-            from: "start"
-          }
-        }, 0);
     }
   });
   // Register custom effects

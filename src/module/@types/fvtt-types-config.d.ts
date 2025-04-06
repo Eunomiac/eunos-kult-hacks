@@ -65,7 +65,7 @@ declare global {
     "eunos-kult-hacks.currentLocation": string;
     "eunos-kult-hacks.isOutdoors": boolean;
     "eunos-kult-hacks.weatherAudio": Record<string, number>;
-    "eunos-kult-hacks.locationData": Partial<Record<string, Location.SettingsData>>;
+    "eunos-kult-hacks.locationData": Record<string, Location.SettingsData>;
     "eunos-kult-hacks.nextGameSession": string; // ISO date string in Toronto timezone
     "eunos-kult-hacks.sessionScribeDeck": string[];
     "eunos-kult-hacks.sessionScribe": string;

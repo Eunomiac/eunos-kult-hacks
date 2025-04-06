@@ -939,21 +939,21 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
-    "way-down-we-go": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 214,
-      loop: false,
-      sync: true,
-      volume: 0.75,
-      autoplay: false,
-    },
     "white-rabbit": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-white-rabbit.ogg",
       alwaysPreload: false,
       delay: 0,
       duration: 155,
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
+    "way-down-we-go": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 214,
       loop: false,
       sync: true,
       volume: 0.75,
@@ -1489,6 +1489,60 @@ export const Sounds = {
       autoplay: false,
       showInSoundMenu: false,
     },
+    "ambient-tunnel-wind": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-tunnel-wind.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.25,
+      autoplay: false,
+    },
+    "ambient-tunnel-whispers": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-tunnel-whispers.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "ambient-tunnel-hum": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-tunnel-hum.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.05,
+      autoplay: false,
+    },
+    "ambient-underwater": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-underwater.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 1,
+      autoplay: false,
+    },
+    "ambient-underground-deeper": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-underground-deeper.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.35,
+      autoplay: false,
+    },
+    "ambient-pistons": {
+      path: "modules/eunos-kult-hacks/assets/sounds/ambient/ambient-pistons.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
   },
   Weather: {
     "weather-wind-low-2": {
@@ -1633,26 +1687,62 @@ export const Sounds = {
     },
   },
   Effects: {
-    "effect-angel-chorus": {
-      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-angel-chorus.ogg",
-      alwaysPreload: true,
+    "effect-fraying-rope": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-fraying-rope.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: true,
+      sync: false,
+      volume: 0.5,
+      autoplay: false,
+    },
+    "effect-tunnel-debris": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-tunnel-debris.ogg",
+      alwaysPreload: false,
       delay: 0,
       loop: false,
       sync: false,
-      volume: 0.75,
+      volume: 1,
       autoplay: false,
-      fadeInDuration: 2
     },
-    "effect-church-bells": {
-      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-church-bells.ogg",
-      alwaysPreload: true,
+    "effect-sinking-underwater": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-sinking-underwater.ogg",
+      alwaysPreload: false,
       delay: 0,
       loop: false,
       sync: false,
-      volume: 0.75,
+      volume: 1,
       autoplay: false,
-      fadeInDuration: 2
     },
+    "effect-underground-explosion": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-underground-explosion.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 1,
+      autoplay: false,
+    },
+    // "effect-angel-chorus": {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-angel-chorus.ogg",
+    //   alwaysPreload: true,
+    //   delay: 0,
+    //   loop: false,
+    //   sync: false,
+    //   volume: 0.75,
+    //   autoplay: false,
+    //   fadeInDuration: 2
+    // },
+    // "effect-church-bells": {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-church-bells.ogg",
+    //   alwaysPreload: true,
+    //   delay: 0,
+    //   loop: false,
+    //   sync: false,
+    //   volume: 0.75,
+    //   autoplay: false,
+    //   fadeInDuration: 2
+    // },
     "effect-shatter-illusion-1": {
       path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-shatter-illusion-1.ogg",
       alwaysPreload: true,
@@ -1689,16 +1779,16 @@ export const Sounds = {
     //   volume: 0.25,
     //   autoplay: false,
     // },
-    "quote-session-2": {
-      path: "modules/eunos-kult-hacks/assets/sounds/effects/c02/quote-session-2.ogg",
-      alwaysPreload: true,
-      delay: 0,
-      loop: false,
-      sync: false,
-      volume: 0.75,
-      autoplay: false,
-      fadeInDuration: 2,
-    },
+    // "quote-session-2": {
+    //   path: "modules/eunos-kult-hacks/assets/sounds/effects/c02/quote-session-2.ogg",
+    //   alwaysPreload: true,
+    //   delay: 0,
+    //   loop: false,
+    //   sync: false,
+    //   volume: 0.75,
+    //   autoplay: false,
+    //   fadeInDuration: 2,
+    // },
     // "effect-car-crash": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-car-crash.ogg",
     //   alwaysPreload: true,
@@ -4204,60 +4294,70 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         "ambient-generic-buzz": {volume: 0.5}
       },
       "3) Single-File Tunnel": {
-        "ambient-low-bass-rumble": {volume: 0.1}
+        "ambient-low-bass-rumble": {volume: 0.1},
+        "ambient-underground-deeper": {volume: 0.25}
       },
       "4) Fork": {
         "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.15},
         "ambient-creepy": {volume: 0.6},
-        "ambient-generic-buzz": {volume: 0.5},
-        "ambient-whispering-ghosts": {volume: 0.3}
+        "ambient-tunnel-hum": {volume: 0.05},
+        "ambient-pistons": {volume: 0.25},
+        "ambient-tunnel-whispers": {volume: 0.3}
       },
       "5A) Fork: Hum": {
         "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.15},
         "ambient-creepy": {volume: 0.6},
-        "ambient-generic-buzz": {volume: 0.5},
-
+        "ambient-tunnel-hum": {volume: 0.3},
+        "ambient-pistons": {volume: 0.5},
       },
       "5B) Hum: Habitation": {
         "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.15},
         "ambient-creepy": {volume: 0.6},
-        "ambient-generic-buzz": {volume: 0.7},
+        "ambient-tunnel-hum": {volume: 0.5},
+        "ambient-pistons": {volume: 0.5},
 
       },
       "5C) Hum: Closed Door": {
         "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.15},
         "ambient-creepy": {volume: 0.6},
-        "ambient-generic-buzz": {volume: 0.9},
+        "ambient-tunnel-hum": {volume: 0.5},
+        "ambient-pistons": {volume: 0.75}
 
       },
       "5D) Hum: Open Door": {
         "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.15},
         "ambient-creepy": {volume: 0.6},
-        "ambient-generic-buzz": {volume: 1},
+        "ambient-tunnel-hum": {volume: 0.7},
+        "ambient-pistons": {volume: 1}
 
       },
       "6A) Fork: Whispers": {
         "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.15},
         "ambient-creepy": {volume: 0.6},
-        "ambient-whispering-ghosts": {volume: 0.01}
-
+        "ambient-tunnel-whispers": {volume: 0.5},
+        "ambient-tunnel-wind": {volume: 0.2},
       },
       "6B) Whispers: Vertical Shaft": {
         "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.15},
         "ambient-creepy": {volume: 0.6},
-        "ambient-whispering-ghosts": {volume: 0.02},
-        "ambient-creek": {volume: 0.1}
-
+        "ambient-tunnel-whispers": {volume: 0.5},
+        "ambient-tunnel-wind": {volume: 0.15}
       },
       "6C) Whispers: Submerged Tunnel": {
-        "ambient-underground": {volume: 0.05},
-        "ambient-creepy": {volume: 0.6},
-        "ambient-whispering-ghosts": {volume: 0.03},
-        "ambient-creek": {volume: 0.3}
+        "ambient-underground-deeper": {volume: 0.05}
       },
       "7) Sleeping Statue": {
         "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.15},
         "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-wind": {volume: 0.3}
       }
     },
     isBright: false,

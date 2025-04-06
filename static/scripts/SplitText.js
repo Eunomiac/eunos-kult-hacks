@@ -595,4 +595,5 @@ export var SplitText = /*#__PURE__*/function () {
   return SplitText;
 }();
 SplitText.version = "3.11.0";
+Object.assign(globalThis, { SplitText });
 export { SplitText as default };

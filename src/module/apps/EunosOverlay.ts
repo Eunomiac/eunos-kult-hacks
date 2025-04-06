@@ -15,8 +15,7 @@ import {
   getOwnedAndActiveActors,
   getActorFromRef,
   roundNum,
-  SplitText,
-  SlowMo,
+  // SlowMo,
   randElem,
   shuffle,
   getDistance,
@@ -803,7 +802,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
 
     this.currentLocationLog = getSetting("currentLocation");
-    this.currentLocationDataLog = getSetting("locationData") as Record<string, Location.SettingsData>;
+    this.currentLocationDataLog = getSetting("locationData");
 
     // Register hook to re-render GM overlaywhen any PC actor is updated
     Hooks.on("updateActor", (actor: Actor) => {
@@ -2537,6 +2536,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     EunosMedia.GetPlayingSounds().forEach((sound) => {
       void sound.kill();
     });
+    if (getUser().isGM) {
+      void setSetting("endPhaseQuestion", 0);
+    }
   }
 
   async sync_SessionEnding() {
@@ -2970,9 +2972,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     location: string,
     fullData: Location.PCData.FullData,
   ) {
-    const locationFullData = this.getLocationData(location);
-    locationFullData.pcData[fullData.slot] = fullData;
-    await this.setLocationData(location, locationFullData);
+    const locationSettingsData = this.getLocationSettingsData(location);
+    // Extract only the settings data fields
+    const settingsData: Location.PCData.SettingsData = {
+      actorID: fullData.actorID,
+      ownerID: fullData.ownerID,
+      state: fullData.state
+    };
+    locationSettingsData.pcData[fullData.actorID] = settingsData;
+    await this.setLocationData(location, locationSettingsData);
   }
 
   public async setLocationPCValue(
@@ -5552,10 +5560,38 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     ).find((data) => data.actorID === actor.id)!;
   }
 
-  private async setLocationData(location: string, data: Location.SettingsData) {
-    const fullLocationData = getSetting("locationData");
-    fullLocationData[location] = data;
-    await setSetting("locationData", fullLocationData);
+  private async setLocationData(location: string, data: Partial<Location.SettingsData>): Promise<void> {
+    // Check and fix if we're getting FullData
+    if ('pcData' in data && data.pcData) {
+      const pcDataKeys = Object.keys(data.pcData);
+      if (pcDataKeys.some(key => /^[1-5]$/.test(key))) {
+        getNotifier().warn("Detected attempt to store FullData instead of SettingsData. Converting to proper format.");
+
+        // Convert slot-indexed FullData to ID-indexed SettingsData
+        const fullPCData = data.pcData as Record<"1"|"2"|"3"|"4"|"5", Location.PCData.FullData>;
+        const settingsPCData: Record<string, Location.PCData.SettingsData> = {};
+
+        Object.values(fullPCData).forEach(pcData => {
+          if (pcData) {
+            settingsPCData[pcData.actorID] = {
+              actorID: pcData.actorID,
+              ownerID: pcData.ownerID,
+              state: pcData.state
+            };
+          }
+        });
+
+        data = {
+          ...data,
+          pcData: settingsPCData
+        };
+      }
+    }
+
+    const locationData = getSetting("locationData");
+    const locationDataEntry = Object.assign({}, this.getLocationSettingsData(location), data);
+    locationData[location] = locationDataEntry;
+    await setSetting("locationData", locationData);
   }
 
   public async resetLocationData(location?: string) {
@@ -6190,11 +6226,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     timeline.addLabel("stopMoving", "-=0.5"); // Overlap slightly with last transform
 
     // Phase 6: Fade in location image, if there is one
+    timeline.call(() => {
+      kLog.display(`Initializing location wrapper for location '${toLocation}'`);
+      this.#initializeLocationWrapper();
+    }, [], "stopMoving");
+
     if (fadeInTimeline) {
-      fadeInTimeline.eventCallback("onStart", () => {
-        kLog.display(`Initializing location wrapper for location '${toLocation}'`);
-        this.#initializeLocationWrapper();
-      })
       timeline.add(fadeInTimeline, "stopMoving");
     }
 
@@ -6379,31 +6416,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #fadeInQuestion(question$: JQuery): gsap.core.Timeline {
     const split = new SplitText(question$.find(".question-text")[0]!, {type: "chars,words"});
     return (gsap.effects["splashPopText"] as GSAPEffectFunction)(split.chars) as gsap.core.Timeline;
-
-    // const splitQuestionText = new SplitText(, { type: "words,chars" });
-
-    // return gsap.timeline()
-    //   .to(question$.find(".question-text"), {
-    //     autoAlpha: 1,
-    //     duration: 0.25
-    //   })
-    //   .fromTo(splitQuestionText.chars, {
-    //     autoAlpha: 0,
-    //     filter: "blur(10px)",
-    //     x: "-=50",
-    //     y: "+=100",
-    //   }, {
-    //     autoAlpha: 1,
-    //     filter: "blur(0px)",
-    //     x: 0,
-    //     y: 0,
-    //     duration: 1,
-    //     ease: "power3.in",
-    //     stagger: {
-    //       from: "start",
-    //       amount: 0.5
-    //     }
-    //   });
   }
 
   public async transitionToEndPhaseQuestion(questionNumber: number): Promise<void> {
