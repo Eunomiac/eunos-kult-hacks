@@ -3,12 +3,24 @@
   top: 0;
   left: 0;
   height: 100vh;
-  width: calc(100vw - var(--sidebar-width));
-  background-color: var(--K4-BLACK);
+  width: 100vw;
+  background-image: url("modules/eunos-kult-hacks/assets/backgrounds/gold-flecked-black.webp");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
   z-index: 50;
+  transform: scale(1.1) rotate(5deg);
+
   // visibility: hidden;
 
   .question-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-40deg);
+    transform-origin: center;
+    height: 70%;
+    width: 70%;
     .question-text {
       visibility: hidden;
       position: absolute;
@@ -35,7 +47,7 @@
 
   .gm-control-panel, .master-gm-control-panel {
     position: absolute;
-    bottom: 20%;
+    bottom: 250px;
     left: 50%;
     transform: translateX(-50%);
     width: 200px;
@@ -66,7 +78,9 @@
     }
 
     &.master-gm-control-panel {
-      bottom: 10%;
+      bottom: 200px;
+      transform-origin: center;
+      transform: rotate(-5deg);
     }
   }
 }

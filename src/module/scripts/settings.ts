@@ -199,7 +199,7 @@ export default function registerSettings() {
       if (diffData) {
         void EunosOverlay.instance.refreshUI(diffData);
       }
-      EunosOverlay.currentLocationDataLog = value as Record<string, Location.SettingsData>;
+      EunosOverlay.currentLocationDataLog = value;
     }
   })
   getSettings().register("eunos-kult-hacks", "sessionScribeDeck", {

@@ -44,6 +44,7 @@ export function initializeGSAP(): void {
       const {duration, ease, delay} = config as {duration: number, ease: string, delay: number};
       // gsap.set(targets$, {filter: "blur(0px) drop-shadow(20px 20px 10px black)"});
       const targetContainer$ = targets$.parents(".question-text");
+      const questionContainer$ = targetContainer$.parents(".question-container");
       const timeToStaggerTargets = duration / targets$.length;
       return gsap.timeline({delay})
         .fromTo(targetContainer$, {
@@ -61,6 +62,19 @@ export function initializeGSAP(): void {
         //   duration: duration,
         //   ease: "slow(0.1, 2, false)"
         // }, 0)
+        .fromTo(questionContainer$, {
+          xPercent: -50,
+          yPercent: -50,
+          rotate: 0,
+          scale: 2,
+        }, {
+          xPercent: -50,
+          yPercent: -50,
+          rotate: -40,
+          scale: 1,
+          duration: 2 * duration,
+          ease: "back.inOut(4)"
+        })
         .fromTo(targets$,
           {
             autoAlpha: 0,

@@ -1,155 +1,163 @@
 #COUNTDOWN {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  top: 65px;
-  transform-origin: center center;
-  left: 50%;
-  z-index: 101;
+  position: static;
   pointer-events: none;
-  visibility: hidden;
-  height: fit-content;
+  height: 100%;
   width: 100%;
+  visibility: hidden;
 
-  .aurora {
+  .aurora-container,
+  .countdown-container {
     position: absolute;
-    top: 50%;
+    transform: translate(-50%, -50%);
+    top: 65px;
+    transform-origin: center center;
     left: 50%;
-    transform: translate(-50%, -50%) scale(2);
-    width: 200%; // Larger than container to allow for scaling effects
-    height: 200%;
-    z-index: 100; // Below countdown text (101)
-    pointer-events: none;
 
-    .aurora-background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      mix-blend-mode: screen; // This will help with the glow effect
-      will-change: filter; // Optimize filter animations
-      visibility: hidden; // Start invisible, GSAP will animate this
+    &.aurora-container {
+      z-index: 9999;
     }
-  }
+    &.countdown-container {
+      z-index: 10002;
+    }
 
-  .loading-screen-countdown {
-    position: relative;
-    // transform: translate(-50%, 0%);
-    top: 0px;
-    left: 0%;
-    z-index: 101;
-    pointer-events: none;
-    letter-spacing: 2px;
-    display: flex;
-    flex-direction: column;
-    filter: drop-shadow(0px 0px 0px rgba(0, 0, 0, 0.55));
-    overflow: visible;
-    // text-shadow:
-    //   0 0 10px rgba(255, 255, 255, 1);
-
-    .glitch-text {
-      position: absolute;
+    .aurora {
+      position: static;
+      transform: scale(2);
+      width: 200%; // Larger than container to allow for scaling effects
+      height: 200%;
+      margin-left: -50%;
+      margin-top: 100px;
       pointer-events: none;
-      user-select: none;
-      display: flex;
-      justify-content: center;
-      color: var(--K4-bbGOLD);
-      font-family: var(--font-decorative);
-      font-size: 12em;
-      transform-origin: center center;
-      height: 150px;
-      width: 100%;
-      overflow: visible;
-      &.glitch-top {
-        position: relative;
-        clip-path: inset(0 0 50% 0);
-      }
 
-      &.glitch-bottom {
-        clip-path: inset(50% 0 0 0);
-      }
-
-      span {
-        &:first-child {
-          margin-left: 20px;
-        }
-
-        overflow: visible;
-        display: inline-block; // This helps with animations
-        position: relative; // This helps with individual character effects
-        transition: all 0.3s ease;
-        // text-shadow: 0 0 8px var(--K4-bbGOLD);
-
-        // Base styles for all spans
-        &[data-char=":"] {
-          margin: 0 0.025em;
-          color: var(--K4-bbGOLD);
-          opacity: 0.8;
-        }
-
-        // Progressive styling based on position
-        &[data-pos="1"] {
-          filter: blur(2px) grayscale(0.5) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-
-        &[data-pos="2"] {
-          filter: blur(2px) grayscale(0.5) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-
-        &[data-pos="3"] {
-          filter: blur(3px) grayscale(0.5) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-
-        &[data-pos="4"] {
-          filter: blur(4px) grayscale(0.5) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-
-        &[data-pos="5"] {
-          filter: blur(4px) grayscale(0.5) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-
-        &[data-pos="6"] {
-          filter: blur(5px) grayscale(0.6) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-        &[data-pos="7"] {
-          filter: blur(7px) grayscale(1) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-        &[data-pos="8"] {
-          filter: blur(10px) grayscale(1) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-        &[data-pos="9"] {
-          filter: blur(10px) grayscale(1) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-        &[data-pos="10"] {
-          filter: blur(10px) grayscale(1) brightness(0.25);
-          color: var(--K4-bbGOLD);
-        }
-
-        // Significant digits (pos="0") remain at full opacity
-        &[data-pos="0"] {
-          filter: blur(0);
-          opacity: 1;
-          color: var(--K4-bbGOLD);
-        }
-
-        // Hide all non-significant digits (any position except 0)
-        &[data-pos]:not([data-pos="0"]):not(:nth-last-child(-n + 4)) {
-          display: none !important;
-        }
+      .aurora-background {
+        position: static;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        mix-blend-mode: screen; // This will help with the glow effect
+        will-change: filter; // Optimize filter animations
+        visibility: hidden; // Start invisible, GSAP will animate this
       }
     }
 
-    // Optional: Add a subtle glow animation
-    // animation: glow 2s ease-in-out infinite alternate;
+    .loading-screen-countdown {
+      position: relative;
+      // transform: translate(-50%, 0%);
+      top: 0px;
+      left: 0%;
+      z-index: 101;
+      pointer-events: none;
+      letter-spacing: 2px;
+      display: flex;
+      flex-direction: column;
+      filter: drop-shadow(0px 0px 0px rgba(0, 0, 0, 0.55));
+      overflow: visible;
+      // text-shadow:
+      //   0 0 10px rgba(255, 255, 255, 1);
+
+      .glitch-text {
+        position: absolute;
+        pointer-events: none;
+        user-select: none;
+        display: flex;
+        justify-content: center;
+        color: var(--K4-bbGOLD);
+        font-family: var(--font-decorative);
+        font-size: 12em;
+        transform-origin: center center;
+        height: 150px;
+        width: 100%;
+        overflow: visible;
+        &.glitch-top {
+          position: relative;
+          clip-path: inset(0 0 50% 0);
+        }
+
+        &.glitch-bottom {
+          clip-path: inset(50% 0 0 0);
+        }
+
+        span {
+          &:first-child {
+            margin-left: 20px;
+          }
+
+          overflow: visible;
+          display: inline-block; // This helps with animations
+          position: relative; // This helps with individual character effects
+          transition: all 0.3s ease;
+          // text-shadow: 0 0 8px var(--K4-bbGOLD);
+
+          // Base styles for all spans
+          &[data-char=":"] {
+            margin: 0 0.025em;
+            color: var(--K4-bbGOLD);
+            opacity: 0.8;
+          }
+
+          // Progressive styling based on position
+          &[data-pos="1"] {
+            filter: blur(2px) grayscale(0.5) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+
+          &[data-pos="2"] {
+            filter: blur(2px) grayscale(0.5) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+
+          &[data-pos="3"] {
+            filter: blur(3px) grayscale(0.5) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+
+          &[data-pos="4"] {
+            filter: blur(4px) grayscale(0.5) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+
+          &[data-pos="5"] {
+            filter: blur(4px) grayscale(0.5) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+
+          &[data-pos="6"] {
+            filter: blur(5px) grayscale(0.6) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+          &[data-pos="7"] {
+            filter: blur(7px) grayscale(1) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+          &[data-pos="8"] {
+            filter: blur(10px) grayscale(1) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+          &[data-pos="9"] {
+            filter: blur(10px) grayscale(1) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+          &[data-pos="10"] {
+            filter: blur(10px) grayscale(1) brightness(0.25);
+            color: var(--K4-bbGOLD);
+          }
+
+          // Significant digits (pos="0") remain at full opacity
+          &[data-pos="0"] {
+            filter: blur(0);
+            opacity: 1;
+            color: var(--K4-bbGOLD);
+          }
+
+          // Hide all non-significant digits (any position except 0)
+          &[data-pos]:not([data-pos="0"]):not(:nth-last-child(-n + 4)) {
+            display: none !important;
+          }
+        }
+      }
+
+      // Optional: Add a subtle glow animation
+      // animation: glow 2s ease-in-out infinite alternate;
+    }
   }
 }

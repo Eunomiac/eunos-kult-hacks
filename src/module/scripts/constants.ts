@@ -949,6 +949,26 @@ export const Sounds = {
       volume: 0.75,
       autoplay: false,
     },
+    "mad-hatter": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 209,
+      loop: false,
+      sync: true,
+      volume: 0.85,
+      autoplay: false,
+    },
+    sucker: {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 220,
+      loop: false,
+      sync: true,
+      volume: 0.5,
+      autoplay: false,
+    },
     "way-down-we-go": {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
       alwaysPreload: false,
@@ -957,16 +977,6 @@ export const Sounds = {
       loop: false,
       sync: true,
       volume: 0.75,
-      autoplay: false,
-    },
-    "mad-hatter": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-mad-hatter.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 209,
-      loop: false,
-      sync: true,
-      volume: 0.5,
       autoplay: false,
     },
     "guns-for-hire": {
@@ -1014,16 +1024,6 @@ export const Sounds = {
       alwaysPreload: false,
       delay: 0,
       duration: 178, // 2:58
-      loop: false,
-      sync: true,
-      volume: 0.5,
-      autoplay: false,
-    },
-    sucker: {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 220,
       loop: false,
       sync: true,
       volume: 0.5,
@@ -1903,6 +1903,24 @@ export const Sounds = {
       volume: 0.5,
       autoplay: false,
     },
+    "alert-hit-dramatic-hook": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-dramatic-hook.ogg",
+      alwaysPreload: true,
+      delay: 1.25,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 0.5,
+    },
+    "alert-hit-advancement": {
+      path: "modules/eunos-kult-hacks/assets/sounds/alerts/alert-hit-advancement.ogg",
+      alwaysPreload: true,
+      delay: 0.75,
+      displayDuration: 5,
+      loop: false,
+      sync: false,
+      volume: 1,
+    },
     "subsonic-stinger": {
       path: "modules/eunos-kult-hacks/assets/sounds/alerts/subsonic-stinger.ogg",
       alwaysPreload: true,
@@ -2163,7 +2181,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: -3500,
             backgroundPositionY: -2826,
-            filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
             background:
@@ -2175,10 +2192,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
           properties: {
-            transform:
-              "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
-            background:
-              "radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.7) 0%, rgb(0, 0, 0) 5%)",
+            opacity: 0
           },
         },
       ],
@@ -2230,7 +2244,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: -2565,
             backgroundPositionY: -2826,
-            filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
             background:
@@ -2244,6 +2257,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-7deg) rotateY(11deg) rotateX(40.0001deg)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
           },
@@ -2297,7 +2311,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: -2870,
             backgroundPositionY: 1478,
-            filter: "hue-rotate(130deg) saturate(100%) brightness(1)",
             transform:
               "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
             background:
@@ -2311,6 +2324,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(-0.876669, 0.30186, 0.374608, 0, -0.477073, -0.64592, -0.595977, 0, 0.0620656, -0.70119, 0.710268, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 4%, rgba(0, 0, 0, 0.7) 8%, rgb(0, 0, 0) 19%)",
           },
@@ -2373,7 +2387,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: -2565,
             backgroundPositionY: -1348,
-            filter: "hue-rotate(105deg) saturate(100%) brightness(1.5)",
             transform:
               "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
             background:
@@ -2385,6 +2398,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.274526, 0.715165, 0.642786, 0, -0.928205, 0.0225025, 0.371389, 0, 0.25114, -0.698593, 0.669997, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 5%, rgba(0, 0, 0, 0.7) 10%, rgb(0, 0, 0) 17%)",
           },
@@ -2446,7 +2460,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: -543,
             backgroundPositionY: -1283,
-            filter: "hue-rotate(87deg) saturate(100%) brightness(1)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
             background:
@@ -2458,6 +2471,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(84.9999deg) rotateY(-31.0001deg) rotateX(3.9998deg)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
           },
@@ -2519,7 +2533,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1674,
             backgroundPositionY: -522,
-            filter: "hue-rotate(253deg) saturate(100%) brightness(1)",
             transform:
               "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
             background:
@@ -2531,6 +2544,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.0905604, -0.737609, -0.669128, 0, 0.992547, 0.121861, 0, 0, 0.0815404, -0.664141, 0.743147, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 3%, rgba(0, 0, 0, 0.7) 6%, rgb(0, 0, 0) 12%)",
           },
@@ -2593,7 +2607,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: -1261,
             backgroundPositionY: 565,
-            filter: "hue-rotate(-186deg) saturate(100%) brightness(1)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
             background:
@@ -2605,6 +2618,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(71.9993deg) rotateY(-40.0001deg) rotateX(11.0001deg)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
           },
@@ -2657,7 +2671,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 565,
             backgroundPositionY: 1761,
-            filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
             transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-2deg) rotateX(38deg)",
             background: "black url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg.webp') 0px 0px no-repeat",
           },
@@ -2667,6 +2680,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-2deg) rotateX(38deg)",
             background: "radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.7) 2%, rgb(0, 0, 0) 5%)",
+            opacity: 1
           },
         },
       ]
@@ -2760,7 +2774,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 739,
             backgroundPositionY: 1565,
-            filter: "hue-rotate(96deg) saturate(100%) brightness(1)",
             transform:
               "matrix(0.0174803, 0.999847, -0.999847, 0.0174803, -3500, -3500)",
             background:
@@ -2774,6 +2787,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix(0.0174803, 0.999847, -0.999847, 0.0174803, -3500, -3500)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 2.5%, rgba(0, 0, 0, 0.7) 5%, rgb(0, 0, 0) 10%)",
             duration: 4,
@@ -2814,7 +2828,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 826,
             backgroundPositionY: 1652,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.0092613, 0.52984, 0.848047, 0, -0.998721, 0.0470522, -0.0184903, 0, -0.0496993, -0.846792, 0.529598, 0, -3500, -3500, 0, 1)",
             background:
@@ -2826,12 +2839,9 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
           properties: {
-            transform:
-              "matrix3d(0.0092613, 0.52984, 0.848047, 0, -0.998721, 0.0470522, -0.0184903, 0, -0.0496993, -0.846792, 0.529598, 0, -3500, -3500, 0, 1)",
-            background:
-              "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgba(255, 255, 255, 0.75) 25%)",
+            opacity: 0,
             duration: 15,
-            ease: "back.out",
+            ease: "none",
           },
         },
       ],
@@ -2877,7 +2887,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1348,
             backgroundPositionY: 2196,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
             background:
@@ -2889,6 +2898,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -2939,7 +2949,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1261,
             backgroundPositionY: 1739,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
             background:
@@ -2951,6 +2960,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.987689, 1.72384e-06, -0.156429, 0, 0.0919454, 0.809017, 0.580549, 0, 0.126555, -0.587785, 0.799057, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3001,7 +3011,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 978,
             backgroundPositionY: 1630,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-87.0001deg) rotateY(35.9997deg)",
             background:
@@ -3013,6 +3022,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-87.0001deg) rotateY(35.9997deg)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3063,7 +3073,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1913,
             backgroundPositionY: 1652,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(-0.0316297, 0.905755, 0.42262, 0, -0.997985, -0.0053527, -0.0632192, 0, -0.0549989, -0.423768, 0.904099, 0, -3500, -3500, 0, 1)",
             background:
@@ -3075,6 +3084,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(-0.0316297, 0.905755, 0.42262, 0, -0.997985, -0.0053527, -0.0632192, 0, -0.0549989, -0.423768, 0.904099, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3125,7 +3135,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1283,
             backgroundPositionY: 2529,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "matrix3d(1, 0, 0, 0, 0, 0.766041, 0.642792, 0, 0, -0.642792, 0.766041, 0, -3500, -3500, 0, 1)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -3135,6 +3144,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "matrix3d(1, 0, 0, 0, 0, 0.766041, 0.642792, 0, 0, -0.642792, 0.766041, 0, -3500, -3500, 0, 1)",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+            opacity: 1,
           },
         },
       ]
@@ -3184,7 +3194,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1739,
             backgroundPositionY: 2152,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(1, 0, 0, 0, 0, 0.87462, 0.48481, 0, 0, -0.48481, 0.87462, 0, -3500, -3500, 0, 1)",
             background:
@@ -3196,6 +3205,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(1, 0, 0, 0, 0, 0.87462, 0.48481, 0, 0, -0.48481, 0.87462, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3247,7 +3257,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2043,
             backgroundPositionY: 2022,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.0133706, 0.765924, 0.642792, 0, -0.999848, 0.0174542, 0, 0, -0.0112194, -0.642694, 0.766041, 0, -3500, -3500, 0, 1)",
             background:
@@ -3259,6 +3268,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.0133706, 0.765924, 0.642792, 0, -0.999848, 0.0174542, 0, 0, -0.0112194, -0.642694, 0.766041, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3309,7 +3319,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2043,
             backgroundPositionY: 1957,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.491331, 0.786297, 0.374608, 0, -0.869914, 0.421823, 0.255568, 0, 0.042934, -0.451445, 0.891265, 0, -3500, -3500, 0, 1)",
             background:
@@ -3321,6 +3330,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.491331, 0.786297, 0.374608, 0, -0.869914, 0.421823, 0.255568, 0, 0.042934, -0.451445, 0.891265, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3371,7 +3381,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2043,
             backgroundPositionY: 2304,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.445649, -0.874636, -0.190809, 0, 0.891007, 0.45399, 0, 0, 0.0866255, -0.170012, 0.981627, 0, -3500, -3500, 0, 1)",
             background:
@@ -3383,6 +3392,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.445649, -0.874636, -0.190809, 0, 0.891007, 0.45399, 0, 0, 0.0866255, -0.170012, 0.981627, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3433,7 +3443,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1500,
             backgroundPositionY: 2304,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
             background:
@@ -3445,6 +3454,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3495,7 +3505,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1065,
             backgroundPositionY: 2261,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9997deg) rotateY(35.9997deg)",
             background:
@@ -3507,6 +3516,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9997deg) rotateY(35.9997deg)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3557,7 +3567,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1065,
             backgroundPositionY: 2391,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-88.9999deg) rotateY(35.9997deg)",
             background:
@@ -3569,6 +3578,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-88.9999deg) rotateY(35.9997deg)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3620,7 +3630,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1283,
             backgroundPositionY: 2152,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(-0.999848, -0.0174507, 0, 0, 0.0149582, -0.857041, -0.515031, 0, 0.0089876, -0.514952, 0.857172, 0, -3500, -3500, 0, 1)",
             background:
@@ -3632,6 +3641,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(-0.999848, -0.0174507, 0, 0, 0.0149582, -0.857041, -0.515031, 0, 0.0089876, -0.514952, 0.857172, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3682,7 +3692,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 804,
             backgroundPositionY: 2630,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(-0.999848, -0.0174507, 0, 0, 0.0152627, -0.874487, -0.48481, 0, 0.0084602, -0.484736, 0.87462, 0, -3500, -3500, 0, 1)",
             background:
@@ -3694,6 +3703,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(-0.999848, -0.0174507, 0, 0, 0.0152627, -0.874487, -0.48481, 0, 0.0084602, -0.484736, 0.87462, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3746,7 +3756,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 587,
             backgroundPositionY: 2783,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
             background:
@@ -3758,6 +3767,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3806,7 +3816,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 22,
             backgroundPositionY: 2848,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
             background:
@@ -3818,6 +3827,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(-0.0267332, -0.765578, -0.642788, 0, 0.999565, -0.0124617, -0.0267292, 0, 0.0124531, -0.643223, 0.765578, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3869,7 +3879,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: -43,
             backgroundPositionY: 3043,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
             background:
@@ -3881,6 +3890,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.998782, -0.03488, -0.0348995, 0, 0.0489758, 0.786779, 0.615289, 0, 0.0059969, -0.616249, 0.787529, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3929,7 +3939,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: -543,
             backgroundPositionY: 3087,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
             background:
@@ -3941,6 +3950,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.495922, -0.612392, -0.61566, 0, 0.862786, 0.427744, 0.269511, 0, 0.0982984, -0.664839, 0.740491, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -3988,7 +3998,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 674,
             backgroundPositionY: 2239,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
             background:
@@ -4000,6 +4009,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-91.9999deg) rotateY(35.9996deg) rotateX(-1.9997deg)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -4051,7 +4061,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 22,
             backgroundPositionY: 2174,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(-0.0621504, -0.888837, -0.453989, 0, 0.997564, -0.069753, 0, 0, -0.0316671, -0.452883, 0.891007, 0, -3500, -3500, 0, 1)",
             background:
@@ -4063,6 +4072,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(-0.0621504, -0.888837, -0.453989, 0, 0.997564, -0.069753, 0, 0, -0.0316671, -0.452883, 0.891007, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -4114,7 +4124,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 174,
             backgroundPositionY: 1935,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-93.9998deg) rotateY(26.9999deg)",
             background:
@@ -4126,6 +4135,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotate(-93.9998deg) rotateY(26.9999deg)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -4176,7 +4186,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 391,
             backgroundPositionY: 2174,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
             background:
@@ -4188,6 +4197,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -4241,7 +4251,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 3065,
             backgroundPositionY: -370,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
             background:
@@ -4253,6 +4262,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(0.066773, 0.763126, 0.64279, 0, -0.992693, -0.0140822, 0.119839, 0, 0.100504, -0.646096, 0.75661, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -4391,7 +4401,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 3065,
             backgroundPositionY: -370,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "matrix(0, 1, -1, 0, -3500, -3500)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -4399,8 +4408,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         {
           selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
           properties: {
-            transform: "matrix(0, 1, -1, 0, -3500, -3500)",
-            background: "radial-gradient(circle at 50% 50%, transparent 0%, rgba(0, 0, 0, 0.5) 3%, rgb(0 0 0) 6%)",
+            opacity: 0,
           },
         },
       ]
@@ -4447,7 +4455,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 739,
             backgroundPositionY: 739,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform:
               "matrix3d(-0.0621505, -0.888838, -0.453987, 0, 0.998062, -0.0539028, -0.0311004, 0, 0.003172, -0.45504, 0.890465, 0, -3500, -3500, 0, 1)",
             background:
@@ -4459,6 +4466,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform:
               "matrix3d(-0.0621505, -0.888838, -0.453987, 0, 0.998062, -0.0539028, -0.0311004, 0, 0.003172, -0.45504, 0.890465, 0, -3500, -3500, 0, 1)",
+            opacity: 1,
             background:
               "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
@@ -4508,7 +4516,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2435,
             backgroundPositionY: 2326,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "matrix3d(-0.0549731, 0.786093, 0.615659, 0, -0.984895, -0.144086, 0.0960305, 0, 0.164197, -0.60108, 0.78214, 0, -3500, -3500, 0, 1)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -4518,6 +4525,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "matrix3d(-0.0549731, 0.786093, 0.615659, 0, -0.984895, -0.144086, 0.0960305, 0, 0.164197, -0.60108, 0.78214, 0, -3500, -3500, 0, 1)",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+            opacity: 1,
           },
         },
       ],
@@ -4564,7 +4572,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2630,
             backgroundPositionY: 2152,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "matrix3d(-0.554731, 0.6161, 0.559191, 0, -0.808272, -0.558496, -0.18649, 0, 0.19741, -0.555431, 0.807791, 0, -3500, -3500, 0, 1)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -4574,6 +4581,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "matrix3d(-0.554731, 0.6161, 0.559191, 0, -0.808272, -0.558496, -0.18649, 0, 0.19741, -0.555431, 0.807791, 0, -3500, -3500, 0, 1)",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+            opacity: 1,
           },
         },
       ]
@@ -4620,7 +4628,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2783,
             backgroundPositionY: 2065,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "matrix3d(-0.610574, 0.53076, 0.587787, 0, -0.790826, -0.448311, -0.416668, 0, 0.0423605, -0.719243, 0.693466, 0, -3500, -3500, 0, 1)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -4630,6 +4637,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "matrix3d(-0.610574, 0.53076, 0.587787, 0, -0.790826, -0.448311, -0.416668, 0, 0.0423605, -0.719243, 0.693466, 0, -3500, -3500, 0, 1)",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+            opacity: 1,
           },
         },
       ]
@@ -4675,7 +4683,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           backgroundPositionX: 2652,
           backgroundPositionY: 2696,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.0149596, 0.857037, 0.515038, 0, -0.999848, 0.0174524, 0, 0, -0.0089886, -0.51496, 0.857167, 0, -3500, -3500, 0, 1)",
           background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
         },
@@ -4685,6 +4692,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           transform: "matrix3d(0.0149596, 0.857037, 0.515038, 0, -0.999848, 0.0174524, 0, 0, -0.0089886, -0.51496, 0.857167, 0, -3500, -3500, 0, 1)",
           background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          opacity: 1,
         },
       },
     ]]
@@ -4728,7 +4736,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           backgroundPositionX: 2870,
           backgroundPositionY: 2348,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.0155487, 0.890872, 0.453989, 0, -0.999848, 0.0174507, 0, 0, -0.0079224, -0.45392, 0.891007, 0, -3500, -3500, 0, 1)",
           background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
         },
@@ -4738,6 +4745,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           transform: "matrix3d(0.0155487, 0.890872, 0.453989, 0, -0.999848, 0.0174507, 0, 0, -0.0079224, -0.45392, 0.891007, 0, -3500, -3500, 0, 1)",
           background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          opacity: 1,
         },
       },
     ]]
@@ -4785,7 +4793,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           backgroundPositionX: 2957,
           backgroundPositionY: 2565,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.012971, 0.743034, 0.669128, 0, -0.999848, 0.0174542, 0, 0, -0.0116791, -0.669026, 0.743147, 0, -3500, -3500, 0, 1)",
           background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
         },
@@ -4795,6 +4802,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           transform: "matrix3d(0.012971, 0.743034, 0.669128, 0, -0.999848, 0.0174542, 0, 0, -0.0116791, -0.669026, 0.743147, 0, -3500, -3500, 0, 1)",
           background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          opacity: 1,
         },
       },
     ]]
@@ -4841,7 +4849,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           backgroundPositionX: 1739,
           backgroundPositionY: 1978,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
           background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
         },
@@ -4851,6 +4858,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
           background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          opacity: 1,
         },
       },
     ]]
@@ -4900,7 +4908,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           backgroundPositionX: 2674,
           backgroundPositionY: 283,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
           background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
         },
@@ -4910,6 +4917,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
           background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          opacity: 1,
         },
       },
     ]]
@@ -4954,7 +4962,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           backgroundPositionX: 1522,
           backgroundPositionY: 2717,
-          filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
           transform: "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
           background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
         },
@@ -4964,6 +4971,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         properties: {
           transform: "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
           background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          opacity: 1,
         },
       },
     ]]
@@ -5009,7 +5017,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 1739,
             backgroundPositionY: 2783,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -5019,6 +5026,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "matrix3d(1, 0, 0, 0, 0, 0.82904, 0.55919, 0, 0, -0.55919, 0.82904, 0, -3500, -3500, 0, 1)",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+            opacity: 1,
           },
         },
       ]
@@ -5064,7 +5072,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2043,
             backgroundPositionY: 2457,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -5074,6 +5081,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "matrix3d(0.0960292, 0.78214, 0.615659, 0, -0.994292, 0.0464866, 0.0960305, 0, 0.0464894, -0.621366, 0.78214, 0, -3500, -3500, 0, 1)",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+            opacity: 1,
           },
         },
       ]
@@ -5122,7 +5130,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2435,
             backgroundPositionY: 2761,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotateX(40.0003deg)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -5132,6 +5139,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "translate(-50%, -50%) translate3d(0px, 0px, 0px) rotateX(40.0003deg)",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+            opacity: 1,
           },
         },
       ]
@@ -5180,7 +5188,6 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             backgroundPositionX: 2174,
             backgroundPositionY: 2761,
-            filter: "hue-rotate(9deg) saturate(100%) brightness(2)",
             transform: "matrix3d(1, 0, 0, 0, 0, 0.766041, 0.642792, 0, 0, -0.642792, 0.766041, 0, -3500, -3500, 0, 1)",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -5190,6 +5197,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
           properties: {
             transform: "matrix3d(1, 0, 0, 0, 0, 0.766041, 0.642792, 0, 0, -0.642792, 0.766041, 0, -3500, -3500, 0, 1)",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+            opacity: 1,
           },
         },
       ]
@@ -5735,4 +5743,9 @@ export const PRE_SESSION = {
   DEFAULT_SESSION_HOUR: 19,
   /** Default session minute */
   DEFAULT_SESSION_MINUTE: 30,
+} as const;
+
+export const POST_SESSION = {
+  /** Duration of black bars animation */
+  BLACK_BARS_ANIMATION_IN_DURATION: 10,
 } as const;

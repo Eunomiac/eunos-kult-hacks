@@ -27,6 +27,7 @@ import {
 import {
   LOADING_SCREEN_DATA,
   PRE_SESSION,
+  POST_SESSION,
   MEDIA_PATHS,
   LOCATIONS,
   NPC_PORTRAIT,
@@ -157,7 +158,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           <div class="form-group">
             <label>Hook for ${targetPC.name}</label>
             <div class='hook-container'>
-            <span class='hook-prefix'>I should</span><textarea name="hook" rows="1">${userPC.system.dramatichooks.assignedHook || ''}</textarea>
+            <span class='hook-prefix'>I should</span><textarea name="hook" rows="1">${userPC.system.dramatichooks.assignedHook || ""}</textarea>
             </div>
           </div>
         `,
@@ -169,21 +170,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               await userPC.update({
                 system: {
                   dramatichooks: {
-                    assignedHook: hook
-                  }
-                }
+                    assignedHook: hook,
+                  },
+                },
               });
-            }
+            },
           },
           cancel: {
             label: "❌",
-            callback: () => null
+            callback: () => null,
           },
         },
-        render: function(html: HTMLElement | JQuery) {
-          $(html).closest(".app.window-app.dialog").addClass("blurred-bg-dialog assign-dramatic-hook-dialog");
+        render: function (html: HTMLElement | JQuery) {
+          $(html)
+            .closest(".app.window-app.dialog")
+            .addClass("blurred-bg-dialog assign-dramatic-hook-dialog");
         },
-        default: "one"
+        default: "one",
       }).render(true);
     },
     conditionCardClick(event: PointerEvent, target: HTMLElement) {
@@ -617,24 +620,41 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     clearUIChanges(event: PointerEvent, target: HTMLElement): void {
       EunosOverlay.instance.clearUIChanges();
     },
-    async beginXPQuestions(event: PointerEvent, target: HTMLElement): Promise<void> {
-      if (!getUser().isGM) { return; }
+    async beginXPQuestions(
+      event: PointerEvent,
+      target: HTMLElement,
+    ): Promise<void> {
+      if (!getUser().isGM) {
+        return;
+      }
       void setSetting("endPhaseQuestion", 1);
     },
-    async approveXPQuestion(event: PointerEvent, target: HTMLElement): Promise<void> {
-      if (!getUser().isGM) { return; }
+    async approveXPQuestion(
+      event: PointerEvent,
+      target: HTMLElement,
+    ): Promise<void> {
+      if (!getUser().isGM) {
+        return;
+      }
       const questionNumber = getSetting("endPhaseQuestion");
       kLog.log("approveXPQuestion", { questionNumber });
-      await Promise.all(getOwnedActors().map(async (actor) => {
-        return actor.awardXP();
-      }));
+      await Promise.all(
+        getOwnedActors().map(async (actor) => {
+          return actor.awardXP();
+        }),
+      );
       void setSetting("endPhaseQuestion", questionNumber + 1);
     },
-    async denyXPQuestion(event: PointerEvent, target: HTMLElement): Promise<void> {
-      if (!getUser().isGM) { return; }
+    async denyXPQuestion(
+      event: PointerEvent,
+      target: HTMLElement,
+    ): Promise<void> {
+      if (!getUser().isGM) {
+        return;
+      }
       const questionNumber = getSetting("endPhaseQuestion");
       void setSetting("endPhaseQuestion", questionNumber + 1);
-    }
+    },
   };
 
   // #endregion ACTIONS
@@ -756,13 +776,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   static #currentLocationDataLog: Maybe<Record<string, Location.SettingsData>>;
 
   static get currentLocationDataLog() {
-    kLog.log(`Retrieving currentLocationDataLog for location ${this.currentLocationLog}`, {currentLocationDataLog: this.#currentLocationDataLog});
+    kLog.log(
+      `Retrieving currentLocationDataLog for location ${this.currentLocationLog}`,
+      { currentLocationDataLog: this.#currentLocationDataLog },
+    );
     return this.#currentLocationDataLog;
   }
 
-  static set currentLocationDataLog(value: Maybe<Record<string, Location.SettingsData>>) {
-    kLog.log(`Setting currentLocationDataLog for location ${this.currentLocationLog}`, {currentLocationDataLog: value});
-    this.#currentLocationDataLog = JSON.parse(JSON.stringify(value)) as Record<string, Location.SettingsData>;
+  static set currentLocationDataLog(
+    value: Maybe<Record<string, Location.SettingsData>>,
+  ) {
+    kLog.log(
+      `Setting currentLocationDataLog for location ${this.currentLocationLog}`,
+      { currentLocationDataLog: value },
+    );
+    this.#currentLocationDataLog = JSON.parse(JSON.stringify(value)) as Record<
+      string,
+      Location.SettingsData
+    >;
   }
 
   static async Initialize() {
@@ -863,7 +894,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     requestMediaSync: AsyncSocketFunction<number, { mediaName: string }>;
     setLocation: SocketFunction<
       void,
-      { fromLocation: string; toLocation: string; }
+      { fromLocation: string; toLocation: string }
     >;
     refreshLocationImage: SocketFunction<void, { imgKey: string }>;
     updatePCUI: SocketFunction<void, Record<IDString, PCState>>;
@@ -921,11 +952,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       await EunosOverlay.instance.playIntroVideo(true);
     },
 
-    requestMediaSync: async ({
-      mediaName,
-    }: {
-      mediaName: string;
-    }) => {
+    requestMediaSync: async ({ mediaName }: { mediaName: string }) => {
       const media = EunosMedia.GetMedia(mediaName);
       if (!media) {
         kLog.error(`Media ${mediaName} not found`);
@@ -936,10 +963,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return timestamp;
     },
 
-    setLocation: (data: {
-      fromLocation: string;
-      toLocation: string;
-    }) => {
+    setLocation: (data: { fromLocation: string; toLocation: string }) => {
       void EunosOverlay.instance.goToLocation(
         data.fromLocation,
         data.toLocation,
@@ -1002,8 +1026,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     requestSoundSync: async () => {
       const playingSounds = Object.fromEntries(
-        await Promise.all(EunosMedia.GetPlayingSounds()
-          .map(async (sound) => [sound.name, sound.volume] as const))
+        await Promise.all(
+          EunosMedia.GetPlayingSounds().map(
+            async (sound) => [sound.name, sound.volume] as const,
+          ),
+        ),
       );
 
       kLog.log(
@@ -1033,9 +1060,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #maxZIndexBars: Maybe<HTMLElement>;
   #safetyButtons: Maybe<HTMLElement>;
   #alerts: Maybe<HTMLElement>;
-  #countdownContainer: Maybe<HTMLElement>;
+  #countdownWrapper: Maybe<HTMLElement>;
+  #countdownAuroraContainer: Maybe<HTMLElement>;
   #countdownAurora: Maybe<HTMLElement>;
   #redLightning: Maybe<HTMLElement>;
+  #countdownContainer: Maybe<HTMLElement>;
   #countdown: Maybe<HTMLElement>;
   #videoStatusPanel: Maybe<HTMLElement>;
   #locationPlottingPanel: Maybe<HTMLElement>;
@@ -1141,21 +1170,33 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(this.#alerts);
   }
 
-  get countdownContainer$() {
-    if (!this.#countdownContainer) {
-      this.#countdownContainer = this.element.querySelector(
+  get countdownWrapper$() {
+    if (!this.#countdownWrapper) {
+      this.#countdownWrapper = this.element.querySelector(
         ".loading-screen-countdown-container",
       ) as Maybe<HTMLElement>;
     }
-    if (!this.#countdownContainer) {
-      throw new Error("Countdown container not found");
+    if (!this.#countdownWrapper) {
+      throw new Error("Countdown wrapper not found");
     }
-    return $(this.#countdownContainer);
+    return $(this.#countdownWrapper);
+  }
+
+  get countdownAuroraContainer$() {
+    if (!this.#countdownAuroraContainer) {
+      this.#countdownAuroraContainer = this.countdownWrapper$.find(
+        ".aurora-container",
+      )[0] as Maybe<HTMLElement>;
+    }
+    if (!this.#countdownAuroraContainer) {
+      throw new Error("Countdown aurora container not found");
+    }
+    return $(this.#countdownAuroraContainer);
   }
 
   get countdownAurora$() {
     if (!this.#countdownAurora) {
-      this.#countdownAurora = this.countdownContainer$.find(
+      this.#countdownAurora = this.countdownWrapper$.find(
         ".aurora-background",
       )[0] as Maybe<HTMLElement>;
     }
@@ -1177,6 +1218,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return $(this.#redLightning);
   }
 
+  get countdownContainer$() {
+    if (!this.#countdownContainer) {
+      this.#countdownContainer = this.element.querySelector(
+        ".countdown-container",
+      ) as Maybe<HTMLElement>;
+    }
+    if (!this.#countdownContainer) {
+      throw new Error("Countdown container not found");
+    }
+    return $(this.#countdownContainer);
+  }
   get countdown$() {
     // if (!this.#countdown) {
     this.#countdown = this.element.querySelector(
@@ -1336,6 +1388,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         },
       )
       .to(
+        this.countdownAuroraContainer$,
+        {
+          top: "50%",
+          scale: 3,
+          duration,
+          ease: "power4.inOut",
+        },
+        0
+      )
+      .to(
         this.redLightning$,
         {
           autoAlpha: 1,
@@ -1404,28 +1466,48 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .add("split", 0)
 
       .to(glitchTop$, { duration: 0.5, x: -30, ease: "power4.inOut" }, "split")
-      .to(glitchBottom$, { duration: 0.5, x: 30, ease: "power4.inOut" }, "split")
-      .to(glitchText$, {
-        duration: 0.08,
-        textShadow: "-13px -13px 0px var(--K4-dRED)"
-      }, "split")
+      .to(
+        glitchBottom$,
+        { duration: 0.5, x: 30, ease: "power4.inOut" },
+        "split",
+      )
+      .to(
+        glitchText$,
+        {
+          duration: 0.08,
+          textShadow: "-13px -13px 0px var(--K4-dRED)",
+        },
+        "split",
+      )
       .to(this.countdown$, { duration: 0, scale: 1.2 }, "split")
       .to(this.countdown$, { duration: 0, scale: 1 }, "+=0.02")
-      .to(glitchText$, {
-        duration: 0.08,
-        textShadow: "0px 0px 0px var(--K4-dRED)"
-      }, "+=0.09")
+      .to(
+        glitchText$,
+        {
+          duration: 0.08,
+          textShadow: "0px 0px 0px var(--K4-dRED)",
+        },
+        "+=0.09",
+      )
       .to(glitchText$, { duration: 0.02, color: "#FFF" }, "-=0.05")
       .to(glitchText$, { duration: 0.02, color: "var(--K4-bGOLD)" })
-      .to(glitchText$, {
-        duration: 0.03,
-        textShadow: "13px 13px 0px #FFF"
-      }, "split")
-      .to(glitchText$, {
-        duration: 0.08,
-        textShadow: "0px 0px 0px transparent",
-        clearProps: "textShadow",
-      }, "+=0.01")
+      .to(
+        glitchText$,
+        {
+          duration: 0.03,
+          textShadow: "13px 13px 0px #FFF",
+        },
+        "split",
+      )
+      .to(
+        glitchText$,
+        {
+          duration: 0.08,
+          textShadow: "0px 0px 0px transparent",
+          clearProps: "textShadow",
+        },
+        "+=0.01",
+      )
       .to(glitchTop$, { duration: 0.2, x: 0, ease: "power4.inOut" })
       .to(glitchBottom$, { duration: 0.2, x: 0, ease: "power4.inOut" })
       .to(glitchText$, { duration: 0.02, scaleY: 1.1, ease: "power4.inOut" })
@@ -1470,7 +1552,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       });
     }, 1000);
     // Show countdown & apply countdown timeline
-    this.countdownContainer$.css("visibility", "visible");
+    this.countdownWrapper$.css("visibility", "visible");
     // Update countdown immediately
     kLog.log("initializeCountdown -> updateCountdown");
     await this.updateCountdown();
@@ -1484,11 +1566,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     await this.#countdownContainerTimeline?.seek(0).kill();
     await this.#glitchTimeline?.seek(0).kill();
-    this.countdownContainer$.removeAttr("style"); // Remove style attribute from the container
-    this.countdownContainer$.find("*").removeAttr("style"); // Remove style attribute from all descendants
+    this.countdownWrapper$.removeAttr("style"); // Remove style attribute from the container
+    this.countdownWrapper$.find("*").removeAttr("style"); // Remove style attribute from all descendants
     this.#isCountdownContainerTimelinePlaying = false;
     if (isHiding) {
-      this.countdownContainer$.css("visibility", PCState.hidden);
+      this.countdownWrapper$.css("visibility", PCState.hidden);
     }
     this.#countdownContainerTimeline = undefined;
     this.#glitchTimeline = undefined;
@@ -1505,19 +1587,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       String(timeLeft.seconds).padStart(2, "0"),
     ].join(":");
 
-    const firstSignificantPos = formattedText.split("")
-      .findIndex(char => char !== "0" && char !== ":");
+    const firstSignificantPos = formattedText
+      .split("")
+      .findIndex((char) => char !== "0" && char !== ":");
 
-    const significantPos = firstSignificantPos === -1
-      ? formattedText.length - 1
-      : firstSignificantPos;
+    const significantPos =
+      firstSignificantPos === -1
+        ? formattedText.length - 1
+        : firstSignificantPos;
 
     const spanWrappedText = formattedText
       .split("")
       .map((char, index) => {
-        const posFromSignificant = index < significantPos
-          ? significantPos - index
-          : 0;
+        const posFromSignificant =
+          index < significantPos ? significantPos - index : 0;
 
         return `<span data-pos="${posFromSignificant}" data-char="${char}">${char}</span>`;
       })
@@ -2351,19 +2434,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region SessionClosed Methods
   private async initialize_SessionClosed(): Promise<void> {
-    // If there are fewer than 15 minutes remaining, immediately switch to SessionLoading phase
-    // if (countdownUntil().totalSeconds <= PRE_SESSION.LOAD_SESSION) {
-    //   if (getUser().isGM) {
-    //     await setSetting("gamePhase", GamePhase.SessionLoading);
-    //   }
-    //   return;
-    // }
     addClassToDOM("session-closed");
+    gsap.to([
+      this.midZIndexMask$[0],
+      this.maxZIndexBars$[0],
+    ], {
+      autoAlpha: 1,
+      duration: 3,
+      clearProps: "all",
+      ease: "power2.out"
+    });
+    this.topZIndexMask$.attr("style", "");
+    this.topZIndexMask$.find(".horiz-rule").attr("style", "");
+    this.topZIndexMask$.children().children().attr("style", "");
     this.resetOverlayFromIntroVideo();
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      this.initializeAmbientAudio(),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": null }),
     ]);
     // this.addCanvasMaskListeners();
   }
@@ -2373,7 +2461,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      this.initializeAmbientAudio(),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": null }),
     ]);
     // this.addCanvasMaskListeners();
   }
@@ -2389,8 +2477,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      this.initializePreSessionSong(),
-      this.initializeAmbientAudio(),
+      this.initializePreSessionSong()
     ]);
     this.initializeVideoPreloading();
     if (!getUser().isGM) return;
@@ -2408,7 +2495,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.initializeCountdown(),
       this.initializePreSessionSong(),
       this.preloadIntroVideo(),
-      this.initializeAmbientAudio(),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": null }),
     ]);
     if (!getUser().isGM) return;
 
@@ -2470,19 +2557,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .timeline()
       .fromTo(
         "#BLACKOUT-LAYER",
-        { opacity: 1 },
-        { opacity: 0, duration: 3, ease: "power2.inOut" },
+        { autoAlpha: 1 },
+        { autoAlpha: 0, duration: 5, ease: "power2.inOut" },
       )
       .fromTo(
         "#PCS",
-        { opacity: 0 },
-        { opacity: 1, duration: 1, ease: "power2.inOut" },
+        { autoAlpha: 0 },
+        { autoAlpha: 1, duration: 3, ease: "power2.inOut" },
         2,
       );
   }
 
   // #region SessionRunning Methods
   private async initialize_SessionRunning(): Promise<void> {
+    gsap.set(this.stage$, {autoAlpha: 1});
+    await EunosMedia.SetSoundscape({});
     // Kill countdown if it's running
     await this.killCountdown(true, true);
     void this.buildPCPortraitTimelines();
@@ -2509,6 +2598,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   async sync_SessionRunning() {
+    gsap.set(this.stage$, {autoAlpha: 1});
+    await EunosMedia.SetSoundscape({});
     // Kill countdown if it's running
     await this.killCountdown(true, true);
     void this.buildPCPortraitTimelines();
@@ -2526,22 +2617,52 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async cleanup_SessionRunning(): Promise<void> {
     removeClassFromDOM("session-running");
+    gsap.to(this.stage$, {
+      autoAlpha: 0,
+      duration: 4,
+      ease: "power2.out",
+    })
   }
 
   // #endregion SessionRunning Methods
 
   // #region SessionEnding Methods
+  private async animateEndOfSession(): Promise<void> {
+    void EunosMedia.SetSoundscape({}, 5);
+    const tl = gsap.timeline();
+    tl.call(() => { void this.animateInBlackBars(0, 10); });
+    tl.fromTo(this.topZIndexMask$, {autoAlpha: 0}, {autoAlpha: 1, duration: 5, ease: "power2.out", onComplete: () => {
+      addClassToDOM("session-ending");
+    }}, 1);
+    tl.fromTo(this.endPhase$, {autoAlpha: 0}, {autoAlpha: 1, duration: 0.5, ease: "power2.out"}, 6);
+    tl.to(".app.sheet", {autoAlpha: 0, duration: 0.5, ease: "power2.out"}, 6);
+    tl.call(() => { void this.animateSessionTitle(undefined, undefined, true); }, undefined, 5);
+    tl.call(() => {
+      void this.initializeCountdown();
+    }, undefined, 5);
+    await tl.play();
+  }
   private async initialize_SessionEnding(): Promise<void> {
-    addClassToDOM("session-ending");
-    EunosMedia.GetPlayingSounds().forEach((sound) => {
-      void sound.kill();
+    gsap.set(this.topZIndexMask$, {
+      background: this.isLocationBright ? "var(--K4-WHITE)" : "var(--K4-BLACK)",
     });
+    gsap.set(this.midZIndexMask$, {
+      autoAlpha: 0
+    });
+    if (!this.isLocationBright) {
+      this.topZIndexMask$.find(".horiz-rule").css("filter", "invert(1)");
+      this.topZIndexMask$.children().children().css("color", "var(--K4-WHITE)");
+    }
+    await this.animateEndOfSession()
+
     if (getUser().isGM) {
       void setSetting("endPhaseQuestion", 0);
     }
   }
 
   async sync_SessionEnding() {
+    void this.initialize_SessionEnding();
+    return;
     addClassToDOM("session-ending");
     EunosMedia.GetPlayingSounds().forEach((sound) => {
       void sound.kill();
@@ -2550,6 +2671,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async cleanup_SessionEnding(): Promise<void> {
     removeClassFromDOM("session-ending");
+    gsap.to([
+      this.endPhase$[0],
+      this.topZIndexMask$[0],
+      this.midZIndexMask$[0],
+      this.maxZIndexBars$[0],
+    ], {
+      autoAlpha: 0,
+      duration: 3,
+      ease: "power2.out"
+    });
+    gsap.to(".app.sheet", {autoAlpha: 1, duration: 0.5, ease: "power2.out"});
   }
   // #endregion SessionEnding Methods
 
@@ -2644,31 +2776,69 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }).render(true);
   }
 
-  async animateOutBlackBars(startTime = 0) {
-    const topBar$ = this.maxZIndexBars$.find(".canvas-mask-bar-top");
-    const bottomBar$ = this.maxZIndexBars$.find(".canvas-mask-bar-bottom");
+  async animateOutBlackBars(
+    startTime = 0,
+    duration = PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION,
+  ) {
+    const topBarElement = this.maxZIndexBars$.find(".canvas-mask-bar-top")[0];
+    const bottomBarElement = this.maxZIndexBars$.find(
+      ".canvas-mask-bar-bottom",
+    )[0];
+
+    if (!topBarElement || !bottomBarElement) {
+      kLog.error("Failed to find top or bottom bar element");
+      return;
+    }
 
     const tl = gsap.timeline();
 
-    tl.to(
-      topBar$,
+    tl.fromTo(
+      [topBarElement, bottomBarElement],
+      {
+        height: 150,
+      },
       {
         height: 0,
-        duration: PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION,
+        duration,
         ease: "none",
       },
       0,
-    )
-      .to(
-        bottomBar$,
-        {
-          height: 0,
-          duration: PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION,
-          ease: "none",
-        },
-        0,
-      )
-      .seek(startTime);
+    ).seek(startTime);
+
+    return tl;
+  }
+
+  async animateInBlackBars(
+    startTime = 0,
+    duration = POST_SESSION.BLACK_BARS_ANIMATION_IN_DURATION,
+  ) {
+    const topBarElement = this.maxZIndexBars$.find(".canvas-mask-bar-top")[0];
+    const bottomBarElement = this.maxZIndexBars$.find(
+      ".canvas-mask-bar-bottom",
+    )[0];
+
+    if (!topBarElement || !bottomBarElement) {
+      kLog.error("Failed to find top or bottom bar element");
+      return;
+    }
+
+    const tl = gsap.timeline();
+
+    tl.fromTo(
+      [topBarElement, bottomBarElement],
+      {
+        height: 0,
+        ease: "none",
+      },
+      {
+        height: 150,
+        duration,
+        onStart: () => {
+          gsap.set(this.maxZIndexBars$, { autoAlpha: 1 });
+        }
+      },
+      0,
+    ).seek(startTime);
 
     return tl;
   }
@@ -2692,11 +2862,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   async animateSessionTitle(
     chapter?: string,
     title?: string,
-  ): Promise<gsap.core.Timeline> {
+    isEndOfSession = false
+  ): Promise<void> {
     chapter = chapter ?? tCase(verbalizeNum(getSetting("chapterNumber")));
     title = title ?? getSetting("chapterTitle");
 
     const instance = EunosOverlay.instance;
+    const introElem$ = instance.topZIndexMask$.find(".chapter-ending-intro");
     const chapterElem$ = instance.topZIndexMask$.find(".chapter-number");
     const horizRule$ = instance.topZIndexMask$.find(".horiz-rule");
     const titleElem$ = instance.topZIndexMask$.find(".chapter-title");
@@ -2706,6 +2878,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     const tl = gsap.timeline();
 
+    let position = 0;
+
+    if (isEndOfSession) {
+      tl.fromTo(
+        introElem$,
+        {
+          scale: 0.9,
+          autoAlpha: 0,
+        },
+        {
+          scale: 1,
+          duration: 5,
+          autoAlpha: 1,
+        },
+        position);
+      position += 0.2;
+    }
     tl.fromTo(
       chapterElem$,
       {
@@ -2720,9 +2909,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         duration: 5,
         ease: "none",
       },
-    )
-      .fromTo(
-        horizRule$,
+      position);
+    position += 0.2;
+    tl.fromTo(
+      horizRule$,
         {
           scaleX: 0,
           autoAlpha: 0,
@@ -2732,16 +2922,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 3,
           ease: "none",
         },
-        0.2,
-      )
-      .to(
+        position,
+      );
+      position += 0.2;
+      tl.to(
         horizRule$,
         {
           autoAlpha: 1,
           ease: "none",
           duration: 5,
         },
-        0.2,
+        position,
       )
       .fromTo(
         titleElem$,
@@ -2757,23 +2948,31 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 5,
           ease: "none",
         },
-        0.4,
-      )
-      .to(
-        [
-          instance.topZIndexMask$[0],
-          instance.maxZIndexBars$[0],
-          instance.midZIndexMask$[0],
-        ],
+        position,
+      );
+
+      const layersToFade = [
+        instance.topZIndexMask$[0],
+        instance.midZIndexMask$[0],
+        introElem$[0],
+        chapterElem$[0],
+        horizRule$[0],
+        titleElem$[0]
+      ];
+      if (!isEndOfSession) {
+        layersToFade.push(instance.maxZIndexBars$[0]);
+      }
+      tl.to(
+        layersToFade,
         {
           autoAlpha: 0,
           duration: 1,
           ease: "none",
-        },
-        "-=1",
-      );
+      },
+      "-=1",
+    );
 
-    return tl;
+    await tl;
   }
 
   /** Fades in the topZIndexMask and the intro video */
@@ -2977,7 +3176,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const settingsData: Location.PCData.SettingsData = {
       actorID: fullData.actorID,
       ownerID: fullData.ownerID,
-      state: fullData.state
+      state: fullData.state,
     };
     locationSettingsData.pcData[fullData.actorID] = settingsData;
     await this.setLocationData(location, locationSettingsData);
@@ -3767,7 +3966,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async pushUIChanges(): Promise<void> {
-
     const timer = getTimeStamp();
 
     // Add the 'disabled' class to #NPCS-GM to prevent button usage while updating.
@@ -3775,9 +3973,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.npcs$.addClass("disabled");
 
     kLog.log(`[pushUIChanges ${timer()}] Getting Current Location Data`);
-    const locData = this.getLocationSettingsData(
-      getSetting("currentLocation"),
-    );
+    const locData = this.getLocationSettingsData(getSetting("currentLocation"));
 
     kLog.log(`[pushUIChanges ${timer()}] Updating PCUIChanges`);
     this.PCUIChanges.forEach((state, actorID) => {
@@ -3802,24 +3998,28 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           position,
         });
         const actor = getActors().find((actor) => actor.id === actorID);
-        if (actor
-          && [
+        if (
+          actor &&
+          [
             foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.INHERIT,
-            foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE
-          ].includes(actor.ownership["default"])
-          && nameState === NPCNameState.base
-          && [NPCPortraitState.base, NPCPortraitState.dimmed].includes(portraitState)
+            foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE,
+          ].includes(actor.ownership["default"]) &&
+          nameState === NPCNameState.base &&
+          [NPCPortraitState.base, NPCPortraitState.dimmed].includes(
+            portraitState,
+          )
         ) {
-          void actor.update({ownership: { default: foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED }});
+          void actor.update({
+            ownership: {
+              default: foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED,
+            },
+          });
         }
       },
     );
 
     kLog.log(`[pushUIChanges ${timer()}] Setting Location Data`);
-    await this.setLocationData(
-      getSetting("currentLocation"),
-      locData,
-    );
+    await this.setLocationData(getSetting("currentLocation"), locData);
 
     // Clear the changes
     kLog.log(`[pushUIChanges ${timer()}] Clearing UI Changes`);
@@ -3958,6 +4158,44 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const pcContainer$ = $(`.pc-container[data-pc-id="${actor.id}"]`);
     const bg$ = pcContainer$.find(".pc-portrait-bg");
     bg$.attr("src", bgImage);
+  }
+
+  public async getDramaticHookRewardTimeline(dramaticHookContainer$: JQuery) {
+    const actorID = dramaticHookContainer$.data("pc-id") as IDString;
+    const hookID = dramaticHookContainer$.data("hook-id") as "dramatichook1" | "dramatichook2";
+    const actor = getActorFromRef(actorID);
+    if (!actor?.isPC()) return;
+    const hook = actor.system.dramatichooks[hookID];
+    if (!hook) return;
+    const hookContent = actor.system.dramatichooks[hookID].content;
+    return gsap.timeline({
+      onComplete: () => {
+        void actor.update({
+          system: {
+            dramatichooks: {
+              [hookID]: {
+                isChecked: true
+              }
+            }
+          }
+        });
+        void actor.awardXP();
+        void EunosAlerts.Alert({
+          type: AlertType.dramaticHookReward,
+          header: "You've Gained 1 XP for Satisfying a Dramatic Hook:",
+          body: `"${hookContent}"`,
+          target: actorID
+        });
+      }
+    })
+      .fromTo(dramaticHookContainer$,
+        {
+          background: "linear-gradient(to right, rgb(150, 140, 106) 0%, rgb(0, 0, 0) 0%)"
+        }, {
+          background: "linear-gradient(to right, rgb(150, 140, 106) 100%, rgb(0, 0, 0) 100%)",
+          duration: 2,
+          ease: "power2.inOut"
+        })
   }
 
   private updatePCUI_GM(pcID: IDString, state: PCState) {
@@ -4137,10 +4375,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
 
     const stageRect = stage.getBoundingClientRect();
-    const x =
-      event.clientX - stageRect.left - NPC_PORTRAIT.size.width / 2;
-    const y =
-      event.clientY - stageRect.top - NPC_PORTRAIT.size.height / 2;
+    const x = event.clientX - stageRect.left - NPC_PORTRAIT.size.width / 2;
+    const y = event.clientY - stageRect.top - NPC_PORTRAIT.size.height / 2;
 
     this.dragPreview.css({
       width: `${NPC_PORTRAIT.size.width}px`,
@@ -4322,9 +4558,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           scale: getUser().isGM ? 1 : 0.8,
           duration: 0.5,
-          ease: "none"
+          ease: "none",
         },
-        0
+        0,
       )
       .fromTo(
         portraitShadow$,
@@ -4666,7 +4902,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const gogglesTimeline = npcContainer$.data(
       "goggles-timeline",
     ) as gsap.core.Timeline;
-    const currentPortraitState = this.getNPCStatusFromOverlay(npcContainer$).portraitState;
+    const currentPortraitState =
+      this.getNPCStatusFromOverlay(npcContainer$).portraitState;
     const positionTimeline = gsap.to(npcContainer$, {
       xPercent: -50,
       yPercent: -50,
@@ -4675,10 +4912,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       duration: 1,
       ease: "power2.out",
       onComplete: () => {
-        void gsap.set(npcContainer$[0]!.querySelector(".npc-portrait-shadow"), {
-          skewX: this.getShadowSkewX(npcContainer$[0]!),
-        });
-      }
+        this.updateShadowSkew(npcContainer$);
+      },
     });
 
     // Create timeline of tweenTo's to update portrait, name, and goggles
@@ -4692,11 +4927,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           npcContainer$.attr("data-portrait-state", portraitState);
           npcContainer$.attr("data-name-state", nameState);
           npcContainer$.attr("data-goggles-state", gogglesState);
-          npcContainer$.removeClass("npc-portrait-name-shrouded npc-portrait-name-invisible npc-portrait-name-base");
+          npcContainer$.removeClass(
+            "npc-portrait-name-shrouded npc-portrait-name-invisible npc-portrait-name-base",
+          );
           npcContainer$.addClass(`npc-portrait-name-${nameState}`);
-          npcContainer$.removeClass("npc-portrait-base npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit");
+          npcContainer$.removeClass(
+            "npc-portrait-base npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit",
+          );
           npcContainer$.addClass(`npc-portrait-${portraitState}`);
-          npcContainer$.removeClass("npc-portrait-goggles npc-portrait-noGoggles");
+          npcContainer$.removeClass(
+            "npc-portrait-goggles npc-portrait-noGoggles",
+          );
           npcContainer$.addClass(`npc-portrait-${gogglesState}`);
         }
       },
@@ -4734,10 +4975,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       subTl
         // First set initial position and goggles image instantly
         .add(positionTimeline.duration(0), 0)
-        .add(gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }), 0);
-        // Start smoke effect IF new portrait state is not invisible/removed
-        if (portraitState !== NPCPortraitState.invisible && portraitState !== NPCPortraitState.removed) {
-          subTl.call(
+        .add(
+          gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }),
+          0,
+        );
+      // Start smoke effect IF new portrait state is not invisible/removed
+      if (
+        portraitState !== NPCPortraitState.invisible &&
+        portraitState !== NPCPortraitState.removed
+      ) {
+        subTl
+          .call(
             () => {
               const videoElement = smokeEffect$[0] as HTMLVideoElement;
               videoElement.currentTime = 0; // Reset to start
@@ -4764,13 +5012,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               { ease: "power2.in" },
             ),
             SMOKE_EFFECT_DELAY,
-          )
-        }
+          );
+      }
 
-        // Add goggles and name transitions in parallel with portrait
-        subTl.add(gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }), SMOKE_EFFECT_DELAY)
+      // Add goggles and name transitions in parallel with portrait
+      subTl
         .add(
-          nameTimeline.tweenFromTo(NPCNameState.invisible, nameState, { ease: "power2.inOut" }),
+          gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }),
+          SMOKE_EFFECT_DELAY,
+        )
+        .add(
+          nameTimeline.tweenFromTo(NPCNameState.invisible, nameState, {
+            ease: "power2.inOut",
+          }),
           SMOKE_EFFECT_DELAY + timeOffset,
         );
 
@@ -4792,13 +5046,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         portraitState,
       )
     ) {
-      tl.add(portraitTimeline.tweenTo(portraitState, { ease: "power2.inOut" }), 0);
-      tl.add(nameTimeline.tweenTo(NPCNameState.invisible, { ease: "power2.inOut" }), timeOffset);
+      tl.add(
+        portraitTimeline.tweenTo(portraitState, { ease: "power2.inOut" }),
+        0,
+      );
+      tl.add(
+        nameTimeline.tweenTo(NPCNameState.invisible, { ease: "power2.inOut" }),
+        timeOffset,
+      );
       tl.duration(1);
       kLog.log("buildNPCTransitionTimeline: TO invis/removed", { tl });
     } else {
       tl.add(portraitTimeline.tweenTo(portraitState, { ease: "power4.in" }), 0);
-      tl.add(nameTimeline.tweenTo(nameState, { ease: "power2.in" }), timeOffset);
+      tl.add(
+        nameTimeline.tweenTo(nameState, { ease: "power2.in" }),
+        timeOffset,
+      );
       tl.add(positionTimeline, "<");
       tl.add(gogglesTimeline.tweenTo(gogglesState, { ease: "power2.in" }), "<");
       tl.duration(1);
@@ -4832,7 +5095,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           );
           kLog.log(`Seeking NPC container for NPC ${npcID}`, { npcContainer$ });
           if (!npcContainer$.length) {
-            if (portraitState === NPCPortraitState.removed || portraitState === NPCPortraitState.invisible) {
+            if (
+              portraitState === NPCPortraitState.removed ||
+              portraitState === NPCPortraitState.invisible
+            ) {
               return;
             }
             npcContainer$ = await this.renderNPCPortrait(
@@ -4840,9 +5106,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               position,
             );
           }
-          const gogglesState = (this.isOutdoors && this.isLocationBright)
-            ? "goggles"
-            : "noGoggles";
+          const gogglesState =
+            this.isOutdoors && this.isLocationBright ? "goggles" : "noGoggles";
           if (getUser().isGM) {
             return;
           }
@@ -4870,11 +5135,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     position?: Point,
   ): Promise<JQuery> {
     // First check whether there's an existing portrait, and return that if there is.
-    const existingNPC = this.npcs$.find(`.npc-portrait[data-actor-id="${actor.id}"]`);
-    kLog.log(`renderNPCPortrait: existingNPC for ${actor.name}`, { existingNPC });
-    if (existingNPC.length) {
-      kLog.log("renderNPCPortrait: returning existing NPC", { existingNPC });
-      return existingNPC;
+    const existingNPC$ = this.npcs$.find(
+      `.npc-portrait[data-actor-id="${actor.id}"]`,
+    );
+    kLog.log(`renderNPCPortrait: existingNPC for ${actor.name}`, {
+      existingNPC: existingNPC$,
+    });
+    if (existingNPC$.length) {
+      kLog.log(
+        "renderNPCPortrait: updating shadow and returning existing NPC",
+        { existingNPC: existingNPC$ },
+      );
+      this.updateShadowSkew(existingNPC$);
+      return existingNPC$;
     }
 
     if (!position) {
@@ -4902,31 +5175,31 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Create jQuery element but don't append yet
     const npcContainer$ = $(html);
+    const element = npcContainer$[0] as HTMLElement;
 
-    await gsap.set(npcContainer$[0]!, {
+    await gsap.set(element, {
       opacity: 0,
     });
 
     // Now append the element
     npcContainer$.appendTo(this.npcs$);
 
-    await gsap.set(npcContainer$[0]!, {
+    await gsap.set(element, {
       xPercent: -50,
       yPercent: -50,
       x: position.x,
-      y: position.y
+      y: position.y,
     });
 
-    void gsap.set(npcContainer$[0]!.querySelector(".npc-portrait-shadow"), {
-      skewX: this.getShadowSkewX(npcContainer$[0]!),
-    });
+    // Use the dedicated method instead of direct gsap.set
+    this.updateShadowSkew(npcContainer$);
 
     // Build timelines for the new NPC
     this.buildNPCPortraitTimeline(npcContainer$);
     this.buildNPCNameTimeline(npcContainer$);
     this.buildNPCGogglesTimeline(npcContainer$);
 
-    void gsap.set(npcContainer$[0]!, {
+    void gsap.set(element, {
       opacity: 1,
     });
 
@@ -4938,6 +5211,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const viewportWidth = NPC_PORTRAIT.viewportCollisions.x;
     const normalizedPos = (xPos / viewportWidth) * 2 - 1; // -1 to 1
     return -normalizedPos * 40; // -20 to 20 degrees
+  }
+
+  private updateShadowSkew(npcContainer$: JQuery) {
+    const element = npcContainer$[0];
+    if (!element) {
+      return;
+    }
+    const skewX = this.getShadowSkewX(element);
+    gsap.set(element, {
+      filter: `blur(0px) drop-shadow(20px 20px ${skewX}px black)`,
+    });
   }
 
   private getNPCStatusFromOverlay(npcContainer$: JQuery): {
@@ -4964,7 +5248,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     };
   }
 
-  private getNPCDataFromOverlay(isVisibleOnly = false): Record<string, NPCs.FullData> {
+  private getNPCDataFromOverlay(
+    isVisibleOnly = false,
+  ): Record<string, NPCs.FullData> {
     const npcContainers$ = this.npcs$.children();
     const npcData: Record<string, NPCs.FullData> = {};
     npcContainers$.each((i, el) => {
@@ -4975,7 +5261,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       const npcStatus = this.getNPCStatusFromOverlay($(el));
-      if (isVisibleOnly && [NPCPortraitState.removed, NPCPortraitState.invisible].includes(npcStatus.portraitState)) {
+      if (
+        isVisibleOnly &&
+        [NPCPortraitState.removed, NPCPortraitState.invisible].includes(
+          npcStatus.portraitState,
+        )
+      ) {
         return;
       }
       npcData[npcID] = {
@@ -4994,19 +5285,25 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const locationNPCData = this.getLocationNPCData();
     // Get NPCs that are visible in the overlay but absent OR invisible in the settings
     // Because all of these NPCs will not be visible to players, we can ignore name and goggles states
-    const NPCsToHide = Object.fromEntries(Object.keys(visibleNPCs)
-      .filter((npcID) => {
-        return !locationNPCData[npcID]
-          || [NPCPortraitState.removed, NPCPortraitState.invisible].includes(locationNPCData[npcID].portraitState);
-      })
-      .map((npcID) => {
-        // Set the portrait state to "invisible" if invisible in the settings, "removed" otherwise
-        const npcData = visibleNPCs[npcID]!;
-        npcData.portraitState = locationNPCData[npcID]?.portraitState === NPCPortraitState.invisible
-          ? NPCPortraitState.invisible
-          : NPCPortraitState.removed;
-        return [npcID, npcData];
-      })
+    const NPCsToHide = Object.fromEntries(
+      Object.keys(visibleNPCs)
+        .filter((npcID) => {
+          return (
+            !locationNPCData[npcID] ||
+            [NPCPortraitState.removed, NPCPortraitState.invisible].includes(
+              locationNPCData[npcID].portraitState,
+            )
+          );
+        })
+        .map((npcID) => {
+          // Set the portrait state to "invisible" if invisible in the settings, "removed" otherwise
+          const npcData = visibleNPCs[npcID]!;
+          npcData.portraitState =
+            locationNPCData[npcID]?.portraitState === NPCPortraitState.invisible
+              ? NPCPortraitState.invisible
+              : NPCPortraitState.removed;
+          return [npcID, npcData];
+        }),
     );
 
     if (getUser().isGM) {
@@ -5024,26 +5321,34 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // The refreshNPCUI_Hide method will have already hidden all NPCs on the overlay that are not in settings
     // so we can simplify this method by just showing the NPCs that are in settings
     const locationNPCData = this.getLocationNPCData();
-    const NPCsToUpdate = Object.fromEntries(Object.keys(locationNPCData)
-      .filter((npcID) => ![NPCPortraitState.removed, NPCPortraitState.invisible].includes(locationNPCData[npcID]?.portraitState))
-      .map((npcID) => {
-        const npcData = locationNPCData[npcID]!;
-        if (getUser().isGM) {
-          void this.updateNPCUI_GM(npcID, npcData);
-        }
-        return [npcID, npcData];
-      }));
-    if (getUser().isGM) { return { tl: gsap.timeline() }; }
+    const NPCsToUpdate = Object.fromEntries(
+      Object.keys(locationNPCData)
+        .filter(
+          (npcID) =>
+            ![NPCPortraitState.removed, NPCPortraitState.invisible].includes(
+              locationNPCData[npcID]?.portraitState,
+            ),
+        )
+        .map((npcID) => {
+          const npcData = locationNPCData[npcID]!;
+          if (getUser().isGM) {
+            void this.updateNPCUI_GM(npcID, npcData);
+          }
+          return [npcID, npcData];
+        }),
+    );
+    if (getUser().isGM) {
+      return { tl: gsap.timeline() };
+    }
     const { tl } = await this.buildNPCUIUpdateTimeline(NPCsToUpdate);
     // tl.play();
     return { tl };
   }
 
   public async refreshNPCUI_All() {
-    const timelines = (await Promise.all([
-      this.refreshNPCUI_Hide(),
-      this.refreshNPCUI_Show(),
-    ])).map(({ tl }) => tl) as [gsap.core.Timeline, gsap.core.Timeline];
+    const timelines = (
+      await Promise.all([this.refreshNPCUI_Hide(), this.refreshNPCUI_Show()])
+    ).map(({ tl }) => tl) as [gsap.core.Timeline, gsap.core.Timeline];
     timelines[1].delay(0.5);
     return timelines;
   }
@@ -5054,12 +5359,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!npcData) {
       return;
     }
-    const npcContainer$ = this.npcs$.find(`.npc-portrait[data-actor-id="${npcID}"]`);
+    const npcContainer$ = this.npcs$.find(
+      `.npc-portrait[data-actor-id="${npcID}"]`,
+    );
     // Get current portrait state, and store it as a JQuery data variable on npcContainer$, so unspotlight can return to it
-    const currentPortraitState = npcContainer$.attr("data-portrait-state") as NPCPortraitState;
+    const currentPortraitState = npcContainer$.attr(
+      "data-portrait-state",
+    ) as NPCPortraitState;
     npcContainer$.data("currentPortraitState", currentPortraitState);
     npcData.portraitState = NPCPortraitState.spotlit;
-    const tl = this.buildNPCTransitionTimeline(npcContainer$, NPCPortraitState.spotlit);
+    const tl = this.buildNPCTransitionTimeline(
+      npcContainer$,
+      NPCPortraitState.spotlit,
+    );
     tl.play();
     if (getUser().isGM) {
       void this.updateNPCUI_GM(npcID, npcData);
@@ -5072,10 +5384,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!npcData) {
       return;
     }
-    const npcContainer$ = this.npcs$.find(`.npc-portrait[data-actor-id="${npcID}"]`);
-    const currentPortraitState = npcContainer$.data("currentPortraitState") as Maybe<NPCPortraitState> ?? NPCPortraitState.base;
+    const npcContainer$ = this.npcs$.find(
+      `.npc-portrait[data-actor-id="${npcID}"]`,
+    );
+    const currentPortraitState =
+      (npcContainer$.data("currentPortraitState") as Maybe<NPCPortraitState>) ??
+      NPCPortraitState.base;
     npcData.portraitState = currentPortraitState;
-    const tl = this.buildNPCTransitionTimeline(npcContainer$, currentPortraitState);
+    const tl = this.buildNPCTransitionTimeline(
+      npcContainer$,
+      currentPortraitState,
+    );
     tl.play();
     if (getUser().isGM) {
       void this.updateNPCUI_GM(npcID, npcData);
@@ -5115,7 +5434,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       portraitState?: NPCPortraitState;
       nameState?: NPCNameState;
       position?: Point;
-    }
+    },
   ): Promise<void>;
   private async updateNPCUI_GM(
     npcID?: IDString,
@@ -5125,7 +5444,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       position?: Point;
     },
   ): Promise<void> {
-
     // If no NPC ID is given, recursively call this function for each NPC in the overlay and in the settings data
     if (!npcID) {
       // Retrieve the current settings data
@@ -5137,18 +5455,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       npcContainers$.each((i, el) => {
         const npcID = $(el).attr("data-actor-id") as Maybe<string>;
         if (npcID && !currentLocationData.npcData[npcID]) {
-          void this.updateNPCUI_GM(npcID, {portraitState: NPCPortraitState.removed});
+          void this.updateNPCUI_GM(npcID, {
+            portraitState: NPCPortraitState.removed,
+          });
         }
       });
 
       // Now update all NPCs in setting data
       const npcData = this.getLocationNPCData();
       for (const npcID in npcData) {
-        void this.updateNPCUI_GM(npcID, npcData[npcID] as {
-          portraitState?: NPCPortraitState;
-          nameState?: NPCNameState;
-          position?: Point;
-        });
+        void this.updateNPCUI_GM(
+          npcID,
+          npcData[npcID] as {
+            portraitState?: NPCPortraitState;
+            nameState?: NPCNameState;
+            position?: Point;
+          },
+        );
       }
       return;
     }
@@ -5158,8 +5481,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         `.npc-portrait[data-actor-id="${npcID}"]`,
       );
       kLog.log("Updating NPC UI (GM)", { npcID, data, npcContainer$ });
-      if (!npcContainer$.length && data.portraitState !== NPCPortraitState.removed) {
-        kLog.log(`Rendering NPC portrait for ${getActorFromRef(npcID)?.name}`, { npcID, data });
+      if (
+        !npcContainer$.length &&
+        data.portraitState !== NPCPortraitState.removed
+      ) {
+        kLog.log(`Rendering NPC portrait for ${getActorFromRef(npcID)?.name}`, {
+          npcID,
+          data,
+        });
         npcContainer$ = await this.renderNPCPortrait(
           getActorFromRef(npcID) as EunosActor,
           data.position,
@@ -5167,7 +5496,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
       let { portraitState, nameState, position } = data;
       // If no state, determine from class name of npcContainer
-      portraitState ??= this.getNPCStatusFromOverlay(npcContainer$).portraitState;
+      portraitState ??=
+        this.getNPCStatusFromOverlay(npcContainer$).portraitState;
       nameState ??= this.getNPCStatusFromOverlay(npcContainer$).nameState;
 
       const gogglesState =
@@ -5338,7 +5668,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       pcData: Object.fromEntries(
         this.getDefaultLocationPCData().map((data) => [data.actorID, data]),
       ),
-      npcData: {} as Record<IDString, Location.NPCData.SettingsData>
+      npcData: {} as Record<IDString, Location.NPCData.SettingsData>,
     };
   }
   private getLocationDefaultSettingsData(
@@ -5350,12 +5680,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     };
   }
   private getLocationSettingsData(location: string): Location.SettingsData {
-
     const finalSettingData = {
       ...this.getLocationDefaultDynamicSettingsData(),
       ...getSettings().get("eunos-kult-hacks", "locationData")[location],
       ...this.getLocationDefaultStaticSettingsData(location),
-    }
+    };
 
     return finalSettingData;
   }
@@ -5422,7 +5751,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private deriveLocationFullData(
     settingsData: Location.SettingsData,
   ): Location.FullData {
-    const { key, pcData, npcData, audioDataIndoors, audioDataOutdoors, audioDataByImage } = settingsData;
+    const {
+      key,
+      pcData,
+      npcData,
+      audioDataIndoors,
+      audioDataOutdoors,
+      audioDataByImage,
+    } = settingsData;
 
     const pcFullData = this.getLocationPCData(pcData);
     const npcFullData = this.getLocationNPCData(npcData);
@@ -5441,30 +5777,40 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       // Override audio data in settings with LOCATIONS data if available
       if (locationData.audioDataIndoors) {
-        fullData.audioDataIndoors = this.getLocationAudioData(locationData.audioDataIndoors);
+        fullData.audioDataIndoors = this.getLocationAudioData(
+          locationData.audioDataIndoors,
+        );
       }
       if (locationData.audioDataOutdoors) {
-        fullData.audioDataOutdoors = this.getLocationAudioData(locationData.audioDataOutdoors);
+        fullData.audioDataOutdoors = this.getLocationAudioData(
+          locationData.audioDataOutdoors,
+        );
       }
       if (locationData.audioDataByImage) {
         fullData.audioDataByImage = {};
-        for (const [imgKey, audioData] of Object.entries(locationData.audioDataByImage)) {
-          fullData.audioDataByImage[imgKey] = this.getLocationAudioData(audioData);
+        for (const [imgKey, audioData] of Object.entries(
+          locationData.audioDataByImage,
+        )) {
+          fullData.audioDataByImage[imgKey] =
+            this.getLocationAudioData(audioData);
         }
       }
     } else {
       if (audioDataIndoors) {
-        const audioIndoorsFullData = this.getLocationAudioData(audioDataIndoors);
+        const audioIndoorsFullData =
+          this.getLocationAudioData(audioDataIndoors);
         fullData.audioDataIndoors = audioIndoorsFullData;
       }
       if (audioDataOutdoors) {
-        const audioOutdoorsFullData = this.getLocationAudioData(audioDataOutdoors);
+        const audioOutdoorsFullData =
+          this.getLocationAudioData(audioDataOutdoors);
         fullData.audioDataOutdoors = audioOutdoorsFullData;
       }
       if (audioDataByImage) {
         fullData.audioDataByImage = {};
         for (const [imgKey, audioData] of Object.entries(audioDataByImage)) {
-          fullData.audioDataByImage[imgKey] = this.getLocationAudioData(audioData);
+          fullData.audioDataByImage[imgKey] =
+            this.getLocationAudioData(audioData);
         }
       }
     }
@@ -5478,15 +5824,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const currentLocation = getSetting("currentLocation");
 
     // Sort the keys of LOCATIONS by the region property, and then the name, DISCOUNTING the word "the" if it appears at the start
-    const sortedLocations = Object.keys(LOCATIONS)
-      .sort((a, b) => {
-        const regionA = LOCATIONS[a]!.region ?? "";
-        const regionB = LOCATIONS[b]!.region ?? "";
-        if (regionA === regionB) {
-          return a.replace(/^the\b\s*/i, "").localeCompare(b.replace(/^the\b\s*/i, ""));
-        }
-        return regionA.localeCompare(regionB);
-      });
+    const sortedLocations = Object.keys(LOCATIONS).sort((a, b) => {
+      const regionA = LOCATIONS[a]!.region ?? "";
+      const regionB = LOCATIONS[b]!.region ?? "";
+      if (regionA === regionB) {
+        return a
+          .replace(/^the\b\s*/i, "")
+          .localeCompare(b.replace(/^the\b\s*/i, ""));
+      }
+      return regionA.localeCompare(regionB);
+    });
 
     new Dialog({
       title: "Go To Location",
@@ -5560,43 +5907,58 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     ).find((data) => data.actorID === actor.id)!;
   }
 
-  private async setLocationData(location: string, data: Partial<Location.SettingsData>): Promise<void> {
+  private async setLocationData(
+    location: string,
+    data: Partial<Location.SettingsData>,
+  ): Promise<void> {
     // Check and fix if we're getting FullData
-    if ('pcData' in data && data.pcData) {
+    if ("pcData" in data && data.pcData) {
       const pcDataKeys = Object.keys(data.pcData);
-      if (pcDataKeys.some(key => /^[1-5]$/.test(key))) {
-        getNotifier().warn("Detected attempt to store FullData instead of SettingsData. Converting to proper format.");
+      if (pcDataKeys.some((key) => /^[1-5]$/.test(key))) {
+        getNotifier().warn(
+          "Detected attempt to store FullData instead of SettingsData. Converting to proper format.",
+        );
 
         // Convert slot-indexed FullData to ID-indexed SettingsData
-        const fullPCData = data.pcData as Record<"1"|"2"|"3"|"4"|"5", Location.PCData.FullData>;
+        const fullPCData = data.pcData as Record<
+          "1" | "2" | "3" | "4" | "5",
+          Location.PCData.FullData
+        >;
         const settingsPCData: Record<string, Location.PCData.SettingsData> = {};
 
-        Object.values(fullPCData).forEach(pcData => {
+        Object.values(fullPCData).forEach((pcData) => {
           if (pcData) {
             settingsPCData[pcData.actorID] = {
               actorID: pcData.actorID,
               ownerID: pcData.ownerID,
-              state: pcData.state
+              state: pcData.state,
             };
           }
         });
 
         data = {
           ...data,
-          pcData: settingsPCData
+          pcData: settingsPCData,
         };
       }
     }
 
     const locationData = getSetting("locationData");
-    const locationDataEntry = Object.assign({}, this.getLocationSettingsData(location), data);
+    const locationDataEntry = Object.assign(
+      {},
+      this.getLocationSettingsData(location),
+      data,
+    );
     locationData[location] = locationDataEntry;
     await setSetting("locationData", locationData);
   }
 
   public async resetLocationData(location?: string) {
     location ??= getSetting("currentLocation");
-    await this.setLocationData(location, this.getLocationDefaultSettingsData(location));
+    await this.setLocationData(
+      location,
+      this.getLocationDefaultSettingsData(location),
+    );
   }
 
   public async resetAllLocationData() {
@@ -5614,8 +5976,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region Updating Weather Audio ~
   public async updateWeatherAudio() {
     const weatherAudio = getSetting("weatherAudio");
-    const currentWeatherAudio = EunosMedia.GetMediaByCategory(EunosMediaCategories.Weather)
-      .filter((media) => media.playing);
+    const currentWeatherAudio = EunosMedia.GetMediaByCategory(
+      EunosMediaCategories.Weather,
+    ).filter((media) => media.playing);
     // Identify all tracks that are no longer present in the value, and stop them
     currentWeatherAudio.forEach((media) => {
       if (!weatherAudio[media.name]) {
@@ -5626,7 +5989,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Object.entries(weatherAudio).forEach(([mediaName, volume]) => {
       const media = EunosMedia.GetMedia(mediaName);
       if (media) {
-        void media.play({volume});
+        void media.play({ volume });
         if (!this.isOutdoors) {
           // If we're indoors, dampen the audio
           media.dampenAudio();
@@ -5645,39 +6008,43 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       kLog.error("Cannot set indoors when location is not indoors");
       return;
     }
-    kLog.log(`Setting isOutdoors to ${!isIndoors} because we're calling setIndoors.`);
+    kLog.log(
+      `Setting isOutdoors to ${!isIndoors} because we're calling setIndoors.`,
+    );
     await setSetting("isOutdoors", !isIndoors);
   }
 
   private buildGoIndoorsTimeline() {
-    const {key} = this.getLocationData();
+    const { key } = this.getLocationData();
     const underLayer$ = this.stage3D$.find(".under-layer");
     const backgroundLayer$ = this.stage3D$.find(".background-layer");
-    const goIndoorsTimeline = gsap.timeline({
-      paused: true,
-      onReverseComplete: () => {
-        void this.refreshNPCUI_Show().then(({tl}) => tl.play());
-      },
-      onComplete: () => {
-        void this.refreshNPCUI_Show().then(({tl}) => tl.play());
-      },
-    })
+    const goIndoorsTimeline = gsap
+      .timeline({
+        paused: true,
+        onReverseComplete: () => {
+          void this.refreshNPCUI_Show().then(({ tl }) => tl.play());
+        },
+        onComplete: () => {
+          void this.refreshNPCUI_Show().then(({ tl }) => tl.play());
+        },
+      })
       .to(underLayer$, {
         background:
           "radial-gradient(circle at 50% 50%, transparent 2%, rgb(123 46 0 / 75%) 4%, rgb(0 0 0) 6%)",
         duration: 1,
         ease: "power2.inOut",
       })
-      .to([
-        underLayer$[0],
-        backgroundLayer$[0]
-      ], {
-        rotationX: 0,
-        rotationY: 0,
-        z: 500,
-        duration: 1,
-        ease: "power2.inOut"
-      }, 0);
+      .to(
+        [underLayer$[0], backgroundLayer$[0]],
+        {
+          rotationX: 0,
+          rotationY: 0,
+          z: 500,
+          duration: 1,
+          ease: "power2.inOut",
+        },
+        0,
+      );
     $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`, goIndoorsTimeline);
     return goIndoorsTimeline;
   }
@@ -5700,7 +6067,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     await this.updateWeatherAudio();
 
-    const {key, audioDataIndoors, audioDataOutdoors} = this.getLocationData();
+    // Pause stage-waver timeline
+    this.#stageWaverTimeline?.pause();
+
+    const { key, audioDataIndoors, audioDataOutdoors } = this.getLocationData();
 
     // 1. Dampen all outdoor audio, UNLESS it also appears in audioDataIndoors
     if (audioDataOutdoors) {
@@ -5716,12 +6086,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // 2. Fade in any audioDataIndoors from location.
     if (audioDataIndoors) {
       Object.values(audioDataIndoors).forEach((media) => {
-        void media.play({fadeInDuration: 2});
+        void media.play({ fadeInDuration: 2 });
       });
     }
 
     // 3. Get 'goIndoors' timeline, attached as '{locationKey}-goIndoors' on the JQuery #BLACKOUT-LAYER element
-    let goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`) as Maybe<gsap.core.Timeline>;
+    let goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(
+      `${key}-goIndoors`,
+    ) as Maybe<gsap.core.Timeline>;
     if (!goIndoorsTimeline) {
       goIndoorsTimeline = this.buildGoIndoorsTimeline();
     }
@@ -5739,7 +6111,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     await this.updateWeatherAudio();
 
-    const {key, audioDataIndoors, audioDataOutdoors} = this.getLocationData();
+    const { key, audioDataIndoors, audioDataOutdoors } = this.getLocationData();
 
     // 1. Kill all indoor audio, UNLESS it also appears in audioDataOutdoors
     if (audioDataIndoors) {
@@ -5751,14 +6123,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // 2. Fade in any audioDataOutdoors from the location
     if (audioDataOutdoors) {
       Object.values(audioDataOutdoors).forEach((media) => {
-        void media.play({fadeInDuration: 2});
+        void media.play({ fadeInDuration: 2 });
         media.unDampenAudio();
       });
     }
 
     // 3. Get 'goIndoors' timeline, attached as '{locationKey}-goIndoors' on the JQuery #BLACKOUT-LAYER element, reverse it
-    const goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`) as Maybe<gsap.core.Timeline>;
-    goIndoorsTimeline?.reverse();
+    const goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(
+      `${key}-goIndoors`,
+    ) as Maybe<gsap.core.Timeline>;
+    void goIndoorsTimeline?.reverse().then(() => {
+      void this.#stageWaverTimeline?.play();
+    });
     this.isIndoors = false;
   }
   // #endregion Updating Indoors/Outdoors State ~
@@ -5775,20 +6151,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
    */
   #initializeLocationWrapper() {
     const locationWrapper$ = this.locationContainer$.find(".location-wrapper");
-    const locationImageWrapper$ = locationWrapper$.find(".location-image-wrapper");
+    const locationImageWrapper$ = locationWrapper$.find(
+      ".location-image-wrapper",
+    );
     const locationImage$ = locationImageWrapper$.find("img");
 
     const imageMode = this.getLocationData().imageMode;
-    const {locationWrapper, locationImageWrapper, locationImage} = LOCATION_IMAGE_MODES[imageMode];
+    const { locationWrapper, locationImageWrapper, locationImage } =
+      LOCATION_IMAGE_MODES[imageMode];
     gsap.set(locationWrapper$, locationWrapper.css);
     gsap.set(locationImageWrapper$, locationImageWrapper.css);
     gsap.set(locationImage$, locationImage.css);
 
-    kLog.log("Initialized location wrapper", {locationWrapper$, locationImageWrapper$, locationImage$, locationWrapper, locationImageWrapper, locationImage});
+    kLog.log("Initialized location wrapper", {
+      locationWrapper$,
+      locationImageWrapper$,
+      locationImage$,
+      locationWrapper,
+      locationImageWrapper,
+      locationImage,
+    });
   }
 
-  public async setLocationImage(imageKey?: string, location?: string): Promise<void> {
-    if (!getUser().isGM) { return; }
+  public async setLocationImage(
+    imageKey?: string,
+    location?: string,
+  ): Promise<void> {
+    if (!getUser().isGM) {
+      return;
+    }
     // Default to current location if none specified
     location ??= getSetting("currentLocation");
     const locationData = assertIs(this.getLocationData(location));
@@ -5810,115 +6201,142 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.setLocationData(location, locationData);
   }
 
-  #getVisibleImageWrapper(): JQuery|null {
-    const visibleImageWrapper$ = this.locationContainer$.find(".location-image-wrapper").filter((index, element) => {
-      return $(element).find("img").attr("src") !== "";
-    });
+  #getVisibleImageWrapper(): JQuery | null {
+    const visibleImageWrapper$ = this.locationContainer$
+      .find(".location-image-wrapper")
+      .filter((index, element) => {
+        return $(element).find("img").attr("src") !== "";
+      });
     return visibleImageWrapper$.length > 0 ? visibleImageWrapper$ : null;
   }
 
   #getInvisibleImageWrapper(): JQuery {
     const visibleImageWrapper$ = this.#getVisibleImageWrapper();
     if (!visibleImageWrapper$) {
-      return $(assertIs(this.locationContainer$.find(".location-image-wrapper")[0]));
+      return $(
+        assertIs(this.locationContainer$.find(".location-image-wrapper")[0]),
+      );
     }
-    return $(assertIs(this.locationContainer$.find(".location-image-wrapper").not(visibleImageWrapper$)[0]));
+    return $(
+      assertIs(
+        this.locationContainer$
+          .find(".location-image-wrapper")
+          .not(visibleImageWrapper$)[0],
+      ),
+    );
   }
 
-  #buildFadeOutImageTimeline(): gsap.core.Timeline|null {
+  #buildFadeOutImageTimeline(): gsap.core.Timeline | null {
     const visibleImageWrapper$ = this.#getVisibleImageWrapper();
-    kLog.log(`Building fade out image timeline`, {visibleImageWrapper$});
+    kLog.log(`Building fade out image timeline`, { visibleImageWrapper$ });
     if (!visibleImageWrapper$) {
       return null;
     }
     const visibleImages$ = visibleImageWrapper$.find("img");
-    const timeline = gsap.timeline()
+    const timeline = gsap
+      .timeline()
       .to(visibleImageWrapper$, {
         rotateX: 45,
         duration: 1,
         ease: "power2.out",
       })
-      .to(visibleImageWrapper$, {
-        duration: 0.25,
-        autoAlpha: 0,
-        ease: "power2.out"
-      }, 0.75)
+      .to(
+        visibleImageWrapper$,
+        {
+          duration: 0.25,
+          autoAlpha: 0,
+          ease: "power2.out",
+        },
+        0.75,
+      )
       .call(() => {
-        kLog.log(`Fade out image timeline complete`, {visibleImageWrapper$});
+        kLog.log(`Fade out image timeline complete`, { visibleImageWrapper$ });
         visibleImageWrapper$.find("img").attr("src", "");
       });
     return timeline;
   }
 
-  #buildFadeInImageTimeline(imgKey: string|null): gsap.core.Timeline|null {
+  #buildFadeInImageTimeline(imgKey: string | null): gsap.core.Timeline | null {
     if (!imgKey) {
       return null;
     }
     const invisibleImageWrapper$ = this.#getInvisibleImageWrapper();
-    kLog.log(`Building fade in image timeline`, {invisibleImageWrapper$});
+    kLog.log(`Building fade in image timeline`, { invisibleImageWrapper$ });
     const invisibleImage$ = invisibleImageWrapper$.find("img");
     const locData = this.getLocationData();
     const imgSrc = assertIs(locData.images[imgKey]);
 
     // invisibleImageWrapper$.find("img").attr("src", imgSrc);
 
-    const timeline = gsap.timeline()
-      .fromTo(invisibleImage$, {
-        autoAlpha: 0
-      }, {
-        autoAlpha: 1,
-        filter: "brightness(0.5) blur(10px)",
-        // scale: 0.6,
-        duration: 0,
-        ease: "none"
-      })
+    const timeline = gsap
+      .timeline()
+      .fromTo(
+        invisibleImage$,
+        {
+          autoAlpha: 0,
+        },
+        {
+          autoAlpha: 1,
+          filter: "brightness(0.5) blur(10px)",
+          // scale: 0.6,
+          duration: 0,
+          ease: "none",
+        },
+      )
       .call(() => {
-        kLog.log(`Fade in image timeline started`, {invisibleImage$});
+        kLog.log(`Fade in image timeline started`, { invisibleImage$ });
         invisibleImage$.attr("src", imgSrc);
       })
-      .fromTo(invisibleImageWrapper$, {
-        autoAlpha: 0,
-        rotateX: -45, // Rotate back around X axis
-        rotateY: 0,  // No side-to-side rotation initially
-      }, {
-        // Will animate to these default values
-        autoAlpha: 1,
-        rotateX: 0,
-        rotateY: 0,
-        // z: 0,
-        // scale: 1,
-        // height: "100%",
-        // width: "100%",
-        // filter: "blur(0px)",
-        duration: 2,
-        ease: "back.out"
-      })
-      .to(invisibleImage$, {
-        autoAlpha: 1,
-        // scale: 1,
-        filter: "brightness(1) blur(0px)",
-        duration: 2,
-        ease: "power2.out"
-      }, 0.1);
+      .fromTo(
+        invisibleImageWrapper$,
+        {
+          autoAlpha: 0,
+          rotateX: -45, // Rotate back around X axis
+          rotateY: 0, // No side-to-side rotation initially
+        },
+        {
+          // Will animate to these default values
+          autoAlpha: 1,
+          rotateX: 0,
+          rotateY: 0,
+          // z: 0,
+          // scale: 1,
+          // height: "100%",
+          // width: "100%",
+          // filter: "blur(0px)",
+          duration: 2,
+          ease: "back.out",
+        },
+      )
+      .to(
+        invisibleImage$,
+        {
+          autoAlpha: 1,
+          // scale: 1,
+          filter: "brightness(1) blur(0px)",
+          duration: 2,
+          ease: "power2.out",
+        },
+        0.1,
+      );
     return timeline;
   }
-
 
   public async fadeOutLocationImage(): Promise<void> {
     await this.#buildFadeOutImageTimeline()?.play();
   }
 
-  public async fadeInLocationImage(imgKey: string|null): Promise<void> {
+  public async fadeInLocationImage(imgKey: string | null): Promise<void> {
     await this.#buildFadeInImageTimeline(imgKey)?.play();
   }
 
-  public async refreshLocationImage(imgKey: string|null): Promise<void> {
+  public async refreshLocationImage(imgKey: string | null): Promise<void> {
     const timelines = [
       this.#buildFadeOutImageTimeline(),
       this.#buildFadeInImageTimeline(imgKey),
     ].filter(Boolean) as gsap.core.Timeline[];
 
-    kLog.log(`Refreshing location image to key: ${imgKey}`, {timelines});
+    kLog.log(`Refreshing location image to key: ${imgKey}`, { timelines });
 
     const tl = gsap.timeline();
     for (const t of timelines) {
@@ -5931,14 +6349,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (locData.audioDataByImage?.[imgKey]) {
         const audioToPlay = locData.audioDataByImage[imgKey];
         const audioPlaying = EunosMedia.GetPlayingSounds();
-        const audioToKill = audioPlaying.filter((media) => !(media.name in audioToPlay));
+        const audioToKill = audioPlaying.filter(
+          (media) => !(media.name in audioToPlay),
+        );
         audioToKill.forEach((media) => {
           void media.kill(2);
         });
         Object.entries(audioToPlay).forEach(([mediaName, media]) => {
           // We must first retrieve any specific settings for this audio from the audioDataByImage object and apply them.
           const locSettingsData = this.getLocationSettingsData(locData.key);
-          const audioSettings = locSettingsData.audioDataByImage?.[imgKey]?.[mediaName];
+          const audioSettings =
+            locSettingsData.audioDataByImage?.[imgKey]?.[mediaName];
           if (audioSettings) {
             void media.play(audioSettings);
           } else {
@@ -5993,7 +6414,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await setSetting("weatherAudio", weatherSoundSettings);
 
     // Update core location settings atomically
-    kLog.log("Setting isOutdoors to TRUE because we're setting a new location.");
+    kLog.log(
+      "Setting isOutdoors to TRUE because we're setting a new location.",
+    );
 
     // Set outdoor state first to ensure proper state during transition
     await setSetting("isOutdoors", true);
@@ -6050,7 +6473,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Log detailed transition information for debugging
     kLog.log(`[goToLocation] ${fromLocation} -> ${toLocation}`, {
       [`From${fromLocation} Data`]: fromLocationData,
-      [`To ${toLocation} Data`]: JSON.parse(JSON.stringify(locationData)) as typeof locationData,
+      [`To ${toLocation} Data`]: JSON.parse(
+        JSON.stringify(locationData),
+      ) as typeof locationData,
     });
 
     // Initialize persistent stage wave animation if not already running
@@ -6083,10 +6508,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       isIndoors,
     } = locationData;
 
+    const fromImage = fromLocation ? this.getLocationSettingsData(fromLocation).currentImage : null;
+
     const imgAudio = (currentImage && audioDataByImage?.[currentImage]) || null;
-    const imgAudioData = toLocation && currentImage
-      ? this.getLocationSettingsData(toLocation).audioDataByImage?.[currentImage] ?? null
-      : null;
+    const imgAudioData =
+      toLocation && currentImage
+        ? (this.getLocationSettingsData(toLocation).audioDataByImage?.[
+            currentImage
+          ] ?? null)
+        : null;
     const audioData = imgAudio ?? audioDataOutdoors ?? audioDataIndoors ?? {};
 
     // Handle lightning effects based on location brightness
@@ -6102,9 +6532,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         await lightningAudio.kill(0);
         setTimeout(() => {
           void lightningAudio.play().then(() => {
-            gsap.fromTo(lightningAudio.element,
+            gsap.fromTo(
+              lightningAudio.element,
               { volume: 1 }, // Start at full volume
-              { volume: lightningVolume, duration: 10, ease: "none" } // Fade to configured volume
+              { volume: lightningVolume, duration: 10, ease: "none" }, // Fade to configured volume
             );
           });
         }, 5000); // 5 second delay before lightning starts
@@ -6116,22 +6547,66 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Get all currently-playing audio, but exclude any that are in the weather settings data
     const weatherAudio = getSetting("weatherAudio");
-    const playingAudio = EunosMedia.GetPlayingSounds()
-      .filter((media) => !(media.name in weatherAudio));
+    const playingAudio = EunosMedia.GetPlayingSounds().filter(
+      (media) => !(media.name in weatherAudio),
+    );
 
     // Get all audio from the new location
     const newLocationAudio = Object.values(audioData);
 
     // Separate audio to be killed from audio to be started
-    const audioToKill = playingAudio.filter((media) => !(media.name in audioData));
+    const audioToKill = playingAudio.filter(
+      (media) => !(media.name in audioData),
+    );
     const audioToStart = newLocationAudio;
 
     // Create main transition timeline
     const timeline = gsap.timeline({ paused: true });
 
-    // Phase 1: Animate out current location image
-    const fadeOutTimeline = this.#buildFadeOutImageTimeline();
-    const fadeInTimeline = this.#buildFadeInImageTimeline(currentImage);
+    // Phase 1: Animate out current location image UNLESS (a) one of the image src attributes match and (b) that image is visible
+    let fadeOutTimeline: Maybe<gsap.core.Timeline>;
+    let fadeInTimeline: Maybe<gsap.core.Timeline>;
+
+    const locationWrapper$ = this.locationContainer$.find(".location-wrapper");
+    const visibleLocationImageWrappers$ = locationWrapper$
+      .find(".location-image-wrapper")
+      .filter((i, wrapper) => wrapper.style.opacity !== "0");
+    kLog.log("Visible location image wrappers", { visibleLocationImageWrappers$ });
+
+    if (visibleLocationImageWrappers$.length > 0) {
+      kLog.log("Visible location image wrappers found", { visibleLocationImageWrappers$ });
+      const currentDisplayedSrc = visibleLocationImageWrappers$.find("img").attr("src");
+      kLog.log("Current displayed src", { currentDisplayedSrc });
+      if (currentDisplayedSrc) {
+        const nextImage = locationData.currentImage;
+        kLog.log("Next image", { nextImage });
+        if (nextImage) {
+          kLog.log("Next image found", { nextImage });
+          const nextImageSrc = locationData.images[nextImage];
+          kLog.log("Next image src", { nextImageSrc });
+          if (!nextImageSrc) {
+            kLog.error("Next image src not found", { nextImage, locationData });
+          } else {
+            kLog.log("Equality Check", { nextImageSrc, currentDisplayedSrc, equality: nextImageSrc === currentDisplayedSrc });
+            if (nextImageSrc !== currentDisplayedSrc) {
+              fadeOutTimeline = this.#buildFadeOutImageTimeline() ?? undefined;
+              fadeInTimeline = this.#buildFadeInImageTimeline(locationData.currentImage) ?? undefined;
+              kLog.log("Sources Don't Match: Fade timelines built.", { fadeOutTimeline, fadeInTimeline });
+            }
+          }
+        } else {
+          fadeOutTimeline = this.#buildFadeOutImageTimeline() ?? undefined;
+          kLog.log("No next image found, building fade-out timeline only", { fadeOutTimeline });
+        }
+      } else {
+        fadeInTimeline = this.#buildFadeInImageTimeline(locationData.currentImage) ?? undefined;
+        kLog.log("No current displayed src found, building fade-in timeline only", { fadeInTimeline });
+      }
+    } else {
+      fadeInTimeline = this.#buildFadeInImageTimeline(locationData.currentImage) ?? undefined;
+      kLog.log("No visible location image wrappers found, building fade-in timeline only", { fadeInTimeline });
+    }
+
     if (fadeOutTimeline) {
       timeline.add(fadeOutTimeline, 0);
     }
@@ -6167,7 +6642,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           ease: "none", // Linear brightness change
         },
         "startMoving_0",
-    );
+      );
     }
 
     // Phase 5: Apply map transforms sequentially
@@ -6226,14 +6701,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     timeline.addLabel("stopMoving", "-=0.5"); // Overlap slightly with last transform
 
     // Phase 6: Fade in location image, if there is one
-    timeline.call(() => {
-      kLog.display(`Initializing location wrapper for location '${toLocation}'`);
-      this.#initializeLocationWrapper();
-    }, [], "stopMoving");
+    timeline.call(
+      () => {
+        kLog.display(
+          `Initializing location wrapper for location '${toLocation}'`,
+        );
+        this.#initializeLocationWrapper();
+      },
+      [],
+      "stopMoving",
+    );
 
     if (fadeInTimeline) {
       timeline.add(fadeInTimeline, "stopMoving");
     }
+
+    // Phase 7: Start stage waver timeline
+    timeline.add(() => { void this.#stageWaverTimeline?.play(); }, "stopMoving");
 
     // Phase 7: Start new audio tracks with 5 second fadein
     timeline.call(
@@ -6398,46 +6882,65 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #fadeOutQuestion(question$: JQuery): gsap.core.Timeline {
     const splitQuestionTextChars = question$.find(".question-text").children();
 
-    return gsap.timeline()
-      .to(splitQuestionTextChars, {
-        autoAlpha: 0,
-        duration: 1,
-        filter: "blur(10px)",
-        x: "+=50",
-        y: "-=100",
-        ease: "power3.out",
-        stagger: {
-          from: "start",
-          amount: 0.5
-        }
-      })
+    return gsap.timeline().to(splitQuestionTextChars, {
+      autoAlpha: 0,
+      duration: 1,
+      filter: "blur(10px)",
+      x: "+=50",
+      y: "-=100",
+      ease: "power3.out",
+      stagger: {
+        from: "start",
+        amount: 0.5,
+      },
+    });
   }
 
   #fadeInQuestion(question$: JQuery): gsap.core.Timeline {
-    const split = new SplitText(question$.find(".question-text")[0]!, {type: "chars,words"});
-    return (gsap.effects["splashPopText"] as GSAPEffectFunction)(split.chars) as gsap.core.Timeline;
+    const split = new SplitText(question$.find(".question-text")[0]!, {
+      type: "chars,words",
+    });
+    return (gsap.effects["splashPopText"] as GSAPEffectFunction)(
+      split.chars,
+    ) as gsap.core.Timeline;
   }
 
-  public async transitionToEndPhaseQuestion(questionNumber: number): Promise<void> {
+  public async transitionToEndPhaseQuestion(
+    questionNumber: number,
+  ): Promise<void> {
     kLog.log("transitioning to end phase question", questionNumber);
     const lastQuestion = questionNumber - 1;
     if (lastQuestion > 0) {
-      const lastQuestion$ = this.endPhase$.find(`[data-question-number="${lastQuestion}"]`);
+      const lastQuestion$ = this.endPhase$.find(
+        `[data-question-number="${lastQuestion}"]`,
+      );
       if (lastQuestion$.length > 0) {
         await this.#fadeOutQuestion(lastQuestion$);
       }
     }
     if (questionNumber < 4) {
-      const currentQuestion$ = this.endPhase$.find(`[data-question-number="${questionNumber}"]`);
+      const currentQuestion$ = this.endPhase$.find(
+        `[data-question-number="${questionNumber}"]`,
+      );
       if (currentQuestion$.length > 0) {
         await this.#fadeInQuestion(currentQuestion$);
       }
+    } else {
+      gsap.set(this.topZIndexMask$, {background: "black"});
+      gsap.to(this.topZIndexMask$, {
+        autoAlpha: 1,
+        duration: 6,
+        ease: "power2.out",
+        onComplete: () => {
+          if (getUser().isGM) {
+            void setSetting("gamePhase", GamePhase.SessionClosed);
+          }
+        }
+      });
     }
   }
 
-
   // #endregion END PHASE ~
-
 
   // #region LISTENERS ~
 
@@ -6886,31 +7389,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.makePlottingControls();
     this.addSafetyButtonListeners();
 
-    // // Clear and render NPCs for current location
-    // setTimeout(() => {
-    //   const currentLocation = getSetting("currentLocation");
-    //   const locationData = this.getLocationData(currentLocation);
-    //   if (locationData?.npcData) {
-    //     if (getUser().isGM) {
-    //       Object.entries(locationData.npcData).forEach(
-    //         ([npcID, { portraitState, nameState, position }]) => {
-    //           void this.updateNPCUI_GM(npcID, {
-    //             portraitState,
-    //             nameState,
-    //             position,
-    //           });
-    //         },
-    //       );
-    //       return;
-    //     }
-    //     this.npcs$.empty();
-    //     void this.buildNPCUIUpdateTimeline(locationData.npcData).then(
-    //       ({ tl }) => {
-    //         tl.play();
-    //       },
-    //     );
-    //   }
-    // }, 5000);
     this.#dragDrop.forEach((d) => {
       // Bind to the sidebar actors list
       const sidebarActors = document.querySelector(

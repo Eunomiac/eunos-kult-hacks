@@ -16,10 +16,10 @@
 
     {{#if actor}}
     <div class="dramatic-hooks-panel">
-      <div class="dramatic-hook-container {{#if actor.system.dramatichooks.dramatichook1.isChecked}}checked{{/if}}">
+      <div class="dramatic-hook-container {{#if actor.system.dramatichooks.dramatichook1.isChecked}}checked{{/if}}" data-pc-id="{{actorID}}" data-hook-id="dramatichook1">
         <div class="dramatic-hook-content">{{actor.system.dramatichooks.dramatichook1.content}}</div>
       </div>
-      <div class="dramatic-hook-container {{#if actor.system.dramatichooks.dramatichook2.isChecked}}checked{{/if}}">
+      <div class="dramatic-hook-container {{#if actor.system.dramatichooks.dramatichook2.isChecked}}checked{{/if}}" data-pc-id="{{actorID}}" data-hook-id="dramatichook2">
         <div class="dramatic-hook-content">{{actor.system.dramatichooks.dramatichook2.content}}</div>
       </div>
     </div>

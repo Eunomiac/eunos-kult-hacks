@@ -90,5 +90,7 @@ export enum AlertType {
   shatterIllusion = "shatterIllusion",
   gmNotice = "gmNotice",
   test = "test",
-  central = "central"
+  central = "central",
+  dramaticHookReward = "dramaticHookReward",
+  advancementReward = "advancementReward"
 };

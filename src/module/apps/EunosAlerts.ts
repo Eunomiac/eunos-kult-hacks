@@ -68,6 +68,17 @@ declare namespace EunosAlerts {
       header: string;
       body: string;
     }
+
+    export interface DramaticHookReward extends Base {
+      type: AlertType.dramaticHookReward,
+      header: string;
+      body: string;
+    }
+    export interface AdvancementReward extends Base {
+      type: AlertType.advancementReward,
+      header: string,
+      body: string
+    }
   }
   export type Context<T extends AlertType = AlertType.simple> = T extends AlertType.simple ? Context.Simple
     : T extends AlertType.central ? Context.Central
@@ -76,6 +87,8 @@ declare namespace EunosAlerts {
     : T extends AlertType.seriousWound ? Context.SeriousWound
     : T extends AlertType.stability ? Context.Stability
     : T extends AlertType.shatterIllusion ? Context.ShatterIllusion
+    : T extends AlertType.dramaticHookReward ? Context.DramaticHookReward
+    : T extends AlertType.advancementReward ? Context.AdvancementReward
     : never;
 
   /**
@@ -106,6 +119,12 @@ declare namespace EunosAlerts {
     export interface ShatterIllusion extends Context.ShatterIllusion, Base {
       type: AlertType.shatterIllusion;
     }
+    export interface DramaticHookReward extends Context.DramaticHookReward, Base {
+      type: AlertType.dramaticHookReward;
+    }
+    export interface AdvancementReward extends Context.AdvancementReward, Base {
+      type: AlertType.advancementReward;
+    }
   }
   export type TypedData<T extends AlertType> = T extends AlertType.simple ? Data.Simple
 
@@ -114,8 +133,10 @@ declare namespace EunosAlerts {
     : T extends AlertType.seriousWound ? Data.SeriousWound
     : T extends AlertType.stability ? Data.Stability
     : T extends AlertType.shatterIllusion ? Data.ShatterIllusion
+    : T extends AlertType.dramaticHookReward ? Data.DramaticHookReward
+    : T extends AlertType.advancementReward ? Data.AdvancementReward
     : never;
-  export type Data = Data.Simple | Data.Central | Data.GMNotice | Data.CriticalWound | Data.SeriousWound | Data.Stability | Data.ShatterIllusion;
+  export type Data = Data.Simple | Data.Central | Data.GMNotice | Data.CriticalWound | Data.SeriousWound | Data.Stability | Data.ShatterIllusion | Data.DramaticHookReward | Data.AdvancementReward;
 }
 // #endregion
 // #endregion
@@ -289,6 +310,98 @@ const ALERTANIMATIONS: Record<AlertType, {
       },
       extendTimeline: true
     },
+  },
+  [AlertType.dramaticHookReward]: {
+    in: {
+      name: "dramaticHookRewardAlertIn",
+      effect: (target, config) => {
+        const {duration,  ease} = config;
+        const target$ = $(target as HTMLElement);
+        const container$ = target$.find(".alert-frame-body");
+        const containerHeight = container$.height() ?? 0;
+        const imgLogo$ = target$.find("img.k4-alert-logo");
+        const heading$ = target$.find("h2");
+        const hr$ = target$.find("hr");
+        const body$ = target$.find("p");
+
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+        const tl = gsap.timeline()
+          ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
+          ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
+          ["fadeIn"](heading$, {duration: 0.5}, "<50%")
+          ["spreadOut"](hr$, {endWidth: 500})
+          ["fadeIn"](body$, {}, "<50%")
+        return tl as gsap.core.Timeline;
+        /* eslint-enable */
+      },
+      defaults: {
+        duration: 1,
+        stagger: 0.25,
+        ease: "power3.in"
+      },
+      extendTimeline: true
+    },
+    out: {
+      name: "dramaticHookRewardAlertOut",
+      effect: (target, config) => {
+        const {duration, stagger, ease} = config;
+        return gsap.timeline()
+          .fromTo(target, {opacity: 1}, {opacity: 0, duration, stagger, ease});
+      },
+      defaults: {
+        duration: 0.5,
+        stagger: 0.25,
+        ease: "power3.out"
+      },
+      extendTimeline: true
+    }
+  },
+  [AlertType.advancementReward]: {
+    in: {
+      name: "advancementRewardAlertIn",
+      effect: (target, config) => {
+        const {duration, ease} = config;
+        const target$ = $(target as HTMLElement);
+        const container$ = target$.find(".alert-frame-body");
+        const containerHeight = container$.height() ?? 0;
+        const imgLogo$ = target$.find("img.k4-alert-logo");
+        const heading$ = target$.find("h2");
+        const hr$ = target$.find("hr");
+        const body$ = target$.find("p");
+
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+        const tl = gsap.timeline()
+          ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
+          ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
+          ["fadeIn"](heading$, {duration: 0.5}, "<50%")
+          ["spreadOut"](hr$, {endWidth: 500})
+          ["fadeIn"](body$, {}, "<50%")
+        return tl as gsap.core.Timeline;
+        /* eslint-enable */
+      },
+      defaults: {
+        duration: 1,
+        stagger: 0.25,
+        ease: "power3.in"
+      },
+      extendTimeline: true
+    },
+    out: {
+      name: "advancementRewardAlertOut",
+      effect: (target, config) => {
+        const {duration, stagger, ease} = config;
+        return gsap.timeline()
+          .fromTo(target, {opacity: 1}, {opacity: 0, duration, stagger, ease});
+      },
+      defaults: {
+        duration: 0.5,
+        stagger: 0.25,
+        ease: "power3.out"
+      },
+      extendTimeline: true
+    }
   },
   [AlertType.seriousWound]: {
     in: {
@@ -779,6 +892,12 @@ class EunosAlerts {
       case AlertType.central:
       case AlertType.test:
         defaultSoundName ??= "slow-hit";
+        // falls through
+      case AlertType.dramaticHookReward:
+        defaultSoundName ??= "alert-hit-dramatic-hook";
+        // falls through
+      case AlertType.advancementReward:
+        defaultSoundName ??= "alert-hit-advancement";
         // falls through
       case AlertType.seriousWound:
         defaultSoundName ??= "alert-hit-wound-1";

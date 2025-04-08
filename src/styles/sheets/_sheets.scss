@@ -2,43 +2,53 @@
 @forward "npc-sheet";
 @forward "item-sheet";
 
-.app.sheet {
-  --lock-color: var(--K4-bRED);
-  max-height: 85vh;
-
-  &.locked {
-    --lock-color: var(--K4-GREY);
-
-    .item-delete {display: none !important;}
+.gm-user {
+  .app {
+    z-index: 100000 !important;
   }
+}
 
-  input[type="number"] {
-    width: 50px;
-    text-align: center;
-  }
+.app {
+  .sheet {
+    --lock-color: var(--K4-bRED);
+    max-height: 85vh;
 
-  .kult-sheet {
-    background: none !important;
+    &.locked {
+      --lock-color: var(--K4-GREY);
 
-    .sheet-header {
-      .lock-sheet-button {
-        position: absolute;
-        left: 0px;
-        top: 30px;
-        color: var(--lock-color);
-        height: 32px;
-        width: 32px;
-        border: none;
-        background: none;
-        box-shadow: none !important;
+      .item-delete {
+        display: none !important;
+      }
+    }
 
-        i {
-          font-size: 24px;
-        }
+    input[type="number"] {
+      width: 50px;
+      text-align: center;
+    }
 
-        &:hover {
-          color: var(--K4-RED);
-          filter: brightness(1.5);
+    .kult-sheet {
+      background: none !important;
+
+      .sheet-header {
+        .lock-sheet-button {
+          position: absolute;
+          left: 0px;
+          top: 30px;
+          color: var(--lock-color);
+          height: 32px;
+          width: 32px;
+          border: none;
+          background: none;
+          box-shadow: none !important;
+
+          i {
+            font-size: 24px;
+          }
+
+          &:hover {
+            color: var(--K4-RED);
+            filter: brightness(1.5);
+          }
         }
       }
     }
@@ -51,8 +61,8 @@
   font-style: italic;
   color: var(--K4-bBLUE);
   text-shadow: none;
-    // 1px 1px 1px var(--K4-bbBLUE),
-    // -1px -1px 1px var(--K4-bbBLUE);
+  // 1px 1px 1px var(--K4-bbBLUE),
+  // -1px -1px 1px var(--K4-bbBLUE);
 }
 
 input.uneditable,
@@ -75,7 +85,6 @@ select.uneditable {
 }
 
 .editor-row {
-
   .editor {
     background-color: rgba(0, 0, 0, 0.1);
     min-height: 30px;

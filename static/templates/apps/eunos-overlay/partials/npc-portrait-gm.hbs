@@ -5,7 +5,8 @@
   </div>
   <div class="npc-portrait-container">
     <div class="npc-portrait-frame">
-      <img class="npc-portrait-image" src="{{actor.img}}" alt="{{actor.name}}" />
+      <img class="npc-portrait-image npc-portrait-image-base" src="{{actor.img}}" />
+      <img class="npc-portrait-image npc-portrait-image-goggles" src="{{getGogglesImg actor}}" />
     </div>
   </div>
   <div class="npc-portrait-name npc-name-{{nameState}}">{{actor.name}}</div>

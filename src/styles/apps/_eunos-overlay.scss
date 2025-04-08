@@ -100,6 +100,10 @@ html {
       #STAGE-END-PHASE {
         visibility: hidden;
       }
+
+      #TOP-ZINDEX-MASK .chapter-ending-intro {
+        display: none;
+      }
     }
 
     &.session-running {
@@ -124,11 +128,12 @@ html {
     }
 
     &.session-ending {
-      #ALERTS,
-      #COUNTDOWN,
+      // #ALERTS,
+      // #COUNTDOWN,
       #MID-ZINDEX-MASK,
-      #TOP-ZINDEX-MASK,
-      #STAGE #BLACKOUT-LAYER,
+      // #TOP-ZINDEX-MASK,
+      // #MAX-ZINDEX-BARS,
+      // #STAGE #BLACKOUT-LAYER,
       #SAFETY-BUTTONS,
       #LOCATIONS,
       #NPCS,
@@ -138,6 +143,7 @@ html {
       // #STAGE,
       #VIDEO-STATUS-PANEL,
       #STAGE-CHANGES-LOG,
+      .app.sheet,
       // #STAGE-END-PHASE
       {
         visibility: hidden;

@@ -87,7 +87,7 @@
         background-position: 0px 0px;
         background-repeat: no-repeat;
         // background-attachment: fixed;
-        filter: hue-rotate(var(--hue-rotate, 130deg)) saturate(var(--saturation, 50%));
+        // filter: hue-rotate(var(--hue-rotate, 130deg)) saturate(var(--saturation, 50%));
         transition: background-image 2s ease-in-out;
 
         &.entry-hidden {

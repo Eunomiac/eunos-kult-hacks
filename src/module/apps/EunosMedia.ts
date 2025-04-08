@@ -59,7 +59,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     return Array.from(EunosMedia.Sounds.values()).filter((media) => media.playing);
   }
 
-  static async SyncPlayingSounds(): Promise<void> {
+  static async SyncPlayingSounds(isNotKilling = false): Promise<void> {
     const soundData = await EunosSockets.getInstance().call<Record<string, number>>("requestSoundSync", UserTargetRef.gm, undefined, true);
     const currentSounds = EunosMedia.GetPlayingSounds();
 
@@ -69,7 +69,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
         void sound.play({volume});
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete soundData[sound.name];
-      } else {
+      } else if (!isNotKilling) {
         void sound.kill();
       }
     }
@@ -77,6 +77,19 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     for (const [soundName, volume] of Object.entries(soundData)) {
       const sound = EunosMedia.GetMedia(soundName);
       void sound?.play({volume});
+    }
+  }
+
+  static async SetSoundscape(soundData: Record<string, number | null>, fadeDuration = 2) {
+    const currentSounds = EunosMedia.GetPlayingSounds();
+    currentSounds
+      .filter((sound) => !soundData[sound.name])
+      .forEach((sound) => {
+        void sound.kill(fadeDuration);
+      });
+    for (const [soundName, volume] of Object.entries(soundData)) {
+      const sound = EunosMedia.GetMedia(soundName);
+      void sound?.play(volume ? {volume, fadeInDuration: fadeDuration} : {fadeInDuration: fadeDuration});
     }
   }
 
@@ -97,7 +110,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     );
 
     // Synchronize playing sounds with the GM
-    void EunosMedia.SyncPlayingSounds();
+    void EunosMedia.SyncPlayingSounds(true);
   }
   // #endregion INITIALIZATION
 
@@ -751,8 +764,7 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       return;
     }
     const { volume, loop, sync, fadeInDuration } = options ?? {};
-    const isTweeningVolume = this.playing && typeof volume === "number" && this.volume !== volume;
-    const fromVolume = this.volume;
+    const fromVolume = this.#element.volume;
 
     if (volume) {
       this.volume = volume;
@@ -781,15 +793,10 @@ export default class EunosMedia<T extends EunosMediaTypes> {
         this.#element.currentTime = syncTime;
       }
     }
-    this.#element.volume = this.fadeInDuration > 0 ? 0 : this.volume;
     this.#element.loop = this.loop;
     try {
       await this.#element.play();
-      if (isTweeningVolume) {
-        await gsap.fromTo(this.#element, { volume: fromVolume }, { volume: this.volume, duration: this.fadeInDuration ?? 2, ease: "none" });
-      } else {
-        await gsap.to(this.#element, { volume: this.volume, duration: this.fadeInDuration, ease: "none" });
-      }
+      await gsap.fromTo(this.#element, { volume: fromVolume }, { volume: this.volume, duration: this.fadeInDuration ?? 2, ease: "none" });
       kLog.log(`Faded in media ${this.name} from ${fromVolume} to ${this.volume} = ${this.#element.volume}`);
     } catch (error) {
       if (error instanceof Error && error.name === "NotAllowedError") {
@@ -814,11 +821,12 @@ export default class EunosMedia<T extends EunosMediaTypes> {
       return;
     }
     kLog.log(`Found media "${this.name}", killing it ...`);
-    await gsap.to(this.#element, { volume: 0, duration: fadeDuration, ease: "none" });
-    kLog.log(`... Awaited fade of "${this.name}", pausing & restoring volume.`);
-    this.#element.pause();
-    this.#element.volume = this.volume;
-    // await this.unload();
+    await gsap.to(this.#element, { volume: 0, duration: fadeDuration, onComplete: () => {
+      kLog.log(`... Awaited fade of "${this.name}", pausing & restoring volume.`);
+      if (!this.#element) { return; }
+      this.#element.pause();
+      this.#element.volume = this.volume;
+    }, ease: "none" });
   }
 
 

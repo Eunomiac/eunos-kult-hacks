@@ -3,8 +3,8 @@ import EunosOverlay from "../apps/EunosOverlay";
 import type ItemDataGear from "../data-model/ItemDataGear";
 import type { AttackSchema } from "../data-model/fields/itemFields";
 import type ActorDataPC from "../data-model/ActorDataPC";
-import { getTemplatePath } from "../scripts/utilities";
-
+import { getTemplatePath, getOwnerOfDoc } from "../scripts/utilities";
+import EunosAlerts, { AlertType } from "../apps/EunosAlerts";
 declare global {
   class EunosActor extends k4ltActor {
     isPC(): this is EunosActor & { system: ActorDataPC };
@@ -26,6 +26,7 @@ declare global {
     askForAttribute(): Promise<string|null>;
     moveroll(moveID: string): Promise<void>;
     awardXP(): Promise<void>;
+    get nextXPKey(): "advancementExp1" | "advancementExp2" | "advancementExp3" | "advancementExp4" | "advancementExp5";
   }
 }
 
@@ -446,6 +447,14 @@ export default function registerEunosActor(): void {
       }
       const xpKey = this.nextXPKey;
       await this.update({ system: { [xpKey]: { state: "checked" } } });
+      if (xpKey === "advancementExp5") {
+        void EunosAlerts.Alert({
+          type: AlertType.advancementReward,
+          header: "You've Gained an Advancement!",
+          body: "Navigate to the 'Advancement' tab on your sheet and choose one of the available options.",
+          target: getOwnerOfDoc(this)?.id ?? undefined,
+        });
+      }
     }
 
     getPortraitImage(type: "bg" | "fg"): string {

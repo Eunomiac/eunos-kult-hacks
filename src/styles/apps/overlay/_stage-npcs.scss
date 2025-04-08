@@ -536,6 +536,9 @@
     filter: brightness(1) !important;
     transform: none !important;
     scale: 1 !important;
+    margin-top: -20px !important;
+    // margin-left: 10px !important;
+    // margin-right: -10px !important;
   }
 
   // .npc-portrait-name-container {
@@ -550,13 +553,15 @@
       width: 100px;
       padding: 0 5px !important;
       transform: translate(-50%, 0%) !important;
+      transform-origin: left center !important;
       left: 50% !important;
       position: absolute;
       filter: none !important;
-      bottom: 40px !important;
+      bottom: 20px !important;
     }
   // }
   .npc-portrait-shrouded {
+
     .npc-portrait-controls.state-controls.portrait-controls {
       .npc-stage-control-button-shrouded {
         background: var(--K4-bbGOLD);
@@ -566,6 +571,10 @@
     }
   }
   .npc-portrait-dimmed {
+
+    .npc-portrait-image {
+      filter: /* brightness(2) invert(1)  */sepia(1) hue-rotate(-174deg) brightness(0.75) contrast(1.5) saturate(1.5) drop-shadow(0 0 1px blue) drop-shadow(0 0 1px blue) drop-shadow(0 0 2px cyan) !important;
+    }
     .npc-portrait-controls.state-controls.portrait-controls {
       .npc-stage-control-button-dimmed {
         background: var(--K4-bbGOLD);
@@ -575,6 +584,11 @@
     }
   }
   .npc-portrait-invisible {
+
+    .npc-portrait-image {
+      filter: brightness(0.5) blur(2px) !important;
+      opacity: 0.5 !important;
+    }
     .npc-portrait-controls.state-controls.portrait-controls {
       .npc-stage-control-button-invisible {
         background: var(--K4-bbGOLD);
@@ -593,6 +607,20 @@
     }
   }
   .npc-portrait-name-invisible {
+    .npc-portrait-name {
+      color: white !important;
+      text-shadow:
+        0 0 2px black,
+        0 0 2px black,
+        0 0 2px black,
+        0 0 2px black,
+        0 0 2px black,
+        0 0 2px black,
+        0 0 2px black;
+      background: transparent !important;
+      font-style: italic;
+      scale: 1 !important;
+    }
     .npc-portrait-controls.state-controls.name-controls {
       .npc-stage-control-button-name-invisible {
         background: var(--K4-bbGOLD);
@@ -602,6 +630,11 @@
     }
   }
   .npc-portrait-name-shrouded {
+    .npc-portrait-name {
+      color: var(--K4-bbBLUE) !important;
+      background: var(--K4-dBLUE) !important;
+      border-radius: 10px !important;
+    }
     .npc-portrait-controls.state-controls.name-controls {
       .npc-stage-control-button-name-shrouded {
         background: var(--K4-bbGOLD);
@@ -611,6 +644,9 @@
     }
   }
   .npc-portrait-name-base {
+    .npc-portrait-name {
+      scale: 1.5 !important;
+    }
     .npc-portrait-controls.state-controls.name-controls {
       .npc-stage-control-button-name-base {
         background: var(--K4-bbGOLD);
@@ -618,6 +654,10 @@
         border-color: var(--K4-bbGOLD);
       }
     }
+  }
+  .npc-portrait[data-goggles-state="goggles"] {
+    .npc-portrait-image-base { opacity: 0 !important; }
+    .npc-portrait-image-goggles { visibility: visible !important }
   }
 }
 

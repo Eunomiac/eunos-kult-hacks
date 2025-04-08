@@ -7,7 +7,9 @@
   z-index: 10000;
   pointer-events: all;
   background-image: url("modules/eunos-kult-hacks/assets/backgrounds/bg-session-closed.webp");
-  // background-image: url("./assets/backgrounds/bg-session-closed.webp"); // For Production
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
 
   #intro-video {
     position: absolute;
@@ -32,6 +34,12 @@
     height: 300px;
     width: 600px;
 
+
+    .chapter-ending-intro {
+      font-size: 32px;
+      margin-bottom: 10px;
+      visibility: hidden;
+    }
     .chapter-number {
       font-family: var(--font-primary-smallcaps);
       text-transform: lowercase;
