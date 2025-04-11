@@ -32,6 +32,33 @@ export function initializeGSAP(): void {
     nullTargetWarn: false
   });
   gsap.registerEffect({
+    name: "dramaticHookChargeUp",
+    effect: (target: gsap.TweenTarget, config = {}) => {
+      const tl = gsap.timeline({
+        paused: true,
+        onComplete: () => {
+          // Flash effect when complete
+          gsap.to(target, {
+            scale: 1.5,
+            duration: 0.2,
+            ease: "back.out",
+            onComplete: () => { gsap.set(target, { scale: 1 }) }
+          });
+        }
+      });
+
+      // Simple charge-up animation
+      tl.to(target, {
+        scale: 1.2,
+        backgroundColor: "rgba(255, 200, 0, 0.3)",
+        duration: 1,
+        ease: "power1.in"
+      });
+
+      return tl;
+    }
+  });
+  gsap.registerEffect({
     name: "splashPopText",
     extendTimeline: true,
     defaults: {
@@ -65,26 +92,28 @@ export function initializeGSAP(): void {
         .fromTo(questionContainer$, {
           xPercent: -50,
           yPercent: -50,
-          rotate: 0,
-          scale: 2,
+          rotate: -30,
+          scale: 1,
         }, {
           xPercent: -50,
           yPercent: -50,
-          rotate: -40,
+          rotate: -30,
           scale: 1,
           duration: 2 * duration,
-          ease: "back.inOut(4)"
+          ease: "none"
         })
         .fromTo(targets$,
           {
             autoAlpha: 0,
-            filter: "blur(200px)",
-            scale: 3
+            filter: "brightness(0)",
+            scale: 1,
+            textShadow: "0 0 0 rgb(150, 140, 106), 0 0 0 rgb(150, 140, 106), 0 0 0 rgb(150, 140, 106), 0 0 0 rgb(150, 140, 106), 0 0 0 rgb(150, 140, 106), 0 0 0 rgb(150, 140, 106), 0 0 0 rgb(150, 140, 106), 0 0 0 rgb(150, 140, 106)"
           },
           {
             autoAlpha: 1,
-            filter: "blur(0px)",
+            filter: "brightness(1)",
             scale: 1,
+            textShadow: "0 0 2px rgb(150, 140, 106), 0 0 4px rgb(150, 140, 106), 0 0 6px rgb(150, 140, 106), 0 0 8px rgb(150, 140, 106), 0 0 10px rgb(150, 140, 106), 0 0 12px rgb(150, 140, 106), 0 0 14px rgb(150, 140, 106), 0 0 16px rgb(150, 140, 106)",
             duration,
             ease,
             stagger: {

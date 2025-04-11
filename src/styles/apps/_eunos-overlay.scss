@@ -58,6 +58,10 @@ html {
       #STAGE-END-PHASE {
         visibility: hidden;
       }
+
+      .app {
+        z-index: 20000 !important;
+      }
     }
 
     &.session-loading {
@@ -128,6 +132,14 @@ html {
     }
 
     &.session-ending {
+
+      #EUNOS_OVERLAY {
+        width: 100%;
+      }
+
+      #MAX-ZINDEX-BARS {
+        z-index: 10000 !important;
+      }
       // #ALERTS,
       // #COUNTDOWN,
       #MID-ZINDEX-MASK,
@@ -155,6 +167,12 @@ html {
 
       #STAGE-END-PHASE {
         width: 100%;
+        pointer-events: all;
+      }
+
+      .app.dialog.blurred-bg-dialog.assign-dramatic-hook-dialog {
+        scale: 2;
+        transform-origin: center center;
       }
     }
   }

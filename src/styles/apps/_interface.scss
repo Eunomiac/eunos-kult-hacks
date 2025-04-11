@@ -39,6 +39,10 @@
   }
 }
 
+#tooltip {
+  z-index: 200000 !important;
+}
+
 body.gm-user {
 
   #ui-middle {

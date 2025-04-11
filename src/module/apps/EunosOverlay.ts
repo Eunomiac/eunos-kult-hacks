@@ -152,42 +152,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
 
-      new Dialog({
-        title: "Assign Dramatic Hook",
-        content: `
-          <div class="form-group">
-            <label>Hook for ${targetPC.name}</label>
-            <div class='hook-container'>
-            <span class='hook-prefix'>I should</span><textarea name="hook" rows="1">${userPC.system.dramatichooks.assignedHook || ""}</textarea>
-            </div>
-          </div>
-        `,
-        buttons: {
-          one: {
-            label: "Ok",
-            callback: async (html) => {
-              const hook = $(html).find("[name=hook]").val() as string;
-              await userPC.update({
-                system: {
-                  dramatichooks: {
-                    assignedHook: hook,
-                  },
-                },
-              });
-            },
-          },
-          cancel: {
-            label: "❌",
-            callback: () => null,
-          },
-        },
-        render: function (html: HTMLElement | JQuery) {
-          $(html)
-            .closest(".app.window-app.dialog")
-            .addClass("blurred-bg-dialog assign-dramatic-hook-dialog");
-        },
-        default: "one",
-      }).render(true);
+      EunosOverlay.instance.displayAssignDramaticHookDialog(targetPC, userPC, true);
     },
     conditionCardClick(event: PointerEvent, target: HTMLElement) {
       const pcId = $(target).closest("[data-pc-id]").attr("data-pc-id");
@@ -627,6 +592,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (!getUser().isGM) {
         return;
       }
+      const controlPanel$ = EunosOverlay.instance.endPhase$.find(
+        ".master-gm-control-panel",
+      );
+      const beginButton$ = controlPanel$.find(".gm-control-button-begin");
+      const approveButton$ = controlPanel$.find(".gm-control-button-approve");
+      const denyButton$ = controlPanel$.find(".gm-control-button-deny");
+      beginButton$.css("visibility", "hidden");
+      approveButton$.css("visibility", "visible");
+      denyButton$.css("visibility", "visible");
       void setSetting("endPhaseQuestion", 1);
     },
     async approveXPQuestion(
@@ -909,6 +883,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     killMedia: SocketFunction<void, { mediaName: string }>;
     requestSoundSync: SocketFunction<void, { userId: string }>;
     setIndoors: SocketFunction<void, { isIndoors: boolean }>;
+    closeAssignDramaticHookDialog: SocketFunction<void, void>;
+    endDramaticHookAssignment: SocketFunction<void, void>;
   } = {
     changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
       void EunosOverlay.instance
@@ -1047,6 +1023,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       } else {
         void EunosOverlay.instance.goOutdoors();
       }
+    },
+    closeAssignDramaticHookDialog: () => {
+      EunosOverlay.instance.closeAssignDramaticHookDialog();
+    },
+    endDramaticHookAssignment: () => {
+      EunosOverlay.instance.#endDramaticHookAssignment();
     },
   };
   // #endregion SOCKET FUNCTIONS
@@ -1327,6 +1309,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     return $(endPhase);
   }
+
+  get dramaticHookSplashContainer$() {
+    const dramaticHookSplashContainer = this.element.querySelector(
+      ".dramatic-hook-splash-container",
+    ) as Maybe<HTMLElement>;
+    if (!dramaticHookSplashContainer) {
+      throw new Error("Dramatic hook splash container not found");
+    }
+    return $(dramaticHookSplashContainer);
+  }
+
   // #endregion DOM ELEMENT GETTERS
 
   // #region ===== PRE-SESSION MANAGEMENT & GAME PHASE CONTROL =====
@@ -1395,7 +1388,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration,
           ease: "power4.inOut",
         },
-        0
+        0,
       )
       .to(
         this.redLightning$,
@@ -2435,14 +2428,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionClosed Methods
   private async initialize_SessionClosed(): Promise<void> {
     addClassToDOM("session-closed");
-    gsap.to([
-      this.midZIndexMask$[0],
-      this.maxZIndexBars$[0],
-    ], {
+    gsap.to([this.midZIndexMask$[0], this.maxZIndexBars$[0]], {
       autoAlpha: 1,
       duration: 3,
       clearProps: "all",
-      ease: "power2.out"
+      ease: "power2.out",
     });
     this.topZIndexMask$.attr("style", "");
     this.topZIndexMask$.find(".horiz-rule").attr("style", "");
@@ -2477,7 +2467,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      this.initializePreSessionSong()
+      this.initializePreSessionSong(),
     ]);
     this.initializeVideoPreloading();
     if (!getUser().isGM) return;
@@ -2570,7 +2560,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region SessionRunning Methods
   private async initialize_SessionRunning(): Promise<void> {
-    gsap.set(this.stage$, {autoAlpha: 1});
+    gsap.set(this.stage$, { autoAlpha: 1 });
     await EunosMedia.SetSoundscape({});
     // Kill countdown if it's running
     await this.killCountdown(true, true);
@@ -2598,7 +2588,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   async sync_SessionRunning() {
-    gsap.set(this.stage$, {autoAlpha: 1});
+    gsap.set(this.stage$, { autoAlpha: 1 });
     await EunosMedia.SetSoundscape({});
     // Kill countdown if it's running
     await this.killCountdown(true, true);
@@ -2621,7 +2611,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       autoAlpha: 0,
       duration: 4,
       ease: "power2.out",
-    })
+    });
   }
 
   // #endregion SessionRunning Methods
@@ -2629,17 +2619,40 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionEnding Methods
   private async animateEndOfSession(): Promise<void> {
     void EunosMedia.SetSoundscape({}, 5);
+    gsap.fromTo(this.endPhase$, {scale: 1, rotateX: 5, rotateY: 5, rotateZ: 5}, {rotateX: -5, rotateY: -5, rotateZ: -5, repeat: -1, yoyo: true, duration: 25})
     const tl = gsap.timeline();
-    tl.call(() => { void this.animateInBlackBars(0, 10); });
-    tl.fromTo(this.topZIndexMask$, {autoAlpha: 0}, {autoAlpha: 1, duration: 5, ease: "power2.out", onComplete: () => {
-      addClassToDOM("session-ending");
-    }}, 1);
-    tl.fromTo(this.endPhase$, {autoAlpha: 0}, {autoAlpha: 1, duration: 0.5, ease: "power2.out"}, 6);
-    tl.to(".app.sheet", {autoAlpha: 0, duration: 0.5, ease: "power2.out"}, 6);
-    tl.call(() => { void this.animateSessionTitle(undefined, undefined, true); }, undefined, 5);
     tl.call(() => {
-      void this.initializeCountdown();
-    }, undefined, 5);
+      void this.animateInBlackBars(0, 10).then(() => {
+        void this.initializeCountdown();
+      });
+    });
+    tl.fromTo(
+      this.topZIndexMask$,
+      { autoAlpha: 0 },
+      {
+        autoAlpha: 1,
+        duration: 5,
+        ease: "power2.out",
+        onComplete: () => {
+          addClassToDOM("session-ending");
+        },
+      },
+      1,
+    );
+    tl.fromTo(
+      this.endPhase$,
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 0.5, ease: "power2.out" },
+      6,
+    );
+    tl.to(".app.sheet", { autoAlpha: 0, duration: 0.5, ease: "power2.out" }, 6);
+    tl.call(
+      () => {
+        void this.animateSessionTitle(undefined, undefined, true);
+      },
+      undefined,
+      5,
+    );
     await tl.play();
   }
   private async initialize_SessionEnding(): Promise<void> {
@@ -2647,13 +2660,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       background: this.isLocationBright ? "var(--K4-WHITE)" : "var(--K4-BLACK)",
     });
     gsap.set(this.midZIndexMask$, {
-      autoAlpha: 0
+      autoAlpha: 0,
     });
     if (!this.isLocationBright) {
       this.topZIndexMask$.find(".horiz-rule").css("filter", "invert(1)");
       this.topZIndexMask$.children().children().css("color", "var(--K4-WHITE)");
     }
-    await this.animateEndOfSession()
+    await this.animateEndOfSession();
 
     if (getUser().isGM) {
       void setSetting("endPhaseQuestion", 0);
@@ -2670,18 +2683,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async cleanup_SessionEnding(): Promise<void> {
+    this.closeAssignDramaticHookDialog();
     removeClassFromDOM("session-ending");
-    gsap.to([
-      this.endPhase$[0],
-      this.topZIndexMask$[0],
-      this.midZIndexMask$[0],
-      this.maxZIndexBars$[0],
-    ], {
-      autoAlpha: 0,
-      duration: 3,
-      ease: "power2.out"
-    });
-    gsap.to(".app.sheet", {autoAlpha: 1, duration: 0.5, ease: "power2.out"});
+    gsap.to(
+      [
+        this.endPhase$[0],
+        this.topZIndexMask$[0],
+        this.midZIndexMask$[0],
+        this.maxZIndexBars$[0],
+      ],
+      {
+        autoAlpha: 0,
+        duration: 3,
+        ease: "power2.out",
+      },
+    );
+    gsap.to(".app.sheet", { autoAlpha: 1, duration: 0.5, ease: "power2.out" });
   }
   // #endregion SessionEnding Methods
 
@@ -2835,7 +2852,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         duration,
         onStart: () => {
           gsap.set(this.maxZIndexBars$, { autoAlpha: 1 });
-        }
+        },
       },
       0,
     ).seek(startTime);
@@ -2862,7 +2879,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   async animateSessionTitle(
     chapter?: string,
     title?: string,
-    isEndOfSession = false
+    isEndOfSession = false,
   ): Promise<void> {
     chapter = chapter ?? tCase(verbalizeNum(getSetting("chapterNumber")));
     title = title ?? getSetting("chapterTitle");
@@ -2892,7 +2909,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 5,
           autoAlpha: 1,
         },
-        position);
+        position,
+      );
       position += 0.2;
     }
     tl.fromTo(
@@ -2909,65 +2927,65 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         duration: 5,
         ease: "none",
       },
-      position);
+      position,
+    );
     position += 0.2;
     tl.fromTo(
       horizRule$,
-        {
-          scaleX: 0,
-          autoAlpha: 0,
-        },
-        {
-          scaleX: 1,
-          duration: 3,
-          ease: "none",
-        },
-        position,
-      );
-      position += 0.2;
-      tl.to(
-        horizRule$,
-        {
-          autoAlpha: 1,
-          ease: "none",
-          duration: 5,
-        },
-        position,
-      )
-      .fromTo(
-        titleElem$,
-        {
-          scale: 0.9,
-          autoAlpha: 0,
-          // y: "+=20"
-        },
-        {
-          scale: 1,
-          autoAlpha: 1,
-          // y: 0,
-          duration: 5,
-          ease: "none",
-        },
-        position,
-      );
+      {
+        scaleX: 0,
+        autoAlpha: 0,
+      },
+      {
+        scaleX: 1,
+        duration: 3,
+        ease: "none",
+      },
+      position,
+    );
+    position += 0.2;
+    tl.to(
+      horizRule$,
+      {
+        autoAlpha: 1,
+        ease: "none",
+        duration: 5,
+      },
+      position,
+    ).fromTo(
+      titleElem$,
+      {
+        scale: 0.9,
+        autoAlpha: 0,
+        // y: "+=20"
+      },
+      {
+        scale: 1,
+        autoAlpha: 1,
+        // y: 0,
+        duration: 5,
+        ease: "none",
+      },
+      position,
+    );
 
-      const layersToFade = [
-        instance.topZIndexMask$[0],
-        instance.midZIndexMask$[0],
-        introElem$[0],
-        chapterElem$[0],
-        horizRule$[0],
-        titleElem$[0]
-      ];
-      if (!isEndOfSession) {
-        layersToFade.push(instance.maxZIndexBars$[0]);
-      }
-      tl.to(
-        layersToFade,
-        {
-          autoAlpha: 0,
-          duration: 1,
-          ease: "none",
+    const layersToFade = [
+      instance.topZIndexMask$[0],
+      instance.midZIndexMask$[0],
+      introElem$[0],
+      chapterElem$[0],
+      horizRule$[0],
+      titleElem$[0],
+    ];
+    if (!isEndOfSession) {
+      layersToFade.push(instance.maxZIndexBars$[0]);
+    }
+    tl.to(
+      layersToFade,
+      {
+        autoAlpha: 0,
+        duration: 1,
+        ease: "none",
       },
       "-=1",
     );
@@ -4160,42 +4178,50 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     bg$.attr("src", bgImage);
   }
 
-  public async getDramaticHookRewardTimeline(dramaticHookContainer$: JQuery) {
+  public getDramaticHookRewardTimeline(dramaticHookContainer$: JQuery) {
     const actorID = dramaticHookContainer$.data("pc-id") as IDString;
-    const hookID = dramaticHookContainer$.data("hook-id") as "dramatichook1" | "dramatichook2";
+    const hookID = dramaticHookContainer$.data("hook-id") as
+      | "dramatichook1"
+      | "dramatichook2";
     const actor = getActorFromRef(actorID);
     if (!actor?.isPC()) return;
     const hook = actor.system.dramatichooks[hookID];
     if (!hook) return;
     const hookContent = actor.system.dramatichooks[hookID].content;
-    return gsap.timeline({
-      onComplete: () => {
-        void actor.update({
-          system: {
-            dramatichooks: {
-              [hookID]: {
-                isChecked: true
-              }
-            }
-          }
-        });
-        void actor.awardXP();
-        void EunosAlerts.Alert({
-          type: AlertType.dramaticHookReward,
-          header: "You've Gained 1 XP for Satisfying a Dramatic Hook:",
-          body: `"${hookContent}"`,
-          target: actorID
-        });
-      }
-    })
-      .fromTo(dramaticHookContainer$,
+    return gsap
+      .timeline({
+        onComplete: () => {
+          void actor.update({
+            system: {
+              dramatichooks: {
+                [hookID]: {
+                  isChecked: true,
+                },
+              },
+            },
+          });
+          void actor.awardXP();
+          void EunosAlerts.Alert({
+            type: AlertType.dramaticHookReward,
+            header: "You've Gained 1 XP for Satisfying a Dramatic Hook:",
+            body: `"${hookContent}"`,
+            target: getOwnerOfDoc(actor)?.id ?? undefined,
+          });
+        },
+      })
+      .fromTo(
+        dramaticHookContainer$,
         {
-          background: "linear-gradient(to right, rgb(150, 140, 106) 0%, rgb(0, 0, 0) 0%)"
-        }, {
-          background: "linear-gradient(to right, rgb(150, 140, 106) 100%, rgb(0, 0, 0) 100%)",
+          background:
+            "linear-gradient(to right, rgb(150, 140, 106) 0%, rgb(0, 0, 0) 0%)",
+        },
+        {
+          background:
+            "linear-gradient(to right, rgb(150, 140, 106) 100%, rgb(0, 0, 0) 100%)",
           duration: 2,
-          ease: "power2.inOut"
-        })
+          ease: "power2.inOut",
+        },
+      );
   }
 
   private updatePCUI_GM(pcID: IDString, state: PCState) {
@@ -5221,6 +5247,37 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const skewX = this.getShadowSkewX(element);
     gsap.set(element, {
       filter: `blur(0px) drop-shadow(20px 20px ${skewX}px black)`,
+    });
+  }
+
+  private initializeDramaticHookHoldTriggers(): void {
+    if (!getUser().isGM) { return; }
+    $(document).on("mousedown", ".dramatic-hook-container", (event) => {
+      const $hook = $(event.currentTarget) as JQuery;
+      let tl = $hook.data('timeline') as Maybe<gsap.core.Timeline>;
+
+      if (!tl) {
+        // Create timeline if it doesn't exist
+        tl = this.getDramaticHookRewardTimeline($hook);
+        if (!tl) return;
+        tl.pause();
+        $hook.data('timeline', tl);
+      }
+
+      // Continue playing from current position
+      tl.timeScale(1).play();
+    });
+
+    $(document).on("mouseup mouseleave", ".dramatic-hook-container", (event) => {
+      const $hook = $(event.currentTarget);
+      const tl = $hook.data('timeline') as Maybe<gsap.core.Timeline>;
+
+      if (tl) {
+        // Reverse the timeline if it hasn't completed
+        if (tl.progress() < 1) {
+          tl.timeScale(3).reverse();
+        }
+      }
     });
   }
 
@@ -6508,7 +6565,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       isIndoors,
     } = locationData;
 
-    const fromImage = fromLocation ? this.getLocationSettingsData(fromLocation).currentImage : null;
+    const fromImage = fromLocation
+      ? this.getLocationSettingsData(fromLocation).currentImage
+      : null;
 
     const imgAudio = (currentImage && audioDataByImage?.[currentImage]) || null;
     const imgAudioData =
@@ -6571,11 +6630,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const visibleLocationImageWrappers$ = locationWrapper$
       .find(".location-image-wrapper")
       .filter((i, wrapper) => wrapper.style.opacity !== "0");
-    kLog.log("Visible location image wrappers", { visibleLocationImageWrappers$ });
+    kLog.log("Visible location image wrappers", {
+      visibleLocationImageWrappers$,
+    });
 
     if (visibleLocationImageWrappers$.length > 0) {
-      kLog.log("Visible location image wrappers found", { visibleLocationImageWrappers$ });
-      const currentDisplayedSrc = visibleLocationImageWrappers$.find("img").attr("src");
+      kLog.log("Visible location image wrappers found", {
+        visibleLocationImageWrappers$,
+      });
+      const currentDisplayedSrc = visibleLocationImageWrappers$
+        .find("img")
+        .attr("src");
       kLog.log("Current displayed src", { currentDisplayedSrc });
       if (currentDisplayedSrc) {
         const nextImage = locationData.currentImage;
@@ -6587,24 +6652,44 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           if (!nextImageSrc) {
             kLog.error("Next image src not found", { nextImage, locationData });
           } else {
-            kLog.log("Equality Check", { nextImageSrc, currentDisplayedSrc, equality: nextImageSrc === currentDisplayedSrc });
+            kLog.log("Equality Check", {
+              nextImageSrc,
+              currentDisplayedSrc,
+              equality: nextImageSrc === currentDisplayedSrc,
+            });
             if (nextImageSrc !== currentDisplayedSrc) {
               fadeOutTimeline = this.#buildFadeOutImageTimeline() ?? undefined;
-              fadeInTimeline = this.#buildFadeInImageTimeline(locationData.currentImage) ?? undefined;
-              kLog.log("Sources Don't Match: Fade timelines built.", { fadeOutTimeline, fadeInTimeline });
+              fadeInTimeline =
+                this.#buildFadeInImageTimeline(locationData.currentImage) ??
+                undefined;
+              kLog.log("Sources Don't Match: Fade timelines built.", {
+                fadeOutTimeline,
+                fadeInTimeline,
+              });
             }
           }
         } else {
           fadeOutTimeline = this.#buildFadeOutImageTimeline() ?? undefined;
-          kLog.log("No next image found, building fade-out timeline only", { fadeOutTimeline });
+          kLog.log("No next image found, building fade-out timeline only", {
+            fadeOutTimeline,
+          });
         }
       } else {
-        fadeInTimeline = this.#buildFadeInImageTimeline(locationData.currentImage) ?? undefined;
-        kLog.log("No current displayed src found, building fade-in timeline only", { fadeInTimeline });
+        fadeInTimeline =
+          this.#buildFadeInImageTimeline(locationData.currentImage) ??
+          undefined;
+        kLog.log(
+          "No current displayed src found, building fade-in timeline only",
+          { fadeInTimeline },
+        );
       }
     } else {
-      fadeInTimeline = this.#buildFadeInImageTimeline(locationData.currentImage) ?? undefined;
-      kLog.log("No visible location image wrappers found, building fade-in timeline only", { fadeInTimeline });
+      fadeInTimeline =
+        this.#buildFadeInImageTimeline(locationData.currentImage) ?? undefined;
+      kLog.log(
+        "No visible location image wrappers found, building fade-in timeline only",
+        { fadeInTimeline },
+      );
     }
 
     if (fadeOutTimeline) {
@@ -6717,7 +6802,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
 
     // Phase 7: Start stage waver timeline
-    timeline.add(() => { void this.#stageWaverTimeline?.play(); }, "stopMoving");
+    timeline.add(() => {
+      void this.#stageWaverTimeline?.play();
+    }, "stopMoving");
 
     // Phase 7: Start new audio tracks with 5 second fadein
     timeline.call(
@@ -6908,7 +6995,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   public async transitionToEndPhaseQuestion(
     questionNumber: number,
   ): Promise<void> {
-    kLog.log("transitioning to end phase question", questionNumber);
+    kLog.log(`transitioning to end phase question #${questionNumber}`);
     const lastQuestion = questionNumber - 1;
     if (lastQuestion > 0) {
       const lastQuestion$ = this.endPhase$.find(
@@ -6926,8 +7013,317 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         await this.#fadeInQuestion(currentQuestion$);
       }
     } else {
-      gsap.set(this.topZIndexMask$, {background: "black"});
-      gsap.to(this.topZIndexMask$, {
+      void this.transitionToDramaticHookAssignment();
+    }
+  }
+
+  #fadeInDramaticHookAssignmentSplash(): gsap.core.Timeline {
+    const tl = gsap.timeline();
+
+    tl.fromTo(this.dramaticHookSplashContainer$, {
+      autoAlpha: 0,
+      filter: "blur(10px)"
+    }, {
+      autoAlpha: 1,
+      filter: "blur(0px)",
+      duration: 1,
+      ease: "power2.out",
+    });
+
+    return tl;
+  }
+
+  assignDramaticHookDialog: Maybe<Dialog>;
+  displayAssignDramaticHookDialog(targetPC: EunosActor, userPC: EunosActor, isCloseable = true) {
+    if (!targetPC.isPC() || !userPC.isPC()) { return; }
+    this.assignDramaticHookDialog = new Dialog({
+      title: "Assign Dramatic Hook",
+      content: `
+        <div class="form-group">
+          <label>Hook for ${targetPC.name}</label>
+          <div class='hook-container'>
+          <span class='hook-prefix'>I should</span><textarea name="hook" rows="1">${userPC.system.dramatichooks.assignedHook || ""}</textarea>
+          </div>
+        </div>
+      `,
+      buttons: isCloseable
+        ? {
+          one: {
+            label: "Ok",
+            callback: async (html) => {
+              const hook = $(html).find("[name=hook]").val() as string;
+              await userPC.update({
+                system: {
+                  dramatichooks: {
+                    assignedHook: hook,
+                  },
+                },
+              });
+            },
+          },
+          cancel: {
+            label: "❌",
+            callback: () => null,
+          },
+        }
+        : {}
+      ,
+      render: function (html: HTMLElement | JQuery) {
+        $(html)
+          .closest(".app.window-app.dialog")
+          .addClass("blurred-bg-dialog assign-dramatic-hook-dialog");
+        // If this isn't closeable, there are no buttons -- so a change listener should attach to the input element, and update the assignedHook on change.
+        if (!isCloseable) {
+          $(html).on("change", "[name=hook]", (event) => {
+            const hook = $(event.currentTarget).val() as string;
+            void userPC.update({
+              system: { dramatichooks: { assignedHook: hook } }
+            });
+          });
+        }
+      },
+      default: "one",
+    });
+
+    this.assignDramaticHookDialog.render(true);
+  }
+
+  closeAssignDramaticHookDialog() {
+    void this.assignDramaticHookDialog?.close();
+    this.assignDramaticHookDialog = undefined;
+  }
+
+  #dramaticHookAssignmentDialog$: Maybe<JQuery>;
+  #dramaticHookAssignmentDialog: Maybe<Dialog>;
+  #displayDramaticHookAssignmentPopUp(): void {
+    this.#dramaticHookAssignmentDialog = new Dialog({
+      title: "Dramatic Hook Assignments",
+      content: `
+        <div class="dramatic-hook-assignments">
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Assigning To</th>
+                <th>Hook Text</th>
+                <th>Assign To Hook</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${getUsers()
+                .filter((u) => !u.isGM)
+                .map((user) => {
+                  const actor = getActors().find(
+                    (a) => a.id === user.character?.id,
+                  );
+                  if (!actor?.isPC() || !user.id) return "";
+
+                  const dramaticHookAssignments = getSetting(
+                    "dramaticHookAssignments",
+                  );
+                  if (!dramaticHookAssignments) return "";
+
+                  const assigningFor = dramaticHookAssignments[user.id];
+                  const assignedHook = actor.system.dramatichooks.assignedHook;
+                  const targetActor = getActors().find(
+                    (a) => a.id === assigningFor,
+                  );
+
+                  if (!targetActor?.isPC()) return "";
+
+                  const hook1 = targetActor.system.dramatichooks.dramatichook1;
+                  const hook2 = targetActor.system.dramatichooks.dramatichook2;
+
+                  // If neither hook is checked OR both hooks are checked, both buttons are enabled
+                  // If only one hook is checked, only that hook's button is enabled
+                  const hook1Disabled = !hook1.isChecked && hook2.isChecked;
+                  const hook2Disabled = !hook2.isChecked && hook1.isChecked;
+
+                  return `
+                    <tr data-user-id="${user.id}" data-target-id="${targetActor.id}">
+                      <td>${user.name}</td>
+                      <td>${targetActor.name}</td>
+                      <td>
+                        <input type="text" class="hook-text" data-user-id="${
+                          user.id
+                        }" value="${assignedHook || ""}" />
+                      </td>
+                      <td class="hook-buttons">
+                        <button class="hook-button${
+                          hook1Disabled ? " disabled" : ""
+                        }" data-hook-number="1" title="${
+                          hook1.content || "Empty hook"
+                        }"${hook1Disabled ? " disabled" : ""}>
+                          <i class="fas ${
+                            hook1.isChecked ? "fa-circle-check" : "fa-circle"
+                          }"></i>
+                        </button>
+                        <button class="hook-button${
+                          hook2Disabled ? " disabled" : ""
+                        }" data-hook-number="2" title="${
+                          hook2.content || "Empty hook"
+                        }"${hook2Disabled ? " disabled" : ""}>
+                          <i class="fas ${
+                            hook2.isChecked ? "fa-circle-check" : "fa-circle"
+                          }"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                })
+                .join("")}
+            </tbody>
+          </table>
+        </div>
+      `,
+      buttons: {
+        close: {
+          label: "Done",
+          callback: () => {
+            void EunosSockets.getInstance().call("endDramaticHookAssignment", UserTargetRef.all);
+          },
+        },
+      },
+      render: (html: JQuery | HTMLElement) => {
+        html = $(html);
+        this.#dramaticHookAssignmentDialog$ = html;
+
+        $(html)
+          .closest(".app.window-app.dialog")
+          .addClass("dramatic-hook-assignments-dialog");
+
+        // Handle hook text changes
+        html.on("change", ".hook-text", (event) => {
+          const input = event.currentTarget as HTMLInputElement;
+          const userId = input.dataset["userId"] as Maybe<IDString>;
+          const actor = getActors().find(
+            (a) =>
+              a.id === getUsers().find((u) => u.id === userId)?.character?.id,
+          );
+          if (actor?.isPC()) {
+            void actor.update({
+              system: {
+                dramatichooks: {
+                  assignedHook: input.value,
+                },
+              },
+            });
+          }
+        });
+
+        // Handle hook button clicks
+        html.on("click", ".hook-button", (event) => {
+          const button = event.currentTarget as HTMLElement;
+          const tr = button.closest("tr") as HTMLElement;
+          const hookNumber = button.dataset["hookNumber"] as Maybe<string>;
+          const userId = tr.dataset["userId"] as Maybe<IDString>;
+          const targetId = tr.dataset["targetId"] as Maybe<IDString>;
+          const hookText = (tr.querySelector(".hook-text") as HTMLInputElement)
+            ?.value;
+
+          if (!userId || !targetId || !hookNumber || !hookText) return;
+
+          this.#assignDramaticHook(userId, targetId, Number(hookNumber), hookText);
+        });
+      },
+    });
+
+    this.#dramaticHookAssignmentDialog?.render(true);
+  }
+
+  public updateDramaticHookAssignmentPopUp(
+    assigningUserID: IDString,
+    assignedHookText: string,
+  ): void {
+    const dialog = this.#dramaticHookAssignmentDialog$;
+    if (!dialog) return;
+
+    const tr = dialog.find(`tr[data-user-id="${assigningUserID}"]`);
+    if (!tr) return;
+
+    //
+
+    // Find the input field for the assigned hook text and update it
+    const hookTextInput = tr.find(`.hook-text`);
+    if (!hookTextInput) return;
+
+    hookTextInput.val(assignedHookText);
+  }
+
+  #assignedHooksMap: Map<IDString, string> = new Map<IDString, string>();
+
+  #assignDramaticHook(
+    userId: IDString,
+    actorId: IDString,
+    hookNumber: number,
+    hookText: string,
+  ): void {
+    const targetActor = getActors().find((a) => a.id === actorId);
+    const userActor = getActors().find((a) => a.isPC() && getOwnerOfDoc(a)?.id === userId);
+    if (!targetActor || !userActor) {
+      getNotifier().error(`Target or user actor not found for actorId: ${actorId} or userId: ${userId}`);
+      return;
+    }
+
+    const targetUserID = getOwnerOfDoc(targetActor)?.id;
+    if (!targetUserID) {
+      getNotifier().error(`User not found for actor: ${targetActor.name}`);
+      return;
+    }
+
+    void targetActor.update({
+      system: {
+        dramatichooks: {
+          [`dramatichook${hookNumber}`]: {
+            content: `I should ${hookText}`,
+            isChecked: false,
+          },
+        },
+      },
+    });
+
+    void userActor.update({
+      system: {
+        dramatichooks: {
+          assignedHook: "",
+        },
+      },
+    });
+
+    // Update the assigned hooks map
+    this.#assignedHooksMap.set(targetUserID, hookText);
+
+    // Update the dialog box by adding the "hook-assigned" class to the proper row.
+    const dialog = this.#dramaticHookAssignmentDialog$;
+    if (!dialog) return;
+
+    const tr = dialog.find(`tr[data-user-id="${userId}"]`);
+    if (!tr) return;
+
+    tr.addClass("hook-assigned");
+
+    // Socket-call the assigning user to close their hook assignment dialog
+    void EunosSockets.getInstance().call("closeAssignDramaticHookDialog", userId);
+
+    // Alert the target user
+    void EunosAlerts.Alert({
+      type: AlertType.simple,
+      target: targetUserID,
+      header: "Your New Dramatic Hook for Next Session Is:",
+      body: `"I should ${hookText}"`,
+    });
+  }
+
+  #endDramaticHookAssignment(): void {
+    void this.#dramaticHookAssignmentDialog?.close();
+    this.#dramaticHookAssignmentDialog = undefined;
+    this.#dramaticHookAssignmentDialog$ = undefined;
+    const tl = gsap.timeline();
+    tl.set(this.topZIndexMask$, { background: "black" });
+    tl.add(this.#fadeOutDramaticHookAssignmentSplash());
+    tl.to(
+      this.topZIndexMask$,
+      {
         autoAlpha: 1,
         duration: 6,
         ease: "power2.out",
@@ -6935,9 +7331,68 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           if (getUser().isGM) {
             void setSetting("gamePhase", GamePhase.SessionClosed);
           }
-        }
-      });
+        },
+      },
+      2,
+    );
+  }
+
+  #fadeOutDramaticHookAssignmentSplash(): gsap.core.Timeline {
+    const tl = gsap.timeline();
+
+    return tl;
+  }
+
+  public get isAssigningDramaticHooks(): boolean {
+    return this.#dramaticHookAssignmentDialog !== undefined;
+  }
+  public async transitionToDramaticHookAssignment(): Promise<void> {
+    kLog.log("transitionToDramaticHookAssignment");
+
+    // #1:  Fade in the dramatic hook assignment splash
+    void this.#fadeInDramaticHookAssignmentSplash();
+
+    if (!getUser().isGM) {
+      const user = getUser();
+      const userId = user.id;
+      if (!userId) {
+        getNotifier().error(`User not found for user: ${user.name}`);
+        return;
+      }
+      // Get user actor via getOwnerOfDoc
+      const userActor = getActors().find((a) => a.isPC() && getOwnerOfDoc(a)?.id === userId);
+      if (!userActor) {
+        getNotifier().error(`User actor not found for user: ${user.name}`);
+        return;
+      }
+      // Get target actor from system.dramatichooks.assigningFor
+      const targetActor = getActors().find((a) => a.id === getSetting("dramaticHookAssignments")[userId]);
+      if (!targetActor) {
+        getNotifier().error(`Target actor not found for user: ${user.name}`);
+        return;
+      }
+
+      kLog.log("displayAssignDramaticHookDialog", { targetActor, userActor });
+      this.displayAssignDramaticHookDialog(targetActor, userActor, false);
+      return;
     }
+    EunosOverlay.instance.endPhase$
+      .find(".master-gm-control-panel")
+      .css("visibility", "hidden");
+
+    // #2:  Display the dramatic hook assignment pop-up to the GM.
+    this.#displayDramaticHookAssignmentPopUp();
+
+    /**   - User Name
+     *    - The Actor Name they're assigning a hook to (from system.dramatichooks.assigningFor)
+     *    - The assigned hook (from system.dramatichooks.assignedHook)
+     *      - this should be an editable field for the GM, which updates the system.dramatichooks.assignedHook field on change
+     *      - whenever this field is updated (whether by the GM or the player), the displayed field to the GM should be likewise updated
+     *    - two circular buttons, one for each dramatic hook
+     *      - the button should be filled in if the dramatic hook is still "live" (i.e. system.dramatichooks.dramatichook#.isChecked === false), or empty otherwise
+     *      - each button should have a popover tooltip containing the text of the associated dramatic hook (from system.dramatichooks.dramatichook#.content)
+     *      - on a click, the button should replace the content for that dramatic hook with the text string entered by the user into the system.dramatichooks.assignedHook field AND set that dramatic hook's isChecked field to false AND display an Alert to the user that the dramatic hook has been assigned
+     */
   }
 
   // #endregion END PHASE ~
@@ -7388,6 +7843,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.addPCControlListeners();
     this.makePlottingControls();
     this.addSafetyButtonListeners();
+    this.initializeDramaticHookHoldTriggers();
 
     this.#dragDrop.forEach((d) => {
       // Bind to the sidebar actors list

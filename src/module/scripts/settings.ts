@@ -246,7 +246,10 @@ export default function registerSettings() {
     type: Number, // 0 = uninitialied; 1-3 = question number; 4 = end session
     default: 0,
     onChange: (value) => {
+      // void EunosOverlay.instance.transitionToDramaticHookAssignment();
+      // return;
       if (value > 0) {
+        kLog.log("[SETTINGS] onChange: endPhaseQuestion", { value });
         void EunosOverlay.instance.transitionToEndPhaseQuestion(value);
       }
     }

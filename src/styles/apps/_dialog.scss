@@ -155,6 +155,173 @@
     }
   }
 
+
+
+
+  // Add to _dialog.scss or update existing dialog styles
+  &.dramatic-hook-assignments-dialog {
+    .window-content {
+      background: var(--K4-ddBLACK);
+
+      .dramatic-hook-assignments {
+        min-width: 600px;
+
+        table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0 5px;
+
+          thead {
+            tr {
+              th {
+                color: var(--K4-bGOLD);
+                font-family: var(--font-primary);
+                font-weight: 1000;
+                text-align: left;
+                padding: 5px 10px;
+                background: var(--K4-BLACK);
+                &:first-child { border-radius: 3px 0 0 3px; }
+                &:last-child { border-radius: 0 3px 3px 0; }
+              }
+            }
+          }
+
+          tbody {
+            tr {
+              &.hook-assigned {
+                > * {
+                  background: var(--K4-GREY);
+                  color: var(--K4-bGREY);
+                  pointer-events: none;
+                }
+
+                .hook-text {
+                  background: var(--K4-GREY);
+                  color: var(--K4-bGREY);
+                  pointer-events: none;
+                  font-style: italic;
+                }
+
+                .hook-buttons .hook-button {
+                  background: var(--K4-GREY);
+                  opacity: 0.5;
+                  i {
+                    // background: var(--K4-GREY);
+                    color: var(--K4-WHITE);
+                    border-color: var(--K4-WHITE);
+                  }
+                }
+              }
+
+              td {
+                padding: 5px 10px;
+                background: var(--K4-dBLACK);
+                color: var(--K4-WHITE);
+
+                &:first-child { border-radius: 3px 0 0 3px; }
+                &:last-child { border-radius: 0 3px 3px 0; }
+
+                &:nth-child(1) {
+                  margin-right: 10px;
+                  // width: 100px;
+                }
+
+                &:nth-child(3) {
+                  width: 600px;
+                }
+
+                input.hook-text {
+                  width: 100%;
+                  background: var(--K4-BLACK);
+                  border: 1px solid var(--K4-GOLD);
+                  color: var(--K4-WHITE);
+                  padding: 5px;
+                  border-radius: 3px;
+
+                  &:focus {
+                    outline: none;
+                    border-color: var(--K4-bGOLD);
+                    box-shadow: 0 0 5px var(--K4-GOLD);
+                  }
+                }
+              }
+            }
+          }
+
+          .hook-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+
+            .hook-button {
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              border: 2px solid var(--K4-GOLD);
+              background: var(--K4-BLACK);
+              color: var(--K4-GOLD);
+              cursor: pointer;
+              padding: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s ease;
+
+              i {
+                font-size: 16px;
+
+                &.fa-circle-check {
+                  color: var(--K4-bBLUE);
+                  border-color: var(--K4-bBLUE);
+                }
+              }
+
+              &:hover:not(.disabled) {
+                background: var(--K4-dGOLD);
+                color: var(--K4-BLACK);
+                border-color: var(--K4-bGOLD);
+              }
+
+              &.checked {
+                background: var(--K4-GREY);
+                border-color: var(--K4-GREY);
+                color: var(--K4-dGREY);
+                // Remove cursor: not-allowed since checked hooks should be clickable
+              }
+
+              &.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                pointer-events: none; // Completely disable interactions
+
+                &:hover {
+                  // Remove any hover effects for disabled buttons
+                  background: var(--K4-BLACK);
+                  color: var(--K4-GOLD);
+                  border-color: var(--K4-GOLD);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .dialog-buttons {
+      .dialog-button {
+        background: var(--K4-BLACK);
+        border: 1px solid var(--K4-GOLD);
+        color: var(--K4-GOLD);
+
+        &:hover {
+          background: var(--K4-dGOLD);
+          color: var(--K4-BLACK);
+          border-color: var(--K4-bGOLD);
+        }
+      }
+    }
+  }
+
   .window-header {
   }
   .window-content {

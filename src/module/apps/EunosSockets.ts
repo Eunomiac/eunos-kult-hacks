@@ -121,6 +121,12 @@ export interface SocketEvents {
       questionNumber: number|"end";
     };
   };
+  closeAssignDramaticHookDialog: {
+    data?: never;
+  };
+  endDramaticHookAssignment: {
+    data?: never;
+  };
 }
 
 export type SocketEventName = keyof SocketEvents;

@@ -1779,16 +1779,16 @@ export const Sounds = {
     //   volume: 0.25,
     //   autoplay: false,
     // },
-    // "quote-session-2": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/effects/c02/quote-session-2.ogg",
-    //   alwaysPreload: true,
-    //   delay: 0,
-    //   loop: false,
-    //   sync: false,
-    //   volume: 0.75,
-    //   autoplay: false,
-    //   fadeInDuration: 2,
-    // },
+    "quote-session-4": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/c04/quote-session-4.ogg",
+      alwaysPreload: true,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 0.75,
+      autoplay: false,
+      fadeInDuration: 2,
+    },
     // "effect-car-crash": {
     //   path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-car-crash.ogg",
     //   alwaysPreload: true,
@@ -4309,22 +4309,22 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       },
       "4) Fork": {
         "ambient-underground": {volume: 0.05},
-        "ambient-underground-deeper": {volume: 0.15},
+        "ambient-underground-deeper": {volume: 0.05},
         "ambient-creepy": {volume: 0.6},
         "ambient-tunnel-hum": {volume: 0.05},
         "ambient-pistons": {volume: 0.25},
-        "ambient-tunnel-whispers": {volume: 0.3}
+        "ambient-tunnel-whispers": {volume: 0.1}
       },
       "5A) Fork: Hum": {
         "ambient-underground": {volume: 0.05},
-        "ambient-underground-deeper": {volume: 0.15},
+        "ambient-underground-deeper": {volume: 0.05},
         "ambient-creepy": {volume: 0.6},
         "ambient-tunnel-hum": {volume: 0.3},
         "ambient-pistons": {volume: 0.5},
       },
       "5B) Hum: Habitation": {
         "ambient-underground": {volume: 0.05},
-        "ambient-underground-deeper": {volume: 0.15},
+        "ambient-underground-deeper": {volume: 0.05},
         "ambient-creepy": {volume: 0.6},
         "ambient-tunnel-hum": {volume: 0.5},
         "ambient-pistons": {volume: 0.5},
@@ -4332,7 +4332,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       },
       "5C) Hum: Closed Door": {
         "ambient-underground": {volume: 0.05},
-        "ambient-underground-deeper": {volume: 0.15},
+        "ambient-underground-deeper": {volume: 0.05},
         "ambient-creepy": {volume: 0.6},
         "ambient-tunnel-hum": {volume: 0.5},
         "ambient-pistons": {volume: 0.75}
@@ -4340,7 +4340,7 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       },
       "5D) Hum: Open Door": {
         "ambient-underground": {volume: 0.05},
-        "ambient-underground-deeper": {volume: 0.15},
+        "ambient-underground-deeper": {volume: 0.05},
         "ambient-creepy": {volume: 0.6},
         "ambient-tunnel-hum": {volume: 0.7},
         "ambient-pistons": {volume: 1}
@@ -4348,26 +4348,26 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       },
       "6A) Fork: Whispers": {
         "ambient-underground": {volume: 0.05},
-        "ambient-underground-deeper": {volume: 0.15},
+        "ambient-underground-deeper": {volume: 0.05},
         "ambient-creepy": {volume: 0.6},
-        "ambient-tunnel-whispers": {volume: 0.5},
-        "ambient-tunnel-wind": {volume: 0.2},
+        "ambient-tunnel-whispers": {volume: 0.3},
+        "ambient-tunnel-wind": {volume: 0.1},
       },
       "6B) Whispers: Vertical Shaft": {
         "ambient-underground": {volume: 0.05},
-        "ambient-underground-deeper": {volume: 0.15},
+        "ambient-underground-deeper": {volume: 0.05},
         "ambient-creepy": {volume: 0.6},
-        "ambient-tunnel-whispers": {volume: 0.5},
-        "ambient-tunnel-wind": {volume: 0.15}
+        "ambient-tunnel-whispers": {volume: 0.3},
+        "ambient-tunnel-wind": {volume: 0.05}
       },
       "6C) Whispers: Submerged Tunnel": {
         "ambient-underground-deeper": {volume: 0.05}
       },
       "7) Sleeping Statue": {
         "ambient-underground": {volume: 0.05},
-        "ambient-underground-deeper": {volume: 0.15},
+        "ambient-underground-deeper": {volume: 0.05},
         "ambient-creepy": {volume: 0.6},
-        "ambient-tunnel-wind": {volume: 0.3}
+        "ambient-tunnel-wind": {volume: 0.1}
       }
     },
     isBright: false,

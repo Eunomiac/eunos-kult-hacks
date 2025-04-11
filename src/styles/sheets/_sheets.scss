@@ -9,7 +9,7 @@
 }
 
 .app {
-  .sheet {
+  &.sheet {
     --lock-color: var(--K4-bRED);
     max-height: 85vh;
 

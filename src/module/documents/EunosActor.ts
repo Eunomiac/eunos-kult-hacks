@@ -451,7 +451,7 @@ export default function registerEunosActor(): void {
         void EunosAlerts.Alert({
           type: AlertType.advancementReward,
           header: "You've Gained an Advancement!",
-          body: "Navigate to the 'Advancement' tab on your sheet and choose one of the available options.",
+          body: "Between sessions, navigate to the 'Advancement' tab on your sheet and choose one of the available options.",
           target: getOwnerOfDoc(this)?.id ?? undefined,
         });
       }
@@ -905,8 +905,12 @@ export default function registerEunosActor(): void {
 
     override _onUpdate(...args: Parameters<Actor["_onUpdate"]>): void {
       super._onUpdate(...args);
-      // if (!this.isPC()) { return; }
+      if (!this.isPC()) { return; }
       void EunosOverlay.instance.updateStabilityBG(this);
+      if (!getUser().isGM) { return; }
+      if (EunosOverlay.instance.isAssigningDramaticHooks) {
+        EunosOverlay.instance.updateDramaticHookAssignmentPopUp(getOwnerOfDoc(this)?.id ?? "", this.system.dramatichooks.assignedHook ?? "");
+      }
     }
   }
 
