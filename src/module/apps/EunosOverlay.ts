@@ -885,6 +885,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     setIndoors: SocketFunction<void, { isIndoors: boolean }>;
     closeAssignDramaticHookDialog: SocketFunction<void, void>;
     endDramaticHookAssignment: SocketFunction<void, void>;
+    updateMediaVolumes: SocketFunction<void, { volumes: Record<string, number> }>;
   } = {
     changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
       void EunosOverlay.instance
@@ -1029,6 +1030,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
     endDramaticHookAssignment: () => {
       EunosOverlay.instance.#endDramaticHookAssignment();
+    },
+    updateMediaVolumes: (data: { volumes: Record<string, number> }) => {
+      Object.entries(data.volumes).forEach(([soundName, volume]) => {
+        const sound = EunosMedia.GetMedia(soundName);
+        if (sound) {
+          sound.volume = volume;
+        }
+      });
     },
   };
   // #endregion SOCKET FUNCTIONS
@@ -2283,6 +2292,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     const activeActors = activeUsers.map((user) => user.character);
 
+    // Wipe previous assignments
+    void Promise.all(activeActors.map((actor) =>
+      actor?.update({
+        system: {
+          dramatichooks: {
+            assignedHook: ""
+          }
+        }
+      })
+    ));
+
     // Create a mapping of userID to their actorID for quick lookup
     const userToActorMap = new Map(
       activeUsers.map((user) => [user.id, user.character]),
@@ -2619,7 +2639,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionEnding Methods
   private async animateEndOfSession(): Promise<void> {
     void EunosMedia.SetSoundscape({}, 5);
-    gsap.fromTo(this.endPhase$, {scale: 1, rotateX: 5, rotateY: 5, rotateZ: 5}, {rotateX: -5, rotateY: -5, rotateZ: -5, repeat: -1, yoyo: true, duration: 25})
+    gsap.fromTo(this.endPhase$, {scale: 1, rotateX: 5, rotateY: 5, rotateZ: 5}, {rotateX: -5, rotateY: -5, rotateZ: -5, ease: "back.inOut(0.5)", repeat: -1, yoyo: true, duration: 25})
     const tl = gsap.timeline();
     tl.call(() => {
       void this.animateInBlackBars(0, 10).then(() => {

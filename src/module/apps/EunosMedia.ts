@@ -1,7 +1,8 @@
-import { Sounds, PRE_SESSION, type EunosMediaData } from "../scripts/constants";
 import { EunosMediaCategories, EunosMediaTypes, MediaLoadStatus, UserTargetRef } from "../scripts/enums";
+import { Sounds, PRE_SESSION, type EunosMediaData } from "../scripts/constants";
 import { isEmpty, objDeepFlatten } from "../scripts/utilities";
 import EunosSockets from "./EunosSockets";
+import { EunosVolumeDialog } from "./EunosVolumeDialog";
 // #region === SOUND FUNCTIONS AND VALUES ===
 
 // #region === TYPES === ~
@@ -13,7 +14,7 @@ type MediaElement = HTMLAudioElement | HTMLVideoElement;
 
 // #endregion
 
-export default class EunosMedia<T extends EunosMediaTypes> {
+export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
   // #region === STATIC PROPERTIES === ~
   /**
    * Set of all video instances
@@ -113,6 +114,13 @@ export default class EunosMedia<T extends EunosMediaTypes> {
     void EunosMedia.SyncPlayingSounds(true);
   }
   // #endregion INITIALIZATION
+
+  static ShowVolumeControl(): void {
+    if (!getUser().isGM) return;
+
+    const dialog = new EunosVolumeDialog();
+    dialog.render(true);
+  }
 
   #type: T;
   #element: Maybe<T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement>;

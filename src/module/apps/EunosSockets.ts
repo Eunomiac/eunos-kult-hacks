@@ -127,6 +127,11 @@ export interface SocketEvents {
   endDramaticHookAssignment: {
     data?: never;
   };
+  updateMediaVolumes: {
+    data: {
+      volumes: Record<string, number>;
+    };
+  };
 }
 
 export type SocketEventName = keyof SocketEvents;

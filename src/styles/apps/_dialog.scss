@@ -3,6 +3,46 @@
   width: auto !important;
   min-width: 500px;
 
+
+  &.eunos-volume-control {
+
+    .window-content {
+      .volume-control-form {
+        .volume-control-row {
+          display: flex;
+          flex-direction: column;
+          padding: 8px 0;
+
+          // Add border to bottom of each row except last
+          &:not(:last-child) {
+            border-bottom: 1px solid var(--color-border-light-tertiary);
+          }
+
+          // Container for label and value
+          .volume-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+
+            label {
+              flex: 1;
+            }
+
+            .volume-value {
+              font-weight: bold;
+              font-family: var(--font-primary);
+            }
+          }
+
+          // Make slider take full width
+          input[type="range"] {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+
   &.blurred-bg-dialog {
     padding: 0px;
     background: transparent;

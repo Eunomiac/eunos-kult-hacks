@@ -1,7 +1,7 @@
 // #region IMPORTS ~
 import * as C from "./constants.js";
 // import * as U from "./utilities.js";
-import {isNumber, isList, uCase, lCase, sCase, tCase, signNum, getID, toKey, randNumWeighted} from "./utilities.js";
+import {isNumber, isList, uCase, lCase, sCase, tCase, signNum, getID, toKey, randNumWeighted, roundNum} from "./utilities.js";
 import EunosItem from "../documents/EunosItem.js";
 import EunosOverlay from "../apps/EunosOverlay.js";
 const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
@@ -256,6 +256,15 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
       // All gradient values are percentages
       return `${Math.round(value)}%`;
     }
+  },
+  /**
+   * Rounds a number to specified decimal places
+   * @param num - The number to round
+   * @param decimals - Number of decimal places (default: 0)
+   * @returns Rounded number
+   */
+  "round": (num: number, decimals: number = 0): number => {
+    return roundNum(num, decimals);
   },
 };
 

@@ -959,6 +959,16 @@ export const Sounds = {
       volume: 0.85,
       autoplay: false,
     },
+    "guns-for-hire": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 224,
+      loop: false,
+      sync: true,
+      volume: 0.75,
+      autoplay: false,
+    },
     sucker: {
       path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-sucker.ogg",
       alwaysPreload: false,
@@ -974,16 +984,6 @@ export const Sounds = {
       alwaysPreload: false,
       delay: 0,
       duration: 214,
-      loop: false,
-      sync: true,
-      volume: 0.75,
-      autoplay: false,
-    },
-    "guns-for-hire": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-guns-for-hire.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 224,
       loop: false,
       sync: true,
       volume: 0.75,
@@ -4414,6 +4414,150 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
       ]
     ]
   },
+  theEastTunnel2: {
+    name: "The East Tunnel 2",
+    key: "theEastTunnel2",
+    images: {
+      "1) Outside Entrance": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/1-east-tunnel-entrance.webp",
+      "2) Inside Entrance": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/2-east-tunnel-inside-entrance.webp",
+      "3) Single-File Tunnel": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/3-east-tunnel-single-file-tunnel.webp",
+      "4) Fork": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/4-east-tunnel-fork.webp",
+      "5A) Fork: Hum": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/5a-east-tunnel-fork-hum.webp",
+      "5B) Hum: Habitation": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/5b-east-tunnel-hum-habitation.webp",
+      "5C) Hum: Closed Door": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/5c-east-tunnel-hum-closed-door.webp",
+      "5D) Hum: Open Door": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/5d-east-tunnel-hum-open-door.webp",
+      "6A) Fork: Whispers": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/6a-east-tunnel-fork-whispers.webp",
+      "6B) Whispers: Vertical Shaft": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/6b-east-tunnel-whispers-vertical-shaft.webp",
+      "6C) Whispers: Submerged Tunnel": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/6c-east-tunnel-whispers-submerged-tunnel.webp",
+      "7) Sleeping Statue": "modules/eunos-kult-hacks/assets/images/locations/east-tunnel/7-east-tunnel-sleeping-statue.webp"
+    },
+    imageMode: LocationImageModes.Central,
+    description: "",
+    audioDataOutdoors: {},
+    audioDataIndoors: {
+      "ambient-underground": {},
+      "ambient-creepy": {}
+    },
+    audioDataByImage: {
+      "1) Outside Entrance": {
+        "weather-low-wind-hum": {},
+      },
+      "2) Inside Entrance": {
+        "ambient-underground": {volume: 0.03},
+        "ambient-creepy": {volume: 0.2},
+        "ambient-generic-buzz": {volume: 0.5}
+      },
+      "3) Single-File Tunnel": {
+        "ambient-low-bass-rumble": {volume: 0.1},
+        "ambient-underground-deeper": {volume: 0.25}
+      },
+      "4) Fork": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-hum": {volume: 0.05},
+        "ambient-pistons": {volume: 0.25},
+        "ambient-tunnel-whispers": {volume: 0.1}
+      },
+      "5A) Fork: Hum": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-hum": {volume: 0.3},
+        "ambient-pistons": {volume: 0.5},
+      },
+      "5B) Hum: Habitation": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-hum": {volume: 0.5},
+        "ambient-pistons": {volume: 0.5},
+
+      },
+      "5C) Hum: Closed Door": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-hum": {volume: 0.5},
+        "ambient-pistons": {volume: 0.75}
+
+      },
+      "5D) Hum: Open Door": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-hum": {volume: 0.7},
+        "ambient-pistons": {volume: 1}
+
+      },
+      "6A) Fork: Whispers": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-whispers": {volume: 0.3},
+        "ambient-tunnel-wind": {volume: 0.1},
+      },
+      "6B) Whispers: Vertical Shaft": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-whispers": {volume: 0.3},
+        "ambient-tunnel-wind": {volume: 0.05}
+      },
+      "6C) Whispers: Submerged Tunnel": {
+        "ambient-underground-deeper": {volume: 0.05}
+      },
+      "7) Sleeping Statue": {
+        "ambient-underground": {volume: 0.05},
+        "ambient-underground-deeper": {volume: 0.05},
+        "ambient-creepy": {volume: 0.6},
+        "ambient-tunnel-wind": {volume: 0.1}
+      }
+    },
+    isBright: false,
+    isIndoors: true,
+    region: "eastTunnel",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "rgb(10, 10, 10)",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 1215
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 3065,
+            backgroundPositionY: -370,
+            transform: "matrix(0, 1, -1, 0, -3500, -3500)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            opacity: 0,
+          },
+        },
+      ]
+    ]
+  },
   theWeepingKing: {
     name: "The Weeping King",
     key: "theWeepingKing",
@@ -5322,138 +5466,134 @@ export const LOADING_SCREEN_DATA = {
     body: "Once human, the Crazed Dancers are now grotesque abominations, fused back to back, spinning in endless dervish dances. Their ragged limbs and tattered feet move in eerie patterns, their twisted melodies eroding the Illusion and tearing open portals between worlds. They are indifferent to onlookers—until their dance is interrupted. Then, with shrieking mouths and flailing limbs, they slaughter without hesitation before vanishing into the void.",
     image: "modules/eunos-kult-hacks/assets/images/loading-screen/the-crazed-dancers.webp",
   },
-
-
-
-
-  // Azghoul: {
-  //   prefix: "",
-  //   title: "Azghouls",
-  //   subtitle: "Our Forgotten Thralls",
-  //   home: "Metropolis",
-  //   body: "The azghouls were once exquisite beings with a proud civilization, until we conquered their world and grafted exoskeletal parasites to their bodies to compel their servitude. They haunt the barren streets of Metropolis to this day, but we have forgotten how to make them obey.",
-  //   image: "modules/eunos-kult-hacks/assets/images/loading-screen/azghoul.webp",
-  // },
-  // Gynachid: {
-  //   prefix: "",
-  //   title: "Gynachids",
-  //   subtitle: "Mothers No More",
-  //   home: "Metropolis",
-  //   body: "Solitary carnivores, gynachids hunt in Metropolis and other worlds beyond the Illusion. Once enslaved to our rule, we took their ability to create offspring as a means of control. In the eons since, they have adapted, and now implant their fetuses in human hosts to grow.",
-  //   image:
-  //     "modules/eunos-kult-hacks/assets/images/loading-screen/gynachid.webp",
-  // },
-  // Tekron: {
-  //   prefix: "",
-  //   title: "Tekrons",
-  //   subtitle: "Caretakers of the Machine City",
-  //   home: "Metropolis",
-  //   body: "Tekrons are creatures of meat, bone, and plastic, cybernetic life forms originating from the Eternal City where they tend the ancient machinery there. Possessed of little intelligence, they do not understand that Metropolis and its old order have crumbled, and they continue maintaining the aging systems as they have always done.",
-  //   image: "modules/eunos-kult-hacks/assets/images/loading-screen/tekron.webp",
-  // },
-  // "Yōko Sakai": {
-  //   prefix: "",
-  //   title: "Yōko Sakai",
-  //   subtitle: "Dream Princess of the Crimson Delirium",
-  //   home: "Limbo",
-  //   body: "Once a geisha, now a Dream Princess of Limbo, Yōko Sakai rules a realm of opium haze and whispered desires. Here, courtesans offer tea alongside syringes of heroin and the crystallized blood of angels. Those who fail to bow before her beauty are woven into the rice-paper walls of her palace, forever part of her domain. Yet, those who earn her favor may receive whispered secrets of Limbo or passage through the shifting dreamways.",
-  //   image:
-  //     "modules/eunos-kult-hacks/assets/images/loading-screen/dream-princess.webp",
-  // },
-  // Lictor: {
-  //   prefix: "",
-  //   title: "Lictors",
-  //   subtitle: "Our Jailers",
-  //   home: "Elysium",
-  //   body: "The Lictors are the veiled wardens of our prison, shaping laws, faith, and industry to keep us blind. They are the unyielding judges, the priests who mold sin into chains, the executives who barter away futures, the police chiefs who dictate law with iron resolve. They rarely kill—unless we try to escape. Beneath the Illusion they are bloated, translucent monsters over eight feet tall, with prehensile, barbed tongues a meter long.",
-  //   image: "modules/eunos-kult-hacks/assets/images/loading-screen/lictor.webp",
-  // },
-  // Nepharite: {
-  //   prefix: "",
-  //   title: "Nepharites",
-  //   subtitle: "Priests of Pain",
-  //   home: "Inferno",
-  //   body: "Nepharites are Inferno's high priests of suffering, torturers and prophets who flay souls to nourish the Death Angels. They weave pacts, shape agony into worship, and slip into Elysium through cracks in the Illusion, draped in robes of flayed flesh and adorned with gleaming knives. Where they walk, the air is thick with the scent of blood and incense.",
-  //   image:
-  //     "modules/eunos-kult-hacks/assets/images/loading-screen/nepharite.webp",
-  // },
-  // Purgatide: {
-  //   prefix: "",
-  //   title: "Purgatides",
-  //   subtitle: "The Mutilated Damned",
-  //   home: "Inferno",
-  //   body: "Purgatides are the discarded remnants of Inferno's endless tortures, little more than torn flesh held together by rusted clamps and thread. Their butchered bodies leak blood and pus, concealed beneath tattered coats. Mindless and fanatical, they shuffle through Elysium as hollow servants of razides and nepharites, their fevered eyes betraying the agony they no longer recognize as their own.",
-  //   image:
-  //     "modules/eunos-kult-hacks/assets/images/loading-screen/purgatide.webp",
-  // },
-  // Razide: {
-  //   prefix: "",
-  //   title: "Razides",
-  //   subtitle: "Horrors of Flesh and Steel",
-  //   home: "Inferno",
-  //   body: "Razides are forged from the tortured remnants of souls torn from Inferno's purgatories, their flesh fused with tubes, razors and grinding gears, their minds enslaved by a writhing parasitic worm harvested from the Underworld. Hulking brutes of Inferno, they serve the Death Angels as warriors and enforcers, spreading terror and bloodshed in Elysium's shadows.",
-  //   image: "modules/eunos-kult-hacks/assets/images/loading-screen/razide.webp",
-  // },
-  // "Moth Child": {
-  //   prefix: "the",
-  //   title: "Moth Child",
-  //   subtitle: "Whisperer of Dreams",
-  //   home: "Limbo",
-  //   body: "The Moth Child is a tragic dream being, its naked, ash-grey body covered in moths that emerge from its flesh. It haunts solitary victims, whispering in dreams and feeding on their blood in Elysium. As it intrudes upon dreams, the fluttering of moth wings becomes a constant presence, and the victim begins to attract moths in the waking world.",
-  //   image:
-  //     "modules/eunos-kult-hacks/assets/images/loading-screen/the-moth-child.webp",
-  // },
-  // "The Seamstress": {
-  //   prefix: "the",
-  //   title: "Seamstress",
-  //   subtitle: "Stitcher of Dreams",
-  //   home: "Limbo",
-  //   body: "The Seamstress is a dream being who disassembles and reassembles her victims, demanding stories from their waking lives as payment. Her realm is a French suburb filled with reanimated corpses, stitched together and controlled by her will. In her sewing chamber, she hoards the organs of dreamers, promising their return for further services.",
-  //   image:
-  //     "modules/eunos-kult-hacks/assets/images/loading-screen/the-seamstress.webp",
-  // },
-  // Ferals: {
-  //   prefix: "",
-  //   title: "Ferals",
-  //   subtitle: "Survivors, Twisted",
-  //   home: "Metropolis",
-  //   body: "Once human, ferals have become abominations lurking in Metropolis's shadows. Distorted by contagion and poison, they are grey-skinned, hollow-eyed, and move with an animalistic gait. Living in ruins, they are cannibals, preying on wanderers and scavenging for sustenance. Their sole objective is survival.",
-  //   image: "modules/eunos-kult-hacks/assets/images/loading-screen/feral.webp",
-  // },
-  // Jackals: {
-  //   prefix: "",
-  //   title: "Jackals",
-  //   subtitle: "Mad Predators",
-  //   home: "Elysium",
-  //   body: "Jackals are distorted humans, bound to the Death Angels' principles, living on society's fringes. They are wild, cannibalistic, and lack empathy outside their pack. Recognizable by their animal musk, they blend into extremist groups. Each pack varies by the Death Angel they follow, preying on the vulnerable, reveling in terror, and driven by primal instincts.",
-  //   image: "modules/eunos-kult-hacks/assets/images/loading-screen/jackal.webp",
-  // },
-  // Mancipia: {
-  //   prefix: "",
-  //   title: "Mancipia",
-  //   subtitle: "Built for Pleasure",
-  //   home: "Metropolis",
-  //   body: "Mancipia are eyeless, hairless beings with serpentine tongues, hidden by the Illusion to appear human. They exude an intoxicating allure, inciting obsession and desire, their bodies a perfect symbiosis of male and female. Used by Archons to manipulate and lead astray those who threaten secrets, they can also inspire creativity and reveal humanity's divinity through art.",
-  //   image:
-  //     "modules/eunos-kult-hacks/assets/images/loading-screen/mancipia.webp",
-  // },
-  // Cairath: {
-  //   prefix: "",
-  //   title: "Cairath",
-  //   subtitle: "Underworld Abominations",
-  //   home: "the Underworld",
-  //   body: "Cairath are grotesque, bloated abominations dwelling in sewers and catacombs. They meld their victims to their rotting bodies, drawing worship from those on the brink of madness. These creatures influence their surroundings, forming cults that offer sacrifices. As they grow in power, they can transform into something even more terrifying: gransangthir.",
-  //   image: "modules/eunos-kult-hacks/assets/images/loading-screen/cairath.webp",
-  // },
-  // Azadaevae: {
-  //   prefix: "",
-  //   title: "Azadaevae",
-  //   subtitle: "Who Would Be Azghouls",
-  //   home: "the Underworld",
-  //   body: "The azadaevae are long and slender beings with delicate features and surrounded by a scintillating veil of dust that weaves illusions. Remnants of the civilization we enslaved and transformed into the azghouls, their ability to see true souls makes them both revered and hunted to this day, leaving few of them in existence. Only in the depths of the Underworld can they find reprieve from those who hunt them.",
-  //   image:
-  //     "modules/eunos-kult-hacks/assets/images/loading-screen/azadaevae.webp",
-  // },
+  Azghoul: {
+    prefix: "",
+    title: "Azghouls",
+    subtitle: "Our Forgotten Thralls",
+    home: "Metropolis",
+    body: "The azghouls were once exquisite beings with a proud civilization, until we conquered their world and grafted exoskeletal parasites to their bodies to compel their servitude. They haunt the barren streets of Metropolis to this day, but we have forgotten how to make them obey.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/azghoul.webp",
+  },
+  Gynachid: {
+    prefix: "",
+    title: "Gynachids",
+    subtitle: "Mothers No More",
+    home: "Metropolis",
+    body: "Solitary carnivores, gynachids hunt in Metropolis and other worlds beyond the Illusion. Once enslaved to our rule, we took their ability to create offspring as a means of control. In the eons since, they have adapted, and now implant their fetuses in human hosts to grow.",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/gynachid.webp",
+  },
+  Tekron: {
+    prefix: "",
+    title: "Tekrons",
+    subtitle: "Caretakers of the Machine City",
+    home: "Metropolis",
+    body: "Tekrons are creatures of meat, bone, and plastic, cybernetic life forms originating from the Eternal City where they tend the ancient machinery there. Possessed of little intelligence, they do not understand that Metropolis and its old order have crumbled, and they continue maintaining the aging systems as they have always done.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/tekron.webp",
+  },
+  "Yōko Sakai": {
+    prefix: "",
+    title: "Yōko Sakai",
+    subtitle: "Dream Princess of the Crimson Delirium",
+    home: "Limbo",
+    body: "Once a geisha, now a Dream Princess of Limbo, Yōko Sakai rules a realm of opium haze and whispered desires. Here, courtesans offer tea alongside syringes of heroin and the crystallized blood of angels. Those who fail to bow before her beauty are woven into the rice-paper walls of her palace, forever part of her domain. Yet, those who earn her favor may receive whispered secrets of Limbo or passage through the shifting dreamways.",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/dream-princess.webp",
+  },
+  Lictor: {
+    prefix: "",
+    title: "Lictors",
+    subtitle: "Our Jailers",
+    home: "Elysium",
+    body: "The Lictors are the veiled wardens of our prison, shaping laws, faith, and industry to keep us blind. They are the unyielding judges, the priests who mold sin into chains, the executives who barter away futures, the police chiefs who dictate law with iron resolve. They rarely kill—unless we try to escape. Beneath the Illusion they are bloated, translucent monsters over eight feet tall, with prehensile, barbed tongues a meter long.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/lictor.webp",
+  },
+  Nepharite: {
+    prefix: "",
+    title: "Nepharites",
+    subtitle: "Priests of Pain",
+    home: "Inferno",
+    body: "Nepharites are Inferno's high priests of suffering, torturers and prophets who flay souls to nourish the Death Angels. They weave pacts, shape agony into worship, and slip into Elysium through cracks in the Illusion, draped in robes of flayed flesh and adorned with gleaming knives. Where they walk, the air is thick with the scent of blood and incense.",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/nepharite.webp",
+  },
+  Purgatide: {
+    prefix: "",
+    title: "Purgatides",
+    subtitle: "The Mutilated Damned",
+    home: "Inferno",
+    body: "Purgatides are the discarded remnants of Inferno's endless tortures, little more than torn flesh held together by rusted clamps and thread. Their butchered bodies leak blood and pus, concealed beneath tattered coats. Mindless and fanatical, they shuffle through Elysium as hollow servants of razides and nepharites, their fevered eyes betraying the agony they no longer recognize as their own.",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/purgatide.webp",
+  },
+  Razide: {
+    prefix: "",
+    title: "Razides",
+    subtitle: "Horrors of Flesh and Steel",
+    home: "Inferno",
+    body: "Razides are forged from the tortured remnants of souls torn from Inferno's purgatories, their flesh fused with tubes, razors and grinding gears, their minds enslaved by a writhing parasitic worm harvested from the Underworld. Hulking brutes of Inferno, they serve the Death Angels as warriors and enforcers, spreading terror and bloodshed in Elysium's shadows.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/razide.webp",
+  },
+  "Moth Child": {
+    prefix: "the",
+    title: "Moth Child",
+    subtitle: "Whisperer of Dreams",
+    home: "Limbo",
+    body: "The Moth Child is a tragic dream being, its naked, ash-grey body covered in moths that emerge from its flesh. It haunts solitary victims, whispering in dreams and feeding on their blood in Elysium. As it intrudes upon dreams, the fluttering of moth wings becomes a constant presence, and the victim begins to attract moths in the waking world.",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/the-moth-child.webp",
+  },
+  "The Seamstress": {
+    prefix: "the",
+    title: "Seamstress",
+    subtitle: "Stitcher of Dreams",
+    home: "Limbo",
+    body: "The Seamstress is a dream being who disassembles and reassembles her victims, demanding stories from their waking lives as payment. Her realm is a French suburb filled with reanimated corpses, stitched together and controlled by her will. In her sewing chamber, she hoards the organs of dreamers, promising their return for further services.",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/the-seamstress.webp",
+  },
+  Ferals: {
+    prefix: "",
+    title: "Ferals",
+    subtitle: "Survivors, Twisted",
+    home: "Metropolis",
+    body: "Once human, ferals have become abominations lurking in Metropolis's shadows. Distorted by contagion and poison, they are grey-skinned, hollow-eyed, and move with an animalistic gait. Living in ruins, they are cannibals, preying on wanderers and scavenging for sustenance. Their sole objective is survival.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/feral.webp",
+  },
+  Jackals: {
+    prefix: "",
+    title: "Jackals",
+    subtitle: "Mad Predators",
+    home: "Elysium",
+    body: "Jackals are distorted humans, bound to the Death Angels' principles, living on society's fringes. They are wild, cannibalistic, and lack empathy outside their pack. Recognizable by their animal musk, they blend into extremist groups. Each pack varies by the Death Angel they follow, preying on the vulnerable, reveling in terror, and driven by primal instincts.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/jackal.webp",
+  },
+  Mancipia: {
+    prefix: "",
+    title: "Mancipia",
+    subtitle: "Built for Pleasure",
+    home: "Metropolis",
+    body: "Mancipia are eyeless, hairless beings with serpentine tongues, hidden by the Illusion to appear human. They exude an intoxicating allure, inciting obsession and desire, their bodies a perfect symbiosis of male and female. Used by Archons to manipulate and lead astray those who threaten secrets, they can also inspire creativity and reveal humanity's divinity through art.",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/mancipia.webp",
+  },
+  Cairath: {
+    prefix: "",
+    title: "Cairath",
+    subtitle: "Underworld Abominations",
+    home: "the Underworld",
+    body: "Cairath are grotesque, bloated abominations dwelling in sewers and catacombs. They meld their victims to their rotting bodies, drawing worship from those on the brink of madness. These creatures influence their surroundings, forming cults that offer sacrifices. As they grow in power, they can transform into something even more terrifying: gransangthir.",
+    image: "modules/eunos-kult-hacks/assets/images/loading-screen/cairath.webp",
+  },
+  Azadaevae: {
+    prefix: "",
+    title: "Azadaevae",
+    subtitle: "Who Would Be Azghouls",
+    home: "the Underworld",
+    body: "The azadaevae are long and slender beings with delicate features and surrounded by a scintillating veil of dust that weaves illusions. Remnants of the civilization we enslaved and transformed into the azghouls, their ability to see true souls makes them both revered and hunted to this day, leaving few of them in existence. Only in the depths of the Underworld can they find reprieve from those who hunt them.",
+    image:
+      "modules/eunos-kult-hacks/assets/images/loading-screen/azadaevae.webp",
+  },
 } as const;
 // #endregion
 

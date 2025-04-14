@@ -1,3 +1,4 @@
+body #pause.paused,
 #ui-left,
 #ui-top,
 #ui-bottom {
@@ -19,6 +20,12 @@
   .item[data-tab="cards"],
   .item[data-tab="playlists"],
   .item[data-tab="compendium"] {
+    display: none;
+  }
+}
+
+#macro-list {
+  .macro-key {
     display: none;
   }
 }
