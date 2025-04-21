@@ -1,0 +1,30 @@
+{{!-- {{#if message.isLastMessage}} --}}
+{{!-- {{log "LAST CHAT MESSAGE" this}} --}}
+{{!-- {{/if}} --}}
+
+<li class="chat-message message flexcol {{cssClass}}" data-message-id="{{message._id}}">
+    <header class="message-header flexrow">
+        <h4 class="message-sender">{{alias}}</h4>
+        <span class="message-metadata">
+            <time class="message-timestamp">{{timeSince message.timestamp}}</time>
+            {{#if canDelete}}
+            <a class="message-delete"><i class="fas fa-trash"></i></a>
+            {{/if}}
+        </span>
+
+        {{#if isWhisper}}
+        <span class="whisper-to">Whisper To: {{whisperTo}}</span>
+        {{/if}}
+
+        {{#if message.flavor}}
+        <span class="flavor-text">{{{message.flavor}}}</span>
+        {{/if}}
+    </header>
+		<div class="message-content">
+			<div class="message-bg bg-base"></div>
+      <div class="message-bg bg-success"></div>
+      <div class="message-bg bg-partial"></div>
+      <div class="message-bg bg-fail"></div>
+			  {{{message.content}}}
+    </div>
+</li>

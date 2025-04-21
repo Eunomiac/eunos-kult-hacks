@@ -1,0 +1,98 @@
+{{log "{CHAT} result-rolled.hbs" this}}
+
+<div class="eunos-chat {{cssClass}}">
+
+  <div class="roll-intro-header">
+    <img class="drop-cap {{~#if isWideDropCap}} wide-drop-cap{{/if}}" src="{{getDropCap rollerName}}" />
+    <span class="roll-char-name">{{getRestCaps rollerName}}</span>
+    <span class="roll-intro-line">
+      rolls <span class='text-attributename'>+{{case "title" attribute}}</span>{{#if sourceName}} to …{{/if}}
+    </span>
+    <div class="icon-container icon-{{outcome}}">
+      {{#if (test ".svg" in sourceImg)}}
+      <div class="chat-icon"
+        style="mask: url({{sourceImg}}) no-repeat center; -webkit-mask: url({{sourceImg}}) no-repeat center;"></div>
+      <svg class="non-chat-icon svg-container" title="{{sourceName}}">
+        <use href="{{sourceImg}}#icon"></use>
+      </svg>
+      {{else}}
+      <img src="{{sourceImg}}" />
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="roll-source-header">
+    <span class="roll-source-name">
+      <span class="roll-source-text">{{sourceName}}</span>
+    </span>
+  </div>
+
+  <div class="roll-dice-results">
+
+    <div class="roll-dice-line">
+      <div class="roll-term-container roll-d10">
+        <div class="d10-animation">
+          <video autoplay loop muted>
+            <source src="modules/eunos-kult-hacks/assets/chat/dice/d10-bg-animation.webm" type="video/webm">
+          </video>
+        </div>
+        <img class="d10-front" src="modules/eunos-kult-hacks/assets/chat/dice/{{dice.[0]}}.png" />
+      </div>
+      {{#unless (eq attribute "zero")}}
+      <div class="roll-term-container attribute-{{attribute}}">
+        <img class="attribute-flare"
+          src="modules/eunos-kult-hacks/assets/chat/attribute_flares/{{attribute}}-flare.png" />
+        <img class="attribute-value"
+          src="modules/eunos-kult-hacks/assets/chat/attribute_vals/{{attrType}}{{attrVal}}.png" />
+      </div>
+      {{/unless}}
+      <div class="roll-term-container roll-d10">
+        <div class="d10-animation">
+          <video autoplay loop muted>
+            <source src="modules/eunos-kult-hacks/assets/chat/dice/d10-bg-animation.webm" type="video/webm">
+          </video>
+        </div>
+        <img class="d10-front" src="modules/eunos-kult-hacks/assets/chat/dice/{{dice.[1]}}.png" />
+      </div>
+    </div>
+
+    <div class="roll-total">
+      <span class="roll-total-gear">
+        <img class="gear-chagidiel-inner-ring"
+          src="modules/eunos-kult-hacks/assets/chat/gears/gear-chagidiel-inner-ring.svg">
+        <img class="gear-chagidiel-middle-ring"
+          src="modules/eunos-kult-hacks/assets/chat/gears/gear-chagidiel-middle-ring.svg">
+        <img class="gear-chagidiel-outer-ring"
+          src="modules/eunos-kult-hacks/assets/chat/gears/gear-chagidiel-outer-ring.svg">
+      </span>
+      <img class="roll-total-number" src="modules/eunos-kult-hacks/assets/chat/rollvals/{{total}}.png"></i>
+    </div>
+
+    <div class="roll-modifiers">
+      {{#each modifiers}}
+      <div class="roll-mod roll-mod-{{#if (test value ">=" 0)}}pos{{else}}neg{{/if}} {{cssClasses}}">
+        <span class="roll-mod-val">{{signNum value}}</span>
+        <span class="roll-mod-desc">{{name}}</span>
+      </div>
+      {{/each}}
+    </div>
+
+    <div class="roll-outcome">
+      {{#if (gte total 15)}}
+      <span class="roll-outcome-main">Success</span>
+      {{else}}{{#if (gte total 10)}}
+      <span class="roll-outcome-main">Success</span>
+      <span class="roll-outcome-sub">with Complications</span>
+      {{else}}
+      <span class="roll-outcome-main">Failure</span>
+      {{/if}}{{/if}}
+    </div>
+
+  </div>
+
+  <div class="result-entry conditional-center">
+    {{{resultText}}}
+    {{{optionsText}}}
+  </div>
+
+</div>

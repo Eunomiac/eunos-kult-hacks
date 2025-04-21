@@ -1,4 +1,5 @@
 @use "./functions" as *;
+@use "./mixins" as *;
 
 @font-face { // Ktrata Light
   font-family: "Ktrata";
@@ -230,4 +231,46 @@ $font-weight-black: 900;
 	--font-decorative: Sokol, serif;
   --font-decorative-alt: Ravenscroft, serif;
 	--font-handwritten: GrandpaScript, serif;
+
+  .roll-mod {
+    font-weight: 1000;
+    text-shadow: 0 0 3px BLACK, 0 0 3px BLACK, 0 0 3px BLACK, 0 0 3px BLACK, 0 0 3px BLACK,  0 0 3px BLACK, 0 0 3px BLACK, 0 0 3px BLACK, 0 0 3px BLACK, 0 0 3px BLACK;
+
+    &.roll-mod-neg {
+      color: var(--K4-bRED);
+    }
+  }
+
+
+  .neon-glow-animated-blue {
+    @include neon-glow-animated(blue, var(--K4-bbBLUE), white);
+  }
+
+  .neon-glow-animated-red {
+    @include neon-glow-animated(red, var(--K4-bbRED), white);
+  }
+
+  .neon-glow-animated-gold {
+    @include neon-glow-animated(gold, var(--K4-GOLD), white);
+  }
+
+  .neon-glow-animated-white {
+    @include neon-glow-animated(white, var(--K4-WHITE), white);
+
+    .icon-container {
+      --K4-color-primary-bright: var(--K4-GREY2);
+    }
+  }
+
+  .neon-glow-soft-blue {
+    @include neon-glow-soft(rgba(253, 253, 253), rgba(3, 247, 249, 0.561));
+  }
+
+  .neon-glow-soft-red {
+    @include neon-glow-soft(rgb(255, 159, 159), rgba(252, 31, 31, 0.5));
+  }
+
+  .neon-glow-soft-gold {
+    @include neon-glow-soft(rgb(244, 238, 228), rgba(255, 189, 65, 0.35));
+  }
 }

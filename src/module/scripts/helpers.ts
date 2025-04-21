@@ -66,7 +66,7 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
       case "in":
         if (Array.isArray(param2)) { return param2.includes(param1); }
         if (isList(param2) && isStringOrNumber(param1)) { return param1 in param2; }
-        if (typeof param2 === "string") { return new RegExp(String(param2), "gu").test(String(param1)); }
+        if (typeof param2 === "string") { return new RegExp(String(param1), "gu").test(String(param2)); }
         return false;
       default:
         return false;
@@ -97,6 +97,12 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
   },
   "getUniqueID"(base: string) {
     return `${base}-${getID()}`.replace(/\s+/g, "_");
+  },
+  "getDropCap"(content: Maybe<string>): string {
+    if (!content?.length) {
+      return "";
+    }
+    return `modules/eunos-kult-hacks/assets/chat/dropcaps/${content.slice(0, 1).toUpperCase()}.png`;
   },
   "getRestCaps"(content: string): string {
     return content.slice(1);

@@ -5,6 +5,11 @@ import type { AttackSchema } from "../data-model/fields/itemFields";
 import type ActorDataPC from "../data-model/ActorDataPC";
 import { getTemplatePath, getOwnerOfDoc } from "../scripts/utilities";
 import EunosAlerts, { AlertType } from "../apps/EunosAlerts";
+import EunosChatMessage, {
+  type ResultRolledContext,
+} from "../apps/EunosChatMessage";
+import { EunosRollResult } from "../scripts/enums";
+
 declare global {
   class EunosActor extends k4ltActor {
     isPC(): this is EunosActor & { system: ActorDataPC };
@@ -20,13 +25,24 @@ declare global {
     get availableWeapons(): EunosItem[];
     getWoundPenaltyFor(move: EunosItem): number;
     getStabilityPenaltyFor(move: EunosItem): number;
-    getStabilityConditionsPenalty(): Promise<number|null>;
+    getStabilityConditionsPenalties(): Promise<
+      Array<{
+        value: number;
+        name: string;
+        cssClasses?: string;
+      }>
+    >;
     getPortraitImage(type: "bg" | "fg"): string;
     getGogglesImageSrc(): string;
-    askForAttribute(): Promise<string|null>;
+    askForAttribute(): Promise<string | null>;
     moveroll(moveID: string): Promise<void>;
     awardXP(): Promise<void>;
-    get nextXPKey(): "advancementExp1" | "advancementExp2" | "advancementExp3" | "advancementExp4" | "advancementExp5";
+    get nextXPKey():
+      | "advancementExp1"
+      | "advancementExp2"
+      | "advancementExp3"
+      | "advancementExp4"
+      | "advancementExp5";
   }
 }
 
@@ -284,9 +300,15 @@ export default function registerEunosActor(): void {
       return mod;
     }
 
-    async getStabilityConditionsPenalty(): Promise<number|null> {
+    async getStabilityConditionsPenalties(): Promise<
+      Array<{
+        value: number;
+        name: string;
+        cssClasses?: string;
+      }>
+    > {
       if (!this.isPC()) {
-        return null;
+        return [];
       }
       const conditionMap = {
         Angry: this.system.conditionAngry,
@@ -296,6 +318,15 @@ export default function registerEunosActor(): void {
         Obsessed: this.system.conditionObsessed,
         Distracted: this.system.conditionDistracted,
         Haunted: this.system.conditionHaunted,
+      };
+      const conditionPenaltyMap = {
+        Angry: -1,
+        Sad: -1,
+        Scared: -1,
+        GuiltRidden: -1,
+        Obsessed: -1,
+        Distracted: -1,
+        Haunted: -2,
       };
       function formatConditionRow(
         conditions: Array<keyof typeof conditionMap>,
@@ -320,11 +351,12 @@ export default function registerEunosActor(): void {
           "checked",
       );
       if (activeConditions.length === 0) {
-        return 0;
+        return [];
       }
-      const hinderingConditions = await new Promise<
-        Record<keyof typeof conditionMap, boolean> | null
-      >((resolve) => {
+      const hinderingConditions = await new Promise<Record<
+        keyof typeof conditionMap,
+        boolean
+      > | null>((resolve) => {
         new Dialog({
           title: "Relevant Conditions",
           content: `
@@ -357,16 +389,20 @@ export default function registerEunosActor(): void {
             },
           },
           render: (html: HTMLElement | JQuery) => {
-            $(html).closest(".app.window-app.dialog").addClass("blurred-bg-dialog stability-condition-dialog");
-            $(html).find('.condition-button').on("click", function(event) {
-              event.preventDefault();
-              $(event.currentTarget).toggleClass('active');
-            });
-          }
+            $(html)
+              .closest(".app.window-app.dialog")
+              .addClass("blurred-bg-dialog stability-condition-dialog");
+            $(html)
+              .find(".condition-button")
+              .on("click", function (event) {
+                event.preventDefault();
+                $(event.currentTarget).toggleClass("active");
+              });
+          },
         }).render(true);
       });
       if (hinderingConditions === null) {
-        return null;
+        return [];
       }
       kultLogger("Hindering Conditions => ", hinderingConditions);
       kultLogger(
@@ -374,10 +410,13 @@ export default function registerEunosActor(): void {
         -1 * Object.values(hinderingConditions).filter(Boolean).length -
           (hinderingConditions.Distracted ? 1 : 0),
       );
-      return (
-        -1 * Object.values(hinderingConditions).filter(Boolean).length -
-        (hinderingConditions.Distracted ? 1 : 0)
-      );
+      return Object.entries(hinderingConditions)
+        .filter(([_, value]) => value)
+        .map(([key]) => ({
+          value: conditionPenaltyMap[key as keyof typeof conditionPenaltyMap],
+          name: key,
+          cssClasses: "modifier-negative",
+        }));
     }
 
     get armor(): number {
@@ -432,13 +471,33 @@ export default function registerEunosActor(): void {
       return "";
     }
 
-    get nextXPKey(): "advancementExp1" | "advancementExp2" | "advancementExp3" | "advancementExp4" | "advancementExp5" {
+    get nextXPKey():
+      | "advancementExp1"
+      | "advancementExp2"
+      | "advancementExp3"
+      | "advancementExp4"
+      | "advancementExp5" {
       if (!this.isPC()) {
         throw new Error("nextXPKey is only available for PCs");
       }
-      const curXP = Math.max(0, (["advancementExp1", "advancementExp2", "advancementExp3", "advancementExp4", "advancementExp5"] as const)
-        .findIndex((xp) => this.system[xp].state === "none"));
-      return `advancementExp${curXP + 1}` as "advancementExp1" | "advancementExp2" | "advancementExp3" | "advancementExp4" | "advancementExp5";
+      const curXP = Math.max(
+        0,
+        (
+          [
+            "advancementExp1",
+            "advancementExp2",
+            "advancementExp3",
+            "advancementExp4",
+            "advancementExp5",
+          ] as const
+        ).findIndex((xp) => this.system[xp].state === "none"),
+      );
+      return `advancementExp${curXP + 1}` as
+        | "advancementExp1"
+        | "advancementExp2"
+        | "advancementExp3"
+        | "advancementExp4"
+        | "advancementExp5";
     }
 
     public async awardXP(): Promise<void> {
@@ -498,39 +557,98 @@ export default function registerEunosActor(): void {
       return this.img as string;
     }
 
-    override async displayRollResult(
-      {
-        roll,
-        moveName,
-        result,
-        resultText,
-        moveResultText,
-        optionsText,
-        rollMode,
-      }: {
-        roll: Roll;
-        moveName: string;
-        result: string;
-        resultText: string;
-        moveResultText: string;
-        optionsText: string;
-        rollMode: string;
-      },
+    async displayRollToChat({
+      roll,
+      attribute,
+      modifiers,
+      source,
+      resultText,
+      optionsText,
+      rollMode,
+    }: {
+      roll: Roll;
+      attribute: string;
+      modifiers: Array<{
+        value: number;
+        name: string;
+        cssClasses?: string;
+      }>;
+      source: EunosItem;
+      resultText: string;
+      optionsText: string;
+      rollMode: string;
+    },
       secondMessageContent?: string,
     ) {
-      const templateData = {
-        total: Math.max(0, roll.total ?? 0),
-        result: roll.result,
-        moveName: moveName,
-        resultClass: `roll-result-${result}`,
-        resultText: resultText,
-        moveResultText: moveResultText,
-        optionsText: optionsText,
+      if (!this.isPC()) {
+        return;
+      }
+
+      const dieVals = roll.dice
+        .map((die) => die.values)
+        .flat()
+        .filter(Boolean);
+
+      if (dieVals.length !== 2) {
+        kLog.error(`Kult rolls require two dice, found ${dieVals.length} dice: ${dieVals.join(", ")}`, {roll, dice: roll.dice, dieVals});
+        throw new Error(
+          `Kult rolls require two dice, found ${dieVals.length} dice: ${dieVals.join(", ")}`,
+        );
+      }
+
+      const total = Math.max(0, roll.total ?? 0);
+
+      const outcome: EunosRollResult = total >= 15
+        ? EunosRollResult.completeSuccess
+        : total >= 10
+        ? EunosRollResult.partialSuccess
+        : EunosRollResult.failure;
+
+      const themeCSSClasses: string[] = [];
+
+      switch (outcome) {
+        case EunosRollResult.completeSuccess: {
+          themeCSSClasses.push("k4-theme-gold", "roll-result-completeSuccess");
+          break;
+        }
+        case EunosRollResult.partialSuccess: {
+          themeCSSClasses.push("k4-theme-gold", "roll-result-partialSuccess");
+          break;
+        }
+        case EunosRollResult.failure: {
+          themeCSSClasses.push("k4-theme-gold", "roll-result-failure");
+          break;
+        }
+      }
+
+      const isWideDropCap = this.name.startsWith("M") || this.name.startsWith("W");
+      const templateData: ResultRolledContext = {
+        cssClass: `chat-roll-result roll-result-${outcome} ${isWideDropCap ? "wide-drop-cap" : ""}`,
+        rollerName: this.name.split(" ")[0] as string,
+        isWideDropCap,
+        attribute,
+        attrType: ["fortitude", "willpower", "reflexes"].includes(
+          attribute.toLowerCase(),
+        )
+          ? "passive"
+          : "active",
+        attrVal:
+          this.system.attributes[
+            attribute.toLowerCase() as keyof typeof this.system.attributes
+          ] ?? 0,
+        sourceName: source.name,
+        sourceImg: source.img as string,
+        dice: dieVals as [number, number],
+        modifiers,
+        total,
+        outcome,
+        resultText,
+        optionsText,
       };
 
       const contents: string[] = [
         await renderTemplate(
-          getTemplatePath("apps/chat", "roll-card.hbs"),
+          getTemplatePath("sidebar", "result-rolled.hbs"),
           templateData,
         ),
       ];
@@ -540,26 +658,141 @@ export default function registerEunosActor(): void {
       }
 
       const chatData = {
-        speaker: ChatMessage.getSpeaker({ alias: this.name }),
+        speaker: EunosChatMessage.getSpeaker({ alias: this.name }),
         content: contents.join("\n"),
         rolls: [roll],
         rollMode: rollMode,
+        flags: {
+          "eunos-kult-hacks": {
+            cssClasses: themeCSSClasses,
+            isSummary: false,
+            isAnimated: true,
+            isRoll: true,
+            isTrigger: false,
+            rollOutcome: outcome,
+            isEdge: false
+          }
+        }
       };
 
       // Appliquer les destinataires pour le mode gmroll
       if (rollMode === "gmroll") {
         // @ts-expect-error ChatMessage.getWhisperRecipients is not typed
-        chatData.whisper = ChatMessage.getWhisperRecipients("GM");
+        chatData.whisper = EunosChatMessage.getWhisperRecipients("GM");
       }
 
       kultLogger("chatData => ", chatData);
       // @ts-expect-error ChatMessage.create is not typed
-      await ChatMessage.create(chatData);
+      await EunosChatMessage.create(chatData);
     }
 
-    async askForAttribute(): Promise<string|null> {
+    // override async displayRollResult(
+    //   {
+    //     roll,
+    //     attribute,
+    //     modifiers,
+    //     source,
+    //     result,
+    //     resultText,
+    //     moveResultText,
+    //     optionsText,
+    //     rollMode,
+    //   }: {
+    //     roll: Roll;
+    //     attribute: string;
+    //     modifiers: Array<{
+    //       value: number;
+    //       name: string;
+    //       cssClasses?: string;
+    //     }>;
+    //     source: EunosItem;
+    //     result: string;
+    //     resultText: string;
+    //     moveResultText: string;
+    //     optionsText: string;
+    //     rollMode: string;
+    //   },
+    //   secondMessageContent?: string,
+    // ) {
+    //   if (!this.isPC()) {
+    //     return;
+    //   }
+
+    //   const dieVals = roll.dice
+    //     .map((die) => die.total)
+    //     .filter(Boolean) as number[];
+
+    //   if (dieVals.length !== 2) {
+    //     throw new Error(
+    //       `Kult rolls require two dice, found ${dieVals.length} dice: ${dieVals.join(", ")}`,
+    //     );
+    //   }
+
+    //   const templateData: ResultRolledContext = {
+    //     cssClass: `roll-result-${result}`,
+    //     rollerName: this.name,
+    //     isWideDropCap: this.name.startsWith("M") || this.name.startsWith("W"),
+    //     attribute,
+    //     attrType: ["fortitude", "willpower", "reflexes"].includes(
+    //       attribute.toLowerCase(),
+    //     )
+    //       ? "passive"
+    //       : "active",
+    //     attrVal:
+    //       this.system.attributes[
+    //         attribute.toLowerCase() as keyof typeof this.system.attributes
+    //       ] ?? 0,
+    //     sourceName: source.name,
+    //     sourceImg: source.img as string,
+    //     dice: dieVals as [number, number],
+    //     modifiers,
+    //     total: Math.max(0, roll.total ?? 0),
+    //     result: roll.result,
+    //     resultText: resultText,
+    //     moveResultText: moveResultText,
+    //     optionsText: optionsText,
+    //   };
+
+    //   const contents: string[] = [
+    //     await renderTemplate(
+    //       getTemplatePath("sidebar", "result-rolled.hbs"),
+    //       templateData,
+    //     ),
+    //   ];
+
+    //   if (secondMessageContent) {
+    //     contents.push(secondMessageContent);
+    //   }
+
+    //   const chatData = {
+    //     speaker: ChatMessage.getSpeaker({ alias: this.name }),
+    //     content: contents.join("\n"),
+    //     rolls: [roll],
+    //     rollMode: rollMode,
+    //   };
+
+    //   // Appliquer les destinataires pour le mode gmroll
+    //   if (rollMode === "gmroll") {
+    //     // @ts-expect-error ChatMessage.getWhisperRecipients is not typed
+    //     chatData.whisper = ChatMessage.getWhisperRecipients("GM");
+    //   }
+
+    //   kultLogger("chatData => ", chatData);
+    //   // @ts-expect-error ChatMessage.create is not typed
+    //   await ChatMessage.create(chatData);
+    // }
+
+    async askForAttribute(): Promise<string | null> {
       const passiveAttributes = ["Reflexes", "Willpower", "Fortitude"];
-      const mainAttributes = ["Reason", "Intuition", "Perception", "Coolness", "Violence", "Charisma", "Soul"];
+      const mainAttributes = [
+        "Reason",
+        "Intuition",
+        "Perception",
+        "Coolness",
+        "Violence",
+        "Charisma",
+        "Soul",
+      ];
 
       function formatAttributeButtons(attributes: string[]) {
         return `<div class="attribute-buttons">
@@ -575,7 +808,7 @@ export default function registerEunosActor(): void {
         </div>`;
       }
 
-      const result = await new Promise<string|null>((resolve) => {
+      const result = await new Promise<string | null>((resolve) => {
         new Dialog({
           title: getLocalizer().localize("k4lt.AskAttribute"),
           content: `
@@ -589,18 +822,29 @@ export default function registerEunosActor(): void {
           buttons: {
             cancel: {
               label: "❌",
-              callback: () => { resolve(null) }
-            }
+              callback: () => {
+                resolve(null);
+              },
+            },
           },
           render: (html: HTMLElement | JQuery) => {
-            $(html).closest(".app.window-app.dialog").addClass("blurred-bg-dialog attribute-select-dialog");
-            $(html).find('.attribute-button').on('click', function(event) {
-              const value = $(event.currentTarget).data('attribute') as string;
-              resolve(value);
-              $(event.currentTarget).closest(".dialog").find(".close").trigger("click");
-            });
+            $(html)
+              .closest(".app.window-app.dialog")
+              .addClass("blurred-bg-dialog attribute-select-dialog");
+            $(html)
+              .find(".attribute-button")
+              .on("click", function (event) {
+                const value = $(event.currentTarget).data(
+                  "attribute",
+                ) as string;
+                resolve(value);
+                $(event.currentTarget)
+                  .closest(".dialog")
+                  .find(".close")
+                  .trigger("click");
+              });
           },
-          default: "cancel"
+          default: "cancel",
         }).render(true);
       });
 
@@ -632,9 +876,7 @@ export default function registerEunosActor(): void {
               ? await this.askForAttribute()
               : move.system.attributemod;
 
-          if (attr === null) {
-            return;
-          }
+          if (!attr) { return; }
 
           kultLogger("Attribute => ", attr);
 
@@ -647,24 +889,58 @@ export default function registerEunosActor(): void {
             specialflag,
           } = move.system;
 
-          let mod = 0;
-          let harm = 0;
-          const woundPenalty = this.getWoundPenaltyFor(move);
-          const stabilityPenalty = this.getStabilityPenaltyFor(move);
-          const stabilityConditionsPenalty =
-            await this.getStabilityConditionsPenalty();
-          if (stabilityConditionsPenalty === null) {
-            return;
+          const simpleOptionsCheck = {
+            [EunosRollResult.completeSuccess]: showOptionsFor.success,
+            [EunosRollResult.partialSuccess]: showOptionsFor.partial,
+            [EunosRollResult.failure]: showOptionsFor.failure,
           }
-          const situation =
-            woundPenalty + stabilityPenalty + stabilityConditionsPenalty;
-          const forward: number = this.system.forward ?? 0;
-          let ongoing: number = this.system.ongoing ?? 0;
 
           let secondChatMessageContent: Maybe<string> = undefined;
 
-          if (specialflag === 3) {
-            // Endure Injury
+          const modifiers: Array<{
+            value: number;
+            name: string;
+            cssClasses?: string;
+          }> = [];
+
+          const woundPenalty = this.getWoundPenaltyFor(move);
+          if (woundPenalty) {
+            modifiers.push({
+              value: woundPenalty,
+              name: "Wounds",
+              cssClasses: "modifier-negative",
+            });
+          }
+
+          const stabilityPenalty = this.getStabilityPenaltyFor(move);
+          if (stabilityPenalty) {
+            modifiers.push({
+              value: stabilityPenalty,
+              name: "Stability",
+              cssClasses: "modifier-negative",
+            });
+          }
+
+          const stabilityConditionPenalties = await this.getStabilityConditionsPenalties();
+          modifiers.push(...stabilityConditionPenalties);
+
+          if (this.system.forward) {
+            modifiers.push({
+              value: this.system.forward,
+              name: "One-Time Modifier",
+              cssClasses: this.system.forward > 0 ? "modifier-positive" : "modifier-negative",
+            })
+          }
+
+          if (this.system.ongoing) {
+            modifiers.push({
+              value: this.system.ongoing,
+              name: "Ongoing Modifier",
+              cssClasses: this.system.ongoing > 0 ? "modifier-positive" : "modifier-negative",
+            })
+          }
+
+          if (specialflag === 3) { // Endure Injury
             const boxoutput = await new Promise<{ harm_value: number | null }>(
               (resolve) => {
                 new Dialog({
@@ -673,9 +949,12 @@ export default function registerEunosActor(): void {
                     <div class="endure-harm-dialog">
                       <label>Incoming Harm</label>
                       <div class="harm-buttons">
-                        ${[1, 2, 3, 4, 5, 6].map(num =>
-                          `<button class="harm-button" data-value="${num}">${num}</button>`
-                        ).join('')}
+                        ${[1, 2, 3, 4, 5, 6]
+                          .map(
+                            (num) =>
+                              `<button class="harm-button" data-value="${num}">${num}</button>`,
+                          )
+                          .join("")}
                       </div>
                     </div>`,
                   buttons: {
@@ -686,34 +965,54 @@ export default function registerEunosActor(): void {
                       },
                     },
                   },
-                  render: function(html: HTMLElement | JQuery) {
-                    $(html).closest(".app.window-app.dialog").addClass("blurred-bg-dialog endure-harm-dialog");
-                    $(html).find('.harm-button').on('click', function(event) {
-                      const value = Number((event.currentTarget).dataset['value']);
-                      resolve({ harm_value: value });
-                      $(event.currentTarget).closest(".dialog").find(".close").trigger("click");
-                    });
+                  render: function (html: HTMLElement | JQuery) {
+                    $(html)
+                      .closest(".app.window-app.dialog")
+                      .addClass("blurred-bg-dialog endure-harm-dialog");
+                    $(html)
+                      .find(".harm-button")
+                      .on("click", function (event) {
+                        const value = Number(
+                          event.currentTarget.dataset["value"],
+                        );
+                        resolve({ harm_value: value });
+                        $(event.currentTarget)
+                          .closest(".dialog")
+                          .find(".close")
+                          .trigger("click");
+                      });
                   },
-                  default: "cancel"
+                  default: "cancel",
                 }).render(true);
-              }
+              },
             );
 
             if (boxoutput.harm_value === null) {
               return;
             }
 
-            harm = boxoutput.harm_value;
-            ongoing += this.armor;
-          } else if (specialflag === 4) {
-            // Engage In Combat
+            modifiers.push({
+              value: -1 * boxoutput.harm_value,
+              name: "Harm",
+              cssClasses: "modifier-negative",
+            });
+
+            if (this.armor > 0) {
+              modifiers.push({
+                value: this.armor,
+                name: "Armor",
+                cssClasses: "modifier-positive",
+              });
+            }
+          } else if (specialflag === 4) { // Engage In Combat
             const content = await renderTemplate(
               getTemplatePath("dialog", "dialog-engage-in-combat.hbs"),
               this,
             );
-            const dialogOutput = await new Promise<
-              Maybe<{ weapon: EunosItem; index: number }> | null
-            >((resolve) => {
+            const dialogOutput = await new Promise<Maybe<{
+              weapon: EunosItem;
+              index: number;
+            }> | null>((resolve) => {
               new Dialog({
                 title: "Select Attack",
                 content,
@@ -812,35 +1111,19 @@ export default function registerEunosActor(): void {
             if (dialogOutput === null) {
               return;
             }
-            if (
-              dialogOutput?.weapon &&
-              dialogOutput?.index !== undefined
-            ) {
+            if (dialogOutput?.weapon && dialogOutput?.index !== undefined) {
               secondChatMessageContent =
                 dialogOutput.weapon.getAttackChatMessage(dialogOutput.index);
             }
           }
-          kultLogger("Forward => ", forward);
-          kultLogger("Ongoing => ", ongoing);
-          kultLogger("Wound Penalty => ", woundPenalty);
-          kultLogger("Stability Penalty => ", stabilityPenalty);
-          kultLogger(
-            "Stability Conditions Penalty => ",
-            stabilityConditionsPenalty,
-          );
 
-          if (attr != "" && attr != "none") {
-            mod =
-              this.system.attributes[attr as keyof ActorDataPC["attributes"]] ??
-              0;
-          }
+          kultLogger("Modifiers => ", modifiers);
 
-          kultLogger("Attribute Mod => ", mod);
-          kultLogger("Situation Mod => ", situation);
-          kultLogger("Harm => ", harm);
+          const attrVal = this.system.attributes[attr as keyof ActorDataPC["attributes"]] ?? 0;
+          const modTotal = modifiers.reduce((acc, mod) => acc + mod.value, 0);
 
           const r = new Roll(
-            `2d10 + ${mod} + ${ongoing} + ${forward} + ${situation} - ${harm}`,
+            `2d10 + ${attrVal} + ${modTotal}`,
           );
           await r.evaluate();
 
@@ -848,55 +1131,32 @@ export default function registerEunosActor(): void {
             getNotifier().warn("Roll total is not a number.");
             return;
           }
+
+          const outcome = r.total >= 15
+            ? EunosRollResult.completeSuccess
+            : r.total >= 10
+            ? EunosRollResult.partialSuccess
+            : EunosRollResult.failure;
+
+          const resultText = {
+            [EunosRollResult.completeSuccess]: completesuccess ?? "",
+            [EunosRollResult.partialSuccess]: partialsuccess ?? "",
+            [EunosRollResult.failure]: failure ?? "",
+          }[outcome] ?? "";
+
           await this.update({ system: { forward: 0 } });
-          kultLogger(`Forward is ${this.system.forward}`);
 
-          let rollMode = getSettings().get("core", "rollMode");
-          if (moveType == "disadvantage") {
-            rollMode = "gmroll";
-            kultLogger("rollMode => ", rollMode);
-          }
+          const rollMode = getSettings().get("core", "rollMode");
 
-          if (r.total >= 15) {
-            await this.displayRollResult(
-              {
-                roll: r,
-                moveName,
-                result: "completesuccess",
-                resultText: getLocalizer().localize("k4lt.Success"),
-                moveResultText: completesuccess ?? "",
-                optionsText: showOptionsFor.success ? (options ?? "") : "",
-                rollMode: rollMode ?? "",
-              },
-              secondChatMessageContent,
-            );
-          } else if (r.total < 10) {
-            await this.displayRollResult(
-              {
-                roll: r,
-                moveName,
-                result: "failure",
-                resultText: getLocalizer().localize("k4lt.Failure"),
-                moveResultText: failure ?? "",
-                optionsText: showOptionsFor.failure ? (options ?? "") : "",
-                rollMode: rollMode ?? "",
-              },
-              secondChatMessageContent,
-            );
-          } else {
-            await this.displayRollResult(
-              {
-                roll: r,
-                moveName,
-                result: "partialsuccess",
-                resultText: getLocalizer().localize("k4lt.PartialSuccess"),
-                moveResultText: partialsuccess ?? "",
-                optionsText: showOptionsFor.partial ? (options ?? "") : "",
-                rollMode: rollMode ?? "",
-              },
-              secondChatMessageContent,
-            );
-          }
+          await this.displayRollToChat({
+            roll: r,
+            attribute: attr,
+            modifiers,
+            source: move,
+            resultText,
+            optionsText: simpleOptionsCheck[outcome] ? (options ?? "") : "",
+            rollMode: rollMode ?? "",
+          }, secondChatMessageContent);
         } else {
           await move.showInChat();
         }
@@ -905,11 +1165,18 @@ export default function registerEunosActor(): void {
 
     override _onUpdate(...args: Parameters<Actor["_onUpdate"]>): void {
       super._onUpdate(...args);
-      if (!this.isPC()) { return; }
+      if (!this.isPC()) {
+        return;
+      }
       void EunosOverlay.instance.updateStabilityBG(this);
-      if (!getUser().isGM) { return; }
+      if (!getUser().isGM) {
+        return;
+      }
       if (EunosOverlay.instance.isAssigningDramaticHooks) {
-        EunosOverlay.instance.updateDramaticHookAssignmentPopUp(getOwnerOfDoc(this)?.id ?? "", this.system.dramatichooks.assignedHook ?? "");
+        EunosOverlay.instance.updateDramaticHookAssignmentPopUp(
+          getOwnerOfDoc(this)?.id ?? "",
+          this.system.dramatichooks.assignedHook ?? "",
+        );
       }
     }
   }

@@ -1,0 +1,102 @@
+@use "../globals/mixins" as *;
+
+#interface #ui-right #sidebar {
+  /* SYSTEM-SPECIFIC CONFIG */
+  --sidebar-horiz-gutter: 100px;
+  --sidebar-tabs-horiz-overhang: 20px;
+  --sidebar-chat-input-height: 150px;
+
+  /* FOUNDRY OVERRIDES */
+  --sidebar-width: 300px;
+  --sidebar-internal-width: calc(
+    var(--sidebar-width) + var(--sidebar-horiz-gutter) - var(--scrollbar-width)
+  );
+  --sidebar-header-height: 32px; // 0px; // 32px;
+  --sidebar-item-height: 48px; // 80px; // 48px;
+
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+
+  --gradient-stop-1: calc(var(--sidebar-width));
+  --gradient-stop-2: calc(var(--gradient-stop-1) + 30px);
+  background: linear-gradient(
+    to left,
+    var(--K4-dBLACK) var(--gradient-stop-1),
+    transparent var(--gradient-stop-2)
+  );
+  background: transparent;
+
+  height: 100%;
+  width: calc(var(--sidebar-width) + var(--sidebar-horiz-gutter));
+  padding-bottom: 10px;
+
+  @include set-default-theme();
+
+  #sidebar-tabs {
+    box-shadow: none;
+    position: relative;
+    z-index: 50;
+    justify-content: stretch;
+    background: var(--K4-dBLACK);
+
+    &[data-tooltip-direction="DOWN"] {
+      box-shadow: 0 5px 5px var(--K4-BLACK);
+      width: calc(var(--sidebar-width) + var(--sidebar-tabs-horiz-overhang));
+      margin-left: calc(
+        var(--sidebar-horiz-gutter) - var(--sidebar-tabs-horiz-overhang)
+      );
+      margin-bottom: 0;
+    }
+    .item {
+      flex: 1;
+      i {
+        font-size: 26px;
+      }
+    }
+    .item[data-tab="combat"],
+    .item[data-tab="items"],
+    .item[data-tab="scenes"],
+    .item[data-tab="tables"],
+    .item[data-tab="cards"],
+    .item[data-tab="playlists"],
+    .item[data-tab="compendium"] {
+      display: none;
+    }
+  }
+
+  section.tab.active {
+    padding-left: calc(var(--sidebar-horiz-gutter) - var(--scrollbar-width));
+    &:not(#chat) {
+      background: linear-gradient(
+        to left,
+        var(--K4-dBLACK) var(--gradient-stop-1),
+        transparent var(--gradient-stop-2)
+      );
+    }
+  }
+
+  .quench-button {
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    transform-origin: bottom left;
+    scale: 0.85;
+  }
+}
+
+body.gm-user {
+  #interface #ui-right #sidebar {
+    #sidebar-tabs {
+      .item i { font-size: 20px;}
+      .item[data-tab="items"],
+      .item[data-tab="scenes"],
+      .item[data-tab="cards"],
+      .item[data-tab="playlists"],
+      .item[data-tab="compendium"] {
+        display: block;
+      }
+    }
+  }
+}

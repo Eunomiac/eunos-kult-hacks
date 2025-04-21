@@ -12,7 +12,8 @@ import ItemDataMove from "../data-model/ItemDataMove";
 import ItemDataOccupation from "../data-model/ItemDataOccupation";
 import ItemDataRelationship from "../data-model/ItemDataRelationship";
 import ItemDataWeapon from "../data-model/ItemDataWeapon";
-import { GamePhase } from "../scripts/enums";
+import EunosRoll from "../apps/EunosRoll";
+import { EunosRollResult, GamePhase } from "../scripts/enums";
 import { UserTarget } from "../apps/EunosSockets";
 import { type Location, type EunosMediaData } from "../scripts/constants";
 
@@ -21,6 +22,7 @@ declare global {
   interface DocumentClassConfig {
     Actor: typeof EunosActor;
     Item: typeof EunosItem;
+    Roll: typeof EunosRoll;
   }
 
   interface DataModelConfig {
@@ -49,6 +51,17 @@ declare global {
         sheetTab: string;
       }
     };
+    ChatMessage: {
+      ["eunos-kult-hacks"]: {
+        cssClasses: string[];
+        isSummary: boolean;
+        isAnimated: boolean;
+        isRoll: boolean;
+        isTrigger: boolean;
+        isEdge: boolean;
+        rollOutcome?: EunosRollResult;
+      }
+    }
   }
 
 

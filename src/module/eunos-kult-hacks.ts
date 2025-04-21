@@ -16,6 +16,7 @@ import EunosOverlay from "./apps/EunosOverlay.ts";
 import EunosAlerts from "./apps/EunosAlerts.ts";
 import overrideActor from "./documents/EunosActor.ts";
 import EunosItem from "./documents/EunosItem.ts";
+import EunosChatMessage from "./apps/EunosChatMessage.ts";
 import overridePCSheet from "./documents/sheets/EunosPCSheet.ts";
 import overrideNPCSheet from "./documents/sheets/EunosNPCSheet.ts";
 import overrideItemSheet from "./documents/sheets/EunosItemSheet.ts";
@@ -79,6 +80,8 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs",
   "modules/eunos-kult-hacks/templates/alerts/alert-simple.hbs",
   "modules/eunos-kult-hacks/templates/apps/chat/roll-card.hbs",
+  "modules/eunos-kult-hacks/templates/sidebar/result-rolled.hbs",
+  "modules/eunos-kult-hacks/templates/sidebar/chat-message.hbs",
   "modules/eunos-kult-hacks/templates/dialog/dialog-engage-in-combat.hbs",
   "modules/eunos-kult-hacks/templates/dialog/volume-control.hbs"
 ];
@@ -132,12 +135,14 @@ assignGlobals({
   EunosAlerts,
   EunosSockets,
   EunosMedia,
+  EunosChatMessage,
   kLog,
   InitializableClasses: {
     EunosSockets,
     EunosAlerts,
     EunosMedia,
-    EunosOverlay
+    EunosOverlay,
+    EunosChatMessage
   } as const
 });
 

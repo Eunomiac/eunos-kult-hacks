@@ -14,6 +14,7 @@
 import type {Quench} from "@ethaks/fvtt-quench";
 import type EunosActor from "../documents/EunosActor";
 import type EunosItem from "../documents/EunosItem";
+import type EunosChatMessage from "../apps/EunosChatMessage";
 import type {UserTargetRef, PCTargetRef} from "../scripts/enums";
 
 // Should look like:   // type EffectChangeData = import("@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/documents/_types.d.mts").EffectChangeData;
@@ -202,7 +203,7 @@ declare global {
    * @returns A Collection of K4ChatMessage instances.
    * @throws Error if the Messages collection is not ready.
    */
-  // function getMessages(): Collection<K4ChatMessage>;
+  function getMessages(): Collection<EunosChatMessage>;
 
   /**
    * Retrieves the collection of all User instances in the game.

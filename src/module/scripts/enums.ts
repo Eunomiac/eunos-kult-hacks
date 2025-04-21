@@ -93,4 +93,10 @@ export enum AlertType {
   central = "central",
   dramaticHookReward = "dramaticHookReward",
   advancementReward = "advancementReward"
-};
+}
+
+export enum EunosRollResult {
+  completeSuccess = "completeSuccess",
+  partialSuccess = "partialSuccess",
+  failure = "failure"
+}

@@ -1,10 +1,18 @@
-@use "globals/colors";
+
+
 @use "globals/typography";
 @use "globals/globals";
+@use "globals/mixins";
+@use "globals/colors";
 @use "globals/item-block";
-@use "apps/chat";
 @use "apps/dialog";
 @use "apps/eunos-overlay";
 @use "sheets/sheets";
-@use "apps/interface";
+@use "interface/interface";
+@use "interface/chat";
+@use "interface/sidebar";
 @use "globals/popovers";
+
+:root {
+  --scrollbar-width: 6px;
+}
