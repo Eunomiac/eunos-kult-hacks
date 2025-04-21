@@ -88,9 +88,9 @@ $rem-80: 80px;
     --chat-intro-header-icon-vert-shift: 0px;
     --chat-intro-header-char-font-size: 26px;
 
-    --chat-source-header-name-border-color: var(--K4-color-primary-bright);
+    --chat-source-header-name-border-color: var(--K4-color-primary);
     --chat-source-header-name-bg-color: var(--K4-color-contrast-high);
-    --chat-source-header-name-text-color: var(--K4-color-primary-bright);
+    --chat-source-header-name-text-color: var(--K4-color-primary);
     --chat-source-header-name-font-size: 18px;
     --chat-source-header-name-vert-padding: 5px;
 
@@ -115,14 +115,16 @@ $rem-80: 80px;
 
     .chat-message {
       --K4-chat-border-image: #{to-url("chat/border-default.svg")};
+      --color-text-primary: var(--K4-color-primary);
       width: calc(var(--sidebar-width) - 20px);
       margin: var(--chat-vert-spacing) 0 var(--chat-vert-spacing)
-        calc(/* var(--sidebar-horiz-gutter) -  */var(--scrollbar-width) + 20px);
+        calc(/* var(--sidebar-horiz-gutter) -  */ var(--scrollbar-width) + 20px);
       padding: 0;
       position: relative;
       background: transparent;
       left: -17px;
       border: none;
+      color: var(--color-text-primary);
 
       &:last-child {
         margin-bottom: 20px;
@@ -698,8 +700,7 @@ $rem-80: 80px;
         }
       }
 
-
-    .message-header {
+      .message-header {
         opacity: 0;
         transition: 0.25s;
         position: absolute;
@@ -785,6 +786,25 @@ $rem-80: 80px;
             text-align: justify;
             display: block;
             width: 100%;
+          }
+
+          .text-attributename,
+          .key-word {
+            font-weight: 700;
+            @include neon-glow-soft(rgba(253, 253, 253), rgba(3, 247, 249, 0.561));
+          }
+
+          .text-attributename,
+          .text-attributename *,
+          .key-word,
+          .key-word * {
+            color: var(--K4-bWHITE) !important;
+          }
+          .gm-move-text,
+          .weapon-name {
+            // @include neon-glow-soft(rgb(255, 159, 159), rgba(252, 31, 31, 0.5));
+            @include neon-glow-animated(red, var(--K4-bbRED), white);
+            color: var(--K4-bWHITE) !important;
           }
 
           .roll-intro-header,
@@ -948,9 +968,66 @@ $rem-80: 80px;
             }
           }
 
+          .item-block.item-block-attack {
+            margin-bottom: 15px;
+            width: calc(100% + 20px);
+            margin-left: -10px;
+            margin-top: -10px;
+            padding: 0;
+            .item-header {
+              --fg-color: var(--K4-color-primary);
+              .item-name {
+                background: var(--K4-dRED);
+              }
+
+            }
+
+            .item-subheader {
+              padding-top: 0px;
+              padding-bottom: 0px;
+              background: var(--K4-ddRED);
+              border-radius: 0;
+              flex-wrap: nowrap;
+
+              * {
+                white-space: nowrap;
+              }
+              .item-harm::before {
+                content: "Harm: ";
+                color: var(--K4-color-primary);
+                text-transform: lowercase;
+                font-family: var(--font-primary-smallcaps);
+                text-shadow: none !important;
+              }
+
+              .item-ammo-cost {
+                .bullet-icon {
+                  height: 14px;
+                  width: 6px;
+                  margin-bottom: 4px;
+                  margin-top: 2px;
+                  background: var(--K4-bbGOLD);
+                  transform: none;
+                }
+              }
+            }
+
+            .item-body {
+              margin-top: -3px;
+              .item-description {
+                // font-family: var(--font-primary);
+                // text-align: right;
+                font-style: italic;
+                color: var(--K4-bbGOLD);
+                background: var(--K4-ddRED);
+                padding-bottom: 0;
+              }
+            }
+          }
+
           &.chat-roll-result {
             &.roll-result-completeSuccess {
-              --roll-result-fg: var(--K4-color-primary-bright);
+              --roll-result-fg: var(--K4-bbGOLD);
               --roll-outcome-height: var(--chat-outcome-main-font-size);
               --list-bullet-image: #{to-url("icons/bullets/bullet-gold.svg")};
             }
@@ -972,8 +1049,7 @@ $rem-80: 80px;
             ul {
               li::before {
                 content: "";
-                background: transparent
-                  var(--list-bullet-image) no-repeat
+                background: transparent var(--list-bullet-image) no-repeat
                   center center/10px;
                 margin-left: -22px;
                 margin-right: 6px;
@@ -996,12 +1072,12 @@ $rem-80: 80px;
                 "roll-total roll-dice"
                 "roll-total roll-modifiers"
                 "roll-total roll-outcome";
-              grid-template-columns: var(
-                  --chat-dice-results-dice-total-width
-                ) 1fr;
-              grid-template-rows: var(
-                  --chat-dice-results-term-container-size
-                ) 1fr var(--roll-outcome-height);
+              grid-template-columns:
+                var(--chat-dice-results-dice-total-width)
+                1fr;
+              grid-template-rows:
+                var(--chat-dice-results-term-container-size)
+                1fr var(--roll-outcome-height);
               text-shadow: 0 0 1px var(--K4-BLACK) !important;
               position: relative;
 
@@ -1204,10 +1280,7 @@ $rem-80: 80px;
           }
 
           .chat-roll-result {
-
             --source-item-vert-shift: 32px;
-
-
 
             &.mod-rows-0 {
               --modifiers-height: 0px;
@@ -1235,10 +1308,7 @@ $rem-80: 80px;
               --roll-total-vert-scale: 1.15;
             }
 
-
-
             .roll-dice-results {
-
               .roll-modifiers {
                 grid-area: roll-modifiers;
                 display: flex;
@@ -1290,13 +1360,8 @@ $rem-80: 80px;
                   }
                 }
               }
-
-
             }
-
-
           }
-
 
           ul,
           ul.rules-list,

@@ -325,8 +325,8 @@ export default function registerEunosActor(): void {
         Scared: -1,
         GuiltRidden: -1,
         Obsessed: -1,
-        Distracted: -1,
-        Haunted: -2,
+        Distracted: -2,
+        Haunted: -1,
       };
       function formatConditionRow(
         conditions: Array<keyof typeof conditionMap>,
@@ -578,7 +578,7 @@ export default function registerEunosActor(): void {
       optionsText: string;
       rollMode: string;
     },
-      secondMessageContent?: string,
+      auxChatContent$?: JQuery,
     ) {
       if (!this.isPC()) {
         return;
@@ -653,8 +653,17 @@ export default function registerEunosActor(): void {
         ),
       ];
 
-      if (secondMessageContent) {
-        contents.push(secondMessageContent);
+      if (auxChatContent$) {
+        const chatContent$ = $(contents.join("\n"));
+        // Locate the ".roll-source-header" element, and append auxChatContent$ as its next sibling
+        const rollSourceHeader$ = chatContent$.find(".roll-source-header");
+        if (rollSourceHeader$.length > 0) {
+          rollSourceHeader$.after(auxChatContent$);
+        }
+        // Clear the contents array.
+        contents.length = 0;
+        // Push the new chat content with outer HTML.
+        contents.push((chatContent$.prop('outerHTML') as Maybe<string>) ?? "");
       }
 
       const chatData = {
@@ -895,7 +904,7 @@ export default function registerEunosActor(): void {
             [EunosRollResult.failure]: showOptionsFor.failure,
           }
 
-          let secondChatMessageContent: Maybe<string> = undefined;
+          let auxChatContent$: Maybe<JQuery> = undefined;
 
           const modifiers: Array<{
             value: number;
@@ -1112,8 +1121,8 @@ export default function registerEunosActor(): void {
               return;
             }
             if (dialogOutput?.weapon && dialogOutput?.index !== undefined) {
-              secondChatMessageContent =
-                dialogOutput.weapon.getAttackChatMessage(dialogOutput.index);
+              auxChatContent$ =
+                $(dialogOutput.weapon.getAttackChatMessage(dialogOutput.index));
             }
           }
 
@@ -1156,7 +1165,7 @@ export default function registerEunosActor(): void {
             resultText,
             optionsText: simpleOptionsCheck[outcome] ? (options ?? "") : "",
             rollMode: rollMode ?? "",
-          }, secondChatMessageContent);
+          }, auxChatContent$);
         } else {
           await move.showInChat();
         }

@@ -894,6 +894,10 @@ class EunosChatMessage extends ChatMessage {
     });
   }
 
+  get ageInSeconds(): number {
+    return (Date.now() - this.timestamp) / 1000;
+  }
+
   /**
    * Gets the CSS classes associated with this message from its flags.
    * @returns {string[]} An array of CSS class names.
@@ -949,6 +953,7 @@ class EunosChatMessage extends ChatMessage {
    * @param {JQuery} [html] - Optional jQuery element to apply classes to. If not provided, uses the message's element.
    */
   addClass(this: EunosChatMessage, cls: ValueOrArray<string>, html?: JQuery) {
+    if (!getUser().isGM) { return; }
     const classes = [cls].flat();
     const curClasses = this.cssClasses;
     if (classes.some((newCls) => !curClasses.includes(newCls))) {
@@ -963,6 +968,7 @@ class EunosChatMessage extends ChatMessage {
    * @param {JQuery} [html] - Optional jQuery element to remove classes from. If not provided, uses the message's element.
    */
   remClass(this: EunosChatMessage, cls: ValueOrArray<string>, html?: JQuery) {
+    if (!getUser().isGM) { return; }
     const remClasses = [cls].flat();
     const curClasses = this.cssClasses;
     if (remClasses.some((remCls) => curClasses.includes(remCls))) {
@@ -995,6 +1001,12 @@ class EunosChatMessage extends ChatMessage {
     if (this.isChatRoll()) {
       const { timeline } = await MASTER_TIMELINES.animateRollResult(this.elem$, this);
       this.animationTimeline = timeline;
+      if (this.ageInSeconds > 20) {
+        this.freeze();
+        EunosChatMessage.ChatLog.scrollTo({
+          top: EunosChatMessage.ChatLog.scrollHeight
+        });
+      }
     } else if (this.isChatTrigger()) {
       this.animationTimeline = MASTER_TIMELINES.animateTriggerResult(this.elem$, this);
     }

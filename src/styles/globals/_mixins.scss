@@ -7,7 +7,7 @@ $font-weight-black: 900;
 
 @mixin set-default-theme() {
 	--K4-color-primary: var(--K4-GOLD);
-	--K4-color-primary-bright: var(--K4-bGOLD);
+	--K4-color-primary-bright: var(--K4-BLACK);
 	--K4-color-primary-glow: var(--K4-bbGOLD);
 	--K4-color-primary-dark: var(--K4-dGOLD);
 
