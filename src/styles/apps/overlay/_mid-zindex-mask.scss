@@ -150,6 +150,19 @@
       top: calc(25% + 64px + 48px + 32px);
       left: 25%;
     }
+
+    .loading-screen-item-right-side-image {
+      transform: translate(-50%, -50%);
+      top: 90vh;
+      right: 0vw;
+
+      img {
+        height: 60vh;
+        width: auto;
+        filter: drop-shadow(100px 100px 5px rgba(0, 0, 0, 0.55));
+        border: none;
+      }
+    }
   }
 
   .canvas-mask {
