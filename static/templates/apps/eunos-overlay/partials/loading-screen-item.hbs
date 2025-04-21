@@ -16,4 +16,9 @@
   <div class="loading-screen-item-body">
     {{{data.body}}}
   </div>
+  {{#if data.rightSideImageURL}}
+    <div class="loading-screen-item-right-side-image">
+      <img src="{{data.rightSideImageURL}}" alt="{{data.title}}">
+    </div>
+  {{/if}}
 </div>

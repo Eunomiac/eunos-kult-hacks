@@ -202,6 +202,14 @@ export default function registerSettings() {
       EunosOverlay.currentLocationDataLog = value;
     }
   })
+  getSettings().register("eunos-kult-hacks", "volumeOverrides", {
+    name: "Volume Overrides",
+    hint: "A record of the volume overrides for each sound.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {}
+  })
   getSettings().register("eunos-kult-hacks", "sessionScribeDeck", {
     name: "Session Scribe",
     hint: "The deck of remaining userIDs to be assigned session scribe this round.",

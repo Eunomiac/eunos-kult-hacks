@@ -1,5 +1,6 @@
 import { EunosMediaTypes } from "../scripts/enums";
 import EunosMedia from "./EunosMedia";
+import EunosOverlay from "./EunosOverlay";
 import EunosSockets from "./EunosSockets";
 
 export class EunosVolumeDialog extends Application {
@@ -72,10 +73,15 @@ export class EunosVolumeDialog extends Application {
       });
 
     // Send volume updates to all clients
-    await EunosSockets.getInstance().call(
-      "updateMediaVolumes",
-      "all",
-      { volumes }
-    );
+    await Promise.all([
+      EunosSockets.getInstance().call(
+        "updateMediaVolumes",
+        "all",
+        { volumes }
+      ),
+      ...Object.entries(volumes).map(([soundName, volume]) =>
+        EunosOverlay.instance.setVolumeOverride(soundName, volume)
+      )
+    ]);
   }
 }

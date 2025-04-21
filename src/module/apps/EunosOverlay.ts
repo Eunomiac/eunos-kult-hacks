@@ -1783,14 +1783,6 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return this.#ambientAudio;
   }
 
-  private async initializeAmbientAudio(): Promise<void> {
-    try {
-      await this.getAmbientAudio().play();
-    } catch (error: unknown) {
-      kLog.error("Failed to play ambient audio", error);
-    }
-  }
-
   private async killSessionClosedAmbientAudio(): Promise<void> {
     // if (!this.#ambientAudio) { return; }
     await this.getAmbientAudio(false).kill(5);
@@ -1877,6 +1869,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       const $subtitle = item$.find(".loading-screen-item-subtitle");
       const $home = item$.find(".loading-screen-item-home");
       const $body = item$.find(".loading-screen-item-body");
+      const $rightSideImage = item$.find(".loading-screen-item-right-side-image");
 
       const entryDuration = PRE_SESSION.LOADING_SCREEN_ITEM_DURATION.ENTRY;
       const displayDuration = PRE_SESSION.LOADING_SCREEN_ITEM_DURATION.DISPLAY;
@@ -1895,6 +1888,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           },
         })
         .addLabel("start")
+        .to($rightSideImage, {
+          y: "-80vh",
+          duration: entryDuration + displayDuration + exitDuration - (3 * entryDuration) / 5,
+          ease: "slow(0.6, 1.25)"
+        }, (3 * entryDuration) / 5)
+        .fromTo($rightSideImage, {
+          autoAlpha: 0,
+          filter: "blur(20px)",
+        }, {
+          autoAlpha: 1,
+          filter: "blur(0px)",
+          duration: entryDuration + displayDuration + exitDuration - (3 * entryDuration) / 5,
+          ease: "slow(0.6, 1.25, true)"
+        }, (3 * entryDuration) / 5)
         .fromTo(
           $image,
           {
@@ -1912,7 +1919,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             scale: 1,
             duration: entryDuration + displayDuration + exitDuration,
             ease: "back.out(2)",
-          },
+          }, "start"
         )
         .fromTo(
           $image,
@@ -2461,7 +2468,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      EunosMedia.SetSoundscape({ "ambient-session-closed": null }),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null }),
     ]);
     // this.addCanvasMaskListeners();
   }
@@ -2471,7 +2478,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      EunosMedia.SetSoundscape({ "ambient-session-closed": null }),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null  }),
     ]);
     // this.addCanvasMaskListeners();
   }
@@ -2505,7 +2512,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.initializeCountdown(),
       this.initializePreSessionSong(),
       this.preloadIntroVideo(),
-      EunosMedia.SetSoundscape({ "ambient-session-closed": null }),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null  }),
     ]);
     if (!getUser().isGM) return;
 
@@ -6050,6 +6057,52 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #endregion Getting & Setting Location Data & Location PC Data ~
 
+  public getVolumeOverride(mediaName: string, location?: string, imgKey?: string): Maybe<number> {
+    const volumeOverrideData = foundry.utils.flattenObject(getSetting("volumeOverrides")) as Record<string, number>;
+    const dotKeyImg = [mediaName, location, imgKey].filter(Boolean).join(".");
+    const dotKeyLoc = [mediaName, location].filter(Boolean).join(".");
+    const dotKeyMedia = [mediaName].filter(Boolean).join(".");
+    const volumeOverride = volumeOverrideData[dotKeyImg] ?? volumeOverrideData[dotKeyLoc] ?? volumeOverrideData[dotKeyMedia];
+    return volumeOverride;
+  }
+
+  public async setVolumeOverride(mediaName: string, volumeOverride: number): Promise<void> {
+    let dotKey: Maybe<string> = undefined;
+    // Need to determine whether this is a location-specific override, an image-specific override, or a media-specific override
+    const location = getSetting("currentLocation");
+    const locData = this.getLocationData(location);
+    const {audioDataOutdoors, audioDataIndoors, audioDataByImage} = locData;
+    if (audioDataByImage) {
+      const currentImage = locData.currentImage;
+      if (currentImage) {
+        const imgData = audioDataByImage[currentImage];
+        const imgSpecificMedia = imgData?.[mediaName];
+        if (imgSpecificMedia) {
+          dotKey = [mediaName, location, currentImage].join(".");
+        }
+      }
+    }
+    if (!dotKey) {
+      const audioData =
+        (this.isIndoors && audioDataIndoors) ? audioDataIndoors
+        : (!this.isIndoors && audioDataOutdoors) ? audioDataOutdoors
+        : (audioDataIndoors ?? audioDataOutdoors);
+      if (audioData) {
+        const locSpecificMedia = audioData[mediaName];
+        if (locSpecificMedia) {
+          dotKey = [mediaName, location].join(".");
+        }
+      }
+    }
+    if (!dotKey) {
+      dotKey = mediaName;
+    }
+
+    const overrideUpdateData = foundry.utils.expandObject({[dotKey]: volumeOverride});
+    const fullOverrideData = foundry.utils.mergeObject(getSetting("volumeOverrides"), overrideUpdateData);
+    await setSetting("volumeOverrides", fullOverrideData);
+  }
+
   // #region Updating Weather Audio ~
   public async updateWeatherAudio() {
     const weatherAudio = getSetting("weatherAudio");
@@ -6065,6 +6118,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Identify all tracks that are present in the value, and start them. Reduce the volume to 10% if currently indoors.
     Object.entries(weatherAudio).forEach(([mediaName, volume]) => {
       const media = EunosMedia.GetMedia(mediaName);
+      // Check volumeOverrides setting to see whether this media name has a volume override unassociated with a location or location image
+      volume = this.getVolumeOverride(mediaName) ?? volume;
       if (media) {
         void media.play({ volume });
         if (!this.isOutdoors) {
@@ -6147,7 +6202,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Pause stage-waver timeline
     this.#stageWaverTimeline?.pause();
 
-    const { key, audioDataIndoors, audioDataOutdoors } = this.getLocationData();
+    const { key, currentImage, audioDataIndoors, audioDataOutdoors } = this.getLocationData();
 
     // 1. Dampen all outdoor audio, UNLESS it also appears in audioDataIndoors
     if (audioDataOutdoors) {
@@ -6163,7 +6218,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // 2. Fade in any audioDataIndoors from location.
     if (audioDataIndoors) {
       Object.values(audioDataIndoors).forEach((media) => {
-        void media.play({ fadeInDuration: 2 });
+        const volume = this.getVolumeOverride(media.name, key, currentImage ?? undefined) ?? media.volume;
+        void media.play({ volume, fadeInDuration: 2 });
       });
     }
 
@@ -6188,7 +6244,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     await this.updateWeatherAudio();
 
-    const { key, audioDataIndoors, audioDataOutdoors } = this.getLocationData();
+    const { key, currentImage, audioDataIndoors, audioDataOutdoors } = this.getLocationData();
 
     // 1. Kill all indoor audio, UNLESS it also appears in audioDataOutdoors
     if (audioDataIndoors) {
@@ -6200,7 +6256,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // 2. Fade in any audioDataOutdoors from the location
     if (audioDataOutdoors) {
       Object.values(audioDataOutdoors).forEach((media) => {
-        void media.play({ fadeInDuration: 2 });
+        const volume = this.getVolumeOverride(media.name, key, currentImage ?? undefined) ?? media.volume;
+        void media.play({ volume, fadeInDuration: 2 });
         media.unDampenAudio();
       });
     }
@@ -6436,12 +6493,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           // We must first retrieve any specific settings for this audio from the audioDataByImage object and apply them.
           const locSettingsData = this.getLocationSettingsData(locData.key);
           const audioSettings =
-            locSettingsData.audioDataByImage?.[imgKey]?.[mediaName];
-          if (audioSettings) {
-            void media.play(audioSettings);
-          } else {
-            void media.play();
-          }
+            locSettingsData.audioDataByImage?.[imgKey]?.[mediaName] ?? {};
+          audioSettings.volume = this.getVolumeOverride(mediaName, locData.key, imgKey) ?? audioSettings.volume;
+          void media.play(audioSettings);
         });
       }
     }
@@ -6573,6 +6627,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Extract all needed data from location configuration
     const {
       name,
+      key,
       images,
       currentImage,
       description,
@@ -6830,10 +6885,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     timeline.call(
       () => {
         audioToStart.forEach((media) => {
+          const volumeOverride = this.getVolumeOverride(media.name, key, currentImage ?? undefined);
           if (imgAudioData) {
-            void media.play(imgAudioData[media.name]);
+            void media.play({ ...imgAudioData[media.name], volume: volumeOverride ?? imgAudioData[media.name]?.volume });
           } else {
-            void media.play({ fadeInDuration: 5 });
+            void media.play({ volume: volumeOverride ?? media.volume, fadeInDuration: 5 });
           }
         });
       },
