@@ -1,4 +1,5 @@
 @use "sass:string";
+@use "sass:list";
 
 @function to-url($path, $subFolder: false) {
 	@if ($subFolder) {
@@ -24,7 +25,7 @@
 
   @for $i from 1 through $count {
     $shadow: #{$offsetX} #{$offsetY} #{$size} #{$color};
-    $shadows: append($shadows, $shadow, comma);
+    $shadows: list.append($shadows, $shadow, comma);
   }
 
   @return $shadows;

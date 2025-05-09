@@ -273,4 +273,8 @@ $font-weight-black: 900;
   .neon-glow-soft-gold {
     @include neon-glow-soft(rgb(244, 238, 228), rgba(255, 189, 65, 0.35));
   }
+
+  .neon-glow-soft-white {
+    @include neon-glow-soft(rgb(255, 255, 255), rgba(255, 255, 255, 0.35));
+  }
 }

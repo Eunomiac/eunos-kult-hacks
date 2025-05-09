@@ -6,7 +6,7 @@
     <img class="drop-cap {{~#if isWideDropCap}} wide-drop-cap{{/if}}" src="{{getDropCap rollerName}}" />
     <span class="roll-char-name">{{getRestCaps rollerName}}</span>
     <span class="roll-intro-line">
-      rolls <span class='text-attributename'>+{{case "title" attribute}}</span>{{#if sourceName}} to …{{/if}}
+      rolls <span class='text-attributename'>+{{case "title" attribute}}</span>{{#if sourceName}} {{sourcePrefix}}{{/if}}
     </span>
     <div class="icon-container icon-{{outcome}}">
       {{#if (test ".svg" in sourceImg)}}
@@ -79,12 +79,12 @@
 
     <div class="roll-outcome">
       {{#if (gte total 15)}}
-      <span class="roll-outcome-main">Success</span>
+      <span class="roll-outcome-main neon-glow-soft-gold">Success</span>
       {{else}}{{#if (gte total 10)}}
-      <span class="roll-outcome-main">Success</span>
-      <span class="roll-outcome-sub">with Complications</span>
+      <span class="roll-outcome-main neon-glow-soft-white">Success</span>
+      <span class="roll-outcome-sub neon-glow-soft-white">with Complications</span>
       {{else}}
-      <span class="roll-outcome-main">Failure</span>
+      <span class="roll-outcome-main neon-glow-soft-red">Failure</span>
       {{/if}}{{/if}}
     </div>
 

@@ -15,6 +15,7 @@ export interface ResultRolledContext {
   attrVal: number;             // Attribute value for image
 
   sourceName: string;          // Name of the move/ability source
+  sourcePrefix: string;        // "to ..." or "for", depending on source type
   sourceImg: string;           // Image URL for the source icon
 
   dice: [number, number];      // Array of two values representing the d10 results
@@ -261,6 +262,8 @@ const CHILD_TIMELINES = {
     const sourceName$ = message$.find(".roll-source-name");
     const sourceIcon$ = message$.find(".icon-container");
 
+    const attackBlock$ = message$.find(".item-block.item-block-attack");
+
     // Extract RGB values from source header's border color, then define an rgba value with 0 alpha
     const borderRGB = sourceHeader$.css("border-top-color").match(/\d+/g)?.join(",") ?? "255,255,255";
     const borderColorStart = `rgba(${borderRGB}, 0)`;
@@ -323,7 +326,25 @@ const CHILD_TIMELINES = {
         }, 0.25);
     }
 
-    return tl
+    // If there is an attack block, stagger its fade in as well
+    if (attackBlock$.length > 0) {
+      tl
+        .fromTo(attackBlock$, {
+          autoAlpha: 0,
+          x: 100,
+          y: 0,
+          scale: 1,
+          filter: "blur(50px)"
+        }, {
+          autoAlpha: 1,
+          x: 0,
+          scale: 1,
+          duration: 0.5,
+          filter: "blur(0px)"
+        }, ">-25%");
+    }
+
+    tl
       .fromTo(sourceIcon$, {
           autoAlpha: 0,
           x: -100,
@@ -339,6 +360,9 @@ const CHILD_TIMELINES = {
           duration: 0.5,
           ease: "power2.out"
         }, ">-25%");
+
+
+    return tl;
   },
   animateDice(message$: JQuery): gsap.core.Timeline {
     const d10s$ = message$.find(".roll-d10");
@@ -545,7 +569,7 @@ const CHILD_TIMELINES = {
   },
   animateToSuccess(message$: JQuery): gsap.core.Timeline {
     const msgBgBase$ = message$.find(".message-bg.bg-base");
-    message$.find(".message-bg.bg-success").css("visibility", "visible");
+    const msgBgSuccess$ = message$.find(".message-bg.bg-success");
 
     const msgDropCap$ = message$.find(".drop-cap");
     const msgCharName$ = message$.find(".roll-char-name *");
@@ -562,7 +586,7 @@ const CHILD_TIMELINES = {
     const msgTextToBrightGold = message$.find(".roll-source-source-name .roll-source-text, .roll-dice-results ~ * *");
 
     return gsap.timeline({ease: "power3.in", clearProps: true})
-      .to(msgBgBase$, {autoAlpha: 0, duration: 1, ease: "power2.inOut"})
+      // .to(msgBgBase$, {autoAlpha: 0, duration: 1, ease: "power2.inOut"})
       .fromTo(msgIcon$, {filter: "sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1) drop-shadow(0px 0px 0px rgba(0, 0, 0, 0)"}, {filter: `sepia(0) brightness(1.5) contrast(5) drop-shadow(2px 2px 2px ${Colors.GREY0})`, duration: 1}, 0)
       .to(msgCharName$, {color: Colors.GOLD8, duration: 1, ease: "power2.inOut"}, 0)
       .to(msgIntroLine$, {color: Colors.GOLD8, duration: 1, ease: "power2.inOut"}, 0)
@@ -573,15 +597,18 @@ const CHILD_TIMELINES = {
         .fromTo(msgTotal, {filter: "brightness(1) saturate(1) contrast(1)"}, {filter: "brightness(1.5) saturate(2) contrast(1)", duration: 1}, 0)
 
         .to(msgSource, {opacity: 0, duration: 0.5, ease: "power2.out"}, 0)
-        .set(msgSource, {borderTopColor: Colors.GOLD9, borderBottomColor: Colors.GOLD9, background: "transparent url('/systems/kult4th/assets/backgrounds/texture-gold.webp') repeat repeat center center/300px"}, 0.5)
+        .set(msgSource, {borderTopColor: Colors.GOLD9, borderBottomColor: Colors.GOLD9, background: "transparent url('/modules/eunos-kult-hacks/assets/backgrounds/texture-gold.webp') repeat repeat center center/300px"}, 0.5)
         .to(msgSource, {opacity: 1, duration: 0.5, ease: "power2.out"}, 0.5)
+
+        .to(msgBgBase$, {autoAlpha: 0, duration: 0.25, ease: "power2.inOut"}, 0.75)
+        .to(msgBgSuccess$, {autoAlpha: 1, duration: 0.15, ease: "power2.inOut"}, 0.5)
 
         .fromTo(msgSourceName$, {
           textShadow: "0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0)"},  {
           color: Colors.GREY0,
           textShadow: `0 0 5px ${Colors.GOLD8}, 0 0 5px ${Colors.GOLD8}, 0 0 5px ${Colors.GOLD8}, 0 0 5px ${Colors.GOLD8}, 0 0 5px ${Colors.GOLD8}, 0 0 5px ${Colors.GOLD8}`
         }, 0)
-        .to(msgOutcomeMain, {filter: "saturate(0.25)", color: "rgb(255, 255, 255)", textShadow: "0 0 2px rgba(255, 255, 255, 0.8), 0 0 4px rgba(255, 255, 255, 0.8), 0 0 4.5px rgba(255, 255, 255, 0.8), 0 0 8px rgba(220, 220, 65, 0.8), 0 0 12.5px rgba(220, 220, 65, 0.8), 0 0 16.5px rgba(220, 220, 65, 0.5), 0 0 21px rgba(220, 220, 65, 0.5), 0 0 29px rgba(220, 220, 65, 0.5), 0 0 41.5px rgba(220, 220, 65, 0.5)", duration: 1, onComplete() {
+        .fromTo(msgOutcomeMain, {color: Colors.GOLD5, textShadow: "none"}, {filter: "saturate(0.25)", color: "rgb(255, 255, 255)", textShadow: "0 0 2px rgba(255, 255, 255, 0.8), 0 0 4px rgba(255, 255, 255, 0.8), 0 0 4.5px rgba(255, 255, 255, 0.8), 0 0 8px rgba(220, 220, 65, 0.8), 0 0 12.5px rgba(220, 220, 65, 0.8), 0 0 16.5px rgba(220, 220, 65, 0.5), 0 0 21px rgba(220, 220, 65, 0.5), 0 0 29px rgba(220, 220, 65, 0.5), 0 0 41.5px rgba(220, 220, 65, 0.5)", duration: 1, onComplete() {
           msgOutcomeMain.addClass("neon-glow-animated-gold");
           msgOutcomeMain.attr("style", "color: rgb(255, 255, 255); visibility: visible; filter: saturate(0.45)");
         }}, 0)
@@ -594,7 +621,7 @@ const CHILD_TIMELINES = {
       stagger: 0,
       ease: "power3.in" */
     const msgBgBase$ = message$.find(".message-bg.bg-base");
-    message$.find(".message-bg.bg-fail").css("visibility", "visible");
+    const msgBgFail$ = message$.find(".message-bg.bg-fail");
 
 
     const msgDropCap$ = message$.find(".drop-cap");
@@ -613,8 +640,7 @@ const CHILD_TIMELINES = {
     const msgTextToRed = message$.find(".roll-source-source-name .roll-source-text, .roll-dice-results ~ * *");
     // const msgTextToBlack = message$.find(".roll-source-name .roll-source-text");
     return gsap.timeline({ease: "power3.in", clearProps: true})
-      .to(msgBgBase$, {autoAlpha: 0, duration: 1, ease: "power2.inOut"})
-      .fromTo(msgIcon$, {filter: "sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1) drop-shadow(0px 0px 0px rgba(0, 0, 0, 0)"}, {filter: `sepia(0) brightness(0.5) saturate(3) hue-rotate(-45deg) saturate(1) contrast(5) drop-shadow(2px 2px 2px ${Colors.GREY0})`, duration: 1}, 0)
+      .fromTo(msgIcon$, {filter: "sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1) drop-shadow(0px 0px 0px rgba(0, 0, 0, 0)"}, {filter: `sepia(5) brightness(0.65) saturate(5) hue-rotate(-45deg) contrast(2)`, duration: 1}, 0)
       .to(msgCharName$, {color: Colors.RED8, duration: 1, ease: "power2.inOut"}, 0)
       .to(msgIntroLine$, {color: Colors.RED8, duration: 1, ease: "power2.inOut"}, 0)
       .to(msgAttrName$, {color: Colors.RED8, filter: "brightness(3) saturate(1.5)", duration: 1, ease: "power2.inOut"}, 0)
@@ -622,16 +648,17 @@ const CHILD_TIMELINES = {
         // .fromTo(msgAttrFlare, {filter: "sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1)"}, {filter: "sepia(5) brightness(0.25) saturate(5) hue-rotate(-45deg) saturate(3) brightness(1) contrast(1)", duration: 1}, 0)
         .fromTo(msgGears, {filter: "blur(1.5px) sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1)"}, {filter: "blur(1.5px) sepia(5) brightness(0.65) saturate(5) hue-rotate(-45deg) contrast(2)", duration: 1}, 0)
         .fromTo(msgTotal, {filter: "brightness(1) saturate(1) contrast(1)"}, {filter: "brightness(0.75) saturate(2) contrast(1)", duration: 1}, 0)
-
         .to(msgSource, {opacity: 0, duration: 0.5, ease: "power2.out"}, 0)
-        .set(msgSource, {borderTopColor: Colors.RED9, borderBottomColor: Colors.RED9, background: "transparent url('/systems/kult4th/assets/backgrounds/texture-red.webp') repeat repeat center center/300px"}, 0.5)
+        .set(msgSource, {borderTopColor: Colors.RED9, borderBottomColor: Colors.RED9, background: "transparent url('/modules/eunos-kult-hacks/assets/backgrounds/texture-red.webp') repeat repeat center center/300px"}, 0.5)
         .to(msgSource, {opacity: 1, duration: 0.5, ease: "power2.out"}, 0.5)
+        .to(msgBgBase$, {autoAlpha: 0, duration: 0.25, ease: "power2.inOut"}, 0.75)
+        .to(msgBgFail$, {autoAlpha: 1, duration: 0.15, ease: "power2.inOut"}, 0.5)
         .fromTo(msgSourceName$, {
           textShadow: "0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0), 0 0 0 rgb(0, 0, 0)"},  {
           color: Colors.GREY0,
           textShadow: `0 0 5px ${Colors.RED8}, 0 0 5px ${Colors.RED8}, 0 0 5px ${Colors.RED8}, 0 0 5px ${Colors.RED8}, 0 0 5px ${Colors.RED8}, 0 0 5px ${Colors.RED8}`
         }, 0)
-        .to(msgOutcomeMain, {color: "rgb(255, 255, 255)", textShadow: "0 0 2px rgba(255, 255, 255, 0.8), 0 0 4px rgba(255, 255, 255, 0.8), 0 0 4.5px rgba(255, 255, 255, 0.8), 0 0 8px rgba(220, 65, 65, 0.8), 0 0 12.5px rgba(220, 65, 65, 0.8), 0 0 16.5px rgba(220, 65, 65, 0.5), 0 0 21px rgba(220, 65, 65, 0.5), 0 0 29px rgba(220, 65, 65, 0.5), 0 0 41.5px rgba(220, 65, 65, 0.5)", duration: 1, onComplete() {
+        .fromTo(msgOutcomeMain, {color: "rgb(255, 0, 0)", textShadow: "none"}, {color: "rgb(255, 255, 255)", textShadow: "0 0 2px rgba(255, 255, 255, 0.8), 0 0 4px rgba(255, 255, 255, 0.8), 0 0 4.5px rgba(255, 255, 255, 0.8), 0 0 8px rgba(220, 65, 65, 0.8), 0 0 12.5px rgba(220, 65, 65, 0.8), 0 0 16.5px rgba(220, 65, 65, 0.5), 0 0 21px rgba(220, 65, 65, 0.5), 0 0 29px rgba(220, 65, 65, 0.5), 0 0 41.5px rgba(220, 65, 65, 0.5)", duration: 1, onComplete() {
           msgOutcomeMain.addClass("neon-glow-animated-red");
           msgOutcomeMain.attr("style", "color: rgb(255, 255, 255); visibility: visible");
         }}, 0)
@@ -641,7 +668,7 @@ const CHILD_TIMELINES = {
   animateToPartial(message$: JQuery): gsap.core.Timeline {
 
   const msgBgBase$ = message$.find(".message-bg.bg-base");
-  message$.find(".message-bg.bg-partial").css("visibility", "visible");
+  const msgBgPartial$ = message$.find(".message-bg.bg-partial");
 
 
   const msgDropCap$ = message$.find(".drop-cap");
@@ -660,7 +687,7 @@ const CHILD_TIMELINES = {
   const msgTextToGrey = message$.find(".roll-source-source-name .roll-source-text, .roll-dice-results ~ * *");
 
   return gsap.timeline({ease: "power3.in", clearProps: true})
-    .to(msgBgBase$, {autoAlpha: 0, duration: 1, ease: "power2.inOut"})
+    // .to(msgBgBase$, {autoAlpha: 0, duration: 1, ease: "power2.inOut"})
     .fromTo(msgIcon$, {filter: "sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1) drop-shadow(0px 0px 0px rgba(0, 0, 0, 0)"}, {filter: `grayscale(1) sepia(0) brightness(1) contrast(1) drop-shadow(2px 2px 2px ${Colors.GREY0})`, duration: 1}, 0)
     .to(msgCharName$, {color: Colors.GREY10, duration: 1, ease: "power2.inOut"}, 0)
     .to(msgIntroLine$, {color: Colors.GREY10, duration: 1, ease: "power2.inOut"}, 0)
@@ -670,6 +697,8 @@ const CHILD_TIMELINES = {
       .fromTo(msgGears, {filter: "blur(1.5px) sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1)"}, {filter: "grayscale(1) blur(1.5px) brightness(1)", duration: 1}, 0)
       .fromTo(msgTotal, {filter: "brightness(1) saturate(1) contrast(1)"}, {filter: "brightness(1) saturate(1) contrast(1) grayscale(1)", duration: 1}, 0)
       .to(msgSource, {filter: "grayscale(1)", duration: 1}, 0)
+      .to(msgBgBase$, {autoAlpha: 0, duration: 0.25, ease: "power2.inOut"}, 0.75)
+      .to(msgBgPartial$, {autoAlpha: 1, duration: 0.15, ease: "power2.inOut"}, 0.5)
       .to(msgSourceName$, {color: Colors.GREY9}, 0)
       .to(msgOutcomeMain, {color: Colors.GREY9, duration: 1}, 0)
       .to(msgOutcomeSub, {color: Colors.GREY9, duration: 1}, 0)
@@ -736,6 +765,9 @@ class EunosChatMessage extends ChatMessage {
     Hooks.on("renderChatMessage", async (message: EunosChatMessage, html) => {
 
       kLog.log("renderChatMessage", {message, html});
+
+      // If this is a roll message, apply its CSS classes unchanged.
+      // Otherwise,
 
       // Apply custom CSS classes to the chat message based on its flags
       message.applyFlagCSSClasses(html);

@@ -637,6 +637,7 @@ export default function registerEunosActor(): void {
             attribute.toLowerCase() as keyof typeof this.system.attributes
           ] ?? 0,
         sourceName: source.name,
+        sourcePrefix: source.type === "move" ? "to …" : "for",
         sourceImg: source.img as string,
         dice: dieVals as [number, number],
         modifiers,
@@ -877,7 +878,7 @@ export default function registerEunosActor(): void {
         const moveSystemType = move.system.type; // active ou passive
         const moveType = move.type; // advantage, disadvantage...
         const moveName = move.name;
-        kultLogger("Move => ", { moveType, moveName, moveSystemType });
+        kLog.log("Move => ", { move, moveType, moveName, moveSystemType });
 
         if (moveSystemType === "active") {
           const attr =
@@ -885,9 +886,9 @@ export default function registerEunosActor(): void {
               ? await this.askForAttribute()
               : move.system.attributemod;
 
-          if (!attr) { return; }
+          kLog.log("Attribute => ", attr);
 
-          kultLogger("Attribute => ", attr);
+          // if (!attr) { return; }
 
           const {
             completesuccess,
@@ -1126,9 +1127,9 @@ export default function registerEunosActor(): void {
             }
           }
 
-          kultLogger("Modifiers => ", modifiers);
+          kLog.log("Modifiers => ", modifiers);
 
-          const attrVal = this.system.attributes[attr as keyof ActorDataPC["attributes"]] ?? 0;
+          const attrVal = attr ? this.system.attributes[attr as keyof ActorDataPC["attributes"]] ?? 0 : 0;
           const modTotal = modifiers.reduce((acc, mod) => acc + mod.value, 0);
 
           const r = new Roll(
@@ -1159,7 +1160,7 @@ export default function registerEunosActor(): void {
 
           await this.displayRollToChat({
             roll: r,
-            attribute: attr,
+            attribute: attr ?? "zero",
             modifiers,
             source: move,
             resultText,

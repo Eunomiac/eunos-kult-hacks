@@ -5,6 +5,12 @@ body #pause.paused,
   display: none;
 }
 
+body:not(.gm-user) #notifications {
+  .notification.info.permanent {
+    display: none !important;
+  }
+}
+
 #macro-list {
   .macro-key {
     display: none;
