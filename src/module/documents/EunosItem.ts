@@ -150,6 +150,34 @@ export default class EunosItem extends Item {
     return htmlStrings.join("");
   }
 
+  /**
+   * Checks if this item is a consumable gear item
+   * @returns True if this item is a consumable gear item
+   */
+  get isConsumable(): boolean {
+    return Boolean(this.isGear() && this.system.usesMax && this.system.usesMax > 0);
+  }
+
+  get usesRemaining(): number {
+    if (!this.isGear()) {
+      return 0;
+    }
+    if (!this.isConsumable) {
+      return 0;
+    }
+    return this.system.uses ?? 0;
+  }
+
+  async spendUse() {
+    if (!this.isGear()) {
+      return;
+    }
+    if (!this.system.uses || this.system.uses < 0) {
+      return;
+    }
+    await this.update({ system: { uses: this.system.uses - 1 } });
+  }
+
   getGearChatMessage(): string {
     if (!this.isGear()) {
       return "";

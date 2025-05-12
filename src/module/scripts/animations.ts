@@ -266,4 +266,44 @@ export function initializeGSAP(): void {
       displayDuration: 20
     }
   });
+  gsap.registerEffect({
+    name: "itemCardChargeUp",
+    effect: (targets: gsap.TweenTarget, config = {}) => {
+      const target$ = $(targets as HTMLElement);
+      const indicator$ = target$.find('.item-charge-indicator');
+
+      // Set initial state
+      gsap.set(indicator$, {
+        width: '0%',
+        opacity: 0.7
+      });
+
+      // Create the charge-up timeline
+      const tl = gsap.timeline({
+        paused: true,
+        onComplete: () => {
+          // Flash effect when complete
+          gsap.to(target$, {
+            backgroundColor: 'rgba(255, 200, 0, 0.2)',
+            duration: 0.2,
+            ease: "back.out",
+            onComplete: () => {
+              gsap.set(target$, { backgroundColor: '' });
+              gsap.set(indicator$, { width: '0%', opacity: 0 });
+            }
+          });
+        }
+      });
+
+      // Animate the indicator
+      tl.to(indicator$, {
+        width: '100%',
+        duration: 1,
+        ease: "power1.in"
+      });
+
+      return tl;
+    },
+    defaults: {}
+  });
 }

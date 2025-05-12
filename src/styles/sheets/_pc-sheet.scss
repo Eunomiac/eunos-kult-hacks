@@ -33,6 +33,15 @@
           border-color: var(--fg-color);
           margin: 0;
           order: 1;
+          height: 30px;
+
+          &:not(.weapon-card):not(.gear-card) {
+            overflow: hidden;
+          }
+
+          &:not(.passive-card) {
+            filter: drop-shadow(2px 2px 4px black);
+          }
 
           &:hover {
             .item-controls {
@@ -42,13 +51,63 @@
             }
           }
 
-          &[class*="counter-"] {
-            height: 40px;
+          &:not(.disadvantage-card):not(.advantage-card) {
+
+            .item-name {
+              // .item-interaction-target {
+                .move-text,
+                .move-show {
+                  position: relative;
+                  top: 2px;
+                  vertical-align: middle;
+
+                  img {
+                    position: relative;
+                    top: -2px;
+                  }
+                }
+              // }
+            }
+          }
+
+          &[class*="card"][class*="counter-"] {
+            // height: 40px;
+
+            .item-name,
+            .move-info.gear-info.item-name {
+              // .item-interaction-target {
+                .move-text,
+                .move-show {
+                  position: relative;
+                  top: -4px;
+
+                  img {
+                    position: relative;
+                    top: 4px;
+                  }
+                }
+              // }
+            }
+
+            .move-info.gear-info.item-name {
+              // .item-interaction-target {
+                .move-text,
+                .move-show {
+                  position: relative;
+                  top: -2px;
+
+                  img {
+                    position: relative;
+                    top: 2px;
+                  }
+                }
+              // }
+            }
 
             .counter-block {
               position: absolute;
-              bottom: 2px;
-              left: 30px;
+              bottom: 0px;
+              left: 40px;
               font-family: var(--font-primary-smallcaps);
               text-transform: lowercase;
               font-weight: 1000;
@@ -99,8 +158,21 @@
             }
           }
 
+          .item-charge-indicator {
+            height: 6px;
+            position: absolute;
+            background: var(--fg-color);
+            top: 0px;
+            left: 0;
+            max-width: 100%;
+            width: 0;
+            filter: brightness(2) saturate(1.5) drop-shadow(0 0 3px var(--fg-color));
+            pointer-events: none;
+          }
+
           &.weapon-card,
           &.gear-card {
+            --charge-indent: 0px;
             left: 15px;
             width: calc(100% - 15px);
             .is-equipped-container {
@@ -242,7 +314,7 @@
           .dot {
             display: inline-block;
             width: 12px;
-            height: 12px;
+            height: 4px;
             border-radius: 50%;
             border: 1px solid var(--K4-bbGOLD);
 
@@ -257,9 +329,20 @@
         }
 
         .gear-card .dotline {
+          top: unset;
+          bottom: 0;
+          right: 4px;
           .dot {
             width: 4px;
-            border-radius: 0;
+
+            &.empty {
+              filter: grayscale(1) brightness(0.5);
+            }
+
+            &:nth-child(5n) {
+              margin-right: 2px;
+            }
+            // border-radius: 0;
           }
         }
 
@@ -267,7 +350,7 @@
           margin-bottom: 0px;
 
           + .weapon-attack-block {
-            // margin-top: -2px;
+            margin-top: 3px;
             // background: color-mix(in srgb, var(--K4-ddRED) 50%, transparent);
             border-top: none;
             border-bottom: 2px solid var(--K4-RED);
@@ -281,6 +364,7 @@
               border-bottom-left-radius: 0;
               border-bottom-right-radius: 0;
               width: 6px;
+              height:12px;
               &.empty {
                 background: transparent;
               }
@@ -362,6 +446,7 @@
                 border-bottom-left-radius: 0;
                 border-bottom-right-radius: 0;
                 width: 6px;
+                height: 12px;
                 &.empty {
                   background: transparent;
                 }
@@ -672,6 +757,7 @@
             .modifiers-summary {
               // background: rgba(0, 0, 0, 0.25);
               font-size: 12px;
+              margin-top: 5px;
               .move-name {
                 font-size: 12px;
               }
@@ -1006,7 +1092,9 @@
 
 .armor-value {
   position: relative;
-  margin-right: 5px;
+  display: inline-block;
+  width: min-content;
+  top: 4px;
 
   i {
     color: var(--K4-bbGOLD);
@@ -1021,6 +1109,5 @@
     font-size: 10px;
     font-weight: bold;
     color: var(--K4-bbGOLD);
-    line-height: 1;
   }
 }

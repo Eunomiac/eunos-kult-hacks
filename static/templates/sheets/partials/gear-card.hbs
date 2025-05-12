@@ -1,4 +1,4 @@
-<div class="gear-card move-card">
+<div class="gear-card move-card {{#if system.usesMax}}counter-Uses{{/if}}">
   {{#let
     anchorName=(getUniqueID "move-card-anchor")
     popoverID=(getUniqueID "move-card-popover")
@@ -8,17 +8,20 @@
       <i class="{{#if system.isEquipped}}fas fa-hand-rock{{else}}far fa-hand{{/if}}"></i>
     </a>
   </span>
-  <div class="move-info {{type}}-info item-name" data-item-id="{{_id}}" popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}">
-    {{#if system.armor}}
-      <span class="armor-value">
-        <i class="far fa-shield"></i>
-        <span class="value">{{system.armor}}</span>
-      </span>
-    {{/if}}
-    <a class="move-show">{{name}}</a>
-    {{#if system.usesMax}}
-      {{{getDotline system.uses system.usesMax}}}
-    {{/if}}
+  <div class="item-interaction-target" data-item-id="{{_id}}" data-actor-id="{{actorID}}" data-item-type="gear" popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}">
+    <div class="move-info {{type}}-info item-name" data-item-id="{{_id}}">
+      {{#if system.armor}}
+        <span class="armor-value">
+          <i class="far fa-shield"></i>
+          <span class="value">{{system.armor}}</span>
+        </span>
+      {{/if}}
+      <a class="move-show">{{name}}</a>
+      {{#if system.usesMax}}
+        {{{getDotline system.uses system.usesMax}}}
+      {{/if}}
+    </div>
+    <div class="item-charge-indicator"></div>
   </div>
 
   <div id="{{popoverID}}"

@@ -10,24 +10,25 @@
   }}
   <div class="item-draggable {{type}}-info item-name" data-item-id="{{_id}}" {{#if
     tooltip}}popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}" {{/if}}>
-    {{#if (eq system.type "active")}}
-    <a class="move-roll">
-      {{else}}
-      <a class="move-show">
-        {{/if}}
-        <img src="{{img}}" title="{{name}}" /> {{name}} </a>
+    <div class="item-interaction-target" data-item-id="{{_id}}" data-actor-id="{{pcID}}" data-item-type="{{type}}">
+      {{#if (eq system.type "active")}}
+      <a class="move-text">
+        {{else}}
+        <a class="move-text">
+          {{/if}}
+          <img src="{{img}}" title="{{name}}" /> {{name}} </a>
+      <div class="item-charge-indicator"></div>
+    </div>
 
-      {{#if system.hasCounter}}
-      <span class="counter-block {{#if (eq system.counterName "Hold")}}gm-only{{/if}}">{{system.counterName}}:
-        <a class="token-add" title="Add {{system.counterName}}" data-action="addCounter" data-item-id="{{_id}}"
-          data-actor-id="{{pcID}}"><i class="far fa-plus-square"></i></a>
-        {{#if system.counterCount}}{{system.counterCount}}{{else}}0{{/if}}
-        <a class="token-spend" title="Spend {{system.counterName}}" data-action="spendCounter"
-          data-item-id="{{_id}}" data-actor-id="{{pcID}}"><i class="far fa-minus-square"></i></a>
-      </span>
-      {{/if}}
-
-
+    {{#if system.hasCounter}}
+    <span class="counter-block {{#if (eq system.counterName "Hold")}}gm-only{{/if}}">{{system.counterName}}:
+      <a class="token-add" title="Add {{system.counterName}}" data-action="addCounter" data-item-id="{{_id}}"
+        data-actor-id="{{pcID}}"><i class="far fa-plus-square"></i></a>
+      {{#if system.counterCount}}{{system.counterCount}}{{else}}0{{/if}}
+      <a class="token-spend" title="Spend {{system.counterName}}" data-action="spendCounter"
+        data-item-id="{{_id}}" data-actor-id="{{pcID}}"><i class="far fa-minus-square"></i></a>
+    </span>
+    {{/if}}
   </div>
 
   {{#if tooltip}}

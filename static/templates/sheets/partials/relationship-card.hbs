@@ -1,10 +1,13 @@
 <div class="move-card relationship-card relationship-card-{{system.strength}}">
-    {{#let
-    anchorName=(getUniqueID "relationship-card-anchor")
-    popoverID=(getUniqueID "relationship-card-popover")
+  {{#let
+  anchorName=(getUniqueID "relationship-card-anchor")
+  popoverID=(getUniqueID "relationship-card-popover")
   }}
-  <div class="move-info item-name" data-item-id="{{_id}}" popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}">
-    <a class="move-card-text move-show"> {{system.target}} ({{system.subtitle}})</a>
+  <div class="item-interaction-target" data-item-id="{{_id}}" data-actor-id="{{actorID}}" data-item-type="relationship"  popovertarget="{{popoverID}}" style="anchor-name: --{{anchorName}}">
+    <div class="move-info item-name" data-item-id="{{_id}}">
+      <a class="move-card-text move-show"> {{system.target}} ({{system.subtitle}})</a>
+    </div>
+    <div class="item-charge-indicator"></div>
   </div>
 
   <div id="{{popoverID}}"

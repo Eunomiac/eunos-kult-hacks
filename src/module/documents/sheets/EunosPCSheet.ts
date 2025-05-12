@@ -109,7 +109,7 @@ export default function overridePCSheet() {
         });
 
       html
-        .find(".item-show, .move-show, .weapon-attack-block")
+        .find(".item-show")
         .off("click")
         .on("click", (event) => {
           const li = $(event.currentTarget).closest("[data-item-id]");
@@ -142,19 +142,19 @@ export default function overridePCSheet() {
           }
         });
 
-      html
-        .find(".move-roll")
-        .off("click")
-        .on("click", (event) => {
-          const li = $(event.currentTarget).closest("[data-item-id]");
-          const itemId = li.attr("data-item-id");
-          if (itemId) {
-            const item = actor.items.get(itemId);
-            if (item) {
-              void actor.moveroll(itemId);
-            }
-          }
-        });
+      // html
+      //   .find(".move-roll")
+      //   .off("click")
+      //   .on("click", (event) => {
+      //     const li = $(event.currentTarget).closest("[data-item-id]");
+      //     const itemId = li.attr("data-item-id");
+      //     if (itemId) {
+      //       const item = actor.items.get(itemId);
+      //       if (item) {
+      //         void actor.moveroll(itemId);
+      //       }
+      //     }
+      //   });
 
       html
         .find(".stability-minus")
@@ -383,6 +383,230 @@ export default function overridePCSheet() {
               );
             });
         });
+
+      // Add item card interactions for all item types
+      this._setupMoveCardInteractions(html);
+    }
+
+    private _setupMoveCardInteractions(html: JQuery): void {
+      // First, remove any existing handlers to prevent duplicates
+      kLog.log("Setting up item card interactions - removing old handlers");
+      html.find('.item-interaction-target').off('mousedown touchstart mouseup touchend mouseleave touchcancel');
+
+      html.find('.item-interaction-target').each((_, element) => {
+        const $target = $(element);
+        const itemId = $target.data('item-id') as string;
+        const actorId = $target.data('actor-id') as string;
+        const itemType = $target.data('item-type') as string;
+        const itemName = this.actor.items.get(itemId)?.name || 'Unknown';
+
+        kLog.log(`Setting up listeners for item: ${itemName} (${itemId}, type: ${itemType})`);
+
+        // Track if we're currently in a mousedown state
+        let isMouseDown = false;
+
+        // Handle mousedown - start the charge animation
+        $target.on('mousedown', (event) => {
+          kLog.log(`MOUSEDOWN on ${itemName} (button: ${event.button})`);
+
+          // Only process left mouse button (button 0)
+          if (event.button !== 0) {
+            kLog.log(`Ignoring mousedown - not left button`);
+            return;
+          }
+
+          event.preventDefault();
+          isMouseDown = true;
+          kLog.log(`Starting charge animation for ${itemName}`);
+
+          // Create a new timeline for each interaction
+          const tl = (gsap.effects['itemCardChargeUp'] as GSAPEffectFunction)($target);
+          $target.data('charge-timeline', tl);
+          tl.play();
+        });
+
+        // Handle touchstart separately
+        $target.on('touchstart', (event) => {
+          kLog.log(`TOUCHSTART on ${itemName}`);
+          event.preventDefault();
+          isMouseDown = true;
+          kLog.log(`Starting charge animation for ${itemName} (touch)`);
+
+          // Create a new timeline for each interaction
+          const tl = (gsap.effects['itemCardChargeUp'] as GSAPEffectFunction)($target);
+          $target.data('charge-timeline', tl);
+          tl.play();
+        });
+
+        // Handle mouseup - either view or activate based on progress
+        $target.on('mouseup', (event) => {
+          kLog.log(`MOUSEUP on ${itemName} (button: ${event.button}, isMouseDown: ${isMouseDown})`);
+
+          // Only process left mouse button (button 0)
+          if (event.button !== 0) {
+            kLog.log(`Ignoring mouseup - not left button`);
+            return;
+          }
+
+          event.preventDefault();
+
+          // Only process if we were in a mousedown state
+          if (!isMouseDown) {
+            kLog.log(`Ignoring mouseup - wasn't in mousedown state`);
+            return;
+          }
+
+          isMouseDown = false;
+
+          const timeline = $target.data('charge-timeline') as Maybe<gsap.core.Timeline>;
+          if (!timeline) {
+            kLog.log(`No timeline found for ${itemName}`);
+            return;
+          }
+
+          const progress = timeline.progress();
+          kLog.log(`Charge progress for ${itemName}: ${progress.toFixed(2)}`);
+          timeline.pause();
+
+          if (progress >= 1) {
+            kLog.log(`Fully charged - activating ${itemName} (${itemType})`);
+            // Fully charged - activate the item
+            this._activateItem(itemId);
+          } else {
+            kLog.log(`Not fully charged - viewing ${itemName}`);
+            // Not fully charged - view the item
+            const item = this.actor.items.get(itemId);
+            if (item) {
+              // @ts-expect-error Don't know why the types won't recognize this syntax.
+              item.sheet?.render({ force: true });
+            }
+
+            // Reverse the animation
+            kLog.log(`Reversing animation for ${itemName}`);
+            timeline.timeScale(3).reverse();
+          }
+        });
+
+        // Handle touchend separately
+        $target.on('touchend', (event) => {
+          kLog.log(`TOUCHEND on ${itemName} (isMouseDown: ${isMouseDown})`);
+          event.preventDefault();
+
+          // Only process if we were in a touchstart state
+          if (!isMouseDown) {
+            kLog.log(`Ignoring touchend - wasn't in touchstart state`);
+            return;
+          }
+
+          isMouseDown = false;
+
+          const timeline = $target.data('charge-timeline') as Maybe<gsap.core.Timeline>;
+          if (!timeline) {
+            kLog.log(`No timeline found for ${itemName} (touch)`);
+            return;
+          }
+
+          const progress = timeline.progress();
+          kLog.log(`Charge progress for ${itemName}: ${progress.toFixed(2)} (touch)`);
+          timeline.pause();
+
+          if (progress >= 1) {
+            kLog.log(`Fully charged - activating ${itemName} (${itemType}) (touch)`);
+            // Fully charged - activate the item
+            this._activateItem(itemId);
+          } else {
+            kLog.log(`Not fully charged - viewing ${itemName} (touch)`);
+            // Not fully charged - view the item
+            const item = this.actor.items.get(itemId);
+            if (item) {
+              // @ts-expect-error Don't know why the types won't recognize this syntax.
+              item.sheet?.render({ force: true });
+            }
+
+            // Reverse the animation
+            kLog.log(`Reversing animation for ${itemName} (touch)`);
+            timeline.timeScale(3).reverse();
+          }
+        });
+
+        // Handle mouseleave/touchcancel - cancel the interaction
+        $target.on('mouseleave', (event) => {
+          kLog.log(`MOUSELEAVE on ${itemName} (isMouseDown: ${isMouseDown})`);
+          event.preventDefault();
+
+          // Only process if we were in a mousedown state
+          if (!isMouseDown) {
+            kLog.log(`Ignoring mouseleave - wasn't in mousedown state`);
+            return;
+          }
+
+          isMouseDown = false;
+
+          const timeline = $target.data('charge-timeline') as Maybe<gsap.core.Timeline>;
+          if (!timeline) {
+            kLog.log(`No timeline found for ${itemName} on mouseleave`);
+            return;
+          }
+
+          // Just cancel the animation without triggering any action
+          kLog.log(`Canceling interaction for ${itemName} on mouseleave`);
+          timeline.timeScale(3).reverse();
+        });
+
+        $target.on('touchcancel', (event) => {
+          kLog.log(`TOUCHCANCEL on ${itemName} (isMouseDown: ${isMouseDown})`);
+          event.preventDefault();
+
+          // Only process if we were in a touchstart state
+          if (!isMouseDown) {
+            kLog.log(`Ignoring touchcancel - wasn't in touchstart state`);
+            return;
+          }
+
+          isMouseDown = false;
+
+          const timeline = $target.data('charge-timeline') as Maybe<gsap.core.Timeline>;
+          if (!timeline) {
+            kLog.log(`No timeline found for ${itemName} on touchcancel`);
+            return;
+          }
+
+          // Just cancel the animation without triggering any action
+          kLog.log(`Canceling interaction for ${itemName} on touchcancel`);
+          timeline.timeScale(3).reverse();
+        });
+      });
+    }
+
+    private _activateItem(itemId: string): void {
+      const item = this.actor.items.get(itemId);
+      if (!item) {
+        kLog.error(`Item not found: ${itemId}`);
+        return;
+      }
+
+      kLog.log(`Activating item: ${item.name} (${item.type})`);
+
+      // Handle different item types
+      if (item.isMechanicalItem()) {
+        // For moves, advantages, disadvantages, abilities, limitations
+        if (item.system.type === 'active') {
+          void this.actor.moveroll(itemId);
+        } else {
+          void item.showInChat();
+        }
+      } else if (item.isGear()) {
+        // For gear items
+        if (item.isConsumable) {
+          void item.spendUse();
+          kLog.log(`Spent use on consumable item: ${item.name}`);
+        } else {
+          void item.showInChat();
+        }
+      } else {
+        // For all other item types (weapons, dark secrets, relationships, etc.)
+        void item.showInChat();
+      }
     }
   }
 

@@ -9,29 +9,24 @@
       <i class="{{#if system.isEquipped}}fas fa-hand-rock{{else}}far fa-hand{{/if}}"></i>
     </a>
   </span>
-  <div class="move-info {{type}}-info item-name" data-item-id="{{_id}}" popovertarget="{{popoverID}}"
-    style="anchor-name: --{{anchorName}}">
-    <a class="move-roll">{{name}} </a>
-    {{#if (eq system.class "Firearm")}}
-    {{{getDotline system.ammo.value system.ammo.max}}}
-    {{/if}}
+  <div class="item-interaction-target" data-item-id="{{_id}}" data-actor-id="{{actorID}}" data-item-type="weapon" popovertarget="{{popoverID}}"
+      style="anchor-name: --{{anchorName}}">
+    <div class="move-info {{type}}-info item-name" data-item-id="{{_id}}">
+      <a class="move-roll">{{name}} </a>
+      {{#if (eq system.class "Firearm")}}
+      {{{getDotline system.ammo.value system.ammo.max}}}
+      {{/if}}
+    </div>
+    <div class="item-charge-indicator"></div>
   </div>
 
-  <div id="{{popoverID}}" class="weapon-tooltip" style="position-anchor: --{{anchorName}};" popover>
-    <h1>{{name}}</h1>
-    <h2>{{system.class}} <em>({{system.subClass}})</em></h2>
-
-      <div class="flex-row">
-        <label>Range:</label>
-        <span>{{system.range}}</span>
-      </div>
-
-    {{#if (eq system.class "Firearm")}}
-      <div class="flex-row">
-        <label>Ammo:</label>
-        <span>{{system.ammo.value}}/{{system.ammo.max}}</span>
-      </div>
-
+  <div id="{{popoverID}}"
+    class="weapon-tooltip"
+    style="position-anchor: --{{anchorName}};"
+    popover>
+    <div class="weapon-class">{{system.class}}</div>
+    {{#if system.special}}
+    <div class="weapon-special">{{{system.special}}}</div>
     {{/if}}
   </div>
 
