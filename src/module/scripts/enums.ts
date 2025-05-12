@@ -62,6 +62,11 @@ export enum NPCNameState {
   base = "base"
 }
 
+export enum CounterResetOn {
+  Scene = "Scene",
+  Session = "Session",
+  Never = "Never"
+}
 
 export enum MediaLoadStatus {
   NotConnected = "NotConnected",

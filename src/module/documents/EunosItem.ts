@@ -7,6 +7,7 @@ import type ItemDataWeapon from "../data-model/ItemDataWeapon";
 import type ItemDataGear from "../data-model/ItemDataGear";
 import type ItemDataDarkSecret from "../data-model/ItemDataDarkSecret";
 import type ItemDataRelationship from "../data-model/ItemDataRelationship";
+import type {CounterResetOn} from "../scripts/enums";
 
 export default class EunosItem extends Item {
 
@@ -59,6 +60,9 @@ export default class EunosItem extends Item {
       this.type === "ability" ||
       this.type === "limitation"
     );
+  }
+  hasCounter(): this is EunosItem & { system: { hasCounter: true, counterName: string, counterCount: number, counterResetsOn: CounterResetOn }} {
+    return Boolean("hasCounter" in (this.system as ItemDataMove | ItemDataAdvantage | ItemDataDisadvantage | ItemDataAbility | ItemDataLimitation) && (this.system as ItemDataMove | ItemDataAdvantage | ItemDataDisadvantage | ItemDataAbility | ItemDataLimitation).hasCounter);
   }
   hasOptions(): this is EunosItem & { system: { options: string } } {
     return Boolean("options" in (this.system as ItemDataMove | ItemDataAdvantage | ItemDataDisadvantage | ItemDataAbility | ItemDataLimitation) && (this.system as ItemDataMove | ItemDataAdvantage | ItemDataDisadvantage | ItemDataAbility | ItemDataLimitation).options);

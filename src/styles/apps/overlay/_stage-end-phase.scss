@@ -1,46 +1,113 @@
 #STAGE-END-PHASE {
   position: absolute;
-  top: -5vh;
-  left: -5vh;
-  height: 110vh;
-  width: 110vw;
-  background-image: url("modules/eunos-kult-hacks/assets/backgrounds/gold-flecked-black.webp");
-  background-size: 100% 100%;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 50;
-  // transform: scale(1.1) rotate(5deg);
 
-  // visibility: hidden;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  z-index: 50;
+
+  .background-wrapper {
+    position: static;
+    // top: 50%;
+    // left: 50%;
+    // transform: translate(-50%, -50%);
+    transform-origin: center center;
+    width: 100vw;
+    height: 100vh;
+    // z-index: 1;
+
+    .bg-layer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transform-origin: center center;
+      width: 100%;
+      height: 100%;
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+
+      &.bg-layer-base {
+        background-image: url("modules/eunos-kult-hacks/assets/images/stage/end-phase/base.webp");
+        z-index: 0;
+      }
+      &.bg-layer-z1 {
+        background-image: url("modules/eunos-kult-hacks/assets/images/stage/end-phase/trees-z1.webp");
+        z-index: 1;
+        filter: blur(5px);
+        // filter: invert(1) brightness(0.2);
+      }
+      &.bg-layer-z2 {
+        background-image: url("modules/eunos-kult-hacks/assets/images/stage/end-phase/trees-z2.webp");
+        z-index: 2;
+        filter: blur(5px);
+        // filter: invert(1) brightness(0.3);
+      }
+      &.bg-layer-z3 {
+        background-image: url("modules/eunos-kult-hacks/assets/images/stage/end-phase/trees-z3.webp");
+        z-index: 3;
+        filter: blur(3px);
+        // filter: invert(1) brightness(0.5);
+      }
+      &.bg-layer-z4 {
+        background-image: url("modules/eunos-kult-hacks/assets/images/stage/end-phase/trees-z4.webp");
+        z-index: 4;
+        // filter: invert(1) brightness(0.6);
+      }
+      &.ground-fog {
+        width: 100%;
+        height: 100%;
+        // scale: 0.95;
+        z-index: 2;
+        transform: none;
+        top: -50px;
+        left: 0;
+        outline: 4px dotted orange;
+      }
+
+      video {
+        margin-top: 10%;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 5;
+        outline: 4px dotted lime;
+        // filter: blur(10px);
+      }
+    }
+  }
 
   .question-container {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(-40deg);
+    transform: translate(-50%, -50%);
     transform-origin: center;
-    height: 70%;
-    width: 70%;
+    visibility: hidden;
+    // height: 70%;
+    // width: 100vw;
+    z-index: 1;
     .question-text {
-      visibility: hidden;
       position: absolute;
       transform: translate(-50%, -50%);
       top: 50%;
       left: 50%;
-      width: 90%;
+      width: 40vw;
       padding: 0 10%;
       text-align: center;
-      color: var(--K4-WHITE);
+      color: var(--K4-bWHITE);
       font-size: 40px;
       text-shadow:
-        0 0 2px var(--K4-GOLD),
-        0 0 4px var(--K4-GOLD),
-        0 0 6px var(--K4-GOLD),
-        0 0 8px var(--K4-GOLD),
-        0 0 10px var(--K4-GOLD),
-        0 0 12px var(--K4-GOLD),
-        0 0 14px var(--K4-GOLD),
-        0 0 16px var(--K4-GOLD);
+        0 0 2px var(--K4-WHITE),
+        0 0 4px var(--K4-WHITE),
+        0 0 6px var(--K4-WHITE),
+        0 0 8px var(--K4-WHITE),
+        0 0 10px var(--K4-WHITE),
+        0 0 12px var(--K4-WHITE),
+        0 0 14px var(--K4-WHITE),
+        0 0 16px var(--K4-WHITE);
     }
 
   }
@@ -53,6 +120,7 @@
     width: 200px;
     display: flex;
     justify-content: center;
+    z-index: 10;
 
     .gm-control-button {
       width: 100px;

@@ -7,6 +7,9 @@
     <button class="pc-stage-control-button pc-stage-control-button-sleep-all" data-action="sleepAllPCs">
       <i class="fa-solid fa-moon"></i>
     </button>
+    <button class="pc-stage-control-button pc-stage-control-button-end-scene" data-action="endScene" title="End Scene">
+      <i class="fa-solid fa-flag-checkered"></i>
+    </button>
   </div>
   {{#each locationData.pcData }}
   <div class="pc-container {{#if (eq state " base")}}pc-container-base{{/if}} {{#if (eq state "dimmed"

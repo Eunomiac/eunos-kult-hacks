@@ -1,4 +1,5 @@
 import { WEAPON_SUBCLASSES, WEAPON_CLASSES } from "../../scripts/constants";
+import { CounterResetOn } from "../../scripts/enums";
 
 export default function overrideItemSheet() {
   const itemSheet: typeof k4ltitemsheet = CONFIG.Item.sheetClasses.base["k4lt.k4ltitemsheet"]?.cls as typeof k4ltitemsheet;
@@ -46,6 +47,16 @@ export default function overrideItemSheet() {
           }, {
             value: "passive",
             label: "Passive"
+          }],
+          counterResetOnValues: [{
+            value: CounterResetOn.Scene,
+            label: "Scene"
+          }, {
+            value: CounterResetOn.Session,
+            label: "Session"
+          }, {
+            value: CounterResetOn.Never,
+            label: "Never"
           }],
           hasAttributePrompt: type === "active",
           canHaveEdges: ["active", "triggered"].includes(type),

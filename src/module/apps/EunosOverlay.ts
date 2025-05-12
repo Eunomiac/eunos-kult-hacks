@@ -53,6 +53,7 @@ import {
   NPCPortraitState,
   NPCNameState,
   EunosMediaCategories,
+  CounterResetOn,
 } from "../scripts/enums";
 import EunosSockets from "./EunosSockets";
 import EunosAlerts from "./EunosAlerts";
@@ -628,6 +629,98 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
       const questionNumber = getSetting("endPhaseQuestion");
       void setSetting("endPhaseQuestion", questionNumber + 1);
+    },
+
+    async endScene(
+      event: PointerEvent,
+      target: HTMLElement,
+    ): Promise<void> {
+      if (!getUser().isGM) {
+        return;
+      }
+
+      // Get PC data from current location
+      const pcUIData = EunosOverlay.instance.extractPCUIDataFromFullData(
+        EunosOverlay.instance.getLocationData().pcData
+      );
+
+      // Create an object to track which PCs are toggled on
+      const selectedPCs: Record<string, boolean> = {};
+
+      // Set initial toggle state based on PC state
+      Object.entries(pcUIData).forEach(([pcId, state]) => {
+        // PC is initially toggled ON if state is base, dimmed, or spotlit
+        selectedPCs[pcId] = [
+          PCState.base,
+          PCState.dimmed,
+          PCState.spotlit
+        ].includes(state);
+      });
+
+      // Get all PC actors and prepare data for the template
+      const pcActors = getActors()
+        .filter(actor => actor.isPC())
+        .map(pc => {
+          return {
+            id: pc.id,
+            actor: pc,
+            name: pc.name,
+            isSelected: pc.id ? selectedPCs[pc.id] || false : false
+          };
+        });
+
+      // Render the template
+      const dialogContent = await renderTemplate(
+        "modules/eunos-kult-hacks/templates/dialog/end-scene-dialog.hbs",
+        { pcActors }
+      );
+
+      // Create and render the dialog
+      new Dialog({
+        title: "End Scene",
+        content: dialogContent,
+        buttons: {
+          reset: {
+            icon: '<i class="fas fa-check"></i>',
+            label: "Reset Counters",
+            callback: async (html) => {
+              // Get all selected PC IDs
+              const selectedPcIds: string[] = [];
+              $(html).find('.pc-portrait-toggle.selected').each((index: number, el: HTMLElement) => {
+                const pcId = el.dataset["pcId"];
+                if (pcId) selectedPcIds.push(pcId);
+              });
+
+              // Reset counters for all selected PCs
+              for (const pcId of selectedPcIds) {
+                const pc = getActors().find(actor => actor.id === pcId);
+                if (pc && pc.isPC()) {
+                  await pc.resetCounters(CounterResetOn.Scene);
+                }
+              }
+
+              // Notify the GM
+              getNotifier().info(`Reset scene counters for ${selectedPcIds.length} characters`);
+            }
+          },
+          cancel: {
+            icon: '<i class="fas fa-times"></i>',
+            label: "Cancel"
+          }
+        },
+        default: "reset",
+        render: (html) => {
+          // Add click handler for portrait toggles
+          $(html).find('.pc-portrait-toggle').on('click', function(this: HTMLElement) {
+            const pcId = this.dataset["pcId"];
+            if (!pcId) return;
+
+            // Toggle selected state
+            $(this).toggleClass('selected');
+            selectedPCs[pcId] = $(this).hasClass('selected');
+          });
+        }
+      }).render(true);
     },
   };
 
@@ -2605,7 +2698,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     void EunosAlerts.Alert({
       type: AlertType.central,
       header: `<br/>You are the Session Scribe!`,
-      body: `<br/>It is your responsibility this session to maintain a bullet list of this chapter's highlights: major plot events, character revelations, and other important details. As a reward, you'll gain 1 Experience Point at the conclusion of the session.<br/><br/>The session scribe icon at the top right of your screen will open a notepad where you can record your notes during play.<br/><br/>Thank you kindly for your service!`,
+      body: `<br/>It is your responsibility this session to maintain a bullet list of this chapter's highlights: major plot events, character revelations, and other important details. The session scribe icon at the top right of your screen will open a notepad where you can record your notes during play.<br/><br/>As a reward for sumbitting, you'll gain 1 Experience Point!`,
       target: getSetting("sessionScribe"),
       displayDuration: 12,
       soundName: "alert-hit-session-scribe",
@@ -2639,6 +2732,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       duration: 4,
       ease: "power2.out",
     });
+    if (!getUser().isGM) { return; }
+
+    // Get all PC actors and prepare data for the template
+    const pcActors = getActors()
+      .filter(actor => actor.isPC());
+    void Promise.all(pcActors.map(pc => pc.resetCounters(CounterResetOn.Session)));
   }
 
   // #endregion SessionRunning Methods
@@ -2646,7 +2745,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region SessionEnding Methods
   private async animateEndOfSession(): Promise<void> {
     void EunosMedia.SetSoundscape({}, 5);
-    gsap.fromTo(this.endPhase$, {scale: 1, rotateX: 5, rotateY: 5, rotateZ: 5}, {rotateX: -5, rotateY: -5, rotateZ: -5, ease: "back.inOut(0.5)", repeat: -1, yoyo: true, duration: 25})
+    // gsap.fromTo(
+    //   this.endPhase$,
+    //   {
+    //     scale: 1,
+    //     rotateX: 5,
+    //     rotateY: 5,
+    //     rotateZ: 5
+    //   }, {
+    //     rotateX: -5,
+    //     rotateY: -5,
+    //     rotateZ: -5,
+    //     ease: "back.inOut(0.5)",
+    //     repeat: -1,
+    //     yoyo: true,
+    //     uration: 25
+    //   })
     const tl = gsap.timeline();
     tl.call(() => {
       void this.animateInBlackBars(0, 10).then(() => {

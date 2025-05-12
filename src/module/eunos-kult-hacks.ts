@@ -83,7 +83,8 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sidebar/result-rolled.hbs",
   "modules/eunos-kult-hacks/templates/sidebar/chat-message.hbs",
   "modules/eunos-kult-hacks/templates/dialog/dialog-engage-in-combat.hbs",
-  "modules/eunos-kult-hacks/templates/dialog/volume-control.hbs"
+  "modules/eunos-kult-hacks/templates/dialog/volume-control.hbs",
+  "modules/eunos-kult-hacks/templates/dialog/end-scene-dialog.hbs"
 ];
 
 async function preloadHandlebarTemplates() {

@@ -8,7 +8,7 @@ import EunosAlerts, { AlertType } from "../apps/EunosAlerts";
 import EunosChatMessage, {
   type ResultRolledContext,
 } from "../apps/EunosChatMessage";
-import { EunosRollResult } from "../scripts/enums";
+import { EunosRollResult, CounterResetOn } from "../scripts/enums";
 
 declare global {
   class EunosActor extends k4ltActor {
@@ -36,6 +36,7 @@ declare global {
     getGogglesImageSrc(): string;
     askForAttribute(): Promise<string | null>;
     moveroll(moveID: string): Promise<void>;
+    resetCounters(resetOn: CounterResetOn): Promise<void>;
     awardXP(): Promise<void>;
     get nextXPKey():
       | "advancementExp1"
@@ -500,6 +501,24 @@ export default function registerEunosActor(): void {
         | "advancementExp5";
     }
 
+    public async resetCounters(resetOn: CounterResetOn): Promise<void> {
+      if (!this.isPC()) {
+        return;
+      }
+      const itemsToReset = this.items.filter((item) => item.hasCounter() && item.system.counterResetsOn === resetOn);
+
+      if (itemsToReset.length > 0) {
+        // Create an array of update data objects for each item that needs to be reset
+        const updateData = itemsToReset.map(item => ({
+          _id: item.id,
+          "system.counterCount": 0
+        }));
+
+        // Update all items at once using updateEmbeddedDocuments
+        await this.updateEmbeddedDocuments("Item", updateData);
+      }
+    }
+
     public async awardXP(): Promise<void> {
       if (!this.isPC()) {
         throw new Error("awardXP is only available for PCs");
@@ -695,102 +714,6 @@ export default function registerEunosActor(): void {
       // @ts-expect-error ChatMessage.create is not typed
       await EunosChatMessage.create(chatData);
     }
-
-    // override async displayRollResult(
-    //   {
-    //     roll,
-    //     attribute,
-    //     modifiers,
-    //     source,
-    //     result,
-    //     resultText,
-    //     moveResultText,
-    //     optionsText,
-    //     rollMode,
-    //   }: {
-    //     roll: Roll;
-    //     attribute: string;
-    //     modifiers: Array<{
-    //       value: number;
-    //       name: string;
-    //       cssClasses?: string;
-    //     }>;
-    //     source: EunosItem;
-    //     result: string;
-    //     resultText: string;
-    //     moveResultText: string;
-    //     optionsText: string;
-    //     rollMode: string;
-    //   },
-    //   secondMessageContent?: string,
-    // ) {
-    //   if (!this.isPC()) {
-    //     return;
-    //   }
-
-    //   const dieVals = roll.dice
-    //     .map((die) => die.total)
-    //     .filter(Boolean) as number[];
-
-    //   if (dieVals.length !== 2) {
-    //     throw new Error(
-    //       `Kult rolls require two dice, found ${dieVals.length} dice: ${dieVals.join(", ")}`,
-    //     );
-    //   }
-
-    //   const templateData: ResultRolledContext = {
-    //     cssClass: `roll-result-${result}`,
-    //     rollerName: this.name,
-    //     isWideDropCap: this.name.startsWith("M") || this.name.startsWith("W"),
-    //     attribute,
-    //     attrType: ["fortitude", "willpower", "reflexes"].includes(
-    //       attribute.toLowerCase(),
-    //     )
-    //       ? "passive"
-    //       : "active",
-    //     attrVal:
-    //       this.system.attributes[
-    //         attribute.toLowerCase() as keyof typeof this.system.attributes
-    //       ] ?? 0,
-    //     sourceName: source.name,
-    //     sourceImg: source.img as string,
-    //     dice: dieVals as [number, number],
-    //     modifiers,
-    //     total: Math.max(0, roll.total ?? 0),
-    //     result: roll.result,
-    //     resultText: resultText,
-    //     moveResultText: moveResultText,
-    //     optionsText: optionsText,
-    //   };
-
-    //   const contents: string[] = [
-    //     await renderTemplate(
-    //       getTemplatePath("sidebar", "result-rolled.hbs"),
-    //       templateData,
-    //     ),
-    //   ];
-
-    //   if (secondMessageContent) {
-    //     contents.push(secondMessageContent);
-    //   }
-
-    //   const chatData = {
-    //     speaker: ChatMessage.getSpeaker({ alias: this.name }),
-    //     content: contents.join("\n"),
-    //     rolls: [roll],
-    //     rollMode: rollMode,
-    //   };
-
-    //   // Appliquer les destinataires pour le mode gmroll
-    //   if (rollMode === "gmroll") {
-    //     // @ts-expect-error ChatMessage.getWhisperRecipients is not typed
-    //     chatData.whisper = ChatMessage.getWhisperRecipients("GM");
-    //   }
-
-    //   kultLogger("chatData => ", chatData);
-    //   // @ts-expect-error ChatMessage.create is not typed
-    //   await ChatMessage.create(chatData);
-    // }
 
     async askForAttribute(): Promise<string | null> {
       const passiveAttributes = ["Reflexes", "Willpower", "Fortitude"];

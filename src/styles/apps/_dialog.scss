@@ -744,6 +744,60 @@
           }
         }
       }
+
+      // End Scene Dialog styles
+      .end-scene-dialog {
+        p {
+          margin-bottom: 10px;
+          text-align: center;
+          font-size: 1.1em;
+        }
+
+        .pc-portrait-selection {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 10px;
+
+          .pc-portrait-toggle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 5px;
+
+            &.selected {
+              opacity: 1;
+              border-color: #ff6400;
+              background-color: rgba(255, 100, 0, 0.1);
+            }
+
+            .pc-portrait {
+              width: 60px;
+              height: 60px;
+              border-radius: 50%;
+              overflow: hidden;
+
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              }
+            }
+
+            .pc-name {
+              margin-top: 5px;
+              text-align: center;
+              font-size: 0.9em;
+            }
+          }
+        }
+      }
     }
   }
   .dialog-buttons {

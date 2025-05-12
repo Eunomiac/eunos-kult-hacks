@@ -1,0 +1,13 @@
+<div class="end-scene-dialog">
+  <p>Select the characters present in the scene you are ending:</p>
+  <div class="pc-portrait-selection">
+    {{#each pcActors}}
+    <div class="pc-portrait-toggle {{#if isSelected}}selected{{/if}}" data-pc-id="{{id}}">
+      <div class="pc-portrait">
+        <img src="{{getPortraitImage actor 'fg'}}" alt="{{name}}">
+      </div>
+      <div class="pc-name">{{name}}</div>
+    </div>
+    {{/each}}
+  </div>
+</div>

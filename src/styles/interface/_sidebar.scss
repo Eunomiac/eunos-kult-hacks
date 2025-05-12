@@ -1,6 +1,14 @@
 @use "../globals/mixins" as *;
 
 #interface #ui-right #sidebar {
+
+
+  pointer-events: none;
+
+  > * {
+    pointer-events: initial;
+  }
+
   /* SYSTEM-SPECIFIC CONFIG */
   --sidebar-horiz-gutter: 100px;
   --sidebar-tabs-horiz-overhang: 20px;
@@ -66,14 +74,23 @@
     }
   }
 
-  section.tab.active {
-    padding-left: calc(var(--sidebar-horiz-gutter) - var(--scrollbar-width));
-    &:not(#chat) {
-      background: linear-gradient(
-        to left,
-        var(--K4-dBLACK) var(--gradient-stop-1),
-        transparent var(--gradient-stop-2)
-      );
+  section.tab {
+
+    pointer-events: none;
+
+    > * {
+      pointer-events: initial;
+    }
+
+    &.active {
+      padding-left: calc(var(--sidebar-horiz-gutter) - var(--scrollbar-width));
+      &:not(#chat) {
+        background: linear-gradient(
+          to left,
+          var(--K4-dBLACK) var(--gradient-stop-1),
+          transparent var(--gradient-stop-2)
+        );
+      }
     }
   }
 

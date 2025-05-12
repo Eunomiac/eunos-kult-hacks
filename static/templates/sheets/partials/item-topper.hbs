@@ -21,5 +21,8 @@
   {{#if system.hasCounter}}
   <input class="tokens-name" name="system.counterName" value="{{system.counterName}}" class="short-input" type="text" placeholder="Name" />
   <input class="tokens-counter" name="system.counterCount" value="{{system.counterCount}}" class="short-input" type="number" />
+  <select name="system.counterResetsOn">
+    {{selectOptions counterResetOnValues selected=system.counterResetsOn valueAttr="value" labelAttr="label"}}
+  </select>
   {{/if}}
 </div>

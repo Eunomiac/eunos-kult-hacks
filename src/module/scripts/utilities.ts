@@ -2903,7 +2903,7 @@ function getOwnerOfDoc(doc: EunosActor|EunosItem): Maybe<User> {
   return undefined;
 }
 
-function getActorFromRef(ref: PCTarget|UserTarget): Maybe<EunosActor> {
+function getActorFromRef(ref: PCTarget|UserTarget|EunosActor|EunosItem|User): Maybe<EunosActor> {
   let doc: EunosActor|EunosItem|User|undefined = undefined;
   if (typeof ref === "string") {
     if (isDocID(ref)) {

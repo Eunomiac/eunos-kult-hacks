@@ -1,4 +1,5 @@
 import fields = foundry.data.fields;
+import { CounterResetOn } from "../../scripts/enums";
 
 // export function getEdgeFields() {
 //   return {
@@ -14,11 +15,14 @@ import fields = foundry.data.fields;
 //   }
 // }
 
+
+
 export function getTokenFields() {
   return {
     hasCounter: new fields.BooleanField({initial: false}),
     counterName: new fields.StringField({required: false, nullable: true, initial: null}),
-    counterCount: new fields.NumberField({initial: 0, min: 0, max: 10})
+    counterCount: new fields.NumberField({initial: 0, min: 0, max: 10}),
+    counterResetsOn: new fields.StringField({required: false, nullable: false, initial: CounterResetOn.Never})
   }
 }
 

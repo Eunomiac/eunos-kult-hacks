@@ -460,6 +460,11 @@
         filter: brightness(2);
       }
 
+      &.pc-stage-control-button-end-scene {
+        background-color: rgba(180, 0, 0, 0.5);
+        border-color: var(--K4-RED);
+        color: var(--K4-WHITE);
+      }
     }
   }
   .pc-spotlight-container {
