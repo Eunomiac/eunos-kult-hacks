@@ -1770,17 +1770,8 @@ export const Sounds = {
       volume: 0.75,
       autoplay: false
     },
-    // "quote-session-1": {
-    //   path: "modules/eunos-kult-hacks/assets/sounds/effects/c01/quote-session-1.ogg",
-    //   alwaysPreload: true,
-    //   delay: 2,
-    //   loop: false,
-    //   sync: false,
-    //   volume: 0.25,
-    //   autoplay: false,
-    // },
-    "quote-session-5": {
-      path: "modules/eunos-kult-hacks/assets/sounds/effects/c05/quote-session-5.ogg",
+    "quote-session-6": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/c06/quote-session-6.ogg",
       alwaysPreload: true,
       delay: 0,
       loop: false,

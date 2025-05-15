@@ -5381,13 +5381,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private updateShadowSkew(npcContainer$: JQuery) {
-    const element = npcContainer$[0];
+    if (!npcContainer$[0]) {
+      return;
+    }
+    const element = npcContainer$.find(".npc-portrait-shadow")[0];
     if (!element) {
       return;
     }
-    const skewX = this.getShadowSkewX(element);
+    const skewX = this.getShadowSkewX(npcContainer$[0]);
     gsap.set(element, {
-      filter: `blur(0px) drop-shadow(20px 20px ${skewX}px black)`,
+      skewX
     });
   }
 
