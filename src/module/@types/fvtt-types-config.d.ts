@@ -108,4 +108,12 @@ declare global {
   // interface CONFIG {
   //   K4: typeof K4Config
   // }
+
+  // Correct the Hooks.events type definition
+  interface HooksConstructor {
+    get events(): Record<string, Hooks.HookedFunction[]>;
+  }
+
+  // Make sure the Hooks class uses our corrected constructor
+  interface Hooks extends HooksConstructor {}
 }

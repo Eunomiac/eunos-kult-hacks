@@ -149,7 +149,7 @@ export default class ActorDataPC extends TypeDataModel<
 
   override prepareDerivedData() {
     const stabilityVal = this.stability.value;
-    this.stabilityValues = this.parent.hasBroken ? STABILITY_VALUES.slice(4) : STABILITY_VALUES;
+    this.stabilityValues = this.parent.hasBroken ? STABILITY_VALUES.slice(0, 7) : STABILITY_VALUES;
     this.stabilityStates = (STABILITY_STATES[stabilityVal] ?? []).join(", ");
     this.stabilityModifiers = STABILITY_MODIFIERS[stabilityVal] ?? [];
 

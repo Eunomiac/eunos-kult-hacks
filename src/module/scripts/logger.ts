@@ -82,6 +82,8 @@ interface DebugReport {
   debugLevel: DebugLevel,
   consoleCalls: Array<Array<Tuple<ValOf<typeof console>, unknown[]>>>
 }
+
+declare const __DEV__: boolean;
 // #endregion
 
 const getStackTrace: {
@@ -192,13 +194,28 @@ const k4Logger = (type: KeyOf<typeof STYLES> = "base", ...content: [string, ...u
 };
 
 const kLog = {
-  display: (...content: [string, ...unknown[]]) => { k4Logger("display", ...content); },
-  log: (...content: [string, ...unknown[]]) => { k4Logger("base", ...content); },
-  socketCall: (...content: [string, ...unknown[]]) => { k4Logger("socketCall", ...content); },
-  socketReceived: (...content: [string, ...unknown[]]) => { k4Logger("socketReceived", ...content); },
-  socketResponse: (...content: [string, ...unknown[]]) => { k4Logger("socketResponse", ...content); },
-  error: (...content: [string, ...unknown[]]) => { k4Logger("error", ...content); },
-  hbsLog: (...content: [string, ...unknown[]]) => { k4Logger("handlebars", ...content); }
+  display: (...content: [string, ...unknown[]]) => {
+    k4Logger("display", ...content);
+  },
+  log: (...content: [string, ...unknown[]]) => {
+    if (__DEV__) k4Logger("base", ...content);
+  },
+  socketCall: (...content: [string, ...unknown[]]) => {
+    if (__DEV__) k4Logger("socketCall", ...content);
+  },
+  socketReceived: (...content: [string, ...unknown[]]) => {
+    if (__DEV__) k4Logger("socketReceived", ...content);
+  },
+  socketResponse: (...content: [string, ...unknown[]]) => {
+    if (__DEV__) k4Logger("socketResponse", ...content);
+  },
+  error: (...content: [string, ...unknown[]]) => {
+    // You might want to keep error logging even in production
+    k4Logger("error", ...content);
+  },
+  hbsLog: (...content: [string, ...unknown[]]) => {
+    if (__DEV__) k4Logger("handlebars", ...content);
+  }
 };
 
 export default kLog;

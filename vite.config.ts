@@ -177,6 +177,9 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
         },
       },
     },
+    define: {
+      __DEV__: command === "serve"
+    },
     optimizeDeps: {
       entries: [],
     },

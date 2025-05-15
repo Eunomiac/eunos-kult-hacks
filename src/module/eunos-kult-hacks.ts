@@ -32,6 +32,7 @@ import registerSettings from "./scripts/settings.ts";
 import { initializeGSAP } from "./scripts/animations.ts";
 import "../styles/styles.scss";
 import registerEunosSocketTests from "./tests/tests-EunosSocket.ts";
+import type { AnyFunction } from "fvtt-types/utils";
 // import k4ltitemsheet from "systems/k4lt/modules/sheets/k4ltitemsheet.js";
 // #endregion
 
@@ -95,39 +96,80 @@ async function preloadHandlebarTemplates() {
 
 // #region Overriding System Hooks ~
 /**
- * Replaces the original addBasicMovesToActor hook with a custom implementation
- * @returns {void}
+ * Replaces a hook with a custom implementation based on a pattern match
+ * @param {string} hookName - The name of the hook to replace (e.g., "createActor", "updateActor")
+ * @param {RegExp} pattern - Pattern to match in the hook function's string representation
+ * @param {Function} replacementFn - The new function to register after removing the original
+ * @returns {boolean} - Whether the hook was successfully replaced
  */
-function replaceBasicMovesHook() {
-  // First find and remove the original hook
-  if (!("createActor" in Hooks.events)) {
-    return;
-  }
-  const createActorHooks = Hooks.events
-    .createActor as Array<Hooks.HookedFunction>;
-  if (createActorHooks) {
-    const hookToRemove = createActorHooks.find((hook) =>
-      String(hook.fn).includes(
-        'if (actor.type === "pc" && actor.items.size === 0)',
-      ),
-    );
-
-    if (hookToRemove) {
-      Hooks.off("createActor", hookToRemove.fn);
-      console.log("Successfully removed original addBasicMovesToActor hook");
-    }
+function removeK4ltHook(hookName: string, pattern: RegExp): boolean {
+  // Check if the hook exists
+  if (!(hookName in Hooks.events)) {
+    console.warn(`Hook '${hookName}' not found in Hooks.events`);
+    return false;
   }
 
+  // Access the hooks directly by name
+  const hooks = (Hooks.events as unknown as Record<string, Array<Hooks.HookedFunction>>)[hookName];
 
-  // Register the new hook
-  Hooks.on("createActor", (actor: EunosActor) => {
-    if (actor.isPC()) {
-      void actor.addBasicMoves();
-    }
-  });
+  if (!hooks || !Array.isArray(hooks)) {
+    console.warn(`No hooks found for '${hookName}'`);
+    return false;
+  }
+
+  // Find the hook to remove based on the pattern
+  const hookToRemove = hooks.find((hook) => pattern.test(String(hook.fn)));
+
+  if (hookToRemove) {
+    Hooks.off(hookName, hookToRemove.fn);
+    console.log(`Successfully removed original ${hookName} hook matching pattern: ${pattern}`);
+
+    return true;
+  } else {
+    console.warn(`No ${hookName} hook found matching pattern: ${pattern}`);
+    return false;
+  }
 }
 
-// #endregion
+async function checkAdvancements(actor: EunosActor) {
+  if (!actor.isPC()) return;
+  const advancementStates = [
+    actor.system.advancementExp1.state,
+    actor.system.advancementExp2.state,
+    actor.system.advancementExp3.state,
+    actor.system.advancementExp4.state,
+    actor.system.advancementExp5.state,
+  ];
+
+  const allChecked = advancementStates.every(state => state === "checked");
+
+  if (allChecked) {
+    const currentLevel = actor.system.advancementLevel.value || 0;
+    await actor.update({
+      system: {
+        advancementLevel: {
+          value: currentLevel + 1,
+        },
+        advancementExp1: {
+          state: "none",
+        },
+        advancementExp2: {
+          state: "none",
+        },
+        advancementExp3: {
+          state: "none",
+        },
+        advancementExp4: {
+          state: "none",
+        },
+        advancementExp5: {
+          state: "none",
+        },
+      },
+    });
+  }
+};
+ // #endregion
 
 assignGlobals({
   U,
@@ -162,6 +204,14 @@ async function RunInitializer(methodName: InitializerMethod) {
 // Initialize core systems
 Hooks.on("init", () => {
   kLog.display("Initializing 'Kult: Divinity Lost 4th Edition' for Foundry VTT", 0);
+
+  // Replace the original addBasicMovesToActor hook
+  removeK4ltHook(
+    "createActor",
+    /if\s*\(\s*actor\.type\s*===\s*"pc"\s*&&\s*actor\.items\.size\s*===\s*0\s*\)/
+  );
+  removeK4ltHook("updateActor", /checkAdvancements/);
+  removeK4ltHook("renderActorDirectory", /kultLogger/);
 
   initializeGSAP();
 
@@ -212,5 +262,18 @@ Hooks.on("ready", () => {
     await RunInitializer(InitializerMethod.PostInitialize);
   });
 
-  replaceBasicMovesHook();
+  // Register the new hook
+  Hooks.on("createActor", (actor: EunosActor) => {
+    if (actor.isPC()) {
+      void actor.addBasicMoves();
+    }
+  });
+
+
+  Hooks.on('updateActor', (actor: EunosActor) => {
+    if (actor.isPC()) {
+      void checkAdvancements(actor);
+    }
+  });
+
 });

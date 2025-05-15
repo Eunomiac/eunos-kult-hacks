@@ -26,6 +26,7 @@ const ActorSchemaNPC = {
   isSpotlit: new fields.BooleanField(),
   sceneIndex: new fields.NumberField({nullable: true}),
   isGeneric: new fields.BooleanField(),
+  tokenScale: new fields.NumberField({initial: 1}),
 };
 
 export default class ActorDataNPC extends TypeDataModel<

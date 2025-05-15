@@ -6,6 +6,12 @@ const OUTPUT_DIR = "D:/Projects/!Roleplaying/!!!KULT/EUNOS-KULT-HACKS";
 const ZIP_NAME = "eunos-kult-hacks.zip";
 
 async function createZipArchive(): Promise<void> {
+  // Skip zip creation if SKIP_ZIP environment variable is set to true
+  if (process.env["SKIP_ZIP"] === "true") {
+    console.log("\nSkipping zip creation as SKIP_ZIP is set to true");
+    return;
+  }
+
   // Ensure output directory exists
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });

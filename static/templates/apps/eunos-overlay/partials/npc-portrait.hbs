@@ -1,4 +1,4 @@
-<div class="npc-portrait npc-portrait-invisible npc-portrait-name-{{nameState}} {{#if (isLocationBright)}}npc-portrait-bright {{#if (isOutdoors)}}npc-portrait-goggles{{/if}}{{/if}}" data-actor-id="{{actor.id}}" data-portrait-state="{{portraitState}}" data-name-state="{{nameState}}" data-goggles-state="{{#if (isOutdoors)}}goggles{{else}}noGoggles{{/if}}" data-action="openNPCSheet">
+<div class="npc-portrait npc-portrait-invisible npc-portrait-name-{{nameState}} {{#if (isLocationBright)}}npc-portrait-bright {{#if (isOutdoors)}}npc-portrait-goggles{{/if}}{{/if}}" data-actor-id="{{actor.id}}" data-portrait-state="{{portraitState}}" data-name-state="{{nameState}}" data-goggles-state="{{#if (isOutdoors)}}goggles{{else}}noGoggles{{/if}}" data-token-scale="{{actor.system.tokenScale}}" data-action="openNPCSheet">
   <div class="npc-portrait-container">
     <div class="npc-portrait-frame">
       <img class="npc-portrait-image npc-portrait-image-base" src="{{actor.img}}" />

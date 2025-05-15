@@ -6,7 +6,7 @@
       "dependsOrder": "sequence",
       "dependsOn": [
         "Run Foundry Server",
-        "Run Build with Custom Port",
+        "Run Dev Build (No Zip)",
         "Run 1x Vite Dev Server"
       ],
       "group": {
@@ -19,12 +19,22 @@
       "dependsOrder": "sequence",
       "dependsOn": [
         "Run Foundry Server",
-        "Run Build with Custom Port",
+        "Run Dev Build (No Zip)",
         "Run 2x Vite Dev Server"
       ],
       "group": {
-        "kind": "build",
-        "isDefault": true
+        "kind": "build"
+      }
+    },
+    {
+      "label": "Build Production Package",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Run Foundry Server",
+        "Run Production Build with Zip"
+      ],
+      "group": {
+        "kind": "build"
       }
     },
     {
@@ -57,7 +67,7 @@
       }
     },
     {
-      "label": "Run Build with Custom Port",
+      "label": "Run Dev Build (No Zip)",
       "type": "shell",
       "command": "yarn",
       "args": [
@@ -66,7 +76,8 @@
       ],
       "options": {
         "env": {
-          "FOUNDRY_PORT": "30000"
+          "FOUNDRY_PORT": "30000",
+          "SKIP_ZIP": "true"
         }
       },
       "isBackground": true,
@@ -80,6 +91,22 @@
           "endsPattern": ".*✓ built in.*"
         }
       }
+    },
+    {
+      "label": "Run Production Build with Zip",
+      "type": "shell",
+      "command": "yarn",
+      "args": [
+        "run",
+        "build"
+      ],
+      "options": {
+        "env": {
+          "FOUNDRY_PORT": "30000",
+          "NODE_ENV": "production"
+        }
+      },
+      "problemMatcher": []
     },
     {
       "label": "Run 1x Vite Dev Server",

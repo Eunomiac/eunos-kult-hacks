@@ -4678,6 +4678,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     npcContainer$: JQuery,
   ): gsap.core.Timeline {
     const SMOKE_EFFECT_DELAY = 2;
+    const tokenScale = npcContainer$.attr("data-token-scale") as Maybe<string>;
+    const tokenScaleNumber = tokenScale ? parseFloat(tokenScale) : 1;
+    const hiddenScale = getUser().isGM ? 1 : (0.5 * tokenScaleNumber);
+    const dimmedScale = getUser().isGM ? 1 : (0.8 * tokenScaleNumber);
 
     const portraitContainer$ = npcContainer$.find(".npc-portrait-container");
     const portraitFrame$ = portraitContainer$.find(".npc-portrait-frame");
@@ -4703,14 +4707,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           autoAlpha: 0,
           y: "-=100",
           // skewX: -30,
-          scale: getUser().isGM ? 1 : 0.5,
+          scale: hiddenScale,
           filter: "brightness(5) blur(300px)",
         },
         {
           autoAlpha: 1,
           y: 0,
           // skewX: 0,
-          scale: getUser().isGM ? 1 : 0.8,
+          scale: dimmedScale,
           filter: "brightness(0.5) blur(0px)",
           duration: 0.5,
           ease: "none",
@@ -4732,12 +4736,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .fromTo(
         portraitShadow$,
         {
-          scale: 0.5,
+          scale: hiddenScale,
           filter: "brightness(0) blur(100px)",
           autoAlpha: 0,
         },
         {
-          scale: 0.8,
+          scale: dimmedScale,
           filter: "brightness(0) blur(10px)",
           autoAlpha: 0.5,
           duration: 0.25,
@@ -4757,6 +4761,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private buildNPCDimmedToBaseTimeline(
     npcContainer$: JQuery,
   ): gsap.core.Timeline {
+    const tokenScale = npcContainer$.attr("data-token-scale") as Maybe<string>;
+    const baseScale = tokenScale ? parseFloat(tokenScale) : 1;
     const portraitContainer$ = npcContainer$.find(".npc-portrait-container");
     const portraitFrame$ = portraitContainer$.find(".npc-portrait-frame");
     const portraitImage$ = portraitFrame$.find(".npc-portrait-image-base");
@@ -4776,7 +4782,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return gsap
       .timeline({ paused: true })
       .to(portraitContainer$, {
-        scale: 1,
+        scale: baseScale,
         filter: "brightness(1) blur(0px)",
         duration: 1,
         ease: "none",
@@ -4793,7 +4799,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(
         portraitShadow$,
         {
-          scale: 1,
+          scale: baseScale,
           filter: "brightness(0) blur(5px)",
           autoAlpha: 0.8,
           duration: 1,

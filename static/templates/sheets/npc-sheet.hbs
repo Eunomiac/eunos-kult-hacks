@@ -1,4 +1,5 @@
-{{log "npc-sheet" this}}
+{{!-- {{log "npc-sheet" this}} --}}
+
 <form class="{{cssClass}} kult-sheet {{#unless owner}}observer{{/unless}}" autocomplete="off">
 
   <header class="sheet-header">
@@ -23,6 +24,7 @@
       {{#if (test owner "||" system.isShortDescVisible)}}
       {{#if owner}}
       <div class="npc-short-description-block">
+        <input id="npc-short-description-block" type="number" class="border-rect" value="{{system.tokenScale}}" name="system.tokenScale" style="margin-right: 3px;">
         <input id="npc-short-description-block" type="text" class="border-rect" value="{{system.shortDescription}}"
           name="system.shortDescription" />
         <div class="npc-short-description-visibility">
