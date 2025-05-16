@@ -1,0 +1,11 @@
+- At **Kingsgrave Manor**, **Alistair** discovers a hidden cache of medieval-era weaponry in the blood-stained cellar, attracting the attention of house staff. The scene shifts, revealing the blood, the weapons and the barren basement as schizophrenic hallucinations. But a memory surfaces, of himself holding one of the weapons with bloodied, child-sized hands.
+- Alistair finds **Barbara Kingsgrave** weeping in her room. She reveals his father was a Ranger and discusses the town's founding families—particularly the **Wainwrights'** desperate desire to escape Emma's Rise's time anomaly.
+- In the **East Tunnel**, the expedition splits at a fork. **Morgan Harvey** and two of **Gestalt's** bodies follow signs of construction, while **Roman Larson** tracks an unsettling scent.
+- **Jesús de Costa** discovers a futuristic tracking device implanted in his arm where Gestalt touched him. After cutting it out, he encounters the **Tallyman**, who reveals they were sent by "the Kin".
+    - Jesús attempts to command the Tallyman, ordering them to enter Gestalt's mind. The entity hesitates but complies when Jesús shouts.
+- Gestalt deploys drone scouts after Roman confronts them about the tracker, suspicious of their true motives.
+- The group reaches flooded tunnels and proceeds toward distant machinery sounds. When **Mayor Wainwright** evades questions about the tunnel's dangers, Roman draws a gauss rifle on him.
+- Morgan's lost Kentucky students appear as feral attackers, sending him into a rage until Roman intervenes. The group flees to a chamber filled with electrified clockwork mechanisms.
+- **Roman** is struck by golden lightning arcs from the machinery and falls unconscious. Gestalt rushes to his aid.
+- **Elijah Montgomery Lee** awakens from possession by **The Howling That Follows Silence** to find himself before a strange face-statue in the tunnel. After rejoining the group, he advocates leaving.
+- The session ends in a standoff as **Elijah** draws a blade on **Mayor Wainwright**, who refuses to abandon his plans for the tunnel as Emma's Rise's escape route.

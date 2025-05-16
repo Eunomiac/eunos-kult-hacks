@@ -89,7 +89,7 @@ const templatePaths = [
 ];
 
 async function preloadHandlebarTemplates() {
-  kultLogger("Loading modular templates:", templatePaths); // Log the template paths
+  kLog.log("Loading modular templates:", templatePaths); // Log the template paths
   return loadTemplates(templatePaths);
 }
 // #endregion
@@ -105,7 +105,7 @@ async function preloadHandlebarTemplates() {
 function removeK4ltHook(hookName: string, pattern: RegExp): boolean {
   // Check if the hook exists
   if (!(hookName in Hooks.events)) {
-    console.warn(`Hook '${hookName}' not found in Hooks.events`);
+    kLog.error(`Hook '${hookName}' not found in Hooks.events`);
     return false;
   }
 
@@ -113,7 +113,7 @@ function removeK4ltHook(hookName: string, pattern: RegExp): boolean {
   const hooks = (Hooks.events as unknown as Record<string, Array<Hooks.HookedFunction>>)[hookName];
 
   if (!hooks || !Array.isArray(hooks)) {
-    console.warn(`No hooks found for '${hookName}'`);
+    kLog.error(`No hooks found for '${hookName}'`);
     return false;
   }
 
@@ -122,11 +122,11 @@ function removeK4ltHook(hookName: string, pattern: RegExp): boolean {
 
   if (hookToRemove) {
     Hooks.off(hookName, hookToRemove.fn);
-    console.log(`Successfully removed original ${hookName} hook matching pattern: ${pattern}`);
+    kLog.log(`Successfully removed original ${hookName} hook matching pattern: ${pattern}`);
 
     return true;
   } else {
-    console.warn(`No ${hookName} hook found matching pattern: ${pattern}`);
+    kLog.error(`No ${hookName} hook found matching pattern: ${pattern}`);
     return false;
   }
 }

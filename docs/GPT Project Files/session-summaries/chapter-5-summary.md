@@ -1,0 +1,11 @@
+- **Elijah Montgomery Lee** holds **Mayor Jim Wainwright** at knifepoint outside the cave, forcing a tense cease-fire.
+- Nearby, the triune **Gestalt** orders **Morgan Harvey** to fetch "time treads" from their pack, which proved to be a strange device that Gestalt connected to **Roman Larson** for some kind of treatment.
+- Elijah talks the group out of the cavern without bloodshed—though Morgan spits a final curse at the mayor, who swallows his pride.
+- Calm shatters as the **Tallyman** lurches from the tunnel toward Gestalt; Elijah’s words stall it. Morgan tries to slam the security gate, grazes the creature, then shoots the failsafe box, sealing the bars.
+- **Jesús de Costa** appears on the wrong side of the gate; the Tallyman speaks into his mind, begging passage to Gestalt and threatening Jesús' own dreams if he does not comply. Elijah and Jesús accuse each other of puppeteering the monster while it cowers and brands Jesús “master,” yet vows to “eat their dreams.”
+- Seeking answers, Jesús downs a sedative to slip into Limbo, but agony racks him—as if being dragged bodily through the caustic fillaments draping the Tallyman's shell.
+- Across town, **Barbara Kingsgrave** reveals to **Alistair** that he was (and will be) a sacrificial child cast from Emma’s Rise; a flashback shows a ranger presenting medieval weapons to terrified children, bidding them choose their means of survival.
+- Disgusted by his mother’s indifference, Alistair storms out and reaches the cave just as Jesús is trapped behind the gate with the Tallyman.
+- Elijah and Alistair press the mayor on the hated **Pact** and his secret wish to flee; discussion turns to the **Standing Stones**, now in the custody of **Ambergris**, which was described as some sort of community even more disconnected from time than Emma's Rise. Promises were made to visit it the following day, when it would be returned to the custody of Emma's Rise.
+- With tensions high, the mayor defers to Morgan. Returning to the gate, they find Jesús vanished—only a vial of sedatives remaining, suggesting he tried to medicate himself into unconsciousness while the Tallyman looked on.
+- Gestalt forged into the darkness to hopefully find Jesús, while the rest set about planning their next move.

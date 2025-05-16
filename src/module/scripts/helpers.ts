@@ -123,9 +123,9 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
   "getTooltip": (actorID: string, itemID: string): string|false => {
     const actor = getGame().actors.get(actorID);
     const item = actor?.items.get(itemID);
-    console.log(`Getting tooltip for Actor: ${actorID} and Item: ${itemID}`);
+    kLog.log(`Getting tooltip for Actor: ${actorID} and Item: ${itemID}`);
     if (!item) { return false; }
-    console.log("Item", item);
+    kLog.log("Item", item);
     const tooltipLines: string[] = [];
     if (item.isMechanicalItem() && ["active", "triggered"].includes(item.system.type)) {
       tooltipLines.push(item.system.trigger!);
