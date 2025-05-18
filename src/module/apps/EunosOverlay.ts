@@ -2763,9 +2763,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     //   })
     const tl = gsap.timeline();
     tl.call(() => {
-      void this.animateInBlackBars(0, 10).then(() => {
-        void this.initializeCountdown();
-      });
+      void this.animateInBlackBars(0, 10);
     });
     tl.fromTo(
       this.topZIndexMask$,
@@ -2794,6 +2792,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       undefined,
       5,
     );
+    tl.call(() => {
+      void this.initializeCountdown();
+    }, [], 10);
     await tl.play();
   }
   private async initialize_SessionEnding(): Promise<void> {
@@ -7165,37 +7166,40 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region END PHASE ~
 
-  #fadeOutQuestion(question$: JQuery): gsap.core.Timeline {
-    const splitQuestionTextChars = question$.find(".question-text").children();
 
-    return gsap.timeline().to(splitQuestionTextChars, {
-      autoAlpha: 0,
-      duration: 1,
-      filter: "blur(10px)",
-      x: "+=50",
-      y: "-=100",
-      ease: "power3.out",
-      stagger: {
-        from: "start",
-        amount: 0.5,
-      },
-    });
+
+  #fadeInQuestion(question$: JQuery): GSAPAnimation {
+    const fadeInTimeline = (gsap.timeline({paused: true})
+      ["fadeInPopText"] as GSAPEffectFunction)(question$);
+    question$.data("fadeInTimeline", fadeInTimeline);
+    return fadeInTimeline.timeScale(1).play();
   }
 
-  #fadeInQuestion(question$: JQuery): gsap.core.Timeline {
-    const split = new SplitText(question$.find(".question-text")[0]!, {
-      type: "chars,words",
-    });
-    return (gsap.effects["splashPopText"] as GSAPEffectFunction)(
-      split.chars,
-    ) as gsap.core.Timeline;
+  #fadeOutQuestion(question$: JQuery): GSAPAnimation {
+    kLog.log("Fading out question", question$);
+    const fadeInTimeline = question$.data("fadeInTimeline") as Maybe<gsap.core.Timeline>;
+    if (!fadeInTimeline) {
+      kLog.error("No fade in timeline found for question, applying default animation", question$);
+      return gsap.to(
+        question$,
+        {
+          autoAlpha: 0,
+          duration: 1,
+          filter: "blur(10px)",
+          x: "+=50",
+          y: "-=100",
+          ease: "power3.out"
+        });
+    }
+    kLog.log("Reversing Timeline", fadeInTimeline);
+    return fadeInTimeline.timeScale(3).reverse();
   }
 
   public async transitionToEndPhaseQuestion(
     questionNumber: number,
   ): Promise<void> {
-    kLog.log(`transitioning to end phase question #${questionNumber}`);
     const lastQuestion = questionNumber - 1;
+    kLog.log(`transitioning to end phase question #${questionNumber}`, {lastQuestion, lastQuestion$: this.endPhase$.find(`[data-question-number="${lastQuestion}"]`)});
     if (lastQuestion > 0) {
       const lastQuestion$ = this.endPhase$.find(
         `[data-question-number="${lastQuestion}"]`,

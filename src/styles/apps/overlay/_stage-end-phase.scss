@@ -98,16 +98,16 @@
       padding: 0 10%;
       text-align: center;
       color: var(--K4-bWHITE);
-      font-size: 40px;
+      font-size: 34px;
       text-shadow:
         0 0 2px var(--K4-WHITE),
         0 0 4px var(--K4-WHITE),
         0 0 6px var(--K4-WHITE),
-        0 0 8px var(--K4-WHITE),
+        0 0 8px var(--K4-WHITE)/* ,
         0 0 10px var(--K4-WHITE),
         0 0 12px var(--K4-WHITE),
         0 0 14px var(--K4-WHITE),
-        0 0 16px var(--K4-WHITE);
+        0 0 16px var(--K4-WHITE) */;
     }
 
   }
@@ -165,5 +165,6 @@
     visibility: hidden;
     font-family: var(--font-primary-smallcaps);
     text-transform: lowercase;
+    z-index: 10;
   }
 }

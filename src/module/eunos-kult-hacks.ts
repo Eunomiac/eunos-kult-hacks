@@ -132,7 +132,7 @@ function removeK4ltHook(hookName: string, pattern: RegExp): boolean {
 }
 
 async function checkAdvancements(actor: EunosActor) {
-  if (!actor.isPC()) return;
+  if (!actor.isPC() || !actor.isOwner) return;
   const advancementStates = [
     actor.system.advancementExp1.state,
     actor.system.advancementExp2.state,

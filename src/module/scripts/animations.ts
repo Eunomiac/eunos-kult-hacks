@@ -59,7 +59,7 @@ export function initializeGSAP(): void {
     }
   });
   gsap.registerEffect({
-    name: "splashPopText",
+    name: "rotateSplitPopText",
     extendTimeline: true,
     defaults: {
       duration: 2.5,
@@ -70,11 +70,11 @@ export function initializeGSAP(): void {
       const targets$ = $(targets);
       const {duration, ease, delay} = config as {duration: number, ease: string, delay: number};
       // gsap.set(targets$, {filter: "blur(0px) drop-shadow(20px 20px 10px black)"});
-      const targetContainer$ = targets$.parents(".question-text");
-      const questionContainer$ = targetContainer$.parents(".question-container");
+      const textContainer$ = targets$.parents(".question-text");
+      const questionContainer$ = textContainer$.parents(".question-container");
       const timeToStaggerTargets = duration / targets$.length;
       return gsap.timeline({delay})
-        .fromTo(targetContainer$, {
+        .fromTo(textContainer$, {
           autoAlpha: 0,
         }, {
           autoAlpha: 1,
@@ -126,6 +126,63 @@ export function initializeGSAP(): void {
           0.1)
     }
   });
+  gsap.registerEffect({
+    name: "fadeInPopText",
+    extendTimeline: true,
+    defaults: {
+      duration: 6,
+      ease: "power2.inOut",
+      delay: 0
+    },
+    effect: (targets: HTMLElement[]|JQuery, config = {}) => {
+      const questionContainer$ = $(targets);
+      const bgWrapper$ = questionContainer$.siblings(".background-wrapper");
+      const bgLayerBase$ = bgWrapper$.find(".bg-layer-base");
+      const bgLayerZ1$ = bgWrapper$.find(".bg-layer-z1");
+      const bgLayerZ2$ = bgWrapper$.find(".bg-layer-z2");
+      const bgLayerZ3$ = bgWrapper$.find(".bg-layer-z3");
+      const bgLayerZ4$ = bgWrapper$.find(".bg-layer-z4");
+      const groundFog$ = bgWrapper$.find(".ground-fog");
+
+      const {duration, ease, delay} = config as {duration: number, ease: string, delay: number};
+
+      const treeTimeline = gsap.timeline({clearProps: "all"})
+        .to([bgLayerBase$[0], groundFog$[0]], {scale: 1.1, ease, duration}, 0)
+        .to(bgLayerZ4$, {scale: 2, ease, duration}, 0)
+        .to(bgLayerZ3$, {scale: 1.25, ease, duration}, 0)
+        .to(bgLayerZ2$, {scale: 1.05, ease, duration}, 0)
+        .to(bgLayerZ1$, {scale: 1.025, ease, duration}, 0);
+
+      const textTimeline = gsap.timeline({clearProps: "all"})
+        // Start with text far back, blurred and invisible
+        .fromTo(questionContainer$,
+            {y: -350, z: 0, filter: "blur(25px)", autoAlpha: 0},
+            {y: 0, z: 0, filter: "blur(0px)", autoAlpha: 1, duration: 10, ease: "power3.out"}, 0)
+        .fromTo(questionContainer$, {scale: 0.75}, {scale: 2, duration: 10, ease: "power2.inOut"}, 0)
+        // Start with lowest z-index
+        .set(questionContainer$, {zIndex: 0}, 0)
+        // Staggered z-index transitions with easing
+        .to(bgLayerZ1$, {opacity: 0.5, duration: 0.8, ease: "power2.inOut"}, 0.5)
+        .to(questionContainer$, {zIndex: 1, duration: 0.1}, 1.2)
+        .to(bgLayerZ1$, {opacity: 1, duration: 0.4, ease: "power2.in"}, 1.3)
+
+        .to(bgLayerZ2$, {opacity: 0.5, duration: 0.8, ease: "power2.inOut"}, 1.8)
+        .to(questionContainer$, {zIndex: 2, duration: 0.1}, 2.5)
+        .to(bgLayerZ2$, {opacity: 1, duration: 0.4, ease: "power2.in"}, 2.6)
+
+        .to(bgLayerZ3$, {opacity: 0.5, duration: 0.8, ease: "power2.inOut"}, 3.0)
+        .to(questionContainer$, {zIndex: 3, duration: 0.1}, 3.7)
+        .to(bgLayerZ3$, {opacity: 1, duration: 0.4, ease: "power2.in"}, 3.8)
+
+        .to(bgLayerZ4$, {opacity: 1, duration: 0.8, ease: "power2.inOut"}, 4.0)
+        .to(questionContainer$, {zIndex: 5, duration: 0.1}, 4.7) // Final z-index higher than all layers
+        .to(bgLayerZ4$, {opacity: 1, duration: 0.4, ease: "power2.in"}, 4.8);
+
+      return gsap.timeline({delay})
+        .add(treeTimeline, 0)
+        .add(textTimeline, 0);
+    }
+  })
   // Register custom effects
   gsap.registerEffect({
     name: "displayOverlayItem",

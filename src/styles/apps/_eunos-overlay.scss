@@ -53,7 +53,6 @@ html {
       #PCS-GM,
       #NPCS-GM,
       #STAGE,
-      #VIDEO-STATUS-PANEL,
       #STAGE-CHANGES-LOG,
       #STAGE-END-PHASE {
         visibility: hidden;
@@ -61,6 +60,12 @@ html {
 
       .app {
         z-index: 20000 !important;
+      }
+    }
+
+    &:not(.session-loading) {
+      #VIDEO-STATUS-PANEL {
+        visibility: hidden;
       }
     }
 
@@ -78,7 +83,6 @@ html {
       #PCS,
       #PCS-GM,
       #STAGE,
-      // #VIDEO-STATUS-PANEL,
       #STAGE-CHANGES-LOG,
       #STAGE-END-PHASE {
         visibility: hidden;
@@ -99,7 +103,6 @@ html {
       // #PCS-GM,
       // #NPCS-GM,
       // #STAGE,
-      #VIDEO-STATUS-PANEL,
       #STAGE-CHANGES-LOG,
       #STAGE-END-PHASE {
         visibility: hidden;
@@ -132,6 +135,8 @@ html {
     }
 
     &.session-ending {
+
+      --sidebar-width: 0px;
 
       #EUNOS_OVERLAY {
         width: 100%;
