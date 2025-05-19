@@ -31,8 +31,8 @@ import kLog from "./scripts/logger.ts";
 import registerSettings from "./scripts/settings.ts";
 import { initializeGSAP } from "./scripts/animations.ts";
 import "../styles/styles.scss";
-import registerEunosSocketTests from "./tests/tests-EunosSocket.ts";
 import type { AnyFunction } from "fvtt-types/utils";
+import EunosCarousel from "./apps/EunosCarousel.ts";
 // import k4ltitemsheet from "systems/k4lt/modules/sheets/k4ltitemsheet.js";
 // #endregion
 
@@ -106,6 +106,7 @@ function removeK4ltHook(hookName: string, pattern: RegExp): boolean {
   // Check if the hook exists
   if (!(hookName in Hooks.events)) {
     kLog.error(`Hook '${hookName}' not found in Hooks.events`);
+    const test = gsap;
     return false;
   }
 
@@ -179,6 +180,7 @@ assignGlobals({
   EunosSockets,
   EunosMedia,
   EunosChatMessage,
+  EunosCarousel,
   kLog,
   InitializableClasses: {
     EunosSockets,
@@ -220,10 +222,6 @@ Hooks.on("init", () => {
   registerHandlebarHelpers();
 
   overrideActor();
-
-  Hooks.on("quenchReady", () => {
-    registerEunosSocketTests();
-  });
 
   // Initialize Tooltips Overlay
   void RunInitializer(InitializerMethod.PreInitialize);
@@ -276,4 +274,41 @@ Hooks.on("ready", () => {
     }
   });
 
+});
+
+// Add this function to test the carousel
+async function testCarousel() {
+  // Get the carousel instance
+  const carousel = EunosCarousel.instance;
+
+  // Set the items for the carousel
+  carousel.setItems([
+    { description: "Description for item 1" },
+    { description: "Description for item 2" },
+    { description: "Description for item 3" },
+    { description: "Description for item 4" },
+    { description: "Description for item 5" }
+  ]);
+
+  // Render the carousel
+  await carousel.render({ force: true, parts: ["carousel"] });
+
+  // Initialize the carousel after rendering
+  void carousel.initializeCarousel();
+
+  return carousel;
+}
+
+// Add a hook to test the carousel when the game is ready
+Hooks.on("ready", () => {
+  // Add a button to the sidebar to test the carousel
+  const button = document.createElement("button");
+  button.textContent = "Test Carousel";
+  button.style.margin = "10px";
+  button.addEventListener("click", () => {
+    void testCarousel();
+  });
+
+  // Add the button to the sidebar
+  document.getElementById("sidebar")?.appendChild(button);
 });

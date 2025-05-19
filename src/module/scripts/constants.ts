@@ -669,7 +669,7 @@ const GLOBAL_VARIABLES = {
    * @throws Error if the user's PC is not ready.
    */
   getActor: function getActor(): EunosActor {
-    const userID: IDString = getUser().id as IDString;
+    const userID: string = getUser().id as string;
     const pcs = getActors().filter((actor) => actor.type === "pc");
     const userPC = pcs.find(
       (pc) => pc.ownership[userID] === CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER,
@@ -711,7 +711,7 @@ const GLOBAL_VARIABLES = {
    * @returns The audio helper.
    * @throws Error if the audio helper is not ready.
    */
-  getAudioHelper: function getAudioHelper(): typeof AudioHelper {
+  getAudioHelper: function getAudioHelper(): typeof game["audio"] {
     const audioHelper = getGame().audio;
     if (!audioHelper) {
       throw new Error("AudioHelper is not ready");
@@ -1937,8 +1937,8 @@ export const EASES = {
 
 export declare namespace PCs {
   export interface GlobalSettingsData {
-    actorID: IDString;
-    ownerID: IDString;
+    actorID: string;
+    ownerID: string;
   }
 
   export interface LocationSettingsData extends GlobalSettingsData {
@@ -1957,7 +1957,7 @@ export declare namespace PCs {
 
 export declare namespace NPCs {
   export interface GlobalSettingsData {
-    actorID: IDString;
+    actorID: string;
   }
   export interface LocationSettingsData extends GlobalSettingsData {
     position: Point;
@@ -2006,8 +2006,8 @@ export declare namespace Location {
 
   interface DynamicSettingsData {
     currentImage: string | null;
-    pcData: Record<IDString, PCData.SettingsData>;
-    npcData: Record<IDString, NPCData.SettingsData>;
+    pcData: Record<string, PCData.SettingsData>;
+    npcData: Record<string, NPCData.SettingsData>;
   }
 
   export interface SettingsData
@@ -2033,14 +2033,14 @@ export declare namespace Location {
     audioDataByImage?: Record<string, Record<string, Partial<EunosMediaData>>>;
     // Dynamic properties
     currentImage: string | null;
-    pcData: Record<IDString, PCData.SettingsData>;
-    npcData: Record<IDString, NPCData.SettingsData>;
+    pcData: Record<string, PCData.SettingsData>;
+    npcData: Record<string, NPCData.SettingsData>;
   }
 
   interface DynamicFullData {
     currentImage: string | null;
     pcData: Record<"1" | "2" | "3" | "4" | "5", PCData.FullData>;
-    npcData: Record<IDString, NPCData.FullData>;
+    npcData: Record<string, NPCData.FullData>;
     audioDataIndoors?: Record<string, EunosMedia<EunosMediaTypes.audio>>;
     audioDataOutdoors?: Record<string, EunosMedia<EunosMediaTypes.audio>>;
     audioDataByImage?: Record<string, Record<string, EunosMedia<EunosMediaTypes.audio>>>;

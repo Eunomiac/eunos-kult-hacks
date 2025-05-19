@@ -21,7 +21,7 @@ declare namespace EunosAlerts {
   export namespace Context {
     interface Base {
       type: AlertType;
-      target: UserTargetRef|IDString|UUIDString;
+      target: UserTargetRef|string|string;
       soundName: string;
       soundDelay?: number;
       duration?: number;

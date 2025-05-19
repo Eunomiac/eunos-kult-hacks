@@ -5,6 +5,36 @@ import Document = foundry.abstract.Document;
 import type ActorDataPC from "../data-model/ActorDataPC";
 // eslint-disable-next-line
 
+// #region BRANDED TYPES ~
+declare global {
+  /** NOTE: Branded types have been disabled, by equating them to their non-branded counterparts. */
+  const brand: unique symbol;
+  type Brand<T, BrandName extends string> = T & {[brand]: BrandName;};
+
+  // number === Float type guard
+  type Float = number; // Brand<number, "Float">;
+  // number === Positive float type guard
+  type PosFloat = number; // Brand<number & Float, "PosFloat">;
+  // string === HTML code
+  type HTMLString = string; // Brand<string, "HTMLString">; // e.g. "<p>Hello World</p>"
+  // string === RGB color
+  type RGBColor = string //   `rgb(${number}${FlexComma}${number}${FlexComma}${number})` |
+    // `rgba(${number}${FlexComma}${number}${FlexComma}${number}${FlexComma}${number})`;
+  // string === Hex color
+  type HexColor = string // Brand<string, "HexColor">; // e.g. "#FF0000"
+  // string === Document id
+  type IDString = string // Brand<string, "IDString">; // e.g. "5e4e7b1c322f2e1c"
+  // string === UUID
+  type UUIDString = string; // Brand<string, "string">; // e.g. "Actor.5e4e7b1c322f2e1c"
+  // string === Dotkey
+  type DotKey = string; // Brand<string, "DotKey">; // e.g. "system.attributes.hp.value"
+  // string === Dotkey appropriate for update() data object
+  type TargetKey = string; // Brand<string & DotKey, "TargetKey">;
+  // string === Dotkey pointing to a flag instead of the document schema
+  type TargetFlagKey = string; // Brand<string & DotKey, "TargetFlagKey">;
+}
+// #endregion
+
 // #region ▒▒▒▒▒▒▒ [HELPERS] Internal Functions, Data & References Used by Utility Functions ▒▒▒▒▒▒▒ ~
 
 // _noCapWords -- Patterns matching words that should NOT be capitalized when converting to TITLE case.

@@ -964,7 +964,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       { fromLocation: string; toLocation: string }
     >;
     refreshLocationImage: SocketFunction<void, { imgKey: string }>;
-    updatePCUI: SocketFunction<void, Record<IDString, PCState>>;
+    updatePCUI: SocketFunction<void, Record<string, PCState>>;
     spotlightPC: SocketFunction<void, { pcID: string }>;
     unspotlightPC: SocketFunction<void, { pcID: string }>;
     spotlightNPC: SocketFunction<void, { npcID: string }>;
@@ -1044,7 +1044,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void EunosOverlay.instance.refreshLocationImage(data.imgKey);
     },
 
-    updatePCUI: (data: Record<IDString, PCState>) => {
+    updatePCUI: (data: Record<string, PCState>) => {
       kLog.log("updatePCUI Called", data);
       void EunosOverlay.instance.updatePCUI(data);
     },
@@ -1058,7 +1058,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
 
     // updateNPCUI: (
-    //   data: Record<IDString, { state?: NPCPortraitState; position?: Point }>,
+    //   data: Record<string, { state?: NPCPortraitState; position?: Point }>,
     // ) => {
     //   void EunosOverlay.instance.updateNPCUI(data, {
     //     isUpdatingExplicitOnly: true,
@@ -2332,7 +2332,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #endregion GM Video Status Panel ~
 
   // #region SESSION SCRIBE ~
-  private topUpSessionScribeDeck(currentDeck?: IDString[]): IDString[] {
+  private topUpSessionScribeDeck(currentDeck?: string[]): string[] {
     currentDeck ??= getSetting("sessionScribeDeck");
     const missingUserIDs = getUsers()
       .filter((user) => !user.isGM && !currentDeck.includes(user.id!))
@@ -2346,8 +2346,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   private async setSessionScribe(isDebugging = false): Promise<void> {
     const lastSessionScribeID = getSetting("sessionScribe");
     let currentDeck = getSetting("sessionScribeDeck");
-    const setAsideUserIDs: IDString[] = [];
-    let sessionScribeID: Maybe<IDString> = undefined;
+    const setAsideUserIDs: string[] = [];
+    let sessionScribeID: Maybe<string> = undefined;
     while (!sessionScribeID) {
       if (currentDeck.length === 0) {
         currentDeck = this.topUpSessionScribeDeck(setAsideUserIDs).filter(
@@ -2439,7 +2439,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             user.id!,
             shuffledActors[index]!.id!,
           ]),
-        ) as Record<IDString, IDString>;
+        ) as Record<string, string>;
         kLog.log("No self-assignments, returning assignments", {
           assignmentMap,
           dramaticHookAssignments,
@@ -3358,17 +3358,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   // private pcPortraitTimelines: Record<
-  //   IDString,
+  //   string,
   //   Record<string, gsap.core.Timeline>
-  // > = {} as Record<IDString, Record<string, gsap.core.Timeline>>;
+  // > = {} as Record<string, Record<string, gsap.core.Timeline>>;
 
-  private pcMasterTimelines: Record<IDString, gsap.core.Timeline> =
-    {} as Record<IDString, gsap.core.Timeline>;
-  private pcSwayTimelines: Record<IDString, gsap.core.Timeline> = {} as Record<
-    IDString,
+  private pcMasterTimelines: Record<string, gsap.core.Timeline> =
+    {} as Record<string, gsap.core.Timeline>;
+  private pcSwayTimelines: Record<string, gsap.core.Timeline> = {} as Record<
+    string,
     gsap.core.Timeline
   >;
-  private pcMaskedTimelines: Record<IDString, gsap.core.Timeline> =
+  private pcMaskedTimelines: Record<string, gsap.core.Timeline> =
     {} as Record<number, gsap.core.Timeline>;
 
   private slotStats = {
@@ -3413,7 +3413,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     pcContainer$: JQuery,
     slot: "1" | "2" | "3" | "4" | "5",
   ): gsap.core.Timeline {
-    const pcID = pcContainer$.attr("data-pc-id") as Maybe<IDString>;
+    const pcID = pcContainer$.attr("data-pc-id") as Maybe<string>;
     if (!pcID) {
       throw new Error(`PC ID not found for pcContainer$`);
     }
@@ -3761,7 +3761,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // }, 0.5);
   }
 
-  private buildToMaskedTimeline(pcID: IDString): gsap.core.Timeline {
+  private buildToMaskedTimeline(pcID: string): gsap.core.Timeline {
     if (this.pcMaskedTimelines[pcID]) {
       this.pcMaskedTimelines[pcID].seek("unmasked").kill();
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -3786,7 +3786,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .addLabel(PCState.masked);
   }
 
-  private buildMasterPCTimeline(pcID: IDString): gsap.core.Timeline {
+  private buildMasterPCTimeline(pcID: string): gsap.core.Timeline {
     // If this is a GM user, return a blank timeline.
     if (getUser().isGM) {
       return gsap.timeline({ paused: true });
@@ -3876,7 +3876,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return tl;
   }
 
-  private buildSwayingLoopTimeline(pcID: IDString): gsap.core.Timeline {
+  private buildSwayingLoopTimeline(pcID: string): gsap.core.Timeline {
     if (this.pcSwayTimelines[pcID]) {
       this.pcSwayTimelines[pcID].seek(PCState.hidden).kill();
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -3903,7 +3903,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private buildHookDisplayTimeline(
-    pcID: IDString,
+    pcID: string,
     index: 1 | 2,
   ): gsap.core.Timeline {
     const hookContainer$ = this.getDramaticHookContainer(pcID, index);
@@ -3976,7 +3976,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return tl;
   }
 
-  private getDramaticHookContainer(pcID: IDString, index: 1 | 2): JQuery {
+  private getDramaticHookContainer(pcID: string, index: 1 | 2): JQuery {
     const container$ = this.pcs$.find(`.pc-container[data-pc-id="${pcID}"]`);
     if (!container$.length) {
       throw new Error(`PC container for pcID '${pcID}' not found.`);
@@ -4003,7 +4003,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const activeActors = getOwnedActors().filter(
       (actor) => actor.isPC() && getOwnerOfDoc(actor)?.id !== getUser().id,
     );
-    const activeActorContainers: [IDString, 1 | 2][] = [];
+    const activeActorContainers: [string, 1 | 2][] = [];
     activeActors.forEach((actor) => {
       activeActorContainers.push([actor.id!, 1], [actor.id!, 2]);
     });
@@ -4030,9 +4030,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
   }
 
-  private PCUIChanges: Map<IDString, PCState> = new Map();
+  private PCUIChanges: Map<string, PCState> = new Map();
   private NPCUIChanges: Map<
-    IDString,
+    string,
     {
       portraitState: NPCPortraitState;
       nameState: NPCNameState;
@@ -4070,7 +4070,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private queueUIChanges(
     changes: Record<
-      IDString,
+      string,
       | PCState
       | {
           portraitState?: NPCPortraitState;
@@ -4090,7 +4090,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     (
       Object.entries(changes).filter(
         ([id]): this is [
-          IDString,
+          string,
           {
             portraitState?: NPCPortraitState;
             nameState?: NPCNameState;
@@ -4098,7 +4098,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           },
         ] => !getActorFromRef(id)?.isPC(),
       ) as [
-        IDString,
+        string,
         {
           portraitState?: NPCPortraitState;
           nameState?: NPCNameState;
@@ -4198,23 +4198,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private extractPCUIDataFromFullData(
     pcData?: Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>,
-  ): Record<IDString, PCState> {
+  ): Record<string, PCState> {
     pcData ??= this.getLocationData(getSetting("currentLocation")).pcData;
-    const pcUIData: Record<IDString, PCState> = {};
+    const pcUIData: Record<string, PCState> = {};
     Object.values(pcData).forEach((data) => {
       pcUIData[data.actorID] = data.state;
     });
     return pcUIData;
   }
 
-  private PCUIStatus: Record<IDString, PCState> = {} as Record<
-    IDString,
+  private PCUIStatus: Record<string, PCState> = {} as Record<
+    string,
     PCState
   >;
 
   public async updatePCUI(
     data?:
-      | Record<IDString, PCState>
+      | Record<string, PCState>
       | Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>,
   ) {
     kLog.log("updatePCUI function called", data);
@@ -4240,7 +4240,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const delay = 0;
     // let isDelaying = false;
 
-    timelineLabels.forEach(([pcID, state]: [IDString, PCState]) => {
+    timelineLabels.forEach(([pcID, state]: [string, PCState]) => {
       // isDelaying = false;
       if (getUser().isGM) {
         this.updatePCUI_GM(pcID, state);
@@ -4321,7 +4321,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   public getDramaticHookRewardTimeline(dramaticHookContainer$: JQuery) {
-    const actorID = dramaticHookContainer$.data("pc-id") as IDString;
+    const actorID = dramaticHookContainer$.data("pc-id") as string;
     const hookID = dramaticHookContainer$.data("hook-id") as
       | "dramatichook1"
       | "dramatichook2";
@@ -4366,7 +4366,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       );
   }
 
-  private updatePCUI_GM(pcID: IDString, state: PCState) {
+  private updatePCUI_GM(pcID: string, state: PCState) {
     const pcContainer$ = EunosOverlay.instance.pcs$.find(
       `.pc-container[data-pc-id="${pcID}"]`,
     );
@@ -5050,7 +5050,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     const SMOKE_EFFECT_DELAY = 1.15;
 
-    const npcID = npcContainer$.attr("data-actor-id") as IDString;
+    const npcID = npcContainer$.attr("data-actor-id") as string;
     const smokeEffect$ = npcContainer$.find(".npc-smoke-effect");
     const actor = getActorFromRef(npcID) as EunosActor;
     portraitState ??= npcContainer$.attr(
@@ -5249,7 +5249,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async buildNPCUIUpdateTimeline(
     data: Record<
-      IDString,
+      string,
       {
         portraitState?: NPCPortraitState;
         nameState?: NPCNameState;
@@ -5561,7 +5561,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return timelines;
   }
 
-  public async spotlightNPC(npcID: IDString) {
+  public async spotlightNPC(npcID: string) {
     // Get NPC overlay data
     const npcData = this.getNPCDataFromOverlay(true)[npcID];
     if (!npcData) {
@@ -5586,7 +5586,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
   }
 
-  public async unspotlightNPC(npcID: IDString) {
+  public async unspotlightNPC(npcID: string) {
     // Get NPC overlay data
     const npcData = this.getNPCDataFromOverlay(true)[npcID];
     if (!npcData) {
@@ -5637,7 +5637,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
    */
   private async updateNPCUI_GM(): Promise<void>;
   private async updateNPCUI_GM(
-    npcID: IDString,
+    npcID: string,
     data: {
       portraitState?: NPCPortraitState;
       nameState?: NPCNameState;
@@ -5645,7 +5645,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
   ): Promise<void>;
   private async updateNPCUI_GM(
-    npcID?: IDString,
+    npcID?: string,
     data?: {
       portraitState?: NPCPortraitState;
       nameState?: NPCNameState;
@@ -5876,7 +5876,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       pcData: Object.fromEntries(
         this.getDefaultLocationPCData().map((data) => [data.actorID, data]),
       ),
-      npcData: {} as Record<IDString, Location.NPCData.SettingsData>,
+      npcData: {} as Record<string, Location.NPCData.SettingsData>,
     };
   }
   private getLocationDefaultSettingsData(
@@ -5897,7 +5897,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return finalSettingData;
   }
   private getLocationPCData(
-    pcLocationData?: Record<IDString, Location.PCData.SettingsData>,
+    pcLocationData?: Record<string, Location.PCData.SettingsData>,
   ): Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData> {
     const pcGlobalData = this.getPCsGlobalData();
     pcLocationData ??= this.getLocationData(
@@ -5923,12 +5923,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return pcFullData;
   }
   private getLocationNPCData(
-    npcLocationData?: Record<IDString, Location.NPCData.SettingsData>,
-  ): Record<IDString, Location.NPCData.FullData> {
+    npcLocationData?: Record<string, Location.NPCData.SettingsData>,
+  ): Record<string, Location.NPCData.FullData> {
     npcLocationData ??= this.getLocationData(
       getSetting("currentLocation"),
     ).npcData;
-    const npcFullData: Record<IDString, Location.NPCData.FullData> = {};
+    const npcFullData: Record<string, Location.NPCData.FullData> = {};
     Object.entries(npcLocationData).forEach(([id, data]) => {
       const actor = getActors().find((a) => a.id === id);
       if (!actor) return;
@@ -7398,7 +7398,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         // Handle hook text changes
         html.on("change", ".hook-text", (event) => {
           const input = event.currentTarget as HTMLInputElement;
-          const userId = input.dataset["userId"] as Maybe<IDString>;
+          const userId = input.dataset["userId"] as Maybe<string>;
           const actor = getActors().find(
             (a) =>
               a.id === getUsers().find((u) => u.id === userId)?.character?.id,
@@ -7419,8 +7419,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           const button = event.currentTarget as HTMLElement;
           const tr = button.closest("tr") as HTMLElement;
           const hookNumber = button.dataset["hookNumber"] as Maybe<string>;
-          const userId = tr.dataset["userId"] as Maybe<IDString>;
-          const targetId = tr.dataset["targetId"] as Maybe<IDString>;
+          const userId = tr.dataset["userId"] as Maybe<string>;
+          const targetId = tr.dataset["targetId"] as Maybe<string>;
           const hookText = (tr.querySelector(".hook-text") as HTMLInputElement)
             ?.value;
 
@@ -7435,7 +7435,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   public updateDramaticHookAssignmentPopUp(
-    assigningUserID: IDString,
+    assigningUserID: string,
     assignedHookText: string,
   ): void {
     const dialog = this.#dramaticHookAssignmentDialog$;
@@ -7453,11 +7453,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     hookTextInput.val(assignedHookText);
   }
 
-  #assignedHooksMap: Map<IDString, string> = new Map<IDString, string>();
+  #assignedHooksMap: Map<string, string> = new Map<string, string>();
 
   #assignDramaticHook(
-    userId: IDString,
-    actorId: IDString,
+    userId: string,
+    actorId: string,
     hookNumber: number,
     hookText: string,
   ): void {

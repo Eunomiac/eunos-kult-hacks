@@ -83,7 +83,7 @@ export default function overridePCSheet() {
         .on("click", (event) => {
           const li = $(event.currentTarget).closest("[data-item-id]");
           const itemId = li.attr("data-item-id");
-          kultLogger("Delete Item => ", {
+          kLog.log("Delete Item => ", {
             currentTarget: event.currentTarget,
             li,
             itemId,
@@ -117,7 +117,7 @@ export default function overridePCSheet() {
 
           if (itemId) {
             const item = actor.items.get(itemId);
-            kultLogger("Show Item => ", item);
+            kLog.log("Show Item => ", item);
             if (item) {
               if (item.isWeapon()) {
                 const attackIndex = li.attr("data-attack-index");

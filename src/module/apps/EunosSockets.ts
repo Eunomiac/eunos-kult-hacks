@@ -3,7 +3,7 @@ import { GamePhase, UserTargetRef, MediaLoadStatus, PCState, NPCPortraitState, N
 import * as U from "../scripts/utilities";
 import EunosAlerts from "./EunosAlerts";
 
-export type UserTarget = UserTargetRef | IDString | UUIDString;
+export type UserTarget = UserTargetRef | string | string;
 
 /** Type-safe socket event definitions */
 export interface SocketEvents {
@@ -71,10 +71,10 @@ export interface SocketEvents {
     };
   };
   updatePCUI: {
-    data: Record<IDString, PCState>;
+    data: Record<string, PCState>;
   };
   updateNPCUI: {
-    data: Record<IDString, { state?: NPCPortraitState, position?: Point }>;
+    data: Record<string, { state?: NPCPortraitState, position?: Point }>;
   };
   spotlightPC: {
     data: {

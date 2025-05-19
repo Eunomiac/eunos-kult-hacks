@@ -263,7 +263,7 @@ export default class EunosItem extends Item {
   }
 
   async showInChat() {
-    kultLogger("Show Item => ", this);
+    kLog.log("Show Item => ", this);
     const htmlStrings: string[] = [
       `<div class='item-block item-block-${this.type}'>`,
       "<div class='item-header'>",

@@ -12,6 +12,7 @@
 @use "interface/chat";
 @use "interface/sidebar";
 @use "globals/popovers";
+@use 'apps/eunos-carousel';
 
 :root {
   --scrollbar-width: 6px;

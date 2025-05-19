@@ -405,8 +405,8 @@ export default function registerEunosActor(): void {
       if (hinderingConditions === null) {
         return [];
       }
-      kultLogger("Hindering Conditions => ", hinderingConditions);
-      kultLogger(
+      kLog.log("Hindering Conditions => ", hinderingConditions);
+      kLog.log(
         "Hindering Conditions total => ",
         -1 * Object.values(hinderingConditions).filter(Boolean).length -
           (hinderingConditions.Distracted ? 1 : 0),
@@ -710,7 +710,7 @@ export default function registerEunosActor(): void {
         chatData.whisper = EunosChatMessage.getWhisperRecipients("GM");
       }
 
-      kultLogger("chatData => ", chatData);
+      kLog.log("chatData => ", chatData);
       // @ts-expect-error ChatMessage.create is not typed
       await EunosChatMessage.create(chatData);
     }
@@ -788,14 +788,14 @@ export default function registerEunosActor(): void {
       if (!this.isPC()) {
         return;
       }
-      kultLogger("Actor Data => ", this);
+      kLog.log("Actor Data => ", this);
 
       const move = this.items.get(moveID);
       if (!move) {
         getNotifier().warn(getLocalizer().localize("k4lt.MoveNotFound"));
         return;
       }
-      kultLogger("Move => ", move);
+      kLog.log("Move => ", move);
 
       if (move.isMechanicalItem()) {
         const moveSystemType = move.system.type; // active ou passive

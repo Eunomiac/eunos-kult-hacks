@@ -64,7 +64,6 @@
         transform: none;
         top: -50px;
         left: 0;
-        outline: 4px dotted orange;
       }
 
       video {
@@ -73,7 +72,6 @@
         height: 100%;
         object-fit: cover;
         z-index: 5;
-        outline: 4px dotted lime;
         // filter: blur(10px);
       }
     }

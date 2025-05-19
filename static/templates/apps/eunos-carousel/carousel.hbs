@@ -1,0 +1,19 @@
+<div class="stone-carousel-container">
+  <div class="stone-carousel">
+    {{#each items}}
+      <div class="stone-carousel-item" data-index="{{@index}}">
+        <div class="stone-carousel-front"></div>
+        <div class="stone-carousel-back"></div>
+        <div class="stone-carousel-content">
+          {{#if this.description}}
+            <p>{{this.description}}</p>
+          {{/if}}
+        </div>
+      </div>
+    {{/each}}
+  </div>
+  <div class="stone-carousel-controls">
+    <button class="prev-stone" data-action="prevStoneClick"><i class="fas fa-chevron-left"></i></button>
+    <button class="next-stone" data-action="nextStoneClick"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
