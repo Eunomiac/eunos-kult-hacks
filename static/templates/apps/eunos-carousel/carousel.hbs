@@ -2,8 +2,17 @@
   <div class="stone-carousel">
     {{#each items}}
       <div class="stone-carousel-item" data-index="{{@index}}">
+        <!-- Front and back faces (already implemented) -->
         <div class="stone-carousel-front"></div>
         <div class="stone-carousel-back"></div>
+
+        <!-- New side faces -->
+        <div class="stone-carousel-top"></div>
+        <div class="stone-carousel-bottom"></div>
+        <div class="stone-carousel-left"></div>
+        <div class="stone-carousel-right"></div>
+
+        <!-- Content remains on front face -->
         <div class="stone-carousel-content">
           {{#if this.description}}
             <p>{{this.description}}</p>
