@@ -14,6 +14,7 @@
   perspective-origin: center center;
   perspective: 1000px;
   opacity: 0;
+  z-index: 1;
 
   &.session-scribe {
     .session-scribe-indicator {
@@ -433,7 +434,8 @@
   display: flex;
   justify-content: stretch;
   align-items: stretch;
-  pointer-events: all;
+  pointer-events: none;
+  z-index: 1;
   // outline: 1px solid red;
   gap: 5px;
 

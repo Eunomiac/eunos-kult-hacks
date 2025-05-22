@@ -764,7 +764,7 @@ class EunosChatMessage extends ChatMessage {
     // Register a hook to run when a chat message is rendered
     Hooks.on("renderChatMessage", async (message: EunosChatMessage, html) => {
 
-      kLog.log("renderChatMessage", {message, html});
+      // kLog.log("renderChatMessage", {message, html});
 
       // If this is a roll message, apply its CSS classes unchanged.
       // Otherwise,

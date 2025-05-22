@@ -64,6 +64,12 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/condition-card.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait-gm.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-1.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-2.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-3.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-4.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-5.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-carousel/carousel.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-header.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-topper.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-trigger.hbs",
@@ -280,15 +286,6 @@ Hooks.on("ready", () => {
 async function testCarousel() {
   // Get the carousel instance
   const carousel = EunosCarousel.instance;
-
-  // Set the items for the carousel
-  carousel.setItems([
-    { description: "Description for item 1" },
-    { description: "Description for item 2" },
-    { description: "Description for item 3" },
-    { description: "Description for item 4" },
-    { description: "Description for item 5" }
-  ]);
 
   // Render the carousel
   await carousel.render({ force: true, parts: ["carousel"] });

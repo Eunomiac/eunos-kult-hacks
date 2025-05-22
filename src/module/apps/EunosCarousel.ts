@@ -1,6 +1,7 @@
 import ApplicationV2 = foundry.applications.api.ApplicationV2;
 import HandlebarsApplicationMixin = foundry.applications.api.HandlebarsApplicationMixin;
 import type { EmptyObject } from "fvtt-types/utils";
+import {sleep} from "../scripts/utilities";
 
 /**
  * A 3D carousel component that displays items in a circular arrangement
@@ -16,25 +17,14 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
   EunosOverlayConfiguration, // Configuration
   ApplicationV2.RenderOptions // RenderOptions
 > {
-  /** Width of each carousel item in pixels */
-  private itemWidth: number = 300;
-
-  /** Height of each carousel item in pixels */
-  private itemHeight: number = 500;
-
   /** Fixed radius of the carousel (80vw converted to pixels) */
   private carouselRadius: number = 0; // Will be calculated on initialization
 
   /** Current index position of the carousel (0-based) */
   private currentIndex: number = 0;
 
-  /** Items to display in the carousel */
-  private items: Array<{
-    description?: string;
-  }> = [];
-
   /** Number of items in the carousel */
-  private numItems: number = 0;
+  private numItems: number = 5;
 
   // #region SINGLETON PATTERN ~
   /** Singleton instance of the carousel */
@@ -107,11 +97,13 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
     ),
   };
 
+  static MEMORIAL_TABLE_SCROLL_DURATION = 400;
+
   // #endregion
 
   // #region ACCESSORS ~
   /**
-   * Get a jQuery wrapper for the element
+   * Get a jQuery table for the element
    * @returns {JQuery} jQuery object wrapping the element
    * @throws {Error} If element is not initialized
    */
@@ -121,38 +113,8 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
     }
     return $(this.element);
   }
-  // #endregion
 
-  // #region DATA METHODS ~
-  /**
-   * Set the items to display in the carousel
-   * @param {Array} items - Array of items to display
-   * @returns {EunosCarousel} The carousel instance for chaining
-   */
-  setItems(items: Array<{
-    description?: string;
-  }>): this {
-    this.items = items;
-    this.numItems = items.length;
-    return this;
-  }
-
-  /**
-   * Prepare context data for the template
-   * @param {ApplicationV2.RenderOptions} options - Render options
-   * @returns {Promise<object>} The context data
-   * @override
-   */
-  override async _prepareContext(options: ApplicationV2.RenderOptions): Promise<EmptyObject> {
-    const context = await super._prepareContext(options);
-
-    // Add items to the context
-    Object.assign(context, {
-      items: this.items
-    });
-
-    return context;
-  }
+  private rangerScrollAnimation: gsap.core.Timeline | null = null;
   // #endregion
 
   // #region CAROUSEL METHODS ~
@@ -168,9 +130,15 @@ async initializeCarousel(): Promise<void> {
     return;
   }
 
-  const items$ = carousel$.find(".stone-carousel-item");
+  const carouselBase$ = $("#EUNOS_CAROUSEL .stone-carousel-base");
+  if (!carouselBase$.length) {
+    kLog.error("Failed to find .stone-carousel-base element");
+    return;
+  }
+
+  const items$ = carousel$.find(".standing-stone");
   if (!items$.length) {
-    kLog.error("No .stone-carousel-item elements found");
+    kLog.error("No .standing-stone elements found");
     return;
   }
 
@@ -202,10 +170,10 @@ async initializeCarousel(): Promise<void> {
 
       // Calculate rotation in degrees
       const angleStep = 360 / this.numItems;
-      const rotationY = index * angleStep + gsap.utils.random(-10, 10);
+      const rotationY = index * angleStep + gsap.utils.random(-3, 3);
 
       gsap.set(item, {
-        rotationX: gsap.utils.random(-5, 5),
+        rotationX: gsap.utils.random(0, 10),
         transformStyle: "preserve-3d",
         transformOrigin: "bottom center"
       });
@@ -216,10 +184,145 @@ async initializeCarousel(): Promise<void> {
         z: z,
         rotationY: rotationY,
       });
+
+      // Special logic for the memorial table at index 0
+      const scrollMemorialTable = async (item: HTMLElement) => {
+
+        const outerWrapper = $(item).find(".lost-rangers-wrapper")[0];
+        const tableWrappers = $(item).find(".lost-rangers-table-wrapper");
+
+        if (!outerWrapper || tableWrappers.length < 2) {
+          kLog.error("Failed to find .lost-rangers-wrapper or table wrappers");
+          return;
+        }
+
+        /**
+         * .lost-rangers-wrapper stays fixed, overflow hidden: it's the 'window' through which we see the scrolling table
+         * .lost-rangers-table-wrapper is the wrapper with background, that contains one table
+         *    - we want to move this wrapper up until it is out of view, then move it to beneath the second wrapper
+         * So, the looping animation for the FIRST wrapper is:
+         *    - start at y: 0
+         *    - scroll up to y: -1 * element's height
+         *    - move immediately to y: element's height
+         * Since the table will spend exactly half the time in view, we can instead write the animation as:
+         *    - start at y = element's height
+         *    - scroll up to y = -1 * element's height
+         *    - repeat
+         *    - BUT start the animation initially at 50% of the way through.
+         * This same animation can apply to the second table, except we don't start it at 50% of the way through.
+         */
+
+        const wrapper1 = tableWrappers[0]!;
+        const wrapper2 = tableWrappers[1];
+
+        const table1 = $(wrapper1).find(".lost-rangers-table")[0]!;
+
+        kLog.log(`Wrapper1 Outer Height: ${$(wrapper1).outerHeight()}`);
+        kLog.log(`Table1 Outer Height: ${$(table1).outerHeight()}`);
+
+        setTimeout(() => {
+          kLog.log(`Wrapper1 Outer Height: ${$(wrapper1).outerHeight()}`);
+          kLog.log(`Table1 Outer Height: ${$(table1).outerHeight()}`);
+        }, 5000);
+
+        if (!wrapper1 || !wrapper2) {
+          kLog.error("Failed to find .lost-rangers-table-wrapper elements");
+          return;
+        }
+
+        // const scrollTable = (wrapper: HTMLElement, delay = 0) => {
+        //   // Get the wrapper's height
+
+
+        //   kLog.log(`wrapperHeight: ${wrapperHeight}`);
+
+        //   // Return a timeline that scrolls from y: -1 * wrapperHeight to y: wrapperHeight
+        //   // and repeats indefinitely
+        //   return gsap.timeline().fromTo(wrapper, {
+        //     y: `+=${wrapperHeight}`
+        //   }, {
+        //     y: `-=${2 * wrapperHeight}`,
+        //     duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION,
+        //     ease: "none",
+        //     delay: delay,
+        //     onRepeat: () => {
+        //       kLog.log("Memorial table animation repeating");
+        //     }
+        //   });
+        // }
+
+        // Generate both timelines after a short delay to let the wrapper heights be calculated
+        await sleep(0.5);
+
+        const wrapperHeight = $(wrapper1).outerHeight() ?? 0;
+
+        this.rangerScrollAnimation = gsap.timeline({repeat: -1})
+          .fromTo(wrapper1, {
+            y: 0
+          }, {
+            y: -1 * wrapperHeight,
+            ease: "none",
+            duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION / 2,
+          })
+          .set(wrapper1, {y: wrapperHeight})
+          .to(wrapper1, {
+            y: 0,
+            ease: "none",
+            duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION / 2,
+          })
+          .fromTo(wrapper2, {
+            y: wrapperHeight,
+          }, {
+            y: -1 * wrapperHeight,
+            ease: "none",
+            duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION,
+          }, 0)
+          .set(wrapper2, {y: wrapperHeight});
+
+
+        // const wrapperTl1 = scrollTable(wrapper1);
+        // const wrapperTl2 = scrollTable(wrapper2, EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION / 2);
+
+        kLog.log(`Wrapper Timelines`, {wrapperTl1: this.rangerScrollAnimation});
+
+        // // Construct a master timeline containing both animations
+        // this.rangerScrollAnimation = gsap.timeline({
+        //   repeat: -1,
+        //   onRepeat: () => {
+        //     kLog.log("Memorial table animation repeating");
+        //   }
+        // });
+
+        // // // Animate the first wrapper
+        // this.rangerScrollAnimation.add(wrapperTl1, 0);
+
+        // // Animate the second wrapper
+        // this.rangerScrollAnimation.add(wrapperTl2, 0);
+
+
+      }
+
+      if (index === 0) {
+        void scrollMemorialTable(item);
+      }
     });
 
     // Set initial rotation of the carousel
     gsap.set(carousel$, { rotationY: 0 });
+
+    // Animate entry of carousel
+      const standingStones$ = $("#EUNOS_CAROUSEL .standing-stone");
+      const carouselVerticals$ = $("#EUNOS_CAROUSEL .standing-stone-face");
+      const carouselContent$ = $("#EUNOS_CAROUSEL .standing-stone-content");
+      gsap.timeline({})
+        .from([carouselBase$, standingStones$], {autoAlpha: 0, duration: 0.5})
+        // .from([carouselVerticals$, carouselContent$], {filter: "brightness(0.5)", ease: "power2.in", duration: 10})
+        // .from(carouselContent$, {autoAlpha: 0, duration: 0.5}, ">-0.5")
+        .fromTo(standingStones$, {y: 700}, {y: 0, ease: "none", duration: 10, stagger: 0.5}, 0)
+        // .from(carouselContent$, {filter: "blur(5px)", duration: 2, stagger: 0.5})
+        .fromTo(carouselVerticals$, {y: 15}, {y: 0, ease: "rough({ strength: 0.002, points: 1000, template: none, taper: none, randomize: true, clamp: true })", duration: 10, stagger: 0.1}, 0)
+        // .from(carouselVerticals$, {transformOrigin: "bottom center", scaleY: 0, duration: 5})
+        // .from(carouselTop$, {autoAlpha: 0, duration: 1.5})
   } catch (error) {
     // Properly type the error
     const err = error instanceof Error ? error : new Error(String(error));

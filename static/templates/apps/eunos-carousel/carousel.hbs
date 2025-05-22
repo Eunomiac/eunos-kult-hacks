@@ -1,25 +1,11 @@
 <div class="stone-carousel-container">
   <div class="stone-carousel">
-    {{#each items}}
-      <div class="stone-carousel-item" data-index="{{@index}}">
-        <!-- Front and back faces (already implemented) -->
-        <div class="stone-carousel-front"></div>
-        <div class="stone-carousel-back"></div>
-
-        <!-- New side faces -->
-        <div class="stone-carousel-top"></div>
-        <div class="stone-carousel-bottom"></div>
-        <div class="stone-carousel-left"></div>
-        <div class="stone-carousel-right"></div>
-
-        <!-- Content remains on front face -->
-        <div class="stone-carousel-content">
-          {{#if this.description}}
-            <p>{{this.description}}</p>
-          {{/if}}
-        </div>
-      </div>
-    {{/each}}
+    {{> "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-1.hbs"}}
+    {{> "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-2.hbs"}}
+    {{> "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-3.hbs"}}
+    {{> "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-4.hbs"}}
+    {{> "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-5.hbs"}}
+    <div class="stone-carousel-base"></div>
   </div>
   <div class="stone-carousel-controls">
     <button class="prev-stone" data-action="prevStoneClick"><i class="fas fa-chevron-left"></i></button>

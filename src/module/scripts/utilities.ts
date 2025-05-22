@@ -2697,6 +2697,12 @@ const distributeByPosition = (vars: {
 // #endregion ▄▄▄▄▄ HTML ▄▄▄▄▄
 
 // #region ████████ ASYNC: Async Functions, Asynchronous Flow Control ████████ ~
+/**
+ * Pauses execution for a specified duration.
+ *
+ * @param duration - Time to sleep in milliseconds if >= 100, otherwise in seconds
+ * @returns A promise that resolves after the specified duration
+ */
 const sleep = (duration: number): Promise<void> => new Promise(
   (resolve) => {
     setTimeout(resolve, duration >= 100 ? duration : duration * 1000);

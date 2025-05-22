@@ -1,7 +1,9 @@
+@use "../globals/functions" as *;
+
 #interface #ui-right #sidebar > button {
   height: 30px;
   max-height: 30px;
-  max-width: 30px;
+  max-width: 200px;
   position: absolute;
   top: 10px;
   left: -100%;
@@ -10,21 +12,27 @@
 
 #EUNOS_CAROUSEL {
   position: absolute;
-  top: 0;
+  top: -150px;
   left: 0;
   width: calc(100% - var(--sidebar-width));
   height: 100%;
-  z-index: 100;
+  z-index: 0;
   transform: rotateX(-10deg);
   transform-style: preserve-3d;
   perspective: var(--carousel-perspective);
 
+  /* Variables for Carousel */
   --carousel-perspective: 3000px;
-  --item-width: 400px;
-  --item-height: 500px;
-  --item-gap: 10px;
-
   --carousel-vertical-offset: 5vh;
+
+  /* Variables for Standing Stones */
+  --stone-width: 400px;
+  --stone-height: 500px;
+  --stone-gap: 10px;
+  --stone-depth: 80px;
+  --stone-half-depth: calc(var(--stone-depth) / 2);
+  --stone-bg-image: transparent #{to-url("backgrounds/bg-texture-stone.webp")} repeat repeat center center/150px 150px;
+  --stone-scrollbar-width: 6px;
 
   .stone-carousel-container {
     position: relative;
@@ -39,157 +47,349 @@
     transform-style: preserve-3d;
     top: var(--carousel-vertical-offset);
     // filter: drop-shadow(10px 10px 10px rgba(0, 0, 0, 0.5));
-  }
 
-  .stone-carousel {
-    position: relative;
-    width: var(--item-width);
-    height: var(--item-height);
-    transform-style: preserve-3d;
-    transition: transform 0.5s;
-    z-index: 10;
-  }
+    .stone-carousel {
+      position: relative;
+      width: var(--stone-width);
+      height: var(--stone-height);
+      // width: 100%;
+      // height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.5s;
+      z-index: 10;
 
-  /* Create a wrapper for each item to handle the 3D rotation */
-  .stone-carousel-item {
-    position: absolute;
-    width: var(--item-width);
-    height: var(--item-height);
-    transform-style: preserve-3d;
-    transform-origin: bottom center !important;
-    transform: translate(-50%, 0%);
-    left: 50%;
-    bottom: 0;
-    z-index: 10;
+      .standing-stone {
+        position: absolute;
+        width: var(--stone-width);
+        height: var(--stone-height);
+        transform-style: preserve-3d;
+        transform-origin: bottom center !important;
+        transform: translate(-50%, 0%);
+        left: 50%;
+        bottom: 0;
+        z-index: 10;
 
-    /* Variables for stone thickness */
-    --stone-depth: 80px;
-    --stone-half-depth: calc(var(--stone-depth) / 2);
+        &[data-index="1"],
+        &[data-index="2"],
+        &[data-index="3"] {
+          --body-text-font-family: var(--stone-font-11);
+          --body-text-font-size: 20px;
+        }
 
-    /* Front face */
-    .stone-carousel-front {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      // border-radius: 10px;
-      backface-visibility: hidden;
-      transform: translateZ(var(--stone-half-depth));
-      // box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      overflow: hidden;
-    }
+        &[data-index="0"] {
+          h1:nth-child(2) {
+            margin-bottom: 10px;
+          }
+        }
 
-    /* Back face */
-    .stone-carousel-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background-color: #222;
-      // border-radius: 10px;
-      backface-visibility: hidden;
-      transform: rotateY(180deg) translateZ(var(--stone-half-depth));
-      // box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    }
+        &[data-index="4"] {
+          --body-text-font-family: var(--stone-font-11);
+          --body-text-font-size: 18px;
 
-    /* Top face */
-    .stone-carousel-top {
-      position: absolute;
-      // display: none;
-      width: 100%;
-      height: var(--stone-depth);
-      background-color: #444;
-      transform: rotateX(90deg) translateY(calc(-1 * var(--stone-half-depth)));
-      transform-origin: top left;
-      backface-visibility: visible;
-      // border-radius: 20px;
-      right: 0px;
-      top: 0;
-    }
+          .standing-stone-content {
+            .medium-block.left-block {
+              color: black;
+              width: auto;
+              margin: 5px auto;
+              text-align: center;
 
-    /* Bottom face */
-    .stone-carousel-bottom {
-      position: absolute;
-      display: none;
-      width: 100%;
-      height: var(--stone-depth);
-      background-color: #333;
-      transform: rotateX(-90deg) translateZ(calc(var(--item-height) / 2));
-      transform-origin: center top;
-      backface-visibility: visible;
-      // border-radius: 10px;
-    }
+              &:nth-child(1) {
+                opacity: 0.5;
+              }
 
-    /* Left face */
-    .stone-carousel-left {
-      position: absolute;
-      width: var(--stone-depth);
-      height: 100%;
-      background-color: #555;
-      transform: rotateY(-90deg);
-      backface-visibility: visible;
-      transform-origin: top;
-      // border-radius: 0px;
-      left: calc(-1 * var(--stone-half-depth));
-    }
+              &:nth-child(2) {
+                // margin-left: 10px;
+                opacity: 0.65;
+              }
 
-    /* Right face */
-    .stone-carousel-right {
-      position: absolute;
-      width: var(--stone-depth);
-      height: 100%;
-      background-color: #666;
-      transform: rotateY(90deg);
-      transform-origin: top;
-      // border-radius: 0px;
-      right: calc(-1 * var(--stone-half-depth));
-      backface-visibility: visible;
-    }
+              &:nth-child(3) {
+                // margin-left: 20px;
+                opacity: 0.8;
+              }
 
-    .stone-carousel-content {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      padding: 10px;
-      text-align: center;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 2;
-      transform: translateZ(calc(var(--stone-half-depth) + 1px));
-      backface-visibility: hidden;
+              &:nth-child(4) {
+                // margin-left: 30px !important;
+                opacity: 1;
+              }
+            }
+          }
+        }
 
-      p {
-        margin: 0;
-        font-size: 1rem;
-        max-height: 30%;
-        overflow-y: auto;
+        .standing-stone-face {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          background: var(--stone-bg-image);
+          backface-visibility: hidden;
+
+          &.standing-stone-front {
+            transform: translateZ(var(--stone-half-depth));
+            // overflow: hidden;
+          }
+
+          &.standing-stone-back {
+            transform: rotateY(180deg) translateZ(var(--stone-half-depth));
+            filter: brightness(0.4);
+          }
+
+          &.standing-stone-top {
+            height: var(--stone-depth);
+            transform: rotateX(90deg) translateY(calc(-1 * var(--stone-half-depth)));
+            transform-origin: top left;
+            backface-visibility: visible;
+            right: 0px;
+            top: 0px;
+            filter: brightness(0.7);
+          }
+
+          &.standing-stone-left {
+            width: var(--stone-depth);
+            transform: rotateY(-90deg);
+            transform-origin: top;
+            backface-visibility: visible;
+            left: calc(-1 * var(--stone-half-depth));
+            filter: brightness(0.7);
+          }
+
+          &.standing-stone-right {
+            width: var(--stone-depth);
+            transform: rotateY(90deg);
+            transform-origin: top;
+            backface-visibility: visible;
+            right: calc(-1 * var(--stone-half-depth));
+            filter: brightness(0.7);
+          }
+        }
+
+
+        .standing-stone-content {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          padding: 0px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
+          z-index: 2;
+          transform: translateZ(calc(var(--stone-half-depth) + 1px));
+          backface-visibility: hidden;
+          overflow: hidden;
+
+          h1, h2 {
+            border: none;
+            margin: 0;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            line-height: 1;
+            font-family: var(--stone-font-2);
+          }
+
+
+
+          p {
+            margin: 0;
+            margin-bottom: 5px;
+            font-size: var(--body-text-font-size, 24px);
+            font-family: var(--body-text-font-family, var(--stone-font-1));
+            color: rgba(0, 0, 0, 0.25);
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5), -1px -1px 0px rgba(0, 0, 0, 1);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-wrap: pretty !important;
+            width: calc(100% - 20px);
+
+            &.gap-below {
+              margin-bottom: 20px;
+            }
+
+            &.left-block {
+              text-align: left;
+            }
+          }
+
+          .destiny-block {
+            margin-top: 10px;
+            font-family: var(--stone-font-15);
+            opacity: 1;
+            color: black;
+            line-height: 1.25;
+            width: calc((100% - 20px) / 0.8);
+            transform-origin: center center;
+            transform: rotateZ(-5deg) scale(0.8);
+            letter-spacing: 4px;
+
+            &.rotate-right {
+              transform: rotateZ(5deg) scale(0.8);
+            }
+
+            &.align-bottom {
+              position: absolute;
+              bottom: 30px;
+            }
+          }
+
+          table {
+            border-collapse: collapse;
+            width: calc(100% - 20px);
+            margin: 0 auto;
+            border: none;
+            background: none;
+
+            td, th, tr {
+              padding: 0px;
+              min-height: 20px;
+              height: 20px;
+              background: none;
+              border: none;
+              font-size: 20px;
+              font-family: var(--stone-font-13);
+              text-align: left;
+            }
+
+            &.memorial-table {
+              // background: var(--stone-bg-image);
+              td:nth-child(3) {
+                text-align: right;
+              }
+            }
+
+
+            &.trees-table {
+              margin-bottom: 20px;
+
+              td, th, tr {
+                font-family: var(--stone-font-8);
+                text-wrap: nowrap;
+                font-size: 22px;
+                height: 25px;
+              }
+
+              td:first-child {
+                font-family: var(--stone-font-8);
+              }
+            }
+          }
+
+          .lost-rangers-wrapper {
+            position: relative;
+            flex: 1;
+            overflow: hidden; /* Prevents scrollbars */
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+
+          }
+
+          .lost-rangers-table-wrapper {
+            position: absolute;
+            width: 100%;
+            padding: 0px 10px;
+            background: var(--stone-bg-image);
+            will-change: transform; /* Optimizes for animation */
+
+            // &:nth-child(1) {
+            //   opacity: 0.5;
+            //   // outline: 4px dotted red !important;
+            //   z-index: 10;
+            // }
+          }
+
+          .lost-rangers-table {
+            position: relative;
+            width: 100%;
+            margin: 0;
+          }
+
+          .lost-rangers-table {
+            position: relative;
+            // top: 100%;
+            // overflow-y: auto;
+            // scrollbar-width: thin;
+            // scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+            // flex: 1;
+
+            .lost-ranger-row {
+              filter: blur(0.5px);
+            }
+
+            tr, th, td {
+              font-size: 16px;
+              font-family: var(--stone-font-7);
+            }
+          }
+
+          .realm-accords {
+            list-style-type: upper-roman;
+            font-family: var(--stone-font-8);
+            text-align: left;
+            font-size: 20px;
+            margin: 0;
+            padding: 0;
+            padding-left: 1.5em;
+            width: calc(100% - 20px);
+            // font-weight: 1000;
+
+            li {
+              padding-left: 0.5em;
+              margin-bottom: 0.5em;
+            }
+
+            &.left-block {
+              text-align: left;
+            }
+          }
+        }
+
+        // &:nth-child(1) { width: calc(var(--stone-width) * 1.3); height: calc(var(--stone-height) * 1.3); }
+        // &:nth-child(2) { width: calc(var(--stone-width) * 1.25); height: calc(var(--stone-height) * 1.25); }
+        // &:nth-child(3) { width: calc(var(--stone-width) * 1); height: calc(var(--stone-height) * 1); }
+        // &:nth-child(4) { width: calc(var(--stone-width) * 0.8); height: calc(var(--stone-height) * 0.8); }
+        // &:nth-child(5) { width: calc(var(--stone-width) * 1.2); height: calc(var(--stone-height) * 1.2); }
+
+        // /* Apply colors to front faces */
+        // &:nth-child(1) .standing-stone-front { background-color: rgba(200, 200, 200, 1); }
+        // &:nth-child(2) .standing-stone-front { background-color: rgba(200, 200, 200, 1); }
+        // &:nth-child(3) .standing-stone-front { background-color: rgba(200, 200, 200, 1); }
+        // &:nth-child(4) .standing-stone-front { background-color: rgba(200, 200, 200, 1); }
+        // &:nth-child(5) .standing-stone-front { background-color: rgba(200, 200, 200, 1); }
       }
     }
 
-    &:nth-child(1) { width: calc(var(--item-width) * 1.3); height: calc(var(--item-height) * 1.3); }
-    &:nth-child(2) { width: calc(var(--item-width) * 1.25); height: calc(var(--item-height) * 1.25); }
-    &:nth-child(3) { width: calc(var(--item-width) * 1); height: calc(var(--item-height) * 1); }
-    &:nth-child(4) { width: calc(var(--item-width) * 0.8); height: calc(var(--item-height) * 0.8); }
-    &:nth-child(5) { width: calc(var(--item-width) * 1.2); height: calc(var(--item-height) * 1.2); }
-
-    /* Apply colors to front faces */
-    &:nth-child(1) .stone-carousel-front { background-color: rgba(200, 200, 200, 1); }
-    &:nth-child(2) .stone-carousel-front { background-color: rgba(200, 200, 200, 1); }
-    &:nth-child(3) .stone-carousel-front { background-color: rgba(200, 200, 200, 1); }
-    &:nth-child(4) .stone-carousel-front { background-color: rgba(200, 200, 200, 1); }
-    &:nth-child(5) .stone-carousel-front { background-color: rgba(200, 200, 200, 1); }
+    .stone-carousel-base {
+      position: absolute;
+      width: 4200px;
+      height: 4200px;
+      background: #0a0a0a;
+      top: 0%;
+      left: 50%;
+      // border-radius: 50%;
+      // bottom: 0%;
+      // left: 50%;
+      transform-origin: center center;
+      transform: translate(-50%, 0%) translateY(-1600px) translateZ(0px) rotateX(90deg);
+      opacity: 1;
+    }
   }
 
+
+
+  /* Create a wrapper for each item to handle the 3D rotation */
+
+
   .stone-carousel-controls {
-    position: absolute;
-    bottom: calc(var(--carousel-vertical-offset) + 50px);
+    position: fixed;
+    top: 85px;
     left: 0;
     right: 0;
     display: flex;
     justify-content: center;
     gap: 50px;
     z-index: 10;
+    // transform: translateZ(-10vh);
 
     button {
       background-color: rgba(0, 0, 0, 0.7);

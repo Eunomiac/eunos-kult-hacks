@@ -8,7 +8,8 @@
   transform-style: preserve-3d;
   perspective-origin: center center;
   perspective: 1000px;
-  pointer-events: auto;
+  pointer-events: none;
+  z-index: 1;
 
   .npc-portrait {
     position: absolute;
