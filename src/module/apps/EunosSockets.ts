@@ -132,6 +132,12 @@ export interface SocketEvents {
       volumes: Record<string, number>;
     };
   };
+  showStandingStones: {
+    data?: never;
+  };
+  hideStandingStones: {
+    data?: never;
+  };
 }
 
 export type SocketEventName = keyof SocketEvents;

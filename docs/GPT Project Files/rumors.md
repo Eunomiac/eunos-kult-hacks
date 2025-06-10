@@ -49,17 +49,21 @@ I will keep this document updated with each rumor as it is posted.
   - This refers to "Ranger Nineteen", which ROMAN LARSON encountered on Willow's Wending during CHAPTER ONE. Ranger Nineteen was clearly equipped with futuristic technology, and this inscription indicates that he was present in Emma's Rise far in the past (i.e. far into Elysium's future).
 - "... can't do that. We're down to a single dermal regenerator, and its days are numbered.  I'll set the bone and give you something for the pain, but the only other healing you'll be getting is bed rest ..."
   - This hints at the presents of future technology in Emma's Rise, as well as how such technology behaves much like old tech does in Elysium -- since time moves in reverse, "future" technology actually came from Emma's Rise's distant past.
-- THE TEN TREES AND THEIR WENDINGS:
-<br>1. Old Birch, "the Tree of Dawn" — Kronotsky Nature Reserve, Kamchatka, Russia
-<br>2. Old Rowan, "the Tree of Ways" — Paro Taktsang, Paro District, Bhutan
-<br>3. Old Ash, "the Tree of Secrets" — Rollright Stones, Oxfordshire, England
-<br>4. Old Juniper, "the Tree of Revelation" — Mount Kōya, Wakayama Prefecture, Japan
-<br>5. Old Hawthorn, "the Tree of Rapture" — Jebel Toubkal, High Atlas Mountains, Morocco
-<br>6. Old Willow, "the Tree of Memory" — Black Hills, South Dakota, USA
-<br>7. Old Aspen, "the Tree of Echoes" — Lake St. Clair, Tasmania, Australia
-<br>8. Old Hemlock, "the Tree of Sorrow" — Mount Emei, Sichuan Province, China
-<br>9. Old Yew, "the Tree of Endings" — Sierra Gorda Biosphere Reserve, Querétaro, Mexico
-<br>10. Old Oak, "the Tree of Forever" — Monteverde Cloud Forest, Puntarenas Province, Costa Rica
-  - I decided to reveal the nature of the ten Old Trees in this rumor, because it is a fun bit of worldbuilding that emphasizes the global importance of the ten Old Trees.
 - "... hear the Bells went silent mid-ring last week? Neither did I, but Sam is adamant that the whole town froze like statues for nearly five whole ..."
   - This hints at the differing perspectives townsfolk have of time in Emma's Rise (perhaps Sam is "going wayward" and is beginning to show symptoms of disconnecting from the reversed timeline). It's also a reminder of "the Bells", which has been cryptically mentioned as a frequent and mandatory event in Emma's Rise.
+- "... especially vulnerable, going wayward more aggressively than any I've seen. A reversible recording facilitates one-way communication, but two-way conversations have become impossible ..."
+  - More hints at the wayward condition. I wrote this before I made a significant change to how waywards work: At this point, my idea was that waywards moved backwards through time, like in the movie TENET. (I've since changed this to the wayward condition locking them in a time loop, but these are just rumors anyways, so they're expected to be wrong at least occasionally!)
+- "... was only eight that night we all had to stay in the school basement. They told us it was just a storm, but my cousin swears she heard gunshots..."
+  - This hints at events of significant violence in Emma's Rise's past, which is further foreshadowed at the Standing Stones by the ranger memorial wall (which shows multiple periods where a large number of rangers were killed around the same time).  I also want to have a scene of mass military-style conflict somewhere towards the end of the campaign--bombs going off in the distance, gunfire, etc.
+- "... of the rangers have been here a long time, a long long time, I mean #58 — the one, or, well, "ones", they call Gestalt — is a fucking legend ..."
+  - The first hint the players received before I introduced the Gestalt NPC (i.e. the hive mind spread across three bodies)
+- "... think he's more than merely three ..."
+  - This is a hint that Gestalt occupies more than just the three bodies they claim: I still don't know if I'm going to do this or not!
+- "... seconds to react. Even then, there's no guarantee — the Wayward may have lived centuries in those few ..."
+  - A hint to emphasize how much time (and experience) a wayward could accumulate in what, to us, appears to be a short period of time: I wanted my players to be growing aware of how dangerous such a creature could be.
+- "... know there's only supposed to be four!  Go count for yourself if you don't believe me, but another stone stands among ..."
+  - A vague hint that there were only four Standing Stones, not five, and thus that one of the stones is a new addition. However, after designing the stones and playing the scene, I've decided against this, so this will remain "just a rumor".
+* \~\~\*\*Old Cypress, "the Tree of Refuge"\*\* — Los Nevados National Natural Park, Cordillera Central, Colombia\~\~ \[struck-out]
+  - The idea of an eleventh tree, possibly in hiding from the others, possibly destroyed by them, could make for a really good end-game twist
+- "... unlikely that any wayward will escape madness: To the best of our knowledge they are trapped for eternity, and a catatonic whose mind has been shattered by infinity is a threat to no one.  The real threat would be encountering an unchecked wayward, say, one or two hundred iterations into ..."
+  - Here, I wanted to convey the idea that a wayward could be encountered at any point in their time loop, and that the players should be wary of them: It's not as if the entire time loop must complete (which it won't) before an "outside observer" could encounter the wayward.

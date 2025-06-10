@@ -207,6 +207,34 @@
 }
 
 @font-face {
+  font-family: "EngraversCondensed";
+  font-weight: 100 400; /* Light to Regular */
+  font-style: normal;
+  src: #{to-url("fonts/EngraversCondensed-Regular.woff2")} format("woff2");
+}
+
+@font-face {
+  font-family: "EngraversCondensed";
+  font-weight: 500 900; /* Medium to Black */
+  font-style: normal;
+  src: #{to-url("fonts/EngraversCondensed-Bold.woff2")} format("woff2");
+}
+
+@font-face {
+  font-family: "EngraversCondensed";
+  font-weight: 500 900; /* Medium to Black */
+  font-style: italic;
+  src: #{to-url("fonts/EngraversCondensed-BoldItalic.woff2")} format("woff2");
+}
+
+@font-face {
+  font-family: "EngraversCondensed";
+  font-weight: 100 400; /* Light to Regular */
+  font-style: italic;
+  src: #{to-url("fonts/EngraversCondensed-Italic.woff2")} format("woff2");
+}
+
+@font-face {
   font-family: "Flintstone";
   font-style: normal;
   src: #{to-url("fonts/Flintstone.woff2")} format("woff2");
@@ -358,6 +386,7 @@ $font-weight-black: 900;
   --stone-font-13: "TowerRuins";
   --stone-font-14: "WolvesEngraven";
   --stone-font-15: "SanguisNoctis";
+  --stone-font-16: "EngraversCondensed";
 
 
   .roll-mod {

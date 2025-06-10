@@ -1687,6 +1687,24 @@ export const Sounds = {
     },
   },
   Effects: {
+    "effect-message-to-alistair": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-message-to-alistair.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 1,
+      autoplay: false
+    },
+    "effect-standing-stones": {
+      path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-standing-stones.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      loop: false,
+      sync: false,
+      volume: 1,
+      autoplay: false
+    },
     "effect-fraying-rope": {
       path: "modules/eunos-kult-hacks/assets/sounds/effects/effect-fraying-rope.ogg",
       alwaysPreload: false,
@@ -4884,6 +4902,62 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
         },
       },
     ]]
+  },
+  standingStonesInterior: {
+    name: "Standing Stones Interior",
+    key: "standingStonesInterior",
+    images: {},
+    imageMode: LocationImageModes.UpperRight,
+    description: "",
+    audioDataIndoors: {
+      "ambient-standing-stones": {
+        volume: 0.1
+      }
+    },
+    isBright: true,
+    isIndoors: true,
+    region: "hollowood",
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "rgb(255 250 212)",
+            boxShadow: "0 0 0vw transparent inset",
+            "--dramatic-hook-color": "black",
+            "--dramatic-hook-text-shadow-color": "white",
+          }
+        },
+        {
+          selector: "#STAGE",
+          properties: {
+            perspective: 1000,
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D",
+          properties: {
+            z: 839
+          }
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.background-layer",
+          properties: {
+            backgroundPositionX: 2870,
+            backgroundPositionY: 2332,
+            transform: "matrix3d(0.0024286, 0.139148, 0.990269, 0, -0.999848, 0.0174507, 0, 0, -0.0172808, -0.990118, 0.13917, 0, -3500, -3500, 0, 1)",
+            background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
+          },
+        },
+        {
+          selector: "#STAGE #SECTION-3D .canvas-layer.under-layer",
+          properties: {
+            transform: "matrix3d(0.0024286, 0.139148, 0.990269, 0, -0.999848, 0.0174507, 0, 0, -0.0172808, -0.990118, 0.13917, 0, -3500, -3500, 0, 1)",
+            background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
+          },
+        },
+      ]
+    ]
   },
   rangerStation4: {
     name: "Ranger Station #4",

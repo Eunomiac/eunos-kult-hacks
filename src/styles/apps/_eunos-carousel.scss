@@ -12,14 +12,14 @@
 
 #EUNOS_CAROUSEL {
   position: absolute;
-  top: -150px;
+  top: -50px;
   left: 0;
   width: calc(100% - var(--sidebar-width));
   height: 100%;
   z-index: 0;
-  transform: rotateX(-10deg);
   transform-style: preserve-3d;
   perspective: var(--carousel-perspective);
+  pointer-events: none;
 
   /* Variables for Carousel */
   --carousel-perspective: 3000px;
@@ -45,7 +45,9 @@
     perspective: var(--carousel-perspective);
     z-index: 10;
     transform-style: preserve-3d;
+    transform: rotateX(-10deg);
     top: var(--carousel-vertical-offset);
+    pointer-events: none;
     // filter: drop-shadow(10px 10px 10px rgba(0, 0, 0, 0.5));
 
     .stone-carousel {
@@ -68,6 +70,7 @@
         left: 50%;
         bottom: 0;
         z-index: 10;
+        visibility: hidden;
 
         &[data-index="1"],
         &[data-index="2"],
@@ -88,7 +91,7 @@
 
           .standing-stone-content {
             .medium-block.left-block {
-              color: black;
+              // color: black;
               width: auto;
               margin: 5px auto;
               text-align: center;
@@ -115,12 +118,15 @@
           }
         }
 
+
+
         .standing-stone-face {
           position: absolute;
           width: 100%;
           height: 100%;
           background: var(--stone-bg-image);
           backface-visibility: hidden;
+
 
           &.standing-stone-front {
             transform: translateZ(var(--stone-half-depth));
@@ -177,6 +183,11 @@
           backface-visibility: hidden;
           overflow: hidden;
 
+          * {
+            color: var(--stone-text-color, rgba(0, 0, 0, 0.5));
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5), -1px -1px 0px rgba(0, 0, 0, 1);
+          }
+
           h1, h2 {
             border: none;
             margin: 0;
@@ -193,8 +204,8 @@
             margin-bottom: 5px;
             font-size: var(--body-text-font-size, 24px);
             font-family: var(--body-text-font-family, var(--stone-font-1));
-            color: rgba(0, 0, 0, 0.25);
-            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5), -1px -1px 0px rgba(0, 0, 0, 1);
+            line-height: var(--body-text-line-height, 1.25);
+            // color: rgba(0, 0, 0, 0.25);
             font-weight: 600;
             letter-spacing: 1px;
             text-wrap: pretty !important;
@@ -210,15 +221,31 @@
           }
 
           .destiny-block {
+            --body-text-font-family: var(--stone-font-15);
+            --body-text-font-family: var(--stone-font-14);
+            --body-text-font-family: var(--stone-font-13);
+            --body-text-font-family: var(--stone-font-12);
+            --body-text-font-family: var(--stone-font-11);
+            --body-text-font-family: var(--stone-font-10);
+            --body-text-font-family: var(--stone-font-9);
+            --body-text-font-family: var(--stone-font-8);
+            // --body-text-font-family: var(--stone-font-7);
+            --body-text-font-size: 20px;
+            --body-text-line-height: 1;
+            // --body-text-font-family: var(--stone-font-6);
+            // --body-text-font-family: var(--stone-font-5);
+            // --body-text-font-family: var(--stone-font-4);
+            // --body-text-font-family: var(--stone-font-3);
+            // --body-text-font-family: var(--stone-font-2);
+            // --body-text-font-family: var(--stone-font-1);
+
             margin-top: 10px;
-            font-family: var(--stone-font-15);
             opacity: 1;
-            color: black;
-            line-height: 1.25;
+            // color: rgba(;
             width: calc((100% - 20px) / 0.8);
             transform-origin: center center;
             transform: rotateZ(-5deg) scale(0.8);
-            letter-spacing: 4px;
+            letter-spacing: 2px;
 
             &.rotate-right {
               transform: rotateZ(5deg) scale(0.8);
@@ -258,16 +285,93 @@
 
             &.trees-table {
               margin-bottom: 20px;
+              max-width: 100%;
 
               td, th, tr {
-                font-family: var(--stone-font-8);
+                max-width: 100%;
+                // --table-text-font-family: var(--stone-font-8);
+                font-family: var(--table-text-font-family, var(--stone-font-8));
                 text-wrap: nowrap;
-                font-size: 22px;
+                font-size: var(--table-text-font-size, 20px);
                 height: 25px;
               }
 
-              td:first-child {
-                font-family: var(--stone-font-8);
+              tr:nth-child(1) {
+                --table-text-font-family: var(--stone-font-1);
+                --table-text-font-size: 24px;
+                font-weight: normal;
+              }
+
+              tr:nth-child(2) {
+                --table-text-font-family: var(--stone-font-5);
+              }
+
+              tr:nth-child(3) {
+                --table-text-font-family: var(--stone-font-15);
+                --table-text-font-size: 18px;
+                // font-size: 18px;
+                font-weight: bold;
+                letter-spacing: 2px;
+              }
+
+              tr:nth-child(4) {
+                --table-text-font-family: var(--stone-font-11);
+                --table-text-font-size: 20px;
+                // font-size: 18px;
+                font-weight: bold;
+                letter-spacing: 2px;
+              }
+              tr:nth-child(5) {
+                --table-text-font-family: var(--stone-font-5);
+                --table-text-font-size: 20px;
+                // font-size: 18px;
+                font-weight: bold;
+                letter-spacing: 0px;
+              }
+              tr:nth-child(6) {
+                --table-text-font-family: var(--stone-font-8);
+                font-weight: bold;
+                letter-spacing: 2px;
+              }
+
+
+              tr:nth-child(7) {
+                --table-text-font-family: var(--stone-font-12);
+                --table-text-font-size: 18px;
+                // font-size: 18px;
+                font-weight: normal;
+                letter-spacing: 2px;
+              }
+              tr:nth-child(8) {
+                --table-text-font-family: var(--stone-font-9);
+                --table-text-font-size: 26px;
+                // font-size: 18px;
+                font-weight: bold;
+                letter-spacing: 2px;
+              }
+
+
+              tr:nth-child(9) {
+                // --table-text-font-family: var(--stone-font-4);
+                --table-text-font-family: var(--stone-font-10);
+                // --table-text-font-family: var(--stone-font-14);
+                --table-text-font-size: 20px;
+                // font-size: 18px;
+                font-weight: normal;
+                letter-spacing: 2px;
+              }
+
+              tr:nth-child(10) {
+                --table-text-font-family: var(--stone-font-16);
+                font-weight: 1000;
+                --table-text-font-size: 20px;
+                letter-spacing: 0px;
+                text-shadow: 0 0 1px black, 0 0 1px black, 0 0 1px black;
+              }
+
+              td.narrow-cell {
+                --table-text-font-family: var(--stone-font-11);
+                // font-family: var(--stone-font-8);
               }
             }
           }
@@ -363,15 +467,18 @@
       position: absolute;
       width: 4200px;
       height: 4200px;
-      background: #0a0a0a;
+      background: #FFFFFF;
+      // background: radial-gradient(circle at 50% 50%, rgb(0, 94, 0) 10%, rgb(0, 110, 0) 25%,  lime 35%, yellow 35%, transparent 60%);
+      background: radial-gradient(circle at 50% 50%, var(--K4-BLACK) 35%, rgb(255 250 212) 45%, transparent 60%);
       top: 0%;
       left: 50%;
-      // border-radius: 50%;
+      border-radius: 50%;
+      filter: blur(25px);
       // bottom: 0%;
       // left: 50%;
       transform-origin: center center;
-      transform: translate(-50%, 0%) translateY(-1600px) translateZ(0px) rotateX(90deg);
-      opacity: 1;
+      transform: translate(-50%, 0%) rotateX(90deg);
+      visibility: hidden;
     }
   }
 
@@ -381,33 +488,40 @@
 
 
   .stone-carousel-controls {
-    position: fixed;
-    top: 85px;
-    left: 0;
-    right: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
     display: flex;
-    justify-content: center;
-    gap: 50px;
+    justify-content: space-between;
     z-index: 10;
+    height: 350px;
+    width: 70vw;
+    transform: translate(-50%, -50%);
+    visibility: hidden;
     // transform: translateZ(-10vh);
 
     button {
       background-color: rgba(0, 0, 0, 0.7);
-      color: #fff;
+      background-color: transparent;
+      color: rgba(255, 255, 255, 1);
       border: none;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 150px;
+      height: 350px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background-color 0.3s;
-      font-size: 1.5rem;
+      transition: all 0.15s;
+      font-size: 15rem;
+      box-shadow: none !important;
+      pointer-events: auto;
+      text-shadow: 0 0 10px rgb(255, 255, 255, 1), 0 0 10px rgb(255, 255, 255, 1), 0 0 10px rgb(255, 255, 255, 1);
 
       &:hover {
-        background-color: rgba(0, 0, 0, 0.9);
+        // background-color: rgba(0, 0, 0, 0.9);
         transform: scale(1.1);
+        text-shadow: 0 0 10px rgb(0, 0, 0, 1), 0 0 10px rgb(0, 0, 0, 1), 0 0 10px rgb(0, 0, 0, 1);
       }
     }
   }

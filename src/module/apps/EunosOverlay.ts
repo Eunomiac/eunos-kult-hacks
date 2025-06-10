@@ -364,6 +364,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
 
     /**
+     * Refreshes all controls to their initial values
+     */
+    refreshControls(event: PointerEvent, target: HTMLElement): void {
+      kLog.log("refreshControls", { event, target });
+      EunosOverlay.instance.makePlottingControls();
+    },
+
+    /**
      * Resets an individual control to its initial value
      */
     resetControl(event: PointerEvent, target: HTMLElement): void {
@@ -7078,6 +7086,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const controlRow = document.createElement("div");
     controlRow.classList.add("control-row");
 
+    kLog.log("makeSliderControl", {label, min, max, initValue, actionFunction, formatForDisplay, controlRow});
+
     const labelElement = document.createElement("label");
     labelElement.textContent = label;
 
@@ -8073,11 +8083,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private makePlottingControls() {
+    kLog.log("makePlottingControls");
     // Confirm that location plotting panel is visible
     if (this.locationPlottingPanel$.css("visibility") !== "visible") {
       return;
     }
 
+    kLog.log("locationPlottingPanel$", this.locationPlottingPanel$);
     // If there are already any plotting controls, remove them
     this.locationPlottingPanel$.find(".control-row").remove();
 

@@ -1,0 +1,7 @@
+data-import/**
+vite.config.ts
+public/scripts/**
+public/tinymce/**
+public/tmce-editor.*
+src/scss/third-party/**
+.dev/**

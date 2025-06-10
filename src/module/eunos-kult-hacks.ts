@@ -24,16 +24,14 @@ import * as U from "./scripts/utilities.ts";
 import EunosSockets from "./apps/EunosSockets.ts";
 import EunosMedia from "./apps/EunosMedia.ts";
 import { assignGlobals } from "./scripts/constants.ts";
-import { GamePhase, InitializerMethod } from "./scripts/enums.ts";
+import { InitializerMethod } from "./scripts/enums.ts";
 import { registerHandlebarHelpers } from "./scripts/helpers.ts";
 import InitializePopovers from "./scripts/popovers.ts";
 import kLog from "./scripts/logger.ts";
 import registerSettings from "./scripts/settings.ts";
 import { initializeGSAP } from "./scripts/animations.ts";
 import "../styles/styles.scss";
-import type { AnyFunction } from "fvtt-types/utils";
 import EunosCarousel from "./apps/EunosCarousel.ts";
-// import k4ltitemsheet from "systems/k4lt/modules/sheets/k4ltitemsheet.js";
 // #endregion
 
 // #region Template Paths ~
@@ -70,6 +68,7 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-4.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-carousel/standing-stone-5.hbs",
   "modules/eunos-kult-hacks/templates/apps/eunos-carousel/carousel.hbs",
+  "modules/eunos-kult-hacks/templates/apps/eunos-carousel/controls.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-header.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-topper.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/item-trigger.hbs",
@@ -91,7 +90,7 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sidebar/chat-message.hbs",
   "modules/eunos-kult-hacks/templates/dialog/dialog-engage-in-combat.hbs",
   "modules/eunos-kult-hacks/templates/dialog/volume-control.hbs",
-  "modules/eunos-kult-hacks/templates/dialog/end-scene-dialog.hbs"
+  "modules/eunos-kult-hacks/templates/dialog/end-scene-dialog.hbs",
 ];
 
 async function preloadHandlebarTemplates() {
@@ -110,9 +109,8 @@ async function preloadHandlebarTemplates() {
  */
 function removeK4ltHook(hookName: string, pattern: RegExp): boolean {
   // Check if the hook exists
-  if (!(hookName in Hooks.events)) {
+  if (!Hooks.events.includes(hookName)) {
     kLog.error(`Hook '${hookName}' not found in Hooks.events`);
-    const test = gsap;
     return false;
   }
 
@@ -151,7 +149,7 @@ async function checkAdvancements(actor: EunosActor) {
   const allChecked = advancementStates.every(state => state === "checked");
 
   if (allChecked) {
-    const currentLevel = actor.system.advancementLevel.value || 0;
+    const currentLevel = actor.system.advancementLevel.value ?? 0;
     await actor.update({
       system: {
         advancementLevel: {
@@ -193,19 +191,20 @@ assignGlobals({
     EunosAlerts,
     EunosMedia,
     EunosOverlay,
-    EunosChatMessage
-  } as const
+    EunosChatMessage,
+    EunosCarousel,
+  } as const,
 });
 
 async function RunInitializer(methodName: InitializerMethod) {
   return Promise.all(
     Object.values(InitializableClasses).filter(
       (doc): doc is typeof doc & Record<InitializerMethod, () => Promise<void>> =>
-        methodName in doc
+        methodName in doc,
     ).map((doc) => {
       kLog.log(`Running ${methodName} initializer for`, doc.name ?? "Unknown Object", 0);
       return doc[methodName]();
-    })
+    }),
   );
 }
 
@@ -216,7 +215,7 @@ Hooks.on("init", () => {
   // Replace the original addBasicMovesToActor hook
   removeK4ltHook(
     "createActor",
-    /if\s*\(\s*actor\.type\s*===\s*"pc"\s*&&\s*actor\.items\.size\s*===\s*0\s*\)/
+    /if\s*\(\s*actor\.type\s*===\s*"pc"\s*&&\s*actor\.items\.size\s*===\s*0\s*\)/,
   );
   removeK4ltHook("updateActor", /checkAdvancements/);
   removeK4ltHook("renderActorDirectory", /kultLogger/);
@@ -274,38 +273,10 @@ Hooks.on("ready", () => {
   });
 
 
-  Hooks.on('updateActor', (actor: EunosActor) => {
+  Hooks.on("updateActor", (actor: EunosActor) => {
     if (actor.isPC()) {
       void checkAdvancements(actor);
     }
   });
 
-});
-
-// Add this function to test the carousel
-async function testCarousel() {
-  // Get the carousel instance
-  const carousel = EunosCarousel.instance;
-
-  // Render the carousel
-  await carousel.render({ force: true, parts: ["carousel"] });
-
-  // Initialize the carousel after rendering
-  void carousel.initializeCarousel();
-
-  return carousel;
-}
-
-// Add a hook to test the carousel when the game is ready
-Hooks.on("ready", () => {
-  // Add a button to the sidebar to test the carousel
-  const button = document.createElement("button");
-  button.textContent = "Test Carousel";
-  button.style.margin = "10px";
-  button.addEventListener("click", () => {
-    void testCarousel();
-  });
-
-  // Add the button to the sidebar
-  document.getElementById("sidebar")?.appendChild(button);
 });
