@@ -24,16 +24,16 @@ const rules = {
     // These are generally the two cases where throwing away a variable makes sense.
     {
       argsIgnorePattern: "^_",
-      caughtErrorsIgnorePattern: "^_",
-    },
+      caughtErrorsIgnorePattern: "^_"
+    }
   ],
 
   "@typescript-eslint/restrict-template-expressions": [
     "error",
     {
       allowBoolean: true,
-      allowNumber: true,
-    },
+      allowNumber: true
+    }
   ],
 
   "@typescript-eslint/no-namespace": ["error", { allowDeclarations: true }],
@@ -43,7 +43,13 @@ const rules = {
   "prefer-const": ["error", {destructuring: "all"}],
 
   "tsdoc/syntax": "warn",
-}
+
+  "comma-dangle": ["error", "never"],
+
+  quotes: ["error", "double"],
+
+  semi: ["error", "always"]
+};
 
 const linterOptions = {
   reportUnusedDisableDirectives: "warn"
@@ -81,15 +87,15 @@ export default ts.config(
       ecmaVersion: 2023,
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
+        tsconfigRootDir: import.meta.dirname
+      }
     },
     ignores: [".yarn"],
     plugins: {
-      tsdoc,
+      tsdoc
     },
     settings: {
-      "import-x/resolver": "typescript",
+      "import-x/resolver": "typescript"
     },
     rules,
     linterOptions
@@ -97,7 +103,7 @@ export default ts.config(
   {
     files: ["**/*.js"],
     rules: {
-      "tsdoc/syntax": "off",
-    },
-  },
+      "tsdoc/syntax": "off"
+    }
+  }
 );

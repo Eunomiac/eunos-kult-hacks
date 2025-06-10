@@ -203,7 +203,7 @@ export default class EunosSockets {
     }
     if (!socket) {
       const error = new Error(
-        `[EunosSockets.getSocket] No Socket Found for ${SYSTEM_ID}`,
+        `[EunosSockets.getSocket] No Socket Found for ${SYSTEM_ID}`
       );
       kLog.error("[EunosSockets] Failed to get socket:", error);
       throw error;
@@ -213,16 +213,16 @@ export default class EunosSockets {
 
   /** Register socket functions from initializable classes */
   public static RegisterSockets(
-    initializableClasses: Record<string, unknown>,
+    initializableClasses: Record<string, unknown>
   ): void {
     const instance = EunosSockets.getInstance();
 
     const classesWithSockets = Object.values(initializableClasses).filter(
       (
-        doc: unknown,
+        doc: unknown
       ): doc is (new () => unknown) & {
         SocketFunctions: Record<string, SocketFunction>;
-      } => typeof doc === "function" && "SocketFunctions" in doc,
+      } => typeof doc === "function" && "SocketFunctions" in doc
     );
 
     classesWithSockets.forEach((Class) => {
@@ -248,19 +248,19 @@ export default class EunosSockets {
     }
     if (U.isDocID(target)) {
       return [(getUser(target) ?? undefined)].filter(
-        (user: Maybe<User>) => user?.active,
+        (user: Maybe<User>) => user?.active
       );
     } else if (U.isDocUUID(target)) {
       return [(fromUuidSync(target) ?? undefined) as Maybe<User>].filter(
-        (user: Maybe<User>): user is User => Boolean(user?.active),
+        (user: Maybe<User>): user is User => Boolean(user?.active)
       );
     }
     const allUsers = getUsers().filter(
-      (user) => user?.active,
+      (user) => user?.active
     );
     const [gmUsers, playerUsers] = U.partition<User>(
       allUsers,
-      (user: User) => user.isGM,
+      (user: User) => user.isGM
     );
 
     switch (target) {
@@ -328,7 +328,7 @@ export default class EunosSockets {
   /** Handles socket function execution with timing and error logging */
   private async executeSocketFunction<E extends SocketEventName>(
     event: E,
-    data: SocketEvents[E]["data"],
+    data: SocketEvents[E]["data"]
   ): Promise<"return" extends keyof SocketEvents[E] ? SocketEvents[E]["return"] : undefined> {
     const func = this.socketFunctions[event];
 

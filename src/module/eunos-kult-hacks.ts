@@ -90,7 +90,7 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sidebar/chat-message.hbs",
   "modules/eunos-kult-hacks/templates/dialog/dialog-engage-in-combat.hbs",
   "modules/eunos-kult-hacks/templates/dialog/volume-control.hbs",
-  "modules/eunos-kult-hacks/templates/dialog/end-scene-dialog.hbs",
+  "modules/eunos-kult-hacks/templates/dialog/end-scene-dialog.hbs"
 ];
 
 async function preloadHandlebarTemplates() {
@@ -143,7 +143,7 @@ async function checkAdvancements(actor: EunosActor) {
     actor.system.advancementExp2.state,
     actor.system.advancementExp3.state,
     actor.system.advancementExp4.state,
-    actor.system.advancementExp5.state,
+    actor.system.advancementExp5.state
   ];
 
   const allChecked = advancementStates.every(state => state === "checked");
@@ -153,24 +153,24 @@ async function checkAdvancements(actor: EunosActor) {
     await actor.update({
       system: {
         advancementLevel: {
-          value: currentLevel + 1,
+          value: currentLevel + 1
         },
         advancementExp1: {
-          state: "none",
+          state: "none"
         },
         advancementExp2: {
-          state: "none",
+          state: "none"
         },
         advancementExp3: {
-          state: "none",
+          state: "none"
         },
         advancementExp4: {
-          state: "none",
+          state: "none"
         },
         advancementExp5: {
-          state: "none",
-        },
-      },
+          state: "none"
+        }
+      }
     });
   }
 };
@@ -192,19 +192,19 @@ assignGlobals({
     EunosMedia,
     EunosOverlay,
     EunosChatMessage,
-    EunosCarousel,
-  } as const,
+    EunosCarousel
+  } as const
 });
 
 async function RunInitializer(methodName: InitializerMethod) {
   return Promise.all(
     Object.values(InitializableClasses).filter(
       (doc): doc is typeof doc & Record<InitializerMethod, () => Promise<void>> =>
-        methodName in doc,
+        methodName in doc
     ).map((doc) => {
       kLog.log(`Running ${methodName} initializer for`, doc.name ?? "Unknown Object", 0);
       return doc[methodName]();
-    }),
+    })
   );
 }
 
@@ -215,7 +215,7 @@ Hooks.on("init", () => {
   // Replace the original addBasicMovesToActor hook
   removeK4ltHook(
     "createActor",
-    /if\s*\(\s*actor\.type\s*===\s*"pc"\s*&&\s*actor\.items\.size\s*===\s*0\s*\)/,
+    /if\s*\(\s*actor\.type\s*===\s*"pc"\s*&&\s*actor\.items\.size\s*===\s*0\s*\)/
   );
   removeK4ltHook("updateActor", /checkAdvancements/);
   removeK4ltHook("renderActorDirectory", /kultLogger/);
@@ -235,7 +235,7 @@ Hooks.on("init", () => {
 
   Object.assign(CONFIG.Actor.dataModels, {
     pc: ActorDataPC,
-    npc: ActorDataNPC,
+    npc: ActorDataNPC
   });
   Object.assign(CONFIG.Item.dataModels, {
     ability: ItemDataAbility,
@@ -248,7 +248,7 @@ Hooks.on("init", () => {
     move: ItemDataMove,
     occupation: ItemDataOccupation,
     relationship: ItemDataRelationship,
-    weapon: ItemDataWeapon,
+    weapon: ItemDataWeapon
   });
 });
 

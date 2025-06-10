@@ -22,7 +22,7 @@ import {
   timeline,
   getTimeStamp,
   camelCase,
-  assertIs,
+  assertIs
 } from "../scripts/utilities";
 import {
   LOADING_SCREEN_DATA,
@@ -38,7 +38,7 @@ import {
   type NPCs,
   CONTROL_SLIDER_PANELS,
   Sounds,
-  EASES,
+  EASES
 } from "../scripts/constants";
 import type { EmptyObject, DeepPartial } from "fvtt-types/utils";
 import {
@@ -53,7 +53,7 @@ import {
   NPCPortraitState,
   NPCNameState,
   EunosMediaCategories,
-  CounterResetOn,
+  CounterResetOn
 } from "../scripts/enums";
 import EunosSockets from "./EunosSockets";
 import EunosAlerts from "./EunosAlerts";
@@ -79,7 +79,7 @@ interface AuroraState {
 
 // #endregion Type Definitions
 export default class EunosOverlay extends HandlebarsApplicationMixin(
-  ApplicationV2,
+  ApplicationV2
 )<
   EmptyObject, // RenderContext
   EunosOverlayConfiguration, // Configuration
@@ -94,9 +94,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   public static get instance(): EunosOverlay {
-    if (!EunosOverlay._instance) {
-      EunosOverlay._instance = new EunosOverlay();
-    }
+    EunosOverlay._instance ??= new EunosOverlay();
     return EunosOverlay._instance;
   }
   // #endregion SINGLETON PATTERN
@@ -119,7 +117,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
     async sessionScribeClick(
       event: PointerEvent,
-      target: HTMLElement,
+      target: HTMLElement
     ): Promise<void> {
       kLog.log("sessionScribeClick", { event, target });
       const journalPage =
@@ -192,7 +190,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void EunosSockets.getInstance().call("Alert", UserTargetRef.all, {
         type: AlertType.stability,
         header: `${pc.name} is ${conditionName}`,
-        body: getBody(),
+        body: getBody()
       });
     },
     criticalWoundClick(event: PointerEvent, target: HTMLElement) {
@@ -209,7 +207,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void EunosSockets.getInstance().call("Alert", UserTargetRef.all, {
         type: AlertType.criticalWound,
         header: `${actorName} has Suffered a CRITICAL WOUND!`,
-        body: `${actorName} has suffered a CRITICAL WOUND (${woundName}). Without immediate treatment, death is certain!`,
+        body: `${actorName} has suffered a CRITICAL WOUND (${woundName}). Without immediate treatment, death is certain!`
       });
     },
     seriousWoundClick(event: PointerEvent, target: HTMLElement) {
@@ -226,7 +224,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void EunosSockets.getInstance().call("Alert", UserTargetRef.all, {
         type: AlertType.criticalWound,
         header: `${actorName} has Suffered a Serious Wound`,
-        body: `${actorName} has suffered a Serious Wound (${woundName}), hampering their every action until it is tended to.`,
+        body: `${actorName} has suffered a Serious Wound (${woundName}), hampering their every action until it is tended to.`
       });
     },
     async addCounter(event: PointerEvent, target: HTMLElement) {
@@ -236,7 +234,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (!itemId || !actorId) {
         kLog.error("No itemId or actorId found for addHold", {
           itemId,
-          actorId,
+          actorId
         });
         return;
       }
@@ -251,7 +249,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       await item.update({
-        system: { counterCount: (itemData.counterCount ?? 0) + 1 },
+        system: { counterCount: (itemData.counterCount ?? 0) + 1 }
       });
       void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
     },
@@ -262,7 +260,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (!itemId || !actorId) {
         kLog.error("No itemId or actorId found for spendCounter", {
           itemId,
-          actorId,
+          actorId
         });
         return;
       }
@@ -280,7 +278,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       await item.update({
-        system: { counterCount: (itemData.counterCount ?? 0) - 1 },
+        system: { counterCount: (itemData.counterCount ?? 0) - 1 }
       });
       void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
     },
@@ -325,19 +323,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           properties: {
             backgroundPositionX: ${gsap.getProperty(
               "#STAGE #SECTION-3D .canvas-layer.background-layer",
-              "background-position-x",
+              "background-position-x"
             )},
             backgroundPositionY: ${gsap.getProperty(
               "#STAGE #SECTION-3D .canvas-layer.background-layer",
-              "background-position-y",
+              "background-position-y"
             )},
             filter: "${gsap.getProperty(
               "#STAGE #SECTION-3D .canvas-layer.background-layer",
-              "filter",
+              "filter"
             )} brightness(2)",
             transform: "${gsap.getProperty(
               "#STAGE #SECTION-3D .canvas-layer.background-layer",
-              "transform",
+              "transform"
             )}",
             background: "white url('modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp') 0px 0px no-repeat"
           },
@@ -347,12 +345,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           properties: {
             transform: "${gsap.getProperty(
               "#STAGE #SECTION-3D .canvas-layer.under-layer",
-              "transform",
+              "transform"
             )}",
             background: "radial-gradient(circle at 50% 50%, transparent 10%, rgba(255, 255, 255, 0.5) 15%, rgb(255 250 212) 25%)",
           },
         },
-      ]`.replace(/(\bbrightness\([^)]+\))(?:\s+brightness\([^)]+\))+/g, "$1"),
+      ]`.replace(/(\bbrightness\([^)]+\))(?:\s+brightness\([^)]+\))+/g, "$1")
         )
         .then(() => {
           getNotifier().info("Location plotting values copied to clipboard");
@@ -424,7 +422,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         // Handle click-down
         kLog.log("click-down");
         void EunosSockets.getInstance().call("spotlightPC", UserTargetRef.all, {
-          pcID,
+          pcID
         });
       } else if (event.type === "mouseup") {
         // Handle click-release
@@ -433,8 +431,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           "unspotlightPC",
           UserTargetRef.all,
           {
-            pcID,
-          },
+            pcID
+          }
         );
       }
     },
@@ -444,7 +442,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       EunosOverlay.instance.queueUIChanges({
-        [pcID]: PCState.dimmed,
+        [pcID]: PCState.dimmed
       });
     },
     togglePCHidden(event: PointerEvent, target: HTMLElement): void {
@@ -453,7 +451,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       EunosOverlay.instance.queueUIChanges({
-        [pcID]: PCState.hidden,
+        [pcID]: PCState.hidden
       });
     },
     togglePCBase(event: PointerEvent, target: HTMLElement): void {
@@ -462,20 +460,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         return;
       }
       EunosOverlay.instance.queueUIChanges({
-        [pcID]: PCState.base,
+        [pcID]: PCState.base
       });
     },
     async wakeAllPCs(event: PointerEvent, target: HTMLElement): Promise<void> {
       kLog.log("wakeAllPCs", { event, target });
       const pcs = Object.fromEntries(
-        getOwnedActors().map((actor) => [actor.id!, PCState.base]),
+        getOwnedActors().map((actor) => [actor.id!, PCState.base])
       );
       EunosOverlay.instance.queueUIChanges(pcs);
     },
     async sleepAllPCs(event: PointerEvent, target: HTMLElement): Promise<void> {
       kLog.log("sleepAllPCs", { event, target });
       const pcs = Object.fromEntries(
-        getOwnedActors().map((actor) => [actor.id!, PCState.hidden]),
+        getOwnedActors().map((actor) => [actor.id!, PCState.hidden])
       );
       EunosOverlay.instance.queueUIChanges(pcs);
     },
@@ -494,8 +492,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           "spotlightNPC",
           UserTargetRef.all,
           {
-            npcID,
-          },
+            npcID
+          }
         );
       } else if (event.type === "mouseup") {
         // Handle click-release
@@ -504,8 +502,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           "unspotlightNPC",
           UserTargetRef.all,
           {
-            npcID,
-          },
+            npcID
+          }
         );
       }
     },
@@ -514,8 +512,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (!npcID) return;
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          portraitState: NPCPortraitState.dimmed,
-        },
+          portraitState: NPCPortraitState.dimmed
+        }
       });
     },
     toggleNPCInvisible(event: PointerEvent, target: HTMLElement): void {
@@ -523,8 +521,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (!npcID) return;
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          portraitState: NPCPortraitState.invisible,
-        },
+          portraitState: NPCPortraitState.invisible
+        }
       });
     },
     toggleNPCBase(event: PointerEvent, target: HTMLElement): void {
@@ -533,8 +531,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          portraitState: NPCPortraitState.base,
-        },
+          portraitState: NPCPortraitState.base
+        }
       });
     },
     toggleNPCNameBase(event: PointerEvent, target: HTMLElement): void {
@@ -543,8 +541,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          nameState: NPCNameState.base,
-        },
+          nameState: NPCNameState.base
+        }
       });
     },
     toggleNPCNameShrouded(event: PointerEvent, target: HTMLElement): void {
@@ -553,8 +551,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          nameState: NPCNameState.shrouded,
-        },
+          nameState: NPCNameState.shrouded
+        }
       });
     },
     toggleNPCNameInvisible(event: PointerEvent, target: HTMLElement): void {
@@ -563,8 +561,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          nameState: NPCNameState.invisible,
-        },
+          nameState: NPCNameState.invisible
+        }
       });
     },
     removeNPC(event: PointerEvent, target: HTMLElement): void {
@@ -574,8 +572,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       EunosOverlay.instance.queueUIChanges({
         [npcID]: {
-          portraitState: NPCPortraitState.removed,
-        },
+          portraitState: NPCPortraitState.removed
+        }
       });
     },
     openNPCSheet(event: PointerEvent, target: HTMLElement): void {
@@ -587,7 +585,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
     async pushUIChanges(
       event: PointerEvent,
-      target: HTMLElement,
+      target: HTMLElement
     ): Promise<void> {
       void EunosOverlay.instance.pushUIChanges();
     },
@@ -596,13 +594,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
     async beginXPQuestions(
       event: PointerEvent,
-      target: HTMLElement,
+      target: HTMLElement
     ): Promise<void> {
       if (!getUser().isGM) {
         return;
       }
       const controlPanel$ = EunosOverlay.instance.endPhase$.find(
-        ".master-gm-control-panel",
+        ".master-gm-control-panel"
       );
       const beginButton$ = controlPanel$.find(".gm-control-button-begin");
       const approveButton$ = controlPanel$.find(".gm-control-button-approve");
@@ -614,7 +612,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     },
     async approveXPQuestion(
       event: PointerEvent,
-      target: HTMLElement,
+      target: HTMLElement
     ): Promise<void> {
       if (!getUser().isGM) {
         return;
@@ -624,13 +622,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       await Promise.all(
         getOwnedActors().map(async (actor) => {
           return actor.awardXP();
-        }),
+        })
       );
       void setSetting("endPhaseQuestion", questionNumber + 1);
     },
     async denyXPQuestion(
       event: PointerEvent,
-      target: HTMLElement,
+      target: HTMLElement
     ): Promise<void> {
       if (!getUser().isGM) {
         return;
@@ -641,7 +639,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     async endScene(
       event: PointerEvent,
-      target: HTMLElement,
+      target: HTMLElement
     ): Promise<void> {
       if (!getUser().isGM) {
         return;
@@ -689,12 +687,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         content: dialogContent,
         buttons: {
           reset: {
-            icon: '<i class="fas fa-check"></i>',
+            icon: "<i class=\"fas fa-check\"></i>",
             label: "Reset Counters",
             callback: async (html) => {
               // Get all selected PC IDs
               const selectedPcIds: string[] = [];
-              $(html).find('.pc-portrait-toggle.selected').each((index: number, el: HTMLElement) => {
+              $(html).find(".pc-portrait-toggle.selected").each((index: number, el: HTMLElement) => {
                 const pcId = el.dataset["pcId"];
                 if (pcId) selectedPcIds.push(pcId);
               });
@@ -712,30 +710,30 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             }
           },
           cancel: {
-            icon: '<i class="fas fa-times"></i>',
+            icon: "<i class=\"fas fa-times\"></i>",
             label: "Cancel"
           }
         },
         default: "reset",
         render: (html) => {
           // Add click handler for portrait toggles
-          $(html).find('.pc-portrait-toggle').on('click', function(this: HTMLElement) {
+          $(html).find(".pc-portrait-toggle").on("click", function(this: HTMLElement) {
             const pcId = this.dataset["pcId"];
             if (!pcId) return;
 
             // Toggle selected state
-            $(this).toggleClass('selected');
-            selectedPCs[pcId] = $(this).hasClass('selected');
+            $(this).toggleClass("selected");
+            selectedPCs[pcId] = $(this).hasClass("selected");
           });
         }
       }).render(true);
-    },
+    }
   };
 
   // #endregion ACTIONS
 
   // #region STATIC CONFIGURATION ~
-  static override DEFAULT_OPTIONS = {
+  static override readonly DEFAULT_OPTIONS = {
     id: "EUNOS_OVERLAY",
     classes: ["eunos-overlay"],
     position: {
@@ -743,7 +741,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       left: 0,
       width: "auto" as const,
       height: "auto" as const,
-      zIndex: 10000,
+      zIndex: 10000
     },
     window: {
       frame: false,
@@ -753,47 +751,47 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       minimizable: false,
       resizable: false,
       contentTag: "div",
-      contentClasses: ["eunos-overlay-content"],
+      contentClasses: ["eunos-overlay-content"]
     },
     actions: Object.fromEntries(
       Object.entries(EunosOverlay.ACTIONS).map(([key, action]) => [
         key,
-        action.bind(EunosOverlay),
-      ]),
+        action.bind(EunosOverlay)
+      ])
     ),
     dragDrop: [
-      { dragSelector: ".actor, .npc-drag-handle", dropSelector: "#NPCS-GM" },
-    ],
+      { dragSelector: ".actor, .npc-drag-handle", dropSelector: "#NPCS-GM" }
+    ]
   };
 
-  static override PARTS = {
+  static override readonly PARTS = {
     midZIndexMask: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/mid-zindex-mask.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/mid-zindex-mask.hbs"
     },
     topZIndexMask: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/top-zindex-mask.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/top-zindex-mask.hbs"
     },
     maxZIndexBars: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/max-zindex-bars.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/max-zindex-bars.hbs"
     },
     safetyButtons: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/safety-buttons.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/safety-buttons.hbs"
     },
     alerts: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/alerts.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/alerts.hbs"
     },
     stage: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage.hbs"
     },
     countdown: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/countdown.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/countdown.hbs"
     },
     videoStatus: {
       template:
@@ -803,45 +801,45 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         top: 10,
         right: 10,
         width: "auto",
-        height: "auto",
-      },
+        height: "auto"
+      }
     },
     locationPlottingPanel: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/location-plotting-panel.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/location-plotting-panel.hbs"
     },
     locations: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-locations.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-locations.hbs"
     },
     npcs: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-npcs.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-npcs.hbs"
     },
     npcsGM: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-npcs-gm.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-npcs-gm.hbs"
     },
     pcs: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-pcs.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-pcs.hbs"
     },
     pcsGM: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-pcs-gm.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-pcs-gm.hbs"
     },
     mediaContainer: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/media-container.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/media-container.hbs"
     },
     stageChangesLog: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-changes-log.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-changes-log.hbs"
     },
     stageEndPhase: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-end-phase.hbs",
-    },
+        "modules/eunos-kult-hacks/templates/apps/eunos-overlay/stage-end-phase.hbs"
+    }
   };
   // #endregion STATIC CONFIGURATION
 
@@ -853,17 +851,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   static get currentLocationDataLog() {
     kLog.log(
       `Retrieving currentLocationDataLog for location ${this.currentLocationLog}`,
-      { currentLocationDataLog: this.#currentLocationDataLog },
+      { currentLocationDataLog: this.#currentLocationDataLog }
     );
     return this.#currentLocationDataLog;
   }
 
   static set currentLocationDataLog(
-    value: Maybe<Record<string, Location.SettingsData>>,
+    value: Maybe<Record<string, Location.SettingsData>>
   ) {
     kLog.log(
       `Setting currentLocationDataLog for location ${this.currentLocationLog}`,
-      { currentLocationDataLog: value },
+      { currentLocationDataLog: value }
     );
     this.#currentLocationDataLog = JSON.parse(JSON.stringify(value)) as Record<
       string,
@@ -902,9 +900,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         this.#lastPhaseChange = curValue as GamePhase;
         void EunosSockets.getInstance().call("changePhase", UserTargetRef.all, {
           prevPhase: curValue as GamePhase,
-          newPhase: newValue as GamePhase,
+          newPhase: newValue as GamePhase
         });
-      },
+      }
     );
 
     this.currentLocationLog = getSetting("currentLocation");
@@ -1012,7 +1010,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     reportPreloadStatus: ({
       userId,
-      status,
+      status
     }: {
       userId: string;
       status: MediaLoadStatus;
@@ -1044,7 +1042,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     setLocation: (data: { fromLocation: string; toLocation: string }) => {
       void EunosOverlay.instance.goToLocation(
         data.fromLocation,
-        data.toLocation,
+        data.toLocation
       );
     },
 
@@ -1106,14 +1104,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       const playingSounds = Object.fromEntries(
         await Promise.all(
           EunosMedia.GetPlayingSounds().map(
-            async (sound) => [sound.name, sound.volume] as const,
-          ),
-        ),
+            async (sound) => [sound.name, sound.volume] as const
+          )
+        )
       );
 
       kLog.log(
         `GM returning playing sounds: ${Object.keys(playingSounds).join(", ")}`,
-        playingSounds,
+        playingSounds
       );
 
       return playingSounds;
@@ -1139,7 +1137,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           sound.volume = volume;
         }
       });
-    },
+    }
   };
   // #endregion SOCKET FUNCTIONS
 
@@ -1171,7 +1169,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get midZIndexMask$() {
     if (!this.#midZIndexMask) {
       this.#midZIndexMask = this.element.querySelector(
-        ".mid-zindex-mask",
+        ".mid-zindex-mask"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#midZIndexMask) {
@@ -1193,7 +1191,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get canvasMask$() {
     if (!this.#canvasMask) {
       this.#canvasMask = this.element.querySelector(
-        ".canvas-mask",
+        ".canvas-mask"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#canvasMask) {
@@ -1205,7 +1203,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get canvasBars$() {
     if (!this.#canvasBars) {
       this.#canvasBars = this.element.querySelector(
-        ".canvas-mask-bars",
+        ".canvas-mask-bars"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#canvasBars) {
@@ -1217,7 +1215,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get topZIndexMask$() {
     if (!this.#topZIndexMask) {
       this.#topZIndexMask = this.element.querySelector(
-        ".top-zindex-mask",
+        ".top-zindex-mask"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#topZIndexMask) {
@@ -1229,7 +1227,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get maxZIndexBars$() {
     if (!this.#maxZIndexBars) {
       this.#maxZIndexBars = this.element.querySelector(
-        ".max-zindex-bars",
+        ".max-zindex-bars"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#maxZIndexBars) {
@@ -1241,7 +1239,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get safetyButtons$() {
     if (!this.#safetyButtons) {
       this.#safetyButtons = this.element.querySelector(
-        ".safety-buttons",
+        ".safety-buttons"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#safetyButtons) {
@@ -1253,7 +1251,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get alerts$() {
     if (!this.#alerts) {
       this.#alerts = this.element.querySelector(
-        ".alerts",
+        ".alerts"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#alerts) {
@@ -1265,7 +1263,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get countdownWrapper$() {
     if (!this.#countdownWrapper) {
       this.#countdownWrapper = this.element.querySelector(
-        ".loading-screen-countdown-container",
+        ".loading-screen-countdown-container"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#countdownWrapper) {
@@ -1277,7 +1275,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get countdownAuroraContainer$() {
     if (!this.#countdownAuroraContainer) {
       this.#countdownAuroraContainer = this.countdownWrapper$.find(
-        ".aurora-container",
+        ".aurora-container"
       )[0] as Maybe<HTMLElement>;
     }
     if (!this.#countdownAuroraContainer) {
@@ -1289,7 +1287,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get countdownAurora$() {
     if (!this.#countdownAurora) {
       this.#countdownAurora = this.countdownWrapper$.find(
-        ".aurora-background",
+        ".aurora-background"
       )[0] as Maybe<HTMLElement>;
     }
     if (!this.#countdownAurora) {
@@ -1301,7 +1299,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get redLightning$() {
     if (!this.#redLightning) {
       this.#redLightning = this.midZIndexMask$.find(
-        ".red-lightning",
+        ".red-lightning"
       )[0] as Maybe<HTMLElement>;
     }
     if (!this.#redLightning) {
@@ -1313,7 +1311,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get countdownContainer$() {
     if (!this.#countdownContainer) {
       this.#countdownContainer = this.element.querySelector(
-        ".countdown-container",
+        ".countdown-container"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#countdownContainer) {
@@ -1324,7 +1322,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get countdown$() {
     // if (!this.#countdown) {
     this.#countdown = this.element.querySelector(
-      ".loading-screen-countdown",
+      ".loading-screen-countdown"
     ) as Maybe<HTMLElement>;
     // }
     if (!this.#countdown) {
@@ -1339,7 +1337,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     if (!this.#videoStatusPanel) {
       this.#videoStatusPanel = this.element.querySelector(
-        ".video-status-panel",
+        ".video-status-panel"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#videoStatusPanel) {
@@ -1351,7 +1349,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   get locationPlottingPanel$() {
     if (!this.#locationPlottingPanel) {
       this.#locationPlottingPanel = this.element.querySelector(
-        ".location-plotting-panel",
+        ".location-plotting-panel"
       ) as Maybe<HTMLElement>;
     }
     if (!this.#locationPlottingPanel) {
@@ -1382,7 +1380,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get pcs$() {
     const pcs = this.element.querySelector(
-      getUser().isGM ? "#PCS-GM" : "#PCS",
+      getUser().isGM ? "#PCS-GM" : "#PCS"
     ) as Maybe<HTMLElement>;
     if (!pcs) {
       throw new Error("PCS not found");
@@ -1392,7 +1390,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get npcs$() {
     const npcs = this.element.querySelector(
-      getUser().isGM ? "#NPCS-GM" : "#NPCS",
+      getUser().isGM ? "#NPCS-GM" : "#NPCS"
     ) as Maybe<HTMLElement>;
     if (!npcs) {
       throw new Error("NPCS not found");
@@ -1402,7 +1400,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get changesLog$() {
     const changesLog = this.element.querySelector(
-      "#STAGE-CHANGES-LOG .stage-changes-log-content",
+      "#STAGE-CHANGES-LOG .stage-changes-log-content"
     ) as Maybe<HTMLElement>;
     if (!changesLog) {
       throw new Error("Changes log not found");
@@ -1412,7 +1410,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get endPhase$() {
     const endPhase = this.element.querySelector(
-      "#STAGE-END-PHASE",
+      "#STAGE-END-PHASE"
     ) as Maybe<HTMLElement>;
     if (!endPhase) {
       throw new Error("End phase not found");
@@ -1422,7 +1420,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   get dramaticHookSplashContainer$() {
     const dramaticHookSplashContainer = this.element.querySelector(
-      ".dramatic-hook-splash-container",
+      ".dramatic-hook-splash-container"
     ) as Maybe<HTMLElement>;
     if (!dramaticHookSplashContainer) {
       throw new Error("Dramatic hook splash container not found");
@@ -1453,7 +1451,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Otherwise, interpolate between min and max delay based on time remaining
     const delay = Math.min(
       maxDur,
-      minDur + (maxDur - minDur) * (timeRemaining / songDuration),
+      minDur + (maxDur - minDur) * (timeRemaining / songDuration)
     );
     return delay;
   }
@@ -1470,7 +1468,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       baseHue: 20, // Slight red tint in normal state
       glitchSaturation: 2, // More saturated during glitches
       baseSaturation: 1.3, // Slightly more saturated base state
-      ease: "power2.in",
+      ease: "power2.in"
     });
 
     kLog.log("buildCountdownContainerTimeline", duration, timeOffset);
@@ -1480,15 +1478,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .fromTo(
         this.countdownContainer$,
         {
-          filter: "drop-shadow(rgba(0, 0, 0, 0.55) 0px 0px 0px)",
+          filter: "drop-shadow(rgba(0, 0, 0, 0.55) 0px 0px 0px)"
         },
         {
           top: "50%",
           filter: "drop-shadow(rgba(0, 0, 0, 0.55) 100px 100px 5px)",
           scale: 3,
           duration,
-          ease: "power4.inOut",
-        },
+          ease: "power4.inOut"
+        }
       )
       .to(
         this.countdownAuroraContainer$,
@@ -1496,37 +1494,37 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           top: "50%",
           scale: 3,
           duration,
-          ease: "power4.inOut",
+          ease: "power4.inOut"
         },
-        0,
+        0
       )
       .to(
         this.redLightning$,
         {
           autoAlpha: 1,
           duration: 0.1,
-          ease: "none",
+          ease: "none"
         },
-        ">-20%",
+        ">-20%"
       )
       .fromTo(
         this.countdownAurora$,
         {
-          autoAlpha: 0,
+          autoAlpha: 0
         },
         {
           autoAlpha: 1,
           duration: duration, // Fade in during first 30% of animation
-          ease: "power4.in",
+          ease: "power4.in"
         },
-        0, // Start at beginning of timeline
+        0 // Start at beginning of timeline
       )
       .to(
         [this.redLightning$, this.countdownAurora$],
         {
-          autoAlpha: 0,
+          autoAlpha: 0
         },
-        "-=2",
+        "-=2"
       );
 
     this.#isCountdownContainerTimelinePlaying = true;
@@ -1538,7 +1536,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     glitchHue: 140, // Shift towards red
     glitchIntensity: 0.3, // Initial intensity
     baseSaturation: 1,
-    glitchSaturation: 1.2,
+    glitchSaturation: 1.2
   };
 
   private buildGlitchTimeline(repeatDelay: number): gsap.core.Timeline {
@@ -1549,14 +1547,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.#glitchTimeline = gsap
       .timeline({
         repeat: -1,
-        repeatDelay,
+        repeatDelay
       })
       .addLabel("glitch")
       // Target the entire text container for skew effects
       .to(glitchText$, {
         duration: 0.1,
         skewX: "random([20,-20])",
-        ease: "power4.inOut",
+        ease: "power4.inOut"
       })
       .to(glitchText$, { duration: 0.04, skewX: 0, ease: "power4.inOut" })
 
@@ -1572,15 +1570,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(
         glitchBottom$,
         { duration: 0.5, x: 30, ease: "power4.inOut" },
-        "split",
+        "split"
       )
       .to(
         glitchText$,
         {
           duration: 0.08,
-          textShadow: "-13px -13px 0px var(--K4-dRED)",
+          textShadow: "-13px -13px 0px var(--K4-dRED)"
         },
-        "split",
+        "split"
       )
       .to(this.countdown$, { duration: 0, scale: 1.2 }, "split")
       .to(this.countdown$, { duration: 0, scale: 1 }, "+=0.02")
@@ -1588,9 +1586,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         glitchText$,
         {
           duration: 0.08,
-          textShadow: "0px 0px 0px var(--K4-dRED)",
+          textShadow: "0px 0px 0px var(--K4-dRED)"
         },
-        "+=0.09",
+        "+=0.09"
       )
       .to(glitchText$, { duration: 0.02, color: "#FFF" }, "-=0.05")
       .to(glitchText$, { duration: 0.02, color: "var(--K4-bGOLD)" })
@@ -1598,18 +1596,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         glitchText$,
         {
           duration: 0.03,
-          textShadow: "13px 13px 0px #FFF",
+          textShadow: "13px 13px 0px #FFF"
         },
-        "split",
+        "split"
       )
       .to(
         glitchText$,
         {
           duration: 0.08,
           textShadow: "0px 0px 0px transparent",
-          clearProps: "textShadow",
+          clearProps: "textShadow"
         },
-        "+=0.01",
+        "+=0.01"
       )
       .to(glitchTop$, { duration: 0.2, x: 0, ease: "power4.inOut" })
       .to(glitchBottom$, { duration: 0.2, x: 0, ease: "power4.inOut" })
@@ -1624,18 +1622,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           duration: 0.1,
           filter: "brightness(2.5)",
-          ease: "power2.inOut",
+          ease: "power2.inOut"
         },
-        "split",
+        "split"
       )
       .to(
         aurora$,
         {
           duration: 0.2,
           filter: "brightness(1)",
-          ease: "power2.in",
+          ease: "power2.in"
         },
-        "+=0.1",
+        "+=0.1"
       );
 
     return this.#glitchTimeline.seek(0);
@@ -1687,7 +1685,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       String(timeLeft.days).padStart(2, "0"),
       String(timeLeft.hours).padStart(2, "0"),
       String(timeLeft.minutes).padStart(2, "0"),
-      String(timeLeft.seconds).padStart(2, "0"),
+      String(timeLeft.seconds).padStart(2, "0")
     ].join(":");
 
     const firstSignificantPos = formattedText
@@ -1759,7 +1757,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       kLog.log(`Pre-session song current time: ${preSessionSongCurrentTime}`);
       // Only sync song time if difference is more than 5 seconds
       const timeDiff = Math.abs(
-        this.sessionStartingSong.currentTime - preSessionSongCurrentTime,
+        this.sessionStartingSong.currentTime - preSessionSongCurrentTime
       );
       if (timeDiff > 5) {
         kLog.log(`Syncing pre-session song time - diff: ${timeDiff}s`);
@@ -1771,7 +1769,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       const newRepeatDelay = await this.getGlitchRepeatDelay();
       if (
         Math.abs(
-          newRepeatDelay - (this.#glitchTimeline?.repeatDelay() ?? Infinity),
+          newRepeatDelay - (this.#glitchTimeline?.repeatDelay() ?? Infinity)
         ) > 2
       ) {
         kLog.log(`updateCountdown -> newRepeatDelay: ${newRepeatDelay}`);
@@ -1805,7 +1803,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         () => {
           this.#isCountdownHidden = false;
         },
-        5 * 60 * 1000, // 5 minutes
+        5 * 60 * 1000 // 5 minutes
       );
       return;
     }
@@ -1830,7 +1828,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       void this.killLoadingScreenItems();
       this.#areLoadingScreenImagesStopped = true;
       this.#glitchTimeline?.repeatDelay(
-        0.5 * (this.#glitchTimeline?.repeatDelay() ?? Infinity),
+        0.5 * (this.#glitchTimeline?.repeatDelay() ?? Infinity)
       );
       return;
     }
@@ -1875,7 +1873,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         autoplay: true,
         loop: true,
         alwaysPreload: false,
-        reportPreloadStatus: false,
+        reportPreloadStatus: false
       });
     }
     if (!this.#ambientAudio) {
@@ -1922,7 +1920,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // Swap first and last items
       [shuffled[0], shuffled[shuffled.length - 1]] = [
         shuffled[shuffled.length - 1]!,
-        shuffled[0]!,
+        shuffled[0]!
       ];
     }
     this.#loadingScreenItemDeck = shuffled.map(([key]) => key);
@@ -1946,22 +1944,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private get currentLoadingScreenItemTimeline(): Maybe<gsap.core.Timeline> {
     let timeline = this.#loadingScreenItemTimelines.get(
-      this.currentLoadingScreenItem,
+      this.currentLoadingScreenItem
     );
     if (!timeline) {
       timeline = this.buildLoadingScreenItemTimeline(
-        this.currentLoadingScreenItem,
+        this.currentLoadingScreenItem
       );
     }
     this.#loadingScreenItemTimelines.set(
       this.currentLoadingScreenItem,
-      timeline,
+      timeline
     );
     return timeline;
   }
 
   private buildLoadingScreenItemTimeline(
-    key: keyof typeof LOADING_SCREEN_DATA,
+    key: keyof typeof LOADING_SCREEN_DATA
   ): gsap.core.Timeline {
     if (!this.#loadingScreenItemTimelines.has(key)) {
       const item$ = this.#loadingScreenItems.get(key)!;
@@ -1986,7 +1984,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             // Set timeline position to "start", using label designator "start"
             this.seek("start");
             this.pause();
-          },
+          }
         })
         .addLabel("start")
         .to($rightSideImage, {
@@ -1996,7 +1994,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         }, (3 * entryDuration) / 5)
         .fromTo($rightSideImage, {
           autoAlpha: 0,
-          filter: "blur(20px)",
+          filter: "blur(20px)"
         }, {
           autoAlpha: 1,
           filter: "blur(0px)",
@@ -2010,7 +2008,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             // left:"0%",
             x: "+=100",
             scale: 1.5,
-            height: "100vh",
+            height: "100vh"
             // height: "600vh"
           },
           {
@@ -2019,84 +2017,84 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             // height: "100vh",
             scale: 1,
             duration: entryDuration + displayDuration + exitDuration,
-            ease: "back.out(2)",
+            ease: "back.out(2)"
           }, "start"
         )
         .fromTo(
           $image,
           {
-            autoAlpha: 0,
+            autoAlpha: 0
           },
           {
             autoAlpha: 1,
             duration: 0.25 * entryDuration + displayDuration + exitDuration,
-            ease: "power3.out",
+            ease: "power3.out"
           },
-          0.25 * entryDuration,
+          0.25 * entryDuration
         )
         .fromTo(
           $title,
           {
             autoAlpha: 0,
             skewX: 10,
-            x: "-=100",
+            x: "-=100"
           },
           {
             autoAlpha: 1,
             x: 0,
             skewX: 0,
             duration: entryDuration / 5,
-            ease: "power2.out",
+            ease: "power2.out"
           },
-          (2 * entryDuration) / 5,
+          (2 * entryDuration) / 5
         )
         .fromTo(
           $subtitle,
           {
             autoAlpha: 0,
             skewX: 10,
-            x: "-=100",
+            x: "-=100"
           },
           {
             autoAlpha: 1,
             x: 0,
             skewX: 0,
             duration: entryDuration / 5,
-            ease: "power2.out",
+            ease: "power2.out"
           },
-          (3 * entryDuration) / 5,
+          (3 * entryDuration) / 5
         )
         .fromTo(
           $home,
           {
             autoAlpha: 0,
             skewX: 10,
-            x: "-=100",
+            x: "-=100"
           },
           {
             autoAlpha: 1,
             x: 0,
             skewX: 0,
             duration: entryDuration / 5,
-            ease: "power2.out",
+            ease: "power2.out"
           },
-          (3.5 * entryDuration) / 5,
+          (3.5 * entryDuration) / 5
         )
         .fromTo(
           $body,
           {
             autoAlpha: 0,
             skewX: 10,
-            x: "-=100",
+            x: "-=100"
           },
           {
             autoAlpha: 1,
             x: 0,
             skewX: 0,
             duration: entryDuration / 5,
-            ease: "power2.out",
+            ease: "power2.out"
           },
-          (4 * entryDuration) / 5,
+          (4 * entryDuration) / 5
         )
         .addLabel("display", entryDuration)
         .to(
@@ -2105,9 +2103,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             autoAlpha: 0,
             filter: "blur(10px)",
             duration: exitDuration,
-            ease: "power2.in",
+            ease: "power2.in"
           },
-          `display+=${displayDuration}`,
+          `display+=${displayDuration}`
         );
 
       // Store the total duration as data on the timeline
@@ -2162,13 +2160,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Fade out current loading screen item
     const currentItem = this.#loadingScreenItems.get(
-      this.#currentLoadingScreenItem ?? "",
+      this.#currentLoadingScreenItem ?? ""
     );
     if (currentItem?.[0]) {
       gsap.to(currentItem[0], {
         autoAlpha: 0,
         duration: 0.5,
-        ease: "power2.inOut",
+        ease: "power2.inOut"
       });
       setTimeout(() => {
         currentItem.attr("style", "");
@@ -2177,7 +2175,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Wait for any currently-running timeline to complete
     const currentTimeline = this.#loadingScreenItemTimelines.get(
-      this.#currentLoadingScreenItem ?? "",
+      this.#currentLoadingScreenItem ?? ""
     );
     if (currentTimeline?.isActive()) {
       await currentTimeline.timeScale(5);
@@ -2205,13 +2203,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       >;
       if (!songName) {
         throw new Error(
-          `No song defined for Chapter ${getSetting("chapterNumber")} in Pre-Session Tracks playlist`,
+          `No song defined for Chapter ${getSetting("chapterNumber")} in Pre-Session Tracks playlist`
         );
       }
       this.#sessionStartingSong = new EunosMedia(songName, {
         ...Sounds.PreSessionSongs[songName],
         type: EunosMediaTypes.audio,
-        alwaysPreload: true,
+        alwaysPreload: true
       });
     }
     return this.#sessionStartingSong;
@@ -2224,7 +2222,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const duration = await preSessionSong.getDuration();
 
     kLog.log(
-      `Initializing Pre-Session Song: timeRemaining: ${padNum(timeRemaining / 60, 0)}:${padNum(timeRemaining % 60, 0)}, songDuration: ${padNum(duration / 60, 0)}:${padNum(duration % 60, 0)}`,
+      `Initializing Pre-Session Song: timeRemaining: ${padNum(timeRemaining / 60, 0)}:${padNum(timeRemaining % 60, 0)}, songDuration: ${padNum(duration / 60, 0)}:${padNum(duration % 60, 0)}`
     );
 
     if (timeRemaining <= duration) {
@@ -2234,7 +2232,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       } else {
         void EunosSockets.getInstance().call(
           "playPreSessionSong",
-          UserTargetRef.all,
+          UserTargetRef.all
         );
         return;
       }
@@ -2245,16 +2243,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
       void EunosSockets.getInstance().call(
         "preloadPreSessionSong",
-        UserTargetRef.all,
+        UserTargetRef.all
       );
       const delay = timeRemaining - duration;
       kLog.log(
-        `playing song in ${padNum(delay / 60, 0)}:${padNum(delay % 60, 0)}`,
+        `playing song in ${padNum(delay / 60, 0)}:${padNum(delay % 60, 0)}`
       );
       this.#sessionStartingSongTimeout = window.setTimeout(() => {
         void EunosSockets.getInstance().call(
           "playPreSessionSong",
-          UserTargetRef.all,
+          UserTargetRef.all
         );
       }, delay * 1000);
     }
@@ -2285,11 +2283,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     gsap
       .timeline()
       .set(appElements, {
-        pointerEvents: "none",
+        pointerEvents: "none"
       })
       .to(appElements, {
         autoAlpha: 0,
-        duration: 0.5,
+        duration: 0.5
       });
     this.sidebarTimeline.reverse();
   }
@@ -2300,11 +2298,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     gsap
       .timeline()
       .set(appElements, {
-        pointerEvents: "auto", // Reset pointer events back to default
+        pointerEvents: "auto" // Reset pointer events back to default
       })
       .to(appElements, {
         autoAlpha: 1,
-        duration: 0.5,
+        duration: 0.5
       });
   }
 
@@ -2320,7 +2318,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private updateVideoStatusPanel(
     userId: string,
-    status: MediaLoadStatus,
+    status: MediaLoadStatus
   ): void {
     if (!getUser().isGM) return;
 
@@ -2347,7 +2345,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .map((user) => user.id!);
     // Shuffle the missing IDs and add them to the bottom of the deck
     const shuffledMissingUserIDs = missingUserIDs.sort(
-      () => Math.random() - 0.5,
+      () => Math.random() - 0.5
     );
     return [...currentDeck, ...shuffledMissingUserIDs];
   }
@@ -2359,7 +2357,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     while (!sessionScribeID) {
       if (currentDeck.length === 0) {
         currentDeck = this.topUpSessionScribeDeck(setAsideUserIDs).filter(
-          (id) => !setAsideUserIDs.includes(id),
+          (id) => !setAsideUserIDs.includes(id)
         );
       }
       sessionScribeID = currentDeck.shift()!;
@@ -2391,7 +2389,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         activeUsers = allUsers.filter((user) => user.id !== missingUser.id);
         const missingUserName = missingUser.name;
         kLog.log(
-          `Debugging is enabled: Simulating one missing user, '${missingUserName}'`,
+          `Debugging is enabled: Simulating one missing user, '${missingUserName}'`
         );
       } else {
         kLog.log("Not enough active users to assign dramatic hooks");
@@ -2413,7 +2411,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Create a mapping of userID to their actorID for quick lookup
     const userToActorMap = new Map(
-      activeUsers.map((user) => [user.id, user.character]),
+      activeUsers.map((user) => [user.id, user.character])
     );
 
     // Keep trying until we get a valid solution
@@ -2425,13 +2423,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         const j = Math.floor(Math.random() * (i + 1));
         [shuffledActors[i], shuffledActors[j]] = [
           shuffledActors[j]!,
-          shuffledActors[i]!,
+          shuffledActors[i]!
         ];
       }
 
       // Check if this shuffle creates any self-assignments
       const hasSelfAssignment = activeUsers.some(
-        (user, index) => shuffledActors[index] === userToActorMap.get(user.id),
+        (user, index) => shuffledActors[index] === userToActorMap.get(user.id)
       );
 
       // If there are no self-assignments, write to settings and return
@@ -2439,18 +2437,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         const assignmentMap = Object.fromEntries(
           activeUsers.map((user, index) => [
             user.name,
-            shuffledActors[index]!.name,
-          ]),
+            shuffledActors[index]!.name
+          ])
         );
         const dramaticHookAssignments = Object.fromEntries(
           activeUsers.map((user, index) => [
             user.id!,
-            shuffledActors[index]!.id!,
-          ]),
+            shuffledActors[index]!.id!
+          ])
         ) as Record<string, string>;
         kLog.log("No self-assignments, returning assignments", {
           assignmentMap,
-          dramaticHookAssignments,
+          dramaticHookAssignments
         });
         await setSetting("dramaticHookAssignments", dramaticHookAssignments);
         return;
@@ -2560,7 +2558,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       autoAlpha: 1,
       duration: 3,
       clearProps: "all",
-      ease: "power2.out",
+      ease: "power2.out"
     });
     this.topZIndexMask$.attr("style", "");
     this.topZIndexMask$.find(".horiz-rule").attr("style", "");
@@ -2569,7 +2567,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null }),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null })
     ]);
     // this.addCanvasMaskListeners();
   }
@@ -2579,7 +2577,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null  }),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null  })
     ]);
     // this.addCanvasMaskListeners();
   }
@@ -2595,7 +2593,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     await this.initializeLoadingScreenItemRotation();
     await Promise.all([
       this.initializeCountdown(),
-      this.initializePreSessionSong(),
+      this.initializePreSessionSong()
     ]);
     this.initializeVideoPreloading();
     if (!getUser().isGM) return;
@@ -2613,7 +2611,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.initializeCountdown(),
       this.initializePreSessionSong(),
       this.preloadIntroVideo(),
-      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null  }),
+      EunosMedia.SetSoundscape({ "ambient-session-closed": this.getVolumeOverride("ambient-session-closed") ?? null  })
     ]);
     if (!getUser().isGM) return;
 
@@ -2634,21 +2632,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region SessionStarting Methods
   private async initialize_SessionStarting(
-    data?: Record<string, unknown>,
+    data?: Record<string, unknown>
   ): Promise<void> {
     addClassToDOM("session-starting");
     if (getUser().isGM) {
       // GM triggers video playback for all clients
       void EunosSockets.getInstance().call(
         "startVideoPlayback",
-        UserTargetRef.all,
+        UserTargetRef.all
       );
     }
     void this.buildPCPortraitTimelines();
     gsap.to(this.stage$, {
       filter: "brightness(0)",
       duration: 0,
-      ease: "none",
+      ease: "none"
     });
   }
 
@@ -2658,7 +2656,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     gsap.to(this.stage$, {
       filter: "brightness(0)",
       duration: 0,
-      ease: "none",
+      ease: "none"
     });
     await this.playIntroVideo();
   }
@@ -2676,13 +2674,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .fromTo(
         "#BLACKOUT-LAYER",
         { autoAlpha: 1 },
-        { autoAlpha: 0, duration: 5, ease: "power2.inOut" },
+        { autoAlpha: 0, duration: 5, ease: "power2.inOut" }
       )
       .fromTo(
         "#PCS",
         { autoAlpha: 0 },
         { autoAlpha: 1, duration: 3, ease: "power2.inOut" },
-        2,
+        2
       );
   }
 
@@ -2705,13 +2703,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Send an Alert to the session scribe
     void EunosAlerts.Alert({
       type: AlertType.central,
-      header: `<br/>You are the Session Scribe!`,
-      body: `<br/>It is your responsibility this session to maintain a bullet list of this chapter's highlights: major plot events, character revelations, and other important details. The session scribe icon at the top right of your screen will open a notepad where you can record your notes during play.<br/><br/>As a reward for sumbitting, you'll gain 1 Experience Point!`,
+      header: "<br/>You are the Session Scribe!",
+      body: "<br/>It is your responsibility this session to maintain a bullet list of this chapter's highlights: major plot events, character revelations, and other important details. The session scribe icon at the top right of your screen will open a notepad where you can record your notes during play.<br/><br/>As a reward for sumbitting, you'll gain 1 Experience Point!",
       target: getSetting("sessionScribe"),
       displayDuration: 12,
       soundName: "alert-hit-session-scribe",
       logoImg:
-        "modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp",
+        "modules/eunos-kult-hacks/assets/images/stage/session-scribe-quill.webp"
     });
   }
 
@@ -2738,7 +2736,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     gsap.to(this.stage$, {
       autoAlpha: 0,
       duration: 4,
-      ease: "power2.out",
+      ease: "power2.out"
     });
     if (!getUser().isGM) { return; }
 
@@ -2782,15 +2780,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         ease: "power2.out",
         onComplete: () => {
           addClassToDOM("session-ending");
-        },
+        }
       },
-      1,
+      1
     );
     tl.fromTo(
       this.endPhase$,
       { autoAlpha: 0 },
       { autoAlpha: 1, duration: 0.5, ease: "power2.out" },
-      6,
+      6
     );
     tl.to(".app.sheet", { autoAlpha: 0, duration: 0.5, ease: "power2.out" }, 6);
     tl.call(
@@ -2798,7 +2796,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         void this.animateSessionTitle(undefined, undefined, true);
       },
       undefined,
-      5,
+      5
     );
     tl.call(() => {
       void this.initializeCountdown();
@@ -2807,10 +2805,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
   private async initialize_SessionEnding(): Promise<void> {
     gsap.set(this.topZIndexMask$, {
-      background: this.isLocationBright ? "var(--K4-WHITE)" : "var(--K4-BLACK)",
+      background: this.isLocationBright ? "var(--K4-WHITE)" : "var(--K4-BLACK)"
     });
     gsap.set(this.midZIndexMask$, {
-      autoAlpha: 0,
+      autoAlpha: 0
     });
     if (!this.isLocationBright) {
       this.topZIndexMask$.find(".horiz-rule").css("filter", "invert(1)");
@@ -2840,13 +2838,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         this.endPhase$[0],
         this.topZIndexMask$[0],
         this.midZIndexMask$[0],
-        this.maxZIndexBars$[0],
+        this.maxZIndexBars$[0]
       ],
       {
         autoAlpha: 0,
         duration: 3,
-        ease: "power2.out",
-      },
+        ease: "power2.out"
+      }
     );
     gsap.to(".app.sheet", { autoAlpha: 1, duration: 0.5, ease: "power2.out" });
   }
@@ -2874,7 +2872,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         mute: false,
         volume: 0.65,
         alwaysPreload: true,
-        reportPreloadStatus: true,
+        reportPreloadStatus: true
       });
     }
     return this.#introVideo;
@@ -2894,7 +2892,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     kLog.log("Requesting status update from all clients");
     void EunosSockets.getInstance().call(
       "preloadIntroVideo",
-      UserTargetRef.all,
+      UserTargetRef.all
     );
   }
 
@@ -2903,7 +2901,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!getUser().isGM) return;
     void EunosSockets.getInstance().call(
       "preloadIntroVideo",
-      UserTargetRef.all,
+      UserTargetRef.all
     );
     this.confirmChapterTitle();
   }
@@ -2936,20 +2934,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             if (title !== chapterTitle) {
               void setSetting("chapterTitle", title);
             }
-          },
-        },
+          }
+        }
       },
-      default: "ok",
+      default: "ok"
     }).render(true);
   }
 
   async animateOutBlackBars(
     startTime = 0,
-    duration = PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION,
+    duration = PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION
   ) {
     const topBarElement = this.maxZIndexBars$.find(".canvas-mask-bar-top")[0];
     const bottomBarElement = this.maxZIndexBars$.find(
-      ".canvas-mask-bar-bottom",
+      ".canvas-mask-bar-bottom"
     )[0];
 
     if (!topBarElement || !bottomBarElement) {
@@ -2962,14 +2960,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     tl.fromTo(
       [topBarElement, bottomBarElement],
       {
-        height: 150,
+        height: 150
       },
       {
         height: 0,
         duration,
-        ease: "none",
+        ease: "none"
       },
-      0,
+      0
     ).seek(startTime);
 
     return tl;
@@ -2977,11 +2975,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   async animateInBlackBars(
     startTime = 0,
-    duration = POST_SESSION.BLACK_BARS_ANIMATION_IN_DURATION,
+    duration = POST_SESSION.BLACK_BARS_ANIMATION_IN_DURATION
   ) {
     const topBarElement = this.maxZIndexBars$.find(".canvas-mask-bar-top")[0];
     const bottomBarElement = this.maxZIndexBars$.find(
-      ".canvas-mask-bar-bottom",
+      ".canvas-mask-bar-bottom"
     )[0];
 
     if (!topBarElement || !bottomBarElement) {
@@ -2995,16 +2993,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       [topBarElement, bottomBarElement],
       {
         height: 0,
-        ease: "none",
+        ease: "none"
       },
       {
         height: 150,
         duration,
         onStart: () => {
           gsap.set(this.maxZIndexBars$, { autoAlpha: 1 });
-        },
+        }
       },
-      0,
+      0
     ).seek(startTime);
 
     return tl;
@@ -3029,7 +3027,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   async animateSessionTitle(
     chapter?: string,
     title?: string,
-    isEndOfSession = false,
+    isEndOfSession = false
   ): Promise<void> {
     chapter = chapter ?? tCase(verbalizeNum(getSetting("chapterNumber")));
     title = title ?? getSetting("chapterTitle");
@@ -3052,14 +3050,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         introElem$,
         {
           scale: 0.9,
-          autoAlpha: 0,
+          autoAlpha: 0
         },
         {
           scale: 1,
           duration: 5,
-          autoAlpha: 1,
+          autoAlpha: 1
         },
-        position,
+        position
       );
       position += 0.2;
     }
@@ -3067,7 +3065,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       chapterElem$,
       {
         scale: 0.9,
-        autoAlpha: 0,
+        autoAlpha: 0
         // y: "-=20"
       },
       {
@@ -3075,23 +3073,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         autoAlpha: 1,
         // y: 0,
         duration: 5,
-        ease: "none",
+        ease: "none"
       },
-      position,
+      position
     );
     position += 0.2;
     tl.fromTo(
       horizRule$,
       {
         scaleX: 0,
-        autoAlpha: 0,
+        autoAlpha: 0
       },
       {
         scaleX: 1,
         duration: 3,
-        ease: "none",
+        ease: "none"
       },
-      position,
+      position
     );
     position += 0.2;
     tl.to(
@@ -3099,14 +3097,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       {
         autoAlpha: 1,
         ease: "none",
-        duration: 5,
+        duration: 5
       },
-      position,
+      position
     ).fromTo(
       titleElem$,
       {
         scale: 0.9,
-        autoAlpha: 0,
+        autoAlpha: 0
         // y: "+=20"
       },
       {
@@ -3114,9 +3112,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         autoAlpha: 1,
         // y: 0,
         duration: 5,
-        ease: "none",
+        ease: "none"
       },
-      position,
+      position
     );
 
     const layersToFade = [
@@ -3125,7 +3123,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       introElem$[0],
       chapterElem$[0],
       horizRule$[0],
-      titleElem$[0],
+      titleElem$[0]
     ];
     if (!isEndOfSession) {
       layersToFade.push(instance.maxZIndexBars$[0]);
@@ -3135,9 +3133,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       {
         autoAlpha: 0,
         duration: 1,
-        ease: "none",
+        ease: "none"
       },
-      "-=1",
+      "-=1"
     );
 
     await tl;
@@ -3151,11 +3149,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .set(this.maxZIndexBars$, { zIndex: 10001 })
       .to(this.topZIndexMask$, {
         autoAlpha: 1,
-        duration: 1,
+        duration: 1
       })
       .to(this.midZIndexMask$, {
         autoAlpha: 0,
-        duration: 0.25,
+        duration: 0.25
       });
   }
 
@@ -3175,7 +3173,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             void setSetting("gamePhase", GamePhase.SessionRunning);
           }
         })(),
-      { once: true },
+      { once: true }
     );
 
     await this.introVideo.play({ fadeInDuration: 1 });
@@ -3199,7 +3197,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       this.introVideo.currentTime;
     if (blackBarsAnimationOutEnd <= 0) {
       void this.animateOutBlackBars(
-        PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION,
+        PRE_SESSION.BLACK_BARS_ANIMATION_OUT_DURATION
       );
     } else if (blackBarsAnimationOutStart < 0) {
       void this.animateOutBlackBars(-1 * blackBarsAnimationOutStart);
@@ -3238,8 +3236,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       {
         autoAlpha: 0,
         duration: 0.5,
-        ease: "power1.out",
-      },
+        ease: "power1.out"
+      }
     );
     await this.introVideo.kill();
   }
@@ -3258,7 +3256,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     for (const actor of ownedActors) {
       this.PCsGlobalSettingsData.push({
         actorID: actor.id!,
-        ownerID: getOwnerOfDoc(actor)!.id!,
+        ownerID: getOwnerOfDoc(actor)!.id!
       });
     }
     return this.PCsGlobalSettingsData;
@@ -3295,7 +3293,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         ...data,
         actor,
         owner,
-        isOwner: owner.id === getUser().id,
+        isOwner: owner.id === getUser().id
       });
     }
 
@@ -3313,7 +3311,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Object.values(fullData).forEach((data, index) => {
       dataRecord[String(index + 1) as "1" | "2" | "3" | "4" | "5"] = {
         ...data,
-        slot: String(index + 1) as "1" | "2" | "3" | "4" | "5",
+        slot: String(index + 1) as "1" | "2" | "3" | "4" | "5"
       };
     });
     this.PCsGlobalData = dataRecord as Record<
@@ -3329,7 +3327,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     Object.values(pcGlobalData).forEach((data) => {
       pcData.push({
         ...data,
-        state: PCState.hidden,
+        state: PCState.hidden
       });
     });
     return pcData;
@@ -3337,14 +3335,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async setLocationPCData(
     location: string,
-    fullData: Location.PCData.FullData,
+    fullData: Location.PCData.FullData
   ) {
     const locationSettingsData = this.getLocationSettingsData(location);
     // Extract only the settings data fields
     const settingsData: Location.PCData.SettingsData = {
       actorID: fullData.actorID,
       ownerID: fullData.ownerID,
-      state: fullData.state,
+      state: fullData.state
     };
     locationSettingsData.pcData[fullData.actorID] = settingsData;
     await this.setLocationData(location, locationSettingsData);
@@ -3354,7 +3352,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     location: string,
     pcRef: number | string | EunosActor,
     dotKey: string,
-    value: unknown,
+    value: unknown
   ) {
     const locationPCData = this.getLocationDataForPC(location, pcRef);
     const curVal: unknown = foundry.utils.getProperty(locationPCData, dotKey);
@@ -3385,61 +3383,61 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       skewX: 0,
       skewY: -5,
       rotationX: 100,
-      scale: 0.9,
+      scale: 0.9
     },
     "2": {
       bottom: -15,
       skewX: 0,
       skewY: -2.5,
       rotationX: 100,
-      scale: 0.95,
+      scale: 0.95
     },
     "3": {
       bottom: 0,
       skewX: 0,
       skewY: 0,
       rotationX: 100,
-      scale: 1,
+      scale: 1
     },
     "4": {
       bottom: -15,
       skewX: 0,
       skewY: 2.5,
       rotationX: 100,
-      scale: 0.95,
+      scale: 0.95
     },
     "5": {
       bottom: -30,
       skewX: 0,
       skewY: 5,
       rotationX: 100,
-      scale: 0.9,
-    },
+      scale: 0.9
+    }
   };
 
   private buildHiddenToDimmedTimeline(
     pcContainer$: JQuery,
-    slot: "1" | "2" | "3" | "4" | "5",
+    slot: "1" | "2" | "3" | "4" | "5"
   ): gsap.core.Timeline {
     const pcID = pcContainer$.attr("data-pc-id") as Maybe<string>;
     if (!pcID) {
-      throw new Error(`PC ID not found for pcContainer$`);
+      throw new Error("PC ID not found for pcContainer$");
     }
 
     const spotlightContainer$ = pcContainer$.find(".pc-spotlight-container");
     const shadow$ = pcContainer$.find(".pc-portrait-shadow-main");
     const shadowEmpty$ = pcContainer$.find(".pc-portrait-shadow-empty");
     const sessionScribeIndicator$ = pcContainer$.find(
-      ".session-scribe-indicator",
+      ".session-scribe-indicator"
     );
 
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
     const dramaticHookCandleIndicator$ = portraitContainer$.find(
-      ".dramatic-hook-candle-indicator",
+      ".dramatic-hook-candle-indicator"
     );
     const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
     const interiorWrapper$ = portraitWrapper$.find(
-      ".pc-portrait-interior-wrapper",
+      ".pc-portrait-interior-wrapper"
     );
     const redLightning$ = interiorWrapper$.find(".pc-portrait-red-lightning");
     const smoke$ = interiorWrapper$.find(".pc-portrait-smoke");
@@ -3460,14 +3458,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         portraitWrapper$,
         {
           opacity: 1,
-          y: 200,
+          y: 200
         },
         {
           y: this.slotStats[slot].bottom,
           duration: 1,
-          ease: "bounce.in",
+          ease: "bounce.in"
         },
-        0,
+        0
       )
       .fromTo(
         frameDim$,
@@ -3475,9 +3473,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           opacity: 1,
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0,
+        0
       )
       .fromTo(
         frameDark$,
@@ -3485,9 +3483,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           opacity: 0,
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.5,
+        0.5
       )
       .fromTo(
         smoke$,
@@ -3495,50 +3493,50 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           opacity: 1,
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0,
+        0
       )
       .fromTo(
         portraitBg$,
         {
           opacity: 0,
-          filter: "grayscale(1) brightness(0)",
+          filter: "grayscale(1) brightness(0)"
         },
         {
           opacity: 1,
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.5,
+        0.5
       )
       .fromTo(
         shadowEmpty$,
         {
           opacity: 0.7,
-          y: 100,
+          y: 100
         },
         {
           opacity: 0,
           y: 0,
           duration: 0.25,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.25,
+        0.25
       )
       .fromTo(
         shadow$,
         {
           opacity: 0,
-          y: 100,
+          y: 100
         },
         {
           opacity: 0.7,
           y: 0,
           duration: 0.25,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.25,
+        0.25
       );
 
     //   if (sessionScribeIndicator$.length || dramaticHookCandleIndicator$.length) {
@@ -3561,7 +3559,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private buildDimmedToBaseTimeline(
     pcContainer$: JQuery,
-    slot: "1" | "2" | "3" | "4" | "5",
+    slot: "1" | "2" | "3" | "4" | "5"
   ): gsap.core.Timeline {
     const spotlightContainer$ = pcContainer$.find(".pc-spotlight-container");
     const lights$ = spotlightContainer$.find(".pc-spotlight");
@@ -3569,16 +3567,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const offLights$ = lights$.filter(".pc-spotlight-off");
     const shadow$ = pcContainer$.find(".pc-portrait-shadow");
     const sessionScribeIndicator$ = pcContainer$.find(
-      ".session-scribe-indicator",
+      ".session-scribe-indicator"
     );
 
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
     const dramaticHookCandleIndicator$ = portraitContainer$.find(
-      ".dramatic-hook-candle-indicator",
+      ".dramatic-hook-candle-indicator"
     );
     const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
     const interiorWrapper$ = portraitWrapper$.find(
-      ".pc-portrait-interior-wrapper",
+      ".pc-portrait-interior-wrapper"
     );
     const redLightning$ = interiorWrapper$.find(".pc-portrait-red-lightning");
     const smoke$ = interiorWrapper$.find(".pc-portrait-smoke");
@@ -3597,9 +3595,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           opacity: 0,
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.25,
+        0.25
       )
       .fromTo(
         frameMain$,
@@ -3607,9 +3605,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           opacity: 1,
           duration: 1,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0,
+        0
       )
       .fromTo(
         redLightning$,
@@ -3617,18 +3615,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           opacity: 1,
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.5,
+        0.5
       )
       .to(
         frameDim$,
         {
           opacity: 0,
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.5,
+        0.5
       )
       .fromTo(
         nameplate$,
@@ -3636,18 +3634,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           filter: "grayscale(0) brightness(1)",
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.5,
+        0.5
       )
       .to(
         portraitBg$,
         {
           filter: "grayscale(0.5) brightness(1)",
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.5,
+        0.5
       )
       .fromTo(
         portraitFg$,
@@ -3655,7 +3653,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           opacity: 0,
           scale: 0.8,
           // y: -60,
-          filter: "grayscale(0.5) brightness(0) blur(15px)",
+          filter: "grayscale(0.5) brightness(0) blur(15px)"
         },
         {
           scale: 1,
@@ -3663,9 +3661,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           opacity: 1,
           filter: "grayscale(0.5) brightness(1) blur(0px)",
           duration: 0.5,
-          ease: "power3.out",
+          ease: "power3.out"
         },
-        0.25,
+        0.25
       )
       .fromTo(
         offLights$,
@@ -3675,29 +3673,29 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 0.5,
           stagger: {
             amount: 0.5,
-            ease: "power2",
-          },
+            ease: "power2"
+          }
         },
-        0,
+        0
       )
       .fromTo(
         onLights$,
         { y: 500, opacity: 0 },
         {
           y: 0,
-          duration: 0.5,
+          duration: 0.5
         },
-        0,
+        0
       );
   }
   private buildBaseToSpotlitTimeline(
     pcContainer$: JQuery,
-    slot: "1" | "2" | "3" | "4" | "5",
+    slot: "1" | "2" | "3" | "4" | "5"
   ): gsap.core.Timeline {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const ease = CustomEase.create(
       "flickerIn",
-      EASES.flickerIn,
+      EASES.flickerIn
     ) as gsap.EaseFunction;
 
     const spotlightContainer$ = pcContainer$.find(".pc-spotlight-container");
@@ -3706,16 +3704,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const offLights$ = lights$.filter(".pc-spotlight-off");
     const shadow$ = pcContainer$.find(".pc-portrait-shadow");
     const sessionScribeIndicator$ = pcContainer$.find(
-      ".session-scribe-indicator",
+      ".session-scribe-indicator"
     );
 
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
     const dramaticHookCandleIndicator$ = portraitContainer$.find(
-      ".dramatic-hook-candle-indicator",
+      ".dramatic-hook-candle-indicator"
     );
     const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
     const interiorWrapper$ = portraitWrapper$.find(
-      ".pc-portrait-interior-wrapper",
+      ".pc-portrait-interior-wrapper"
     );
     const redLightning$ = interiorWrapper$.find(".pc-portrait-red-lightning");
     const smoke$ = interiorWrapper$.find(".pc-portrait-smoke");
@@ -3737,10 +3735,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           duration: 1,
           stagger: {
             amount: 0.5,
-            ease: "power2",
-          },
+            ease: "power2"
+          }
         },
-        0,
+        0
       )
       .fromTo(
         frameSpotlit$,
@@ -3748,18 +3746,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           opacity: 1,
           ease,
-          duration: 0.5,
+          duration: 0.5
         },
-        0.5,
+        0.5
       )
       .to(
         [portraitBg$, portraitFg$, nameplate$],
         {
           filter: "grayscale(0) brightness(1.5) blur(0px)",
           duration: 0.5,
-          ease,
+          ease
         },
-        0.5,
+        0.5
       );
     // .to([portraitBg$, portraitFg$], {
     //   scale: 1.25,
@@ -3789,7 +3787,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(frames$, {
         opacity: 0,
         duration: 0.5,
-        ease: "power3.out",
+        ease: "power3.out"
       })
       .addLabel(PCState.masked);
   }
@@ -3823,16 +3821,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const offLights$ = lights$.filter(".pc-spotlight-off");
     const shadow$ = pcContainer$.find(".pc-portrait-shadow");
     const sessionScribeIndicator$ = pcContainer$.find(
-      ".session-scribe-indicator",
+      ".session-scribe-indicator"
     );
 
     const portraitContainer$ = pcContainer$.find(".pc-portrait-container");
     const dramaticHookCandleIndicator$ = portraitContainer$.find(
-      ".dramatic-hook-candle-indicator",
+      ".dramatic-hook-candle-indicator"
     );
     const portraitWrapper$ = portraitContainer$.find(".pc-portrait-wrapper");
     const interiorWrapper$ = portraitWrapper$.find(
-      ".pc-portrait-interior-wrapper",
+      ".pc-portrait-interior-wrapper"
     );
     const redLightning$ = interiorWrapper$.find(".pc-portrait-red-lightning");
     const smoke$ = interiorWrapper$.find(".pc-portrait-smoke");
@@ -3865,7 +3863,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       frameDark$,
       frameDim$,
       frameMain$,
-      frameSpotlit$,
+      frameSpotlit$
     });
 
     const tl = gsap.timeline({ paused: true });
@@ -3906,20 +3904,20 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         // rotate: "random(-3, 3, 1)",
         ease: "sine.inOut",
         duration: 20,
-        repeatRefresh: true,
+        repeatRefresh: true
       });
   }
 
   private buildHookDisplayTimeline(
     pcID: string,
-    index: 1 | 2,
+    index: 1 | 2
   ): gsap.core.Timeline {
     const hookContainer$ = this.getDramaticHookContainer(pcID, index);
     const actor = getActorFromRef(pcID);
     if (!actor?.isPC()) {
       kLog.log(
         `Actor ${pcID} is not a PC, skipping dramatic hook display.`,
-        actor,
+        actor
       );
       return gsap.timeline();
     }
@@ -3931,11 +3929,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           if (!hookData.content || hookData.isChecked) {
             kLog.log(
               `Actor ${pcID} has no dramatic hook content or is already checked, skipping dramatic hook display.`,
-              hookData,
+              hookData
             );
             this.progress(1).kill();
           }
-        },
+        }
       })
       .fromTo(
         hookContainer$,
@@ -3943,7 +3941,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           opacity: 0,
           y: 100,
           scale: 0.75,
-          filter: "blur(10px)",
+          filter: "blur(10px)"
         },
         {
           opacity: 1,
@@ -3951,35 +3949,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           scale: 1,
           filter: "blur(0px)",
           duration: 3,
-          ease: "sine.inOut",
-        },
+          ease: "sine.inOut"
+        }
       )
       .fromTo(
         hookContainer$,
         {
-          y: 30,
+          y: 30
         },
         {
           y: 20,
           duration: 4,
           repeat: 6,
           yoyo: true,
-          ease: "sine.inOut",
+          ease: "sine.inOut"
         },
-        0,
+        0
       )
       .to(hookContainer$, {
         opacity: 0,
         scale: 2,
         filter: "blur(10px)",
         duration: 3,
-        ease: "power3.in",
+        ease: "power3.in"
       })
       .to(hookContainer$, {
         y: 0,
         scale: 1,
         filter: "blur(0px)",
-        duration: 0,
+        duration: 0
       });
     return tl;
   }
@@ -3992,7 +3990,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const hookContainer$ = container$.find(".dramatic-hook-container");
     if (hookContainer$.length < index) {
       throw new Error(
-        `Dramatic hook container for pcID '${pcID}' and index '${index}' not found.`,
+        `Dramatic hook container for pcID '${pcID}' and index '${index}' not found.`
       );
     }
     return $(hookContainer$[index - 1] as HTMLElement);
@@ -4009,13 +4007,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private buildDramaticHookTimeline(): gsap.core.Timeline {
     const activeActors = getOwnedActors().filter(
-      (actor) => actor.isPC() && getOwnerOfDoc(actor)?.id !== getUser().id,
+      (actor) => actor.isPC() && getOwnerOfDoc(actor)?.id !== getUser().id
     );
     const activeActorContainers: [string, 1 | 2][] = [];
     activeActors.forEach((actor) => {
       activeActorContainers.push([actor.id!, 1], [actor.id!, 2]);
     });
-    kLog.log(`Active actor containers:`, activeActorContainers);
+    kLog.log("Active actor containers:", activeActorContainers);
     const tl = gsap.timeline({ paused: true, repeat: -1, repeatRefresh: true });
     shuffle(activeActorContainers).forEach(([pcID, index]) => {
       tl.add(this.buildHookDisplayTimeline(pcID, index), "+=20");
@@ -4028,7 +4026,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     ownedActors.forEach((actor) => {
       this.pcMasterTimelines[actor.id!] = this.buildMasterPCTimeline(actor.id!);
       this.pcSwayTimelines[actor.id!] = this.buildSwayingLoopTimeline(
-        actor.id!,
+        actor.id!
       );
       this.pcMaskedTimelines[actor.id!] = this.buildToMaskedTimeline(actor.id!);
       this.pcMasterTimelines[actor.id!]?.seek(0);
@@ -4054,7 +4052,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const stateDisplayStrings: string[] = [];
     this.PCUIChanges.forEach((state, id) => {
       changeDisplayLines.push(
-        `<div class="change-log-entry change-log-entry-pc"><strong>${getActorFromRef(id)?.name}</strong> is now ${state.toUpperCase()}</div>`,
+        `<div class="change-log-entry change-log-entry-pc"><strong>${getActorFromRef(id)?.name}</strong> is now ${state.toUpperCase()}</div>`
       );
     });
     this.NPCUIChanges.forEach((change, id) => {
@@ -4070,7 +4068,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         stateString += ` at {${change.position.x}, ${change.position.y}}`;
       }
       changeDisplayLines.push(
-        `<div class="change-log-entry change-log-entry-npc"><strong>${getActorFromRef(id)?.name}</strong> is now ${stateString}</div>`,
+        `<div class="change-log-entry change-log-entry-npc"><strong>${getActorFromRef(id)?.name}</strong> is now ${stateString}</div>`
       );
     });
     this.changesLog$.html(changeDisplayLines.join(""));
@@ -4085,7 +4083,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           nameState?: NPCNameState;
           position?: Point;
         }
-    >,
+    >
   ): void {
     // Separate the changes into PC and NPC changes
     Object.entries(changes)
@@ -4104,7 +4102,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             nameState?: NPCNameState;
             position?: Point;
           },
-        ] => !getActorFromRef(id)?.isPC(),
+        ] => !getActorFromRef(id)?.isPC()
       ) as [
         string,
         {
@@ -4117,13 +4115,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       const npcContainer$ = $(`.npc-portrait[data-actor-id="${npcID}"]`);
       // If there are missing states, derive it from the data attributes of the NPC container
       portraitState ??= npcContainer$.attr(
-        "data-portrait-state",
+        "data-portrait-state"
       ) as NPCPortraitState;
       nameState ??= npcContainer$.attr("data-name-state") as NPCNameState;
       // If there is no position, derive it from the position of the NPC container
       position ??= {
         x: parseInt(`${gsap.getProperty(npcContainer$[0]!, "x")}`),
-        y: parseInt(`${gsap.getProperty(npcContainer$[0]!, "y")}`),
+        y: parseInt(`${gsap.getProperty(npcContainer$[0]!, "y")}`)
       };
 
       this.NPCUIChanges.set(npcID, { portraitState, nameState, position });
@@ -4147,7 +4145,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.PCUIChanges.forEach((state, actorID) => {
       locData.pcData[actorID] ??= {} as Location.PCData.SettingsData;
       Object.assign(locData.pcData[actorID], {
-        state,
+        state
       });
     });
 
@@ -4163,27 +4161,27 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         Object.assign(locData.npcData[actorID], {
           portraitState,
           nameState,
-          position,
+          position
         });
         const actor = getActors().find((actor) => actor.id === actorID);
         if (
           actor &&
           [
             foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.INHERIT,
-            foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE,
+            foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE
           ].includes(actor.ownership["default"]) &&
           nameState === NPCNameState.base &&
           [NPCPortraitState.base, NPCPortraitState.dimmed].includes(
-            portraitState,
+            portraitState
           )
         ) {
           void actor.update({
             ownership: {
-              default: foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED,
-            },
+              default: foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED
+            }
           });
         }
-      },
+      }
     );
 
     kLog.log(`[pushUIChanges ${timer()}] Setting Location Data`);
@@ -4205,7 +4203,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private extractPCUIDataFromFullData(
-    pcData?: Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>,
+    pcData?: Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>
   ): Record<string, PCState> {
     pcData ??= this.getLocationData(getSetting("currentLocation")).pcData;
     const pcUIData: Record<string, PCState> = {};
@@ -4223,7 +4221,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   public async updatePCUI(
     data?:
       | Record<string, PCState>
-      | Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>,
+      | Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>
   ) {
     kLog.log("updatePCUI function called", data);
 
@@ -4240,7 +4238,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       Object.keys(data).some((key) => ["1", "2", "3", "4", "5"].includes(key))
     ) {
       data = this.extractPCUIDataFromFullData(
-        data as Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>,
+        data as Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData>
       );
     }
     data ??= this.extractPCUIDataFromFullData(this.getLocationData().pcData);
@@ -4345,38 +4343,38 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             system: {
               dramatichooks: {
                 [hookID]: {
-                  isChecked: true,
-                },
-              },
-            },
+                  isChecked: true
+                }
+              }
+            }
           });
           void actor.awardXP();
           void EunosAlerts.Alert({
             type: AlertType.dramaticHookReward,
             header: "You've Gained 1 XP for Satisfying a Dramatic Hook:",
             body: `"${hookContent}"`,
-            target: getOwnerOfDoc(actor)?.id ?? undefined,
+            target: getOwnerOfDoc(actor)?.id ?? undefined
           });
-        },
+        }
       })
       .fromTo(
         dramaticHookContainer$,
         {
           background:
-            "linear-gradient(to right, rgb(150, 140, 106) 0%, rgb(0, 0, 0) 0%)",
+            "linear-gradient(to right, rgb(150, 140, 106) 0%, rgb(0, 0, 0) 0%)"
         },
         {
           background:
             "linear-gradient(to right, rgb(150, 140, 106) 100%, rgb(0, 0, 0) 100%)",
           duration: 2,
-          ease: "power2.inOut",
-        },
+          ease: "power2.inOut"
+        }
       );
   }
 
   private updatePCUI_GM(pcID: string, state: PCState) {
     const pcContainer$ = EunosOverlay.instance.pcs$.find(
-      `.pc-container[data-pc-id="${pcID}"]`,
+      `.pc-container[data-pc-id="${pcID}"]`
     );
     switch (state) {
       case PCState.dimmed:
@@ -4447,13 +4445,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       dropSelector: "#NPCS-GM",
       permissions: {
         dragstart: this._canDragStart.bind(this),
-        drop: this._canDragDrop.bind(this),
+        drop: this._canDragDrop.bind(this)
       },
       callbacks: {
         dragstart: this._onDragStart.bind(this),
         dragover: this._onDragOver.bind(this),
-        drop: this._onDrop.bind(this),
-      },
+        drop: this._onDrop.bind(this)
+      }
     });
 
     return [dragHandler];
@@ -4506,31 +4504,31 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         "text/plain",
         JSON.stringify({
           type: "reposition",
-          npcID,
-        }),
+          npcID
+        })
       );
       return;
     }
 
     // Handle actor dragging from sidebar
     const actor = getActors().find(
-      (actor) => actor.id === el.dataset["documentId"]!,
+      (actor) => actor.id === el.dataset["documentId"]!
     );
     if (!actor) return;
 
     // Create guidelines
     this.dragGuidelineY = $(
-      '<div class="npc-drag-guideline drag-guideline-y"></div>',
+      "<div class=\"npc-drag-guideline drag-guideline-y\"></div>"
     ).css({ top: `${NPC_PORTRAIT.viewportCollisions.y}px` });
     this.dragGuidelineX = $(
-      '<div class="npc-drag-guideline drag-guideline-x"></div>',
+      "<div class=\"npc-drag-guideline drag-guideline-x\"></div>"
     ).css({ left: `${NPC_PORTRAIT.viewportCollisions.x}px` });
 
     this.npcs$.append(this.dragGuidelineY, this.dragGuidelineX);
 
     event.dataTransfer?.setData(
       "text/plain",
-      JSON.stringify({ actorID: actor.id }),
+      JSON.stringify({ actorID: actor.id })
     );
   }
 
@@ -4546,7 +4544,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Create/update preview
     if (!this.dragPreview) {
       kLog.log("Creating drag preview");
-      this.dragPreview = $('<div class="npc-portrait-preview"></div>');
+      this.dragPreview = $("<div class=\"npc-portrait-preview\"></div>");
       this.npcs$.append(this.dragPreview);
     }
 
@@ -4563,7 +4561,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       backgroundColor: "rgba(255, 255, 155, 0.8)",
       pointerEvents: "none",
       transformOrigin: "center center",
-      transform: `translate3d(${x}px, ${y}px, 0) scale(0.5)`,
+      transform: `translate3d(${x}px, ${y}px, 0) scale(0.5)`
     });
   }
 
@@ -4617,8 +4615,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // Queue the update call
       this.queueUIChanges({
         [npc.id!]: {
-          position: { x, y },
-        },
+          position: { x, y }
+        }
       });
 
       const npcContainer$ = this.npcs$.find(`[data-actor-id="${npc.id}"]`);
@@ -4628,7 +4626,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         xPercent: -50,
         yPercent: -50,
         x,
-        y,
+        y
       });
       return;
     }
@@ -4636,7 +4634,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Handle new actor drop
     if (parsedData.actorID) {
       const actor = getActors().find(
-        (a) => a.id === parsedData.actorID,
+        (a) => a.id === parsedData.actorID
       ) as Maybe<EunosActor & { system: ActorDataNPC }>;
       if (!actor || actor.isPC()) return;
 
@@ -4677,14 +4675,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         [actorID]: {
           position: { x, y },
           portraitState,
-          nameState,
-        },
+          nameState
+        }
       });
     }
   }
 
   private buildNPCHiddenToDimmedTimeline(
-    npcContainer$: JQuery,
+    npcContainer$: JQuery
   ): gsap.core.Timeline {
     const SMOKE_EFFECT_DELAY = 2;
     const tokenScale = npcContainer$.attr("data-token-scale") as Maybe<string>;
@@ -4696,15 +4694,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const portraitFrame$ = portraitContainer$.find(".npc-portrait-frame");
     const portraitImage$ = portraitFrame$.find(".npc-portrait-image-base");
     const portraitImageGoggles$ = portraitFrame$.find(
-      ".npc-portrait-image-goggles",
+      ".npc-portrait-image-goggles"
     );
     const portraitNameContainer$ = npcContainer$.find(
-      ".npc-portrait-name-container",
+      ".npc-portrait-name-container"
     );
     const portraitName$ = npcContainer$.find(".npc-portrait-name");
     const portraitShadow$ = npcContainer$.find(".npc-portrait-shadow");
     const smokeEffectContainer$ = npcContainer$.find(
-      ".npc-smoke-effect-container",
+      ".npc-smoke-effect-container"
     );
     const smokeEffect$ = smokeEffectContainer$.find(".npc-smoke-effect");
 
@@ -4717,7 +4715,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           y: "-=100",
           // skewX: -30,
           scale: hiddenScale,
-          filter: "brightness(5) blur(300px)",
+          filter: "brightness(5) blur(300px)"
         },
         {
           autoAlpha: 1,
@@ -4726,49 +4724,49 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           scale: dimmedScale,
           filter: "brightness(0.5) blur(0px)",
           duration: 0.5,
-          ease: "none",
+          ease: "none"
         },
-        0,
+        0
       )
       .fromTo(
         portraitNameContainer$,
         {
-          scale: getUser().isGM ? 1 : 0.5,
+          scale: getUser().isGM ? 1 : 0.5
         },
         {
           scale: getUser().isGM ? 1 : 0.8,
           duration: 0.5,
-          ease: "none",
+          ease: "none"
         },
-        0,
+        0
       )
       .fromTo(
         portraitShadow$,
         {
           scale: hiddenScale,
           filter: "brightness(0) blur(100px)",
-          autoAlpha: 0,
+          autoAlpha: 0
         },
         {
           scale: dimmedScale,
           filter: "brightness(0) blur(10px)",
           autoAlpha: 0.5,
           duration: 0.25,
-          ease: "none",
+          ease: "none"
         },
-        0.25,
+        0.25
       )
       .call(() => {
         npcContainer$.attr("data-portrait-state", NPCPortraitState.dimmed);
         npcContainer$.removeClass(
-          "npc-portrait-invisible npc-portrait-base npc-portrait-spotlit",
+          "npc-portrait-invisible npc-portrait-base npc-portrait-spotlit"
         );
         npcContainer$.addClass("npc-portrait-dimmed");
       });
   }
 
   private buildNPCDimmedToBaseTimeline(
-    npcContainer$: JQuery,
+    npcContainer$: JQuery
   ): gsap.core.Timeline {
     const tokenScale = npcContainer$.attr("data-token-scale") as Maybe<string>;
     const baseScale = tokenScale ? parseFloat(tokenScale) : 1;
@@ -4776,15 +4774,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const portraitFrame$ = portraitContainer$.find(".npc-portrait-frame");
     const portraitImage$ = portraitFrame$.find(".npc-portrait-image-base");
     const portraitImageGoggles$ = portraitFrame$.find(
-      ".npc-portrait-image-goggles",
+      ".npc-portrait-image-goggles"
     );
     const portraitNameContainer$ = npcContainer$.find(
-      ".npc-portrait-name-container",
+      ".npc-portrait-name-container"
     );
     const portraitName$ = npcContainer$.find(".npc-portrait-name");
     const portraitShadow$ = npcContainer$.find(".npc-portrait-shadow");
     const smokeEffectContainer$ = npcContainer$.find(
-      ".npc-smoke-effect-container",
+      ".npc-smoke-effect-container"
     );
     const smokeEffect$ = smokeEffectContainer$.find(".npc-smoke-effect");
 
@@ -4794,16 +4792,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         scale: baseScale,
         filter: "brightness(1) blur(0px)",
         duration: 1,
-        ease: "none",
+        ease: "none"
       })
       .to(
         portraitNameContainer$,
         {
           scale: 1,
           duration: 1,
-          ease: "none",
+          ease: "none"
         },
-        0,
+        0
       )
       .to(
         portraitShadow$,
@@ -4812,21 +4810,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           filter: "brightness(0) blur(5px)",
           autoAlpha: 0.8,
           duration: 1,
-          ease: "none",
+          ease: "none"
         },
-        0,
+        0
       )
       .call(() => {
         npcContainer$.attr("data-portrait-state", NPCPortraitState.base);
         npcContainer$.removeClass(
-          "npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit",
+          "npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit"
         );
         npcContainer$.addClass("npc-portrait-base");
       });
   }
 
   private buildNPCBaseToSpotlitTimeline(
-    npcContainer$: JQuery,
+    npcContainer$: JQuery
   ): gsap.core.Timeline {
     const portraitContainer$ = npcContainer$.find(".npc-portrait-container");
 
@@ -4835,22 +4833,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(portraitContainer$, {
         filter: "brightness(1.5) blur(0px)",
         duration: 1,
-        ease: "none",
+        ease: "none"
       })
       .call(() => {
         npcContainer$.attr("data-portrait-state", NPCPortraitState.spotlit);
         npcContainer$.removeClass(
-          "npc-portrait-base npc-portrait-invisible npc-portrait-dimmed",
+          "npc-portrait-base npc-portrait-invisible npc-portrait-dimmed"
         );
         npcContainer$.addClass("npc-portrait-spotlit");
       });
   }
 
   private buildNPCNameHiddenToShroudedTimeline(
-    npcContainer$: JQuery,
+    npcContainer$: JQuery
   ): gsap.core.Timeline {
     const portraitNameContainer$ = npcContainer$.find(
-      ".npc-portrait-name-container",
+      ".npc-portrait-name-container"
     );
     const portraitName$ = npcContainer$.find(".npc-portrait-name");
     return gsap
@@ -4858,7 +4856,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .call(() => {
         npcContainer$.attr("data-name-state", NPCNameState.invisible);
         npcContainer$.removeClass(
-          "npc-portrait-name-shrouded npc-portrait-name-base",
+          "npc-portrait-name-shrouded npc-portrait-name-base"
         );
         npcContainer$.addClass("npc-portrait-name-invisible");
       })
@@ -4872,7 +4870,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           // x: "+=200",
           y: -10,
           xPercent: -50,
-          yPercent: 0,
+          yPercent: 0
         },
         {
           duration: 1,
@@ -4884,35 +4882,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           skewX: 0,
           xPercent: -50,
           yPercent: 0,
-          filter: "blur(0px)",
+          filter: "blur(0px)"
         },
-        0,
+        0
       )
       .fromTo(
         portraitName$,
         {
           autoAlpha: 0,
           scale: 1,
-          filter: "blur(10px)",
+          filter: "blur(10px)"
         },
         {
           autoAlpha: 1,
           ease: "none",
-          duration: 0.5,
+          duration: 0.5
         },
-        0.5,
+        0.5
       )
       .call(() => {
         npcContainer$.attr("data-name-state", NPCNameState.shrouded);
         npcContainer$.removeClass(
-          "npc-portrait-name-invisible npc-portrait-name-base",
+          "npc-portrait-name-invisible npc-portrait-name-base"
         );
         npcContainer$.addClass("npc-portrait-name-shrouded");
       });
   }
 
   private buildNPCNameShroudedToBaseTimeline(
-    npcContainer$: JQuery,
+    npcContainer$: JQuery
   ): gsap.core.Timeline {
     const portraitName$ = npcContainer$.find(".npc-portrait-name");
 
@@ -4921,12 +4919,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(portraitName$, {
         filter: "blur(0px)",
         duration: 1,
-        ease: "none",
+        ease: "none"
       })
       .call(() => {
         npcContainer$.attr("data-name-state", NPCNameState.base);
         npcContainer$.removeClass(
-          "npc-portrait-name-shrouded npc-portrait-name-invisible",
+          "npc-portrait-name-shrouded npc-portrait-name-invisible"
         );
         npcContainer$.addClass("npc-portrait-name-base");
       });
@@ -4946,7 +4944,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         .add(this.buildNPCDimmedToBaseTimeline(npcContainer$).paused(false))
         .addLabel(NPCPortraitState.base)
         .add(this.buildNPCBaseToSpotlitTimeline(npcContainer$).paused(false))
-        .addLabel(NPCPortraitState.spotlit),
+        .addLabel(NPCPortraitState.spotlit)
     );
 
     return npcContainer$.data("portrait-timeline") as gsap.core.Timeline;
@@ -4960,14 +4958,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         .addLabel(NPCNameState.invisible)
         .add(
           this.buildNPCNameHiddenToShroudedTimeline(npcContainer$).paused(
-            false,
-          ),
+            false
+          )
         )
         .addLabel(NPCNameState.shrouded)
         .add(
-          this.buildNPCNameShroudedToBaseTimeline(npcContainer$).paused(false),
+          this.buildNPCNameShroudedToBaseTimeline(npcContainer$).paused(false)
         )
-        .addLabel(NPCNameState.base),
+        .addLabel(NPCNameState.base)
     );
 
     return npcContainer$.data("name-timeline") as gsap.core.Timeline;
@@ -4984,7 +4982,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (actor.isPC()) {
       kLog.error(
         "Actor on stage is a PC: No goggles transition timeline created.",
-        { actorID, actor },
+        { actorID, actor }
       );
       npcContainer$.data("goggles-timeline", gsap.timeline());
       return gsap.timeline();
@@ -4998,7 +4996,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     const portraitImage$ = npcContainer$.find(".npc-portrait-image-base");
     const portraitImageGoggles$ = npcContainer$.find(
-      ".npc-portrait-image-goggles",
+      ".npc-portrait-image-goggles"
     );
 
     npcContainer$.data(
@@ -5014,33 +5012,33 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         .fromTo(
           portraitImage$,
           {
-            autoAlpha: 1,
+            autoAlpha: 1
           },
           {
             autoAlpha: 0,
             duration: 1,
-            ease: "none",
+            ease: "none"
           },
-          0,
+          0
         )
         .fromTo(
           portraitImageGoggles$,
           {
-            autoAlpha: 0,
+            autoAlpha: 0
           },
           {
             autoAlpha: 1,
             duration: 1,
-            ease: "none",
+            ease: "none"
           },
-          0,
+          0
         )
         .call(() => {
           npcContainer$.attr("data-goggles-state", "goggles");
           npcContainer$.addClass("npc-portrait-goggles");
           kLog.log("goggles Timeline at GOGGLES", { npcContainer$ });
         })
-        .addLabel("goggles"),
+        .addLabel("goggles")
     );
 
     return npcContainer$.data("goggles-timeline") as gsap.core.Timeline;
@@ -5051,7 +5049,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     portraitState?: NPCPortraitState,
     nameState?: NPCNameState,
     gogglesState?: "goggles" | "noGoggles",
-    position?: Point,
+    position?: Point
   ): gsap.core.Timeline {
     if (getUser().isGM) {
       return gsap.timeline();
@@ -5062,12 +5060,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const smokeEffect$ = npcContainer$.find(".npc-smoke-effect");
     const actor = getActorFromRef(npcID) as EunosActor;
     portraitState ??= npcContainer$.attr(
-      "data-portrait-state",
+      "data-portrait-state"
     ) as NPCPortraitState;
     nameState ??= npcContainer$.attr("data-name-state") as NPCNameState;
     position ??= {
       x: gsap.getProperty(npcContainer$[0]!, "x") as number,
-      y: gsap.getProperty(npcContainer$[0]!, "y") as number,
+      y: gsap.getProperty(npcContainer$[0]!, "y") as number
     };
     gogglesState ??=
       this.isOutdoors && this.isLocationBright && actor.getGogglesImageSrc()
@@ -5076,13 +5074,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Get timelines as JQuery data elements from npcContainer$
     const portraitTimeline = npcContainer$.data(
-      "portrait-timeline",
+      "portrait-timeline"
     ) as gsap.core.Timeline;
     const nameTimeline = npcContainer$.data(
-      "name-timeline",
+      "name-timeline"
     ) as gsap.core.Timeline;
     const gogglesTimeline = npcContainer$.data(
-      "goggles-timeline",
+      "goggles-timeline"
     ) as gsap.core.Timeline;
     const currentPortraitState =
       this.getNPCStatusFromOverlay(npcContainer$).portraitState;
@@ -5095,7 +5093,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       ease: "power2.out",
       onComplete: () => {
         this.updateShadowSkew(npcContainer$);
-      },
+      }
     });
 
     // Create timeline of tweenTo's to update portrait, name, and goggles
@@ -5110,27 +5108,27 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           npcContainer$.attr("data-name-state", nameState);
           npcContainer$.attr("data-goggles-state", gogglesState);
           npcContainer$.removeClass(
-            "npc-portrait-name-shrouded npc-portrait-name-invisible npc-portrait-name-base",
+            "npc-portrait-name-shrouded npc-portrait-name-invisible npc-portrait-name-base"
           );
           npcContainer$.addClass(`npc-portrait-name-${nameState}`);
           npcContainer$.removeClass(
-            "npc-portrait-base npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit",
+            "npc-portrait-base npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit"
           );
           npcContainer$.addClass(`npc-portrait-${portraitState}`);
           npcContainer$.removeClass(
-            "npc-portrait-goggles npc-portrait-noGoggles",
+            "npc-portrait-goggles npc-portrait-noGoggles"
           );
           npcContainer$.addClass(`npc-portrait-${gogglesState}`);
         }
-      },
+      }
     });
 
     const timeOffset = [
       NPCPortraitState.invisible,
-      NPCPortraitState.removed,
+      NPCPortraitState.removed
     ].includes(portraitState)
       ? 0
-      : 0;
+      : 0.2;
 
     kLog.log(`buildNPCTransitionTimeline for ${actor.name}`, {
       portraitState,
@@ -5139,16 +5137,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       gogglesStateReasons: {
         isOutdoors: this.isOutdoors,
         isLocationBright: this.isLocationBright,
-        hasGoggles: Boolean(actor.getGogglesImageSrc()),
+        hasGoggles: Boolean(actor.getGogglesImageSrc())
       },
       position,
       currentPortraitLabel: currentPortraitState,
-      timeOffset,
+      timeOffset
     });
 
     if (
       [NPCPortraitState.invisible, NPCPortraitState.removed].includes(
-        currentPortraitState,
+        currentPortraitState
       )
     ) {
       // Create a sub-timeline that will be controlled by the master timeline
@@ -5159,7 +5157,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         .add(positionTimeline.duration(0), 0)
         .add(
           gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }),
-          0,
+          0
         );
       // Start smoke effect IF new portrait state is not invisible/removed
       if (
@@ -5174,16 +5172,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               void videoElement.play();
             },
             [],
-            0,
+            0
           )
           // Fade in smoke
           .to(
             smokeEffect$,
             {
               autoAlpha: 1,
-              duration: 0.1,
+              duration: 0.1
             },
-            0,
+            0
           )
 
           // After smoke is visible, start portrait transition
@@ -5191,9 +5189,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             portraitTimeline.tweenFromTo(
               NPCPortraitState.invisible,
               portraitState,
-              { ease: "power2.in" },
+              { ease: "power2.in" }
             ),
-            SMOKE_EFFECT_DELAY,
+            SMOKE_EFFECT_DELAY
           );
       }
 
@@ -5201,40 +5199,40 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       subTl
         .add(
           gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }),
-          SMOKE_EFFECT_DELAY,
+          SMOKE_EFFECT_DELAY
         )
         .add(
           nameTimeline.tweenFromTo(NPCNameState.invisible, nameState, {
-            ease: "power2.inOut",
+            ease: "power2.inOut"
           }),
-          SMOKE_EFFECT_DELAY + timeOffset,
+          SMOKE_EFFECT_DELAY + timeOffset
         );
 
       // Create the master control timeline
       tl.to(subTl, {
         progress: 1,
         duration: subTl.duration(),
-        ease: "none",
+        ease: "none"
       });
 
       kLog.log("buildNPCTransitionTimeline: FROM invis/removed", {
         subDuration: subTl.duration(),
         subTotalDuration: subTl.totalDuration(),
         tlDuration: tl.duration(),
-        tlTotalDuration: tl.totalDuration(),
+        tlTotalDuration: tl.totalDuration()
       });
     } else if (
       [NPCPortraitState.invisible, NPCPortraitState.removed].includes(
-        portraitState,
+        portraitState
       )
     ) {
       tl.add(
         portraitTimeline.tweenTo(portraitState, { ease: "power2.inOut" }),
-        0,
+        0
       );
       tl.add(
         nameTimeline.tweenTo(NPCNameState.invisible, { ease: "power2.inOut" }),
-        timeOffset,
+        timeOffset
       );
       tl.duration(1);
       kLog.log("buildNPCTransitionTimeline: TO invis/removed", { tl });
@@ -5242,7 +5240,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       tl.add(portraitTimeline.tweenTo(portraitState, { ease: "power4.in" }), 0);
       tl.add(
         nameTimeline.tweenTo(nameState, { ease: "power2.in" }),
-        timeOffset,
+        timeOffset
       );
       tl.add(positionTimeline, "<");
       tl.add(gogglesTimeline.tweenTo(gogglesState, { ease: "power2.in" }), "<");
@@ -5263,7 +5261,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         nameState?: NPCNameState;
         position?: Point;
       }
-    >,
+    >
   ): Promise<{ tl: gsap.core.Timeline }> {
     const masterTl = gsap.timeline({ paused: true });
 
@@ -5273,7 +5271,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       Object.entries(data).map(
         async ([npcID, { portraitState, nameState, position }], index) => {
           let npcContainer$ = this.npcs$.find(
-            `.npc-portrait[data-actor-id="${npcID}"]`,
+            `.npc-portrait[data-actor-id="${npcID}"]`
           );
           kLog.log(`Seeking NPC container for NPC ${npcID}`, { npcContainer$ });
           if (!npcContainer$.length) {
@@ -5285,7 +5283,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             }
             npcContainer$ = await this.renderNPCPortrait(
               getActorFromRef(npcID) as EunosActor,
-              position,
+              position
             );
           }
           const gogglesState =
@@ -5299,12 +5297,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               portraitState,
               nameState,
               gogglesState,
-              position,
+              position
             ),
-            (index * TIMELINE_STAGGER_AMOUNT) / numChanges,
+            (index * TIMELINE_STAGGER_AMOUNT) / numChanges
           );
-        },
-      ),
+        }
+      )
     );
 
     masterTl.play();
@@ -5314,19 +5312,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private async renderNPCPortrait(
     actor: EunosActor,
-    position?: Point,
+    position?: Point
   ): Promise<JQuery> {
     // First check whether there's an existing portrait, and return that if there is.
     const existingNPC$ = this.npcs$.find(
-      `.npc-portrait[data-actor-id="${actor.id}"]`,
+      `.npc-portrait[data-actor-id="${actor.id}"]`
     );
     kLog.log(`renderNPCPortrait: existingNPC for ${actor.name}`, {
-      existingNPC: existingNPC$,
+      existingNPC: existingNPC$
     });
     if (existingNPC$.length) {
       kLog.log(
         "renderNPCPortrait: updating shadow and returning existing NPC",
-        { existingNPC: existingNPC$ },
+        { existingNPC: existingNPC$ }
       );
       this.updateShadowSkew(existingNPC$);
       return existingNPC$;
@@ -5351,8 +5349,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       {
         actor,
         portraitState: NPCPortraitState.invisible,
-        nameState: NPCNameState.invisible,
-      },
+        nameState: NPCNameState.invisible
+      }
     );
 
     // Create jQuery element but don't append yet
@@ -5360,7 +5358,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const element = npcContainer$[0] as HTMLElement;
 
     await gsap.set(element, {
-      opacity: 0,
+      opacity: 0
     });
 
     // Now append the element
@@ -5370,7 +5368,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       xPercent: -50,
       yPercent: -50,
       x: position.x,
-      y: position.y,
+      y: position.y
     });
 
     // Use the dedicated method instead of direct gsap.set
@@ -5382,7 +5380,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.buildNPCGogglesTimeline(npcContainer$);
 
     void gsap.set(element, {
-      opacity: 1,
+      opacity: 1
     });
 
     return npcContainer$;
@@ -5413,14 +5411,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!getUser().isGM) { return; }
     $(document).on("mousedown", ".dramatic-hook-container", (event) => {
       const $hook = $(event.currentTarget) as JQuery;
-      let tl = $hook.data('timeline') as Maybe<gsap.core.Timeline>;
+      let tl = $hook.data("timeline") as Maybe<gsap.core.Timeline>;
 
       if (!tl) {
         // Create timeline if it doesn't exist
         tl = this.getDramaticHookRewardTimeline($hook);
         if (!tl) return;
         tl.pause();
-        $hook.data('timeline', tl);
+        $hook.data("timeline", tl);
       }
 
       // Continue playing from current position
@@ -5429,7 +5427,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     $(document).on("mouseup mouseleave", ".dramatic-hook-container", (event) => {
       const $hook = $(event.currentTarget);
-      const tl = $hook.data('timeline') as Maybe<gsap.core.Timeline>;
+      const tl = $hook.data("timeline") as Maybe<gsap.core.Timeline>;
 
       if (tl) {
         // Reverse the timeline if it hasn't completed
@@ -5449,23 +5447,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return {
         portraitState: NPCPortraitState.removed,
         nameState: NPCNameState.base,
-        position: { x: 0, y: 0 },
+        position: { x: 0, y: 0 }
       };
     }
     return {
       portraitState: npcContainer$.attr(
-        "data-portrait-state",
+        "data-portrait-state"
       ) as NPCPortraitState,
       nameState: npcContainer$.attr("data-name-state") as NPCNameState,
       position: {
         x: gsap.getProperty(npcContainer$[0]!, "x") as number,
-        y: gsap.getProperty(npcContainer$[0]!, "y") as number,
-      },
+        y: gsap.getProperty(npcContainer$[0]!, "y") as number
+      }
     };
   }
 
   private getNPCDataFromOverlay(
-    isVisibleOnly = false,
+    isVisibleOnly = false
   ): Record<string, NPCs.FullData> {
     const npcContainers$ = this.npcs$.children();
     const npcData: Record<string, NPCs.FullData> = {};
@@ -5480,7 +5478,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (
         isVisibleOnly &&
         [NPCPortraitState.removed, NPCPortraitState.invisible].includes(
-          npcStatus.portraitState,
+          npcStatus.portraitState
         )
       ) {
         return;
@@ -5488,7 +5486,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       npcData[npcID] = {
         ...npcStatus,
         actor: getActorFromRef(npcID) as EunosActor & { system: ActorDataNPC },
-        actorID: npcID,
+        actorID: npcID
       };
     });
     return npcData;
@@ -5507,7 +5505,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           return (
             !locationNPCData[npcID] ||
             [NPCPortraitState.removed, NPCPortraitState.invisible].includes(
-              locationNPCData[npcID].portraitState,
+              locationNPCData[npcID].portraitState
             )
           );
         })
@@ -5519,7 +5517,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               ? NPCPortraitState.invisible
               : NPCPortraitState.removed;
           return [npcID, npcData];
-        }),
+        })
     );
 
     if (getUser().isGM) {
@@ -5542,8 +5540,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         .filter(
           (npcID) =>
             ![NPCPortraitState.removed, NPCPortraitState.invisible].includes(
-              locationNPCData[npcID]?.portraitState,
-            ),
+              locationNPCData[npcID]?.portraitState
+            )
         )
         .map((npcID) => {
           const npcData = locationNPCData[npcID]!;
@@ -5551,7 +5549,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             void this.updateNPCUI_GM(npcID, npcData);
           }
           return [npcID, npcData];
-        }),
+        })
     );
     if (getUser().isGM) {
       return { tl: gsap.timeline() };
@@ -5576,17 +5574,17 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return;
     }
     const npcContainer$ = this.npcs$.find(
-      `.npc-portrait[data-actor-id="${npcID}"]`,
+      `.npc-portrait[data-actor-id="${npcID}"]`
     );
     // Get current portrait state, and store it as a JQuery data variable on npcContainer$, so unspotlight can return to it
     const currentPortraitState = npcContainer$.attr(
-      "data-portrait-state",
+      "data-portrait-state"
     ) as NPCPortraitState;
     npcContainer$.data("currentPortraitState", currentPortraitState);
     npcData.portraitState = NPCPortraitState.spotlit;
     const tl = this.buildNPCTransitionTimeline(
       npcContainer$,
-      NPCPortraitState.spotlit,
+      NPCPortraitState.spotlit
     );
     tl.play();
     if (getUser().isGM) {
@@ -5601,7 +5599,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return;
     }
     const npcContainer$ = this.npcs$.find(
-      `.npc-portrait[data-actor-id="${npcID}"]`,
+      `.npc-portrait[data-actor-id="${npcID}"]`
     );
     const currentPortraitState =
       (npcContainer$.data("currentPortraitState") as Maybe<NPCPortraitState>) ??
@@ -5609,7 +5607,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     npcData.portraitState = currentPortraitState;
     const tl = this.buildNPCTransitionTimeline(
       npcContainer$,
-      currentPortraitState,
+      currentPortraitState
     );
     tl.play();
     if (getUser().isGM) {
@@ -5658,7 +5656,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       portraitState?: NPCPortraitState;
       nameState?: NPCNameState;
       position?: Point;
-    },
+    }
   ): Promise<void> {
     // If no NPC ID is given, recursively call this function for each NPC in the overlay and in the settings data
     if (!npcID) {
@@ -5672,7 +5670,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         const npcID = $(el).attr("data-actor-id") as Maybe<string>;
         if (npcID && !currentLocationData.npcData[npcID]) {
           void this.updateNPCUI_GM(npcID, {
-            portraitState: NPCPortraitState.removed,
+            portraitState: NPCPortraitState.removed
           });
         }
       });
@@ -5686,7 +5684,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             portraitState?: NPCPortraitState;
             nameState?: NPCNameState;
             position?: Point;
-          },
+          }
         );
       }
       return;
@@ -5694,7 +5692,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     if (npcID && data) {
       let npcContainer$ = EunosOverlay.instance.npcs$.find(
-        `.npc-portrait[data-actor-id="${npcID}"]`,
+        `.npc-portrait[data-actor-id="${npcID}"]`
       );
       kLog.log("Updating NPC UI (GM)", { npcID, data, npcContainer$ });
       if (
@@ -5703,11 +5701,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       ) {
         kLog.log(`Rendering NPC portrait for ${getActorFromRef(npcID)?.name}`, {
           npcID,
-          data,
+          data
         });
         npcContainer$ = await this.renderNPCPortrait(
           getActorFromRef(npcID) as EunosActor,
-          data.position,
+          data.position
         );
       }
       let { portraitState, nameState, position } = data;
@@ -5725,7 +5723,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
       kLog.log(
         "Updating NPC UI (GM): portraitState, nameState, gogglesState from getNPCStatus",
-        { portraitState, nameState, gogglesState },
+        { portraitState, nameState, gogglesState }
       );
 
       if (position) {
@@ -5735,7 +5733,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           x: position.x,
           y: position.y,
           scale: 1,
-          zIndex: position.y,
+          zIndex: position.y
         });
       }
 
@@ -5747,21 +5745,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private updateNPCPortraitState(
     npcContainer$: JQuery,
-    portraitState: NPCPortraitState,
+    portraitState: NPCPortraitState
   ) {
     npcContainer$.attr("data-portrait-state", portraitState);
     switch (portraitState) {
       case NPCPortraitState.removed:
         kLog.log(
           "Removing NPC from overlay (updateNPCPortraitState): state === removed",
-          { npcContainer$ },
+          { npcContainer$ }
         );
         npcContainer$.remove();
         break;
       case NPCPortraitState.invisible:
         npcContainer$
           .removeClass(
-            "npc-portrait-base npc-portrait-spotlit npc-portrait-dimmed",
+            "npc-portrait-base npc-portrait-spotlit npc-portrait-dimmed"
           )
           .addClass("npc-portrait-invisible");
         break;
@@ -5769,7 +5767,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       case NPCPortraitState.dimmed:
         npcContainer$
           .removeClass(
-            "npc-portrait-base npc-portrait-spotlit npc-portrait-invisible",
+            "npc-portrait-base npc-portrait-spotlit npc-portrait-invisible"
           )
           .addClass("npc-portrait-dimmed");
         break;
@@ -5777,7 +5775,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       case NPCPortraitState.spotlit:
         npcContainer$
           .removeClass(
-            "npc-portrait-base npc-portrait-dimmed npc-portrait-invisible",
+            "npc-portrait-base npc-portrait-dimmed npc-portrait-invisible"
           )
           .addClass("npc-portrait-spotlit");
         break;
@@ -5786,7 +5784,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       default:
         npcContainer$
           .removeClass(
-            "npc-portrait-spotlit npc-portrait-dimmed npc-portrait-invisible",
+            "npc-portrait-spotlit npc-portrait-dimmed npc-portrait-invisible"
           )
           .addClass("npc-portrait-base");
         break;
@@ -5818,7 +5816,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   private updateNPCGogglesState(
     npcContainer$: JQuery,
-    gogglesState: "goggles" | "noGoggles",
+    gogglesState: "goggles" | "noGoggles"
   ) {
     const gogglesImg$ = npcContainer$.find(".npc-portrait-image-goggles");
     const noGogglesImg$ = npcContainer$.find(".npc-portrait-image-base");
@@ -5861,7 +5859,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region Assembling Location Data ~
   private getLocationDefaultStaticSettingsData(
-    location: string,
+    location: string
   ): Location.StaticSettingsData {
     if (!(location in LOCATIONS)) {
       return {
@@ -5873,7 +5871,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         mapTransforms: [],
         audioDataIndoors: {},
         isBright: true,
-        isIndoors: false,
+        isIndoors: false
       };
     }
     return LOCATIONS[location]!;
@@ -5882,34 +5880,34 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     return {
       currentImage: null,
       pcData: Object.fromEntries(
-        this.getDefaultLocationPCData().map((data) => [data.actorID, data]),
+        this.getDefaultLocationPCData().map((data) => [data.actorID, data])
       ),
-      npcData: {} as Record<string, Location.NPCData.SettingsData>,
+      npcData: {} as Record<string, Location.NPCData.SettingsData>
     };
   }
   private getLocationDefaultSettingsData(
-    location: string,
+    location: string
   ): Location.SettingsData {
     return {
       ...this.getLocationDefaultStaticSettingsData(location),
-      ...this.getLocationDefaultDynamicSettingsData(),
+      ...this.getLocationDefaultDynamicSettingsData()
     };
   }
   private getLocationSettingsData(location: string): Location.SettingsData {
     const finalSettingData = {
       ...this.getLocationDefaultDynamicSettingsData(),
       ...getSettings().get("eunos-kult-hacks", "locationData")[location],
-      ...this.getLocationDefaultStaticSettingsData(location),
+      ...this.getLocationDefaultStaticSettingsData(location)
     };
 
     return finalSettingData;
   }
   private getLocationPCData(
-    pcLocationData?: Record<string, Location.PCData.SettingsData>,
+    pcLocationData?: Record<string, Location.PCData.SettingsData>
   ): Record<"1" | "2" | "3" | "4" | "5", Location.PCData.FullData> {
     const pcGlobalData = this.getPCsGlobalData();
     pcLocationData ??= this.getLocationData(
-      getSetting("currentLocation"),
+      getSetting("currentLocation")
     ).pcData;
     const pcFullData: Record<
       "1" | "2" | "3" | "4" | "5",
@@ -5918,23 +5916,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     (["1", "2", "3", "4", "5"] as const).forEach((slot) => {
       const globalData = pcGlobalData[slot];
       const locData = Object.values(pcLocationData).find(
-        (data) => data.actorID === globalData.actorID,
+        (data) => data.actorID === globalData.actorID
       );
       if (!locData) {
         throw new Error(`PC ${globalData.actorID} not found in location data`);
       }
       pcFullData[slot] = {
         ...locData,
-        ...globalData,
+        ...globalData
       };
     });
     return pcFullData;
   }
   private getLocationNPCData(
-    npcLocationData?: Record<string, Location.NPCData.SettingsData>,
+    npcLocationData?: Record<string, Location.NPCData.SettingsData>
   ): Record<string, Location.NPCData.FullData> {
     npcLocationData ??= this.getLocationData(
-      getSetting("currentLocation"),
+      getSetting("currentLocation")
     ).npcData;
     const npcFullData: Record<string, Location.NPCData.FullData> = {};
     Object.entries(npcLocationData).forEach(([id, data]) => {
@@ -5942,13 +5940,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       if (!actor) return;
       npcFullData[id] = {
         ...data,
-        actor: actor as EunosActor & { system: ActorDataNPC },
+        actor: actor as EunosActor & { system: ActorDataNPC }
       };
     });
     return npcFullData;
   }
   private getLocationAudioData(
-    audioDataIndoors: Record<string, Partial<EunosMediaData>>,
+    audioDataIndoors: Record<string, Partial<EunosMediaData>>
   ): Record<string, EunosMedia<EunosMediaTypes.audio>> {
     const audioFullData: Record<string, EunosMedia<EunosMediaTypes.audio>> = {};
     Object.entries(audioDataIndoors).forEach(([id, data]) => {
@@ -5958,14 +5956,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
       const thisAudioData = {
         type: EunosMediaTypes.audio,
-        ...data,
+        ...data
       } as EunosMediaData & { type: EunosMediaTypes.audio };
       audioFullData[id] = new EunosMedia(id, thisAudioData);
     });
     return audioFullData;
   }
   private deriveLocationFullData(
-    settingsData: Location.SettingsData,
+    settingsData: Location.SettingsData
   ): Location.FullData {
     const {
       key,
@@ -5973,7 +5971,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       npcData,
       audioDataIndoors,
       audioDataOutdoors,
-      audioDataByImage,
+      audioDataByImage
     } = settingsData;
 
     const pcFullData = this.getLocationPCData(pcData);
@@ -5985,7 +5983,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       npcData: npcFullData,
       audioDataIndoors: undefined,
       audioDataOutdoors: undefined,
-      audioDataByImage: undefined,
+      audioDataByImage: undefined
     };
 
     if (key in LOCATIONS && LOCATIONS[key]) {
@@ -5994,18 +5992,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // Override audio data in settings with LOCATIONS data if available
       if (locationData.audioDataIndoors) {
         fullData.audioDataIndoors = this.getLocationAudioData(
-          locationData.audioDataIndoors,
+          locationData.audioDataIndoors
         );
       }
       if (locationData.audioDataOutdoors) {
         fullData.audioDataOutdoors = this.getLocationAudioData(
-          locationData.audioDataOutdoors,
+          locationData.audioDataOutdoors
         );
       }
       if (locationData.audioDataByImage) {
         fullData.audioDataByImage = {};
         for (const [imgKey, audioData] of Object.entries(
-          locationData.audioDataByImage,
+          locationData.audioDataByImage
         )) {
           fullData.audioDataByImage[imgKey] =
             this.getLocationAudioData(audioData);
@@ -6061,7 +6059,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             .map(
               (loc) =>
                 `<div class="location-button ${loc === currentLocation ? "selected" : ""} location-region-${LOCATIONS[loc]!.region}"
-                  data-location="${loc}">${LOCATIONS[loc]!.name}</div>`,
+                  data-location="${loc}">${LOCATIONS[loc]!.name}</div>`
             )
             .join("")}
         </div>
@@ -6074,9 +6072,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   `,
       buttons: {
         cancel: {
-          icon: '<i class="fas fa-times"></i>',
-          label: "Cancel",
-        },
+          icon: "<i class=\"fas fa-times\"></i>",
+          label: "Cancel"
+        }
       },
       render: (html) => {
         const html$ = $(html);
@@ -6094,7 +6092,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           void EunosOverlay.instance.resetAllLocationData();
         });
       },
-      default: "cancel",
+      default: "cancel"
     }).render(true);
   }
   public getLocationData(location?: string): Location.FullData {
@@ -6105,7 +6103,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   public getLocationDataForPC(
     location: string,
-    pcRef: number | string | EunosActor,
+    pcRef: number | string | EunosActor
   ): Location.PCData.FullData {
     if (["1", "2", "3", "4", "5"].includes(pcRef as string)) {
       return this.getLocationPCData(this.getLocationData(location).pcData)[
@@ -6115,24 +6113,24 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const actor = getActorFromRef(pcRef as string);
     if (!actor) {
       throw new Error(
-        `Actor ${pcRef instanceof Actor ? (pcRef.name ?? "") : String(pcRef)} not found`,
+        `Actor ${pcRef instanceof Actor ? (pcRef.name ?? "") : String(pcRef)} not found`
       );
     }
     return Object.values(
-      this.getLocationPCData(this.getLocationData(location).pcData),
+      this.getLocationPCData(this.getLocationData(location).pcData)
     ).find((data) => data.actorID === actor.id)!;
   }
 
   private async setLocationData(
     location: string,
-    data: Partial<Location.SettingsData>,
+    data: Partial<Location.SettingsData>
   ): Promise<void> {
     // Check and fix if we're getting FullData
     if ("pcData" in data && data.pcData) {
       const pcDataKeys = Object.keys(data.pcData);
       if (pcDataKeys.some((key) => /^[1-5]$/.test(key))) {
         getNotifier().warn(
-          "Detected attempt to store FullData instead of SettingsData. Converting to proper format.",
+          "Detected attempt to store FullData instead of SettingsData. Converting to proper format."
         );
 
         // Convert slot-indexed FullData to ID-indexed SettingsData
@@ -6147,14 +6145,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             settingsPCData[pcData.actorID] = {
               actorID: pcData.actorID,
               ownerID: pcData.ownerID,
-              state: pcData.state,
+              state: pcData.state
             };
           }
         });
 
         data = {
           ...data,
-          pcData: settingsPCData,
+          pcData: settingsPCData
         };
       }
     }
@@ -6163,7 +6161,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const locationDataEntry = Object.assign(
       {},
       this.getLocationSettingsData(location),
-      data,
+      data
     );
     locationData[location] = locationDataEntry;
     await setSetting("locationData", locationData);
@@ -6173,7 +6171,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     location ??= getSetting("currentLocation");
     await this.setLocationData(
       location,
-      this.getLocationDefaultSettingsData(location),
+      this.getLocationDefaultSettingsData(location)
     );
   }
 
@@ -6239,7 +6237,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   public async updateWeatherAudio() {
     const weatherAudio = getSetting("weatherAudio");
     const currentWeatherAudio = EunosMedia.GetMediaByCategory(
-      EunosMediaCategories.Weather,
+      EunosMediaCategories.Weather
     ).filter((media) => media.playing);
     // Identify all tracks that are no longer present in the value, and stop them
     currentWeatherAudio.forEach((media) => {
@@ -6273,7 +6271,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return;
     }
     kLog.log(
-      `Setting isOutdoors to ${!isIndoors} because we're calling setIndoors.`,
+      `Setting isOutdoors to ${!isIndoors} because we're calling setIndoors.`
     );
     await setSetting("isOutdoors", !isIndoors);
   }
@@ -6290,13 +6288,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         },
         onComplete: () => {
           void this.refreshNPCUI_Show().then(({ tl }) => tl.play());
-        },
+        }
       })
       .to(underLayer$, {
         background:
           "radial-gradient(circle at 50% 50%, transparent 2%, rgb(123 46 0 / 75%) 4%, rgb(0 0 0) 6%)",
         duration: 1,
-        ease: "power2.inOut",
+        ease: "power2.inOut"
       })
       .to(
         [underLayer$[0], backgroundLayer$[0]],
@@ -6305,11 +6303,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           rotationY: 0,
           z: 500,
           duration: 1,
-          ease: "power2.inOut",
+          ease: "power2.inOut"
         },
-        0,
+        0
       );
-    $(`#BLACKOUT-LAYER`).data(`${key}-goIndoors`, goIndoorsTimeline);
+    $("#BLACKOUT-LAYER").data(`${key}-goIndoors`, goIndoorsTimeline);
     return goIndoorsTimeline;
   }
 
@@ -6356,8 +6354,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
 
     // 3. Get 'goIndoors' timeline, attached as '{locationKey}-goIndoors' on the JQuery #BLACKOUT-LAYER element
-    let goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(
-      `${key}-goIndoors`,
+    let goIndoorsTimeline = $("#BLACKOUT-LAYER").data(
+      `${key}-goIndoors`
     ) as Maybe<gsap.core.Timeline>;
     if (!goIndoorsTimeline) {
       goIndoorsTimeline = this.buildGoIndoorsTimeline();
@@ -6395,8 +6393,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
 
     // 3. Get 'goIndoors' timeline, attached as '{locationKey}-goIndoors' on the JQuery #BLACKOUT-LAYER element, reverse it
-    const goIndoorsTimeline = $(`#BLACKOUT-LAYER`).data(
-      `${key}-goIndoors`,
+    const goIndoorsTimeline = $("#BLACKOUT-LAYER").data(
+      `${key}-goIndoors`
     ) as Maybe<gsap.core.Timeline>;
     void goIndoorsTimeline?.reverse().then(() => {
       void this.#stageWaverTimeline?.play();
@@ -6418,7 +6416,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   #initializeLocationWrapper() {
     const locationWrapper$ = this.locationContainer$.find(".location-wrapper");
     const locationImageWrapper$ = locationWrapper$.find(
-      ".location-image-wrapper",
+      ".location-image-wrapper"
     );
     const locationImage$ = locationImageWrapper$.find("img");
 
@@ -6435,13 +6433,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       locationImage$,
       locationWrapper,
       locationImageWrapper,
-      locationImage,
+      locationImage
     });
   }
 
   public async setLocationImage(
     imageKey?: string,
-    location?: string,
+    location?: string
   ): Promise<void> {
     if (!getUser().isGM) {
       return;
@@ -6480,21 +6478,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const visibleImageWrapper$ = this.#getVisibleImageWrapper();
     if (!visibleImageWrapper$) {
       return $(
-        assertIs(this.locationContainer$.find(".location-image-wrapper")[0]),
+        assertIs(this.locationContainer$.find(".location-image-wrapper")[0])
       );
     }
     return $(
       assertIs(
         this.locationContainer$
           .find(".location-image-wrapper")
-          .not(visibleImageWrapper$)[0],
-      ),
+          .not(visibleImageWrapper$)[0]
+      )
     );
   }
 
   #buildFadeOutImageTimeline(): gsap.core.Timeline | null {
     const visibleImageWrapper$ = this.#getVisibleImageWrapper();
-    kLog.log(`Building fade out image timeline`, { visibleImageWrapper$ });
+    kLog.log("Building fade out image timeline", { visibleImageWrapper$ });
     if (!visibleImageWrapper$) {
       return null;
     }
@@ -6504,19 +6502,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .to(visibleImageWrapper$, {
         rotateX: 45,
         duration: 1,
-        ease: "power2.out",
+        ease: "power2.out"
       })
       .to(
         visibleImageWrapper$,
         {
           duration: 0.25,
           autoAlpha: 0,
-          ease: "power2.out",
+          ease: "power2.out"
         },
-        0.75,
+        0.75
       )
       .call(() => {
-        kLog.log(`Fade out image timeline complete`, { visibleImageWrapper$ });
+        kLog.log("Fade out image timeline complete", { visibleImageWrapper$ });
         visibleImageWrapper$.find("img").attr("src", "");
       });
     return timeline;
@@ -6527,7 +6525,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       return null;
     }
     const invisibleImageWrapper$ = this.#getInvisibleImageWrapper();
-    kLog.log(`Building fade in image timeline`, { invisibleImageWrapper$ });
+    kLog.log("Building fade in image timeline", { invisibleImageWrapper$ });
     const invisibleImage$ = invisibleImageWrapper$.find("img");
     const locData = this.getLocationData();
     const imgSrc = assertIs(locData.images[imgKey]);
@@ -6539,18 +6537,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .fromTo(
         invisibleImage$,
         {
-          autoAlpha: 0,
+          autoAlpha: 0
         },
         {
           autoAlpha: 1,
           filter: "brightness(0.5) blur(10px)",
           // scale: 0.6,
           duration: 0,
-          ease: "none",
-        },
+          ease: "none"
+        }
       )
       .call(() => {
-        kLog.log(`Fade in image timeline started`, { invisibleImage$ });
+        kLog.log("Fade in image timeline started", { invisibleImage$ });
         invisibleImage$.attr("src", imgSrc);
       })
       .fromTo(
@@ -6558,7 +6556,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           autoAlpha: 0,
           rotateX: -45, // Rotate back around X axis
-          rotateY: 0, // No side-to-side rotation initially
+          rotateY: 0 // No side-to-side rotation initially
         },
         {
           // Will animate to these default values
@@ -6571,8 +6569,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           // width: "100%",
           // filter: "blur(0px)",
           duration: 2,
-          ease: "back.out",
-        },
+          ease: "back.out"
+        }
       )
       .to(
         invisibleImage$,
@@ -6581,9 +6579,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           // scale: 1,
           filter: "brightness(1) blur(0px)",
           duration: 2,
-          ease: "power2.out",
+          ease: "power2.out"
         },
-        0.1,
+        0.1
       );
     return timeline;
   }
@@ -6599,7 +6597,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   public async refreshLocationImage(imgKey: string | null): Promise<void> {
     const timelines = [
       this.#buildFadeOutImageTimeline(),
-      this.#buildFadeInImageTimeline(imgKey),
+      this.#buildFadeInImageTimeline(imgKey)
     ].filter(Boolean) as gsap.core.Timeline[];
 
     kLog.log(`Refreshing location image to key: ${imgKey}`, { timelines });
@@ -6616,7 +6614,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         const audioToPlay = locData.audioDataByImage[imgKey];
         const audioPlaying = EunosMedia.GetPlayingSounds();
         const audioToKill = audioPlaying.filter(
-          (media) => !(media.name in audioToPlay),
+          (media) => !(media.name in audioToPlay)
         );
         audioToKill.forEach((media) => {
           void media.kill(2);
@@ -6678,7 +6676,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Update core location settings atomically
     kLog.log(
-      "Setting isOutdoors to TRUE because we're setting a new location.",
+      "Setting isOutdoors to TRUE because we're setting a new location."
     );
 
     // Set outdoor state first to ensure proper state during transition
@@ -6707,7 +6705,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
    */
   public async goToLocation(
     fromLocation: string | null,
-    toLocation?: string,
+    toLocation?: string
     // isGoingOutdoors: boolean,
   ): Promise<gsap.core.Timeline | undefined> {
     toLocation ??= getSetting("currentLocation");
@@ -6737,8 +6735,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     kLog.log(`[goToLocation] ${fromLocation} -> ${toLocation}`, {
       [`From${fromLocation} Data`]: fromLocationData,
       [`To ${toLocation} Data`]: JSON.parse(
-        JSON.stringify(locationData),
-      ) as typeof locationData,
+        JSON.stringify(locationData)
+      ) as typeof locationData
     });
 
     // Initialize persistent stage wave animation if not already running
@@ -6752,7 +6750,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           rotationZ: "random(-5, 5, 1)", // Random rotation on Z axis
           ease: "sine.inOut", // Smooth sinusoidal easing
           duration: 25, // 25 second animation cycle
-          repeatRefresh: true, // Generate new random values each cycle
+          repeatRefresh: true // Generate new random values each cycle
         });
     }
 
@@ -6769,7 +6767,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       audioDataOutdoors,
       audioDataByImage,
       mapTransforms,
-      isIndoors,
+      isIndoors
     } = locationData;
 
     const fromImage = fromLocation
@@ -6801,7 +6799,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             gsap.fromTo(
               lightningAudio.element,
               { volume: 1 }, // Start at full volume
-              { volume: lightningVolume, duration: 10, ease: "none" }, // Fade to configured volume
+              { volume: lightningVolume, duration: 10, ease: "none" } // Fade to configured volume
             );
           });
         }, 5000); // 5 second delay before lightning starts
@@ -6814,7 +6812,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Get all currently-playing audio, but exclude any that are in the weather settings data
     const weatherAudio = getSetting("weatherAudio");
     const playingAudio = EunosMedia.GetPlayingSounds().filter(
-      (media) => !(media.name in weatherAudio),
+      (media) => !(media.name in weatherAudio)
     );
 
     // Get all audio from the new location
@@ -6822,7 +6820,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     // Separate audio to be killed from audio to be started
     const audioToKill = playingAudio.filter(
-      (media) => !(media.name in audioData),
+      (media) => !(media.name in audioData)
     );
     const audioToStart = newLocationAudio;
 
@@ -6838,12 +6836,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       .find(".location-image-wrapper")
       .filter((i, wrapper) => wrapper.style.opacity !== "0");
     kLog.log("Visible location image wrappers", {
-      visibleLocationImageWrappers$,
+      visibleLocationImageWrappers$
     });
 
     if (visibleLocationImageWrappers$.length > 0) {
       kLog.log("Visible location image wrappers found", {
-        visibleLocationImageWrappers$,
+        visibleLocationImageWrappers$
       });
       const currentDisplayedSrc = visibleLocationImageWrappers$
         .find("img")
@@ -6862,7 +6860,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
             kLog.log("Equality Check", {
               nextImageSrc,
               currentDisplayedSrc,
-              equality: nextImageSrc === currentDisplayedSrc,
+              equality: nextImageSrc === currentDisplayedSrc
             });
             if (nextImageSrc !== currentDisplayedSrc) {
               fadeOutTimeline = this.#buildFadeOutImageTimeline() ?? undefined;
@@ -6871,14 +6869,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
                 undefined;
               kLog.log("Sources Don't Match: Fade timelines built.", {
                 fadeOutTimeline,
-                fadeInTimeline,
+                fadeInTimeline
               });
             }
           }
         } else {
           fadeOutTimeline = this.#buildFadeOutImageTimeline() ?? undefined;
           kLog.log("No next image found, building fade-out timeline only", {
-            fadeOutTimeline,
+            fadeOutTimeline
           });
         }
       } else {
@@ -6887,7 +6885,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           undefined;
         kLog.log(
           "No current displayed src found, building fade-in timeline only",
-          { fadeInTimeline },
+          { fadeInTimeline }
         );
       }
     } else {
@@ -6895,7 +6893,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         this.#buildFadeInImageTimeline(locationData.currentImage) ?? undefined;
       kLog.log(
         "No visible location image wrappers found, building fade-in timeline only",
-        { fadeInTimeline },
+        { fadeInTimeline }
       );
     }
 
@@ -6914,7 +6912,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         });
       },
       [],
-      "startMoving_0",
+      "startMoving_0"
     );
 
     // Phase 3: Hide NPC UI elements
@@ -6923,7 +6921,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Phase 4: Restore stage brightness if currently dimmed
     if (
       (gsap.getProperty("#STAGE", "filter") as Maybe<string>)?.includes(
-        "brightness(0)",
+        "brightness(0)"
       )
     ) {
       timeline.to(
@@ -6931,9 +6929,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         {
           filter: "brightness(1)", // Restore full brightness
           duration: 1, // 1 second fade
-          ease: "none", // Linear brightness change
+          ease: "none" // Linear brightness change
         },
-        "startMoving_0",
+        "startMoving_0"
       );
     }
 
@@ -6944,16 +6942,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           // Single transform set - simple transition
           kLog.log("Applying single map transform at startMoving_0", {
             selector,
-            properties,
+            properties
           });
           timeline.to(
             selector,
             {
               duration: 5,
               ease: "back.out(0.1)", // Slight overshoot
-              ...properties,
+              ...properties
             },
-            "startMoving_0",
+            "startMoving_0"
           );
         } else {
           // Multiple transform sets - complex transition
@@ -6968,22 +6966,22 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
                   : "power3.in"; // Alternating acceleration
           kLog.log(
             `Applying map transform ${index === 0 ? `at startMoving_${setIndex} at ${timeline.duration()}` : "with last transform"} - ${ease}`,
-            { selector, properties, ease },
+            { selector, properties, ease }
           );
           timeline.to(
             selector,
             {
               duration: 5,
               ease,
-              ...properties,
+              ...properties
             },
-            `startMoving_${setIndex}`,
+            `startMoving_${setIndex}`
           );
         }
       });
       // Add marker for next transform set
       kLog.log(
-        `Adding label startMoving_${setIndex + 1} at ${timeline.duration()}`,
+        `Adding label startMoving_${setIndex + 1} at ${timeline.duration()}`
       );
       timeline.addLabel(`startMoving_${setIndex + 1}`);
     });
@@ -6996,12 +6994,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     timeline.call(
       () => {
         kLog.display(
-          `Initializing location wrapper for location '${toLocation}'`,
+          `Initializing location wrapper for location '${toLocation}'`
         );
         this.#initializeLocationWrapper();
       },
       [],
-      "stopMoving",
+      "stopMoving"
     );
 
     if (fadeInTimeline) {
@@ -7026,7 +7024,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         });
       },
       [],
-      "stopMoving-=3", // Start 3 seconds before movement ends
+      "stopMoving-=3" // Start 3 seconds before movement ends
     );
 
     // Phase 8: If supposed to be indoors, but we're outdoors, go indoors
@@ -7045,7 +7043,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         void this.updateNPCUI_GM();
       },
       [],
-      getUser().isGM ? 1 : "stopMoving", // Different timing for GM vs player
+      getUser().isGM ? 1 : "stopMoving" // Different timing for GM vs player
     );
 
     // Store timeline reference and start playback
@@ -7064,7 +7062,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   } = {
     transforms: {},
     gradients: {},
-    filters: {},
+    filters: {}
   };
 
   /**
@@ -7081,7 +7079,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     max: number,
     initValue: number | (() => number),
     actionFunction: (value: number) => void,
-    formatForDisplay: (value: number) => string,
+    formatForDisplay: (value: number) => string
   ): HTMLDivElement {
     const controlRow = document.createElement("div");
     controlRow.classList.add("control-row");
@@ -7100,7 +7098,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     sliderElement.max = String(max);
 
     let initialValue = Number(
-      typeof initValue === "number" ? initValue : initValue(),
+      typeof initValue === "number" ? initValue : initValue()
     );
     sliderElement.value = String(initialValue); // Set initial value
     valueDisplay.textContent = formatForDisplay(initialValue);
@@ -7206,13 +7204,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   public async transitionToEndPhaseQuestion(
-    questionNumber: number,
+    questionNumber: number
   ): Promise<void> {
     const lastQuestion = questionNumber - 1;
     kLog.log(`transitioning to end phase question #${questionNumber}`, {lastQuestion, lastQuestion$: this.endPhase$.find(`[data-question-number="${lastQuestion}"]`)});
     if (lastQuestion > 0) {
       const lastQuestion$ = this.endPhase$.find(
-        `[data-question-number="${lastQuestion}"]`,
+        `[data-question-number="${lastQuestion}"]`
       );
       if (lastQuestion$.length > 0) {
         await this.#fadeOutQuestion(lastQuestion$);
@@ -7220,7 +7218,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
     if (questionNumber < 4) {
       const currentQuestion$ = this.endPhase$.find(
-        `[data-question-number="${questionNumber}"]`,
+        `[data-question-number="${questionNumber}"]`
       );
       if (currentQuestion$.length > 0) {
         await this.#fadeInQuestion(currentQuestion$);
@@ -7240,7 +7238,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       autoAlpha: 1,
       filter: "blur(0px)",
       duration: 1,
-      ease: "power2.out",
+      ease: "power2.out"
     });
 
     return tl;
@@ -7268,16 +7266,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               await userPC.update({
                 system: {
                   dramatichooks: {
-                    assignedHook: hook,
-                  },
-                },
+                    assignedHook: hook
+                  }
+                }
               });
-            },
+            }
           },
           cancel: {
             label: "❌",
-            callback: () => null,
-          },
+            callback: () => null
+          }
         }
         : {}
       ,
@@ -7295,7 +7293,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           });
         }
       },
-      default: "one",
+      default: "one"
     });
 
     this.assignDramaticHookDialog.render(true);
@@ -7327,19 +7325,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
                 .filter((u) => !u.isGM)
                 .map((user) => {
                   const actor = getActors().find(
-                    (a) => a.id === user.character?.id,
+                    (a) => a.id === user.character?.id
                   );
                   if (!actor?.isPC() || !user.id) return "";
 
                   const dramaticHookAssignments = getSetting(
-                    "dramaticHookAssignments",
+                    "dramaticHookAssignments"
                   );
                   if (!dramaticHookAssignments) return "";
 
                   const assigningFor = dramaticHookAssignments[user.id];
                   const assignedHook = actor.system.dramatichooks.assignedHook;
                   const targetActor = getActors().find(
-                    (a) => a.id === assigningFor,
+                    (a) => a.id === assigningFor
                   );
 
                   if (!targetActor?.isPC()) return "";
@@ -7394,8 +7392,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           label: "Done",
           callback: () => {
             void EunosSockets.getInstance().call("endDramaticHookAssignment", UserTargetRef.all);
-          },
-        },
+          }
+        }
       },
       render: (html: JQuery | HTMLElement) => {
         html = $(html);
@@ -7411,15 +7409,15 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           const userId = input.dataset["userId"] as Maybe<string>;
           const actor = getActors().find(
             (a) =>
-              a.id === getUsers().find((u) => u.id === userId)?.character?.id,
+              a.id === getUsers().find((u) => u.id === userId)?.character?.id
           );
           if (actor?.isPC()) {
             void actor.update({
               system: {
                 dramatichooks: {
-                  assignedHook: input.value,
-                },
-              },
+                  assignedHook: input.value
+                }
+              }
             });
           }
         });
@@ -7438,7 +7436,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
           this.#assignDramaticHook(userId, targetId, Number(hookNumber), hookText);
         });
-      },
+      }
     });
 
     this.#dramaticHookAssignmentDialog?.render(true);
@@ -7446,7 +7444,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   public updateDramaticHookAssignmentPopUp(
     assigningUserID: string,
-    assignedHookText: string,
+    assignedHookText: string
   ): void {
     const dialog = this.#dramaticHookAssignmentDialog$;
     if (!dialog) return;
@@ -7457,7 +7455,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     //
 
     // Find the input field for the assigned hook text and update it
-    const hookTextInput = tr.find(`.hook-text`);
+    const hookTextInput = tr.find(".hook-text");
     if (!hookTextInput) return;
 
     hookTextInput.val(assignedHookText);
@@ -7469,7 +7467,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     userId: string,
     actorId: string,
     hookNumber: number,
-    hookText: string,
+    hookText: string
   ): void {
     const targetActor = getActors().find((a) => a.id === actorId);
     const userActor = getActors().find((a) => a.isPC() && getOwnerOfDoc(a)?.id === userId);
@@ -7489,18 +7487,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         dramatichooks: {
           [`dramatichook${hookNumber}`]: {
             content: `I should ${hookText}`,
-            isChecked: false,
-          },
-        },
-      },
+            isChecked: false
+          }
+        }
+      }
     });
 
     void userActor.update({
       system: {
         dramatichooks: {
-          assignedHook: "",
-        },
-      },
+          assignedHook: ""
+        }
+      }
     });
 
     // Update the assigned hooks map
@@ -7523,7 +7521,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       type: AlertType.simple,
       target: targetUserID,
       header: "Your New Dramatic Hook for Next Session Is:",
-      body: `"I should ${hookText}"`,
+      body: `"I should ${hookText}"`
     });
   }
 
@@ -7544,9 +7542,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           if (getUser().isGM) {
             void setSetting("gamePhase", GamePhase.SessionClosed);
           }
-        },
+        }
       },
-      2,
+      2
     );
   }
 
@@ -7620,14 +7618,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         .to(this.uiRight$, {
           opacity: 0,
           duration: 0.01,
-          ease: "none",
+          ease: "none"
         })
         .set([this.midZIndexMask$, this.maxZIndexBars$], { zIndex: 50 })
         .set(this.uiRight$, { zIndex: 51 })
         .to(this.uiRight$, {
           opacity: 1,
           duration: 0.5,
-          ease: "power2.out",
+          ease: "power2.out"
         });
     }
     return this.#sidebarTimeline;
@@ -7637,7 +7635,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (
       this.timeRemaining <= PRE_SESSION.FREEZE_OVERLAY ||
       ![GamePhase.SessionClosed, GamePhase.SessionLoading].includes(
-        getSetting("gamePhase") as GamePhase,
+        getSetting("gamePhase") as GamePhase
       )
     ) {
       return;
@@ -7689,10 +7687,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         if (e.originalEvent instanceof PointerEvent) {
           void EunosOverlay.ACTIONS["togglePCSpotlight"]?.(
             e.originalEvent,
-            target,
+            target
           );
         }
-      },
+      }
     );
     this.pcs$.on(
       "mouseup",
@@ -7702,10 +7700,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         if (e.originalEvent instanceof PointerEvent) {
           void EunosOverlay.ACTIONS["togglePCSpotlight"]?.(
             e.originalEvent,
-            target,
+            target
           );
         }
-      },
+      }
     );
   }
 
@@ -7718,10 +7716,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     const stopSceneIcon$ = stopSceneRow$.find(".safety-button-stop");
 
     const oldFadeTimeline = fadeToBlackRow$.data(
-      "fade-timeline",
+      "fade-timeline"
     ) as Maybe<gsap.core.Timeline>;
     const oldStopSceneTimeline = stopSceneRow$.data(
-      "stop-scene-timeline",
+      "stop-scene-timeline"
     ) as Maybe<gsap.core.Timeline>;
     if (oldFadeTimeline) {
       oldFadeTimeline.seek(0).kill();
@@ -7732,35 +7730,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     const fadeToBlackTimeline = gsap
       .timeline({
-        paused: true,
+        paused: true
       })
       .to(fadeToBlackFg$, {
         width: 250,
         duration: 2,
-        ease: "power2.in",
+        ease: "power2.in"
       })
       .to(
         fadeToBlackIcon$,
         {
           filter: "brightness(0)",
           duration: 0.5,
-          ease: "power2.inOut",
+          ease: "power2.inOut"
         },
-        "-=0.5",
+        "-=0.5"
       )
       .call(() => {
         fadeToBlackRow$.css("pointer-events", "none");
         void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
           type: AlertType.simple,
           header: "FADE TO BLACK",
-          body: "A player has requested a fade to black.",
+          body: "A player has requested a fade to black."
         });
       })
       .to(fadeToBlackRow$, {
         scale: 2,
         opacity: 0,
         duration: 0.5,
-        ease: "power3.out",
+        ease: "power3.out"
       })
       .call(
         () => {
@@ -7768,42 +7766,42 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           fadeToBlackRow$.attr("style", "");
         },
         [],
-        "+=3",
+        "+=3"
       );
 
     fadeToBlackRow$.data("fade-timeline", fadeToBlackTimeline);
 
     const stopSceneTimeline = gsap
       .timeline({
-        paused: true,
+        paused: true
       })
       .to(stopSceneFg$, {
         width: 250,
         duration: 2,
-        ease: "power2.in",
+        ease: "power2.in"
       })
       .to(
         stopSceneIcon$,
         {
           filter: "brightness(0)",
           duration: 0.5,
-          ease: "power2.inOut",
+          ease: "power2.inOut"
         },
-        "-=0.5",
+        "-=0.5"
       )
       .call(() => {
         stopSceneRow$.css("pointer-events", "none");
         void EunosSockets.getInstance().call("Alert", UserTargetRef.gm, {
           type: AlertType.simple,
           header: "STOP SCENE",
-          body: "A player has requested an immediate scene stop.",
+          body: "A player has requested an immediate scene stop."
         });
       })
       .to(stopSceneRow$, {
         scale: 2,
         opacity: 0,
         duration: 0.5,
-        ease: "power3.out",
+        ease: "power3.out"
       })
       .call(
         () => {
@@ -7811,7 +7809,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           stopSceneRow$.attr("style", "");
         },
         [],
-        "+=3",
+        "+=3"
       );
 
     stopSceneRow$.data("stop-scene-timeline", stopSceneTimeline);
@@ -7819,7 +7817,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     fadeToBlackRow$
       .on("mousedown", () => {
         const tl = fadeToBlackRow$.data(
-          "fade-timeline",
+          "fade-timeline"
         ) as Maybe<gsap.core.Timeline>;
         kLog.log("fade to black mousedown");
         if (tl) {
@@ -7828,7 +7826,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       })
       .on("mouseup", () => {
         const tl = fadeToBlackRow$.data(
-          "fade-timeline",
+          "fade-timeline"
         ) as Maybe<gsap.core.Timeline>;
         if (tl) {
           tl.timeScale(3).reverse();
@@ -7838,7 +7836,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     stopSceneRow$
       .on("mousedown", () => {
         const tl = stopSceneRow$.data(
-          "stop-scene-timeline",
+          "stop-scene-timeline"
         ) as Maybe<gsap.core.Timeline>;
         if (tl) {
           tl.timeScale(1).play();
@@ -7846,7 +7844,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       })
       .on("mouseup", () => {
         const tl = stopSceneRow$.data(
-          "stop-scene-timeline",
+          "stop-scene-timeline"
         ) as Maybe<gsap.core.Timeline>;
         if (tl) {
           tl.timeScale(3).reverse();
@@ -7862,21 +7860,21 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
    */
   private async getOrCreateSessionJournal(
     journalPageName?: string,
-    journalName = "Session Scribe Notes",
+    journalName = "Session Scribe Notes"
   ): Promise<JournalEntryPage | null> {
     if (!journalPageName) {
       journalPageName = `Chapter ${getSetting("chapterNumber")} Notes`;
     }
     // Try to find existing journal entry
     let journal: Maybe<JournalEntry> = getJournals().find(
-      (j) => j.name === journalName,
+      (j) => j.name === journalName
     ) as Maybe<JournalEntry>;
 
     // If the Session Scribe Notes journal entry does not exist, generate the folder (if necessary) and the journal entry.
     if (!journal) {
       // Find the folder for session scribe notes
       const folder: Maybe<Folder> = getFolders().find(
-        (f) => f.type === "JournalEntry" && f.name === "Session Scribe Notes",
+        (f) => f.type === "JournalEntry" && f.name === "Session Scribe Notes"
       );
 
       // If the folder doesn't exist, send an Alert to the GM to create it.
@@ -7885,7 +7883,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           type: AlertType.simple,
           target: UserTargetRef.gm,
           header: "Session Scribe Notes Folder Not Found",
-          body: "Please create a folder called 'Session Scribe Notes' in the root of your journal collection.",
+          body: "Please create a folder called 'Session Scribe Notes' in the root of your journal collection."
         });
         return null;
       }
@@ -7893,10 +7891,10 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // Create the journal entry
       const journalData = {
         name: journalName,
-        folder: folder.id,
+        folder: folder.id
       };
       journal = (await JournalEntry.create(
-        journalData as never,
+        journalData as never
       )) as JournalEntry;
     }
 
@@ -7907,8 +7905,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         (await journal?.createEmbeddedDocuments("JournalEntryPage", [
           {
             name: journalPageName,
-            text: { content: "<ul><li><p></p></li></ul>" },
-          },
+            text: { content: "<ul><li><p></p></li></ul>" }
+          }
         ])) as JournalEntryPage[]
       )[0];
     }
@@ -7928,7 +7926,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // Confirm the journal entry page exists and has a sheet
     if (!journalEntryPage.sheet) {
       throw new Error(
-        `Journal entry page "${journalEntryPage.name}" does not have a sheet`,
+        `Journal entry page "${journalEntryPage.name}" does not have a sheet`
       );
     }
 
@@ -7972,7 +7970,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
     Object.assign(context, {
       isGM: getUser().isGM,
-      LOADING_SCREEN_DATA,
+      LOADING_SCREEN_DATA
     });
 
     // Prepare location data for stage
@@ -7981,27 +7979,27 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (locationData) {
       Object.assign(context, {
         location,
-        locationData,
+        locationData
       });
     }
 
     Object.assign(context, {
       sessionScribeID: getSetting("sessionScribe"),
       chainBG: AlertPaths["LINK"]!.cssCode,
-      userActorID: getActor()?.id ?? "",
+      userActorID: getActor()?.id ?? ""
     });
     if (!getUser().isGM) {
       const dramaticHookAssignment = getSetting("dramaticHookAssignments")[
         getUser().id!
       ];
       Object.assign(context, {
-        dramaticHookCandleID: dramaticHookAssignment ?? "",
+        dramaticHookCandleID: dramaticHookAssignment ?? ""
       });
     }
 
     if (
       [GamePhase.SessionClosed, GamePhase.SessionLoading].includes(
-        getSetting("gamePhase") as GamePhase,
+        getSetting("gamePhase") as GamePhase
       )
     ) {
       if (getUser().isGM) {
@@ -8026,7 +8024,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
               status === MediaLoadStatus.PreloadNotRequested,
             isLoadPending: status === MediaLoadStatus.LoadPending,
             isLoading: status === MediaLoadStatus.Loading,
-            isReady: status === MediaLoadStatus.Ready,
+            isReady: status === MediaLoadStatus.Ready
           };
         });
         Object.assign(context, { users });
@@ -8041,13 +8039,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region OVERRIDE: ON RENDER ~
   protected override _onRender(
     context: EmptyObject,
-    options: ApplicationV2.RenderOptions,
+    options: ApplicationV2.RenderOptions
   ): void {
     super._onRender(context, options);
 
     if (
       [GamePhase.SessionClosed, GamePhase.SessionLoading].includes(
-        getSetting("gamePhase"),
+        getSetting("gamePhase")
       )
     ) {
       this.addCanvasMaskListeners();
@@ -8061,7 +8059,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     this.#dragDrop.forEach((d) => {
       // Bind to the sidebar actors list
       const sidebarActors = document.querySelector(
-        "#sidebar #actors .directory-list",
+        "#sidebar #actors .directory-list"
       ) as HTMLElement;
       if (sidebarActors) d.bind(sidebarActors);
 
@@ -8101,7 +8099,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         panel.max,
         panel.initValue,
         panel.actionFunction,
-        panel.formatForDisplay,
+        panel.formatForDisplay
       );
       this.locationPlottingPanel$.find(".control-section").append(controlRow);
     });

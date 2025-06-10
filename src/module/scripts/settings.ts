@@ -37,7 +37,7 @@ export default function registerSettings() {
     scope: "world",
     config: false,
     type: String,
-    default: GamePhase.SessionClosed,
+    default: GamePhase.SessionClosed
   });
 
   // Next game session date/time (in Toronto timezone)
@@ -76,7 +76,7 @@ export default function registerSettings() {
     scope: "world",
     config: true,
     type: String,
-    default: "",
+    default: ""
   });
   getSettings().register("eunos-kult-hacks", "chapterNumber", {
     name: "Chapter Number",
@@ -84,7 +84,7 @@ export default function registerSettings() {
     scope: "world",
     config: true,
     type: Number,
-    default: 0,
+    default: 0
   });
   getSettings().register("eunos-kult-hacks", "isEntryVisible", {
     name: "Entry Visible",
@@ -117,7 +117,7 @@ export default function registerSettings() {
     type: Boolean,
     default: true,
     onChange: (value) => {
-      if (value) {
+      if (value) { // NOSONAR
         void EunosOverlay.instance.goOutdoors();
       } else {
         void EunosOverlay.instance.goIndoors();
@@ -173,7 +173,7 @@ export default function registerSettings() {
         npcData: {},
         audioDataIndoors: {},
         isBright: false,
-        isIndoors: false,
+        isIndoors: false
       }
     },
     onChange: (value) => {
@@ -182,14 +182,14 @@ export default function registerSettings() {
 
       kLog.log("Location data BEFORE and AFTER", {
         "1) before": JSON.parse(JSON.stringify(oldValue)) as Record<string, Location.SettingsData>,
-        "2) after": JSON.parse(JSON.stringify(value)) as Record<string, Location.SettingsData>,
+        "2) after": JSON.parse(JSON.stringify(value)) as Record<string, Location.SettingsData>
       });
 
       const diff = foundry.utils.diffObject(oldValue, value) as DeepPartial<Record<string, Location.SettingsData>>;
 
       kLog.log("Location data DIFF", {
         "3) diff": JSON.parse(JSON.stringify(diff)) as DeepPartial<Record<string, Location.SettingsData>>,
-        "4) diff other direction": JSON.parse(JSON.stringify(foundry.utils.diffObject(value, oldValue))) as DeepPartial<Record<string, Location.SettingsData>>,
+        "4) diff other direction": JSON.parse(JSON.stringify(foundry.utils.diffObject(value, oldValue))) as DeepPartial<Record<string, Location.SettingsData>>
       });
 
       // If the changed data includes data for the current location, update the current location
@@ -201,7 +201,7 @@ export default function registerSettings() {
       }
       EunosOverlay.currentLocationDataLog = value;
     }
-  })
+  });
   getSettings().register("eunos-kult-hacks", "volumeOverrides", {
     name: "Volume Overrides",
     hint: "A record of the volume overrides for each sound.",
@@ -209,14 +209,14 @@ export default function registerSettings() {
     config: false,
     type: Object,
     default: {}
-  })
+  });
   getSettings().register("eunos-kult-hacks", "sessionScribeDeck", {
     name: "Session Scribe",
     hint: "The deck of remaining userIDs to be assigned session scribe this round.",
     scope: "world",
     config: false,
     type: Array,
-    default: [],
+    default: []
   });
   getSettings().register("eunos-kult-hacks", "sessionScribe", {
     name: "Session Scribe",
@@ -224,7 +224,7 @@ export default function registerSettings() {
     scope: "world",
     config: false,
     type: String,
-    default: "",
+    default: ""
   });
   getSettings().register("eunos-kult-hacks", "dramaticHookAssignments", {
     name: "Dramatic Hook Assignments",
@@ -232,7 +232,7 @@ export default function registerSettings() {
     scope: "world",
     config: false,
     type: Object,
-    default: {},
+    default: {}
   });
   getSettings().register("eunos-kult-hacks", "introVideoFilename", {
     name: "Intro Video Filename",
