@@ -86,6 +86,7 @@ declare global {
     "eunos-kult-hacks.dramaticHookAssignments": Record<string, string>;
     "eunos-kult-hacks.introVideoFilename": string;
     "eunos-kult-hacks.endPhaseQuestion": number;
+    "eunos-kult-hacks.inLimbo": boolean;
   }
 
 

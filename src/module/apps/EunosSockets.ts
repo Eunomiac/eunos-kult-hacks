@@ -138,6 +138,12 @@ export interface SocketEvents {
   hideStandingStones: {
     data?: never;
   };
+  enterLimbo: {
+    data?: never;
+  };
+  leaveLimbo: {
+    data?: never;
+  };
 }
 
 export type SocketEventName = keyof SocketEvents;

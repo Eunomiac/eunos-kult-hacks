@@ -72,7 +72,8 @@ export default function overrideItemSheet() {
             { value: "1", label: getLocalizer().localize("k4lt.KeepItTogether") },
             { value: "2", label: getLocalizer().localize("k4lt.SeeThroughTheIllusion") },
             { value: "3", label: getLocalizer().localize("k4lt.EndureInjury") },
-            { value: "4", label: "Engage In Combat" }
+            { value: "4", label: "Engage In Combat" },
+            { value: "5", label: "Dreamweave" }
           ]
         });
       }
@@ -81,7 +82,7 @@ export default function overrideItemSheet() {
         Object.assign(data, {
           classOptions: WEAPON_CLASSES,
           subclassOptions: this.item.system.class ? WEAPON_SUBCLASSES[this.item.system.class] : []
-        })
+        });
       }
 
       return data;

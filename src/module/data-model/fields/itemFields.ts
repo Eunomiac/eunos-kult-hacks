@@ -23,7 +23,7 @@ export function getTokenFields() {
     counterName: new fields.StringField({required: false, nullable: true, initial: null}),
     counterCount: new fields.NumberField({initial: 0, min: 0, max: 10}),
     counterResetsOn: new fields.StringField({required: false, nullable: false, initial: CounterResetOn.Never})
-  }
+  };
 }
 
 export function getMoveFields() {
@@ -39,13 +39,13 @@ export function getMoveFields() {
       choices: ["none", "ask", "reflexes", "fortitude", "willpower", "charisma", "coolness", "violence", "intuition", "reason", "soul", "perception"],
       required: false
     }),
-    specialflag: new fields.NumberField({initial: 0, min: 0, max: 4}),
+    specialflag: new fields.NumberField({initial: 0, min: 0, max: 5}), // 1: KiT, 2: STtI, 3: Endure Injury, 4: Combat, 5: Dreamweave
     showOptionsFor: new fields.SchemaField({
       success: new fields.BooleanField({initial: true}),
       partial: new fields.BooleanField({initial: true}),
       failure: new fields.BooleanField({initial: false})
     })
-  }
+  };
 }
 
 export function getAttackField() {
@@ -55,7 +55,7 @@ export function getAttackField() {
     ammoCost: new fields.NumberField({min: 0, max: 10, required: false}),
     special: new fields.StringField(),
     isDefault: new fields.BooleanField({initial: false})
-  })
+  });
 }
 
 export interface AttackSchema {

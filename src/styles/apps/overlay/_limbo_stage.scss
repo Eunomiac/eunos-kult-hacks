@@ -1,0 +1,36 @@
+#LIMBO {
+    position: fixed;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+
+    #SECTION-3D {
+      .canvas-layer.background-layer {
+        height: 100vh;
+        width: 230vw;
+        background: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 50%),
+          url("modules/eunos-kult-hacks/assets/video/limbo_glass_lake.jpg");
+        background-size: cover;
+        background-repeat: no-repeat;
+        transform-origin: 50vw 50vh;
+        transform: translate(-50%, -45%) translateZ(500px)  rotateX(75deg) ;
+        transform-style: preserve-3d;
+
+        .ground-fog {
+          position: absolute;
+          width: 150vw;
+          height: 150vh;
+          top: -25%;
+          left: 50%;
+          transform: translate(-50%, 0%) rotateX(-10deg) translateZ(30px);
+          transform-origin: center;
+        transform-style: preserve-3d;
+        filter: brightness(2);
+        }
+      }
+    }
+}

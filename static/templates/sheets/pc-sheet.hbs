@@ -223,6 +223,31 @@
           </div>
           {{/if}}
 
+          {{#if limitations.length}}
+          <div class="section-label">{{localize "k4lt.Limitations"}}</div>
+          <div class="item-list limitation-list">
+            {{#each limitations as |limitation id|}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=limitation isGM=../isGM actorID=../actor._id itemID=id}}
+            {{/each}}
+          </div>
+          {{/if}}
+
+          {{#if disadvantages.length}}
+          <div class="section-label" style="margin-top: 0;">{{localize "k4lt.Disadvantages"}}</div>
+          <div class="item-list disadvantage-list">
+            {{#each disadvantages as |disadvantage id|}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=disadvantage isGM=../isGM actorID=../actor._id  itemID=id}}
+            {{/each}}
+          </div>
+          {{/if}}
+
+
+
+
+
+
+
+
           {{#if darksecrets.length}}
           <div class="section-label">Dark Secret{{#if (gt darksecrets.length 1)}}s{{/if}}</div>
           <div class="item-list darksecret-list">
@@ -243,20 +268,11 @@
         </div>
         <div class="advantage-box">
 
-          {{#if limitations.length}}
-          <div class="section-label">{{localize "k4lt.Limitations"}}</div>
-          <div class="item-list limitation-list">
-            {{#each limitations as |limitation id|}}
-            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=limitation isGM=../isGM actorID=../actor._id itemID=id}}
-            {{/each}}
-          </div>
-          {{/if}}
-
-          {{#if disadvantages.length}}
-          <div class="section-label">{{localize "k4lt.Disadvantages"}}</div>
-          <div class="item-list disadvantage-list">
-            {{#each disadvantages as |disadvantage id|}}
-            {{> "modules/eunos-kult-hacks/templates/sheets/partials/move-card.hbs" this=disadvantage isGM=../isGM actorID=../actor._id  itemID=id}}
+          {{#if gear.length}}
+          <div class="section-label">{{localize "k4lt.Gear"}}</div>
+          <div class="item-list gear-list">
+            {{#each gear as |gear id|}}
+            {{> "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs" this=gear isGM=../isGM actorID=../actor._id  itemID=id}}
             {{/each}}
           </div>
           {{/if}}
@@ -266,15 +282,6 @@
           <div class="item-list weapon-list">
             {{#each weapons as |weapon id|}}
             {{> "modules/eunos-kult-hacks/templates/sheets/partials/weapon-card.hbs" this=weapon isGM=../isGM actorID=../actor._id  itemID=id}}
-            {{/each}}
-          </div>
-          {{/if}}
-
-          {{#if gear.length}}
-          <div class="section-label">{{localize "k4lt.Gear"}}</div>
-          <div class="item-list gear-list">
-            {{#each gear as |gear id|}}
-            {{> "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs" this=gear isGM=../isGM actorID=../actor._id  itemID=id}}
             {{/each}}
           </div>
           {{/if}}

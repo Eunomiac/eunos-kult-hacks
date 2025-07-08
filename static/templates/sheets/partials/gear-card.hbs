@@ -24,6 +24,7 @@
     <div class="item-charge-indicator"></div>
   </div>
 
+  {{#if system.description}}
   <div id="{{popoverID}}"
     class="gear-tooltip"
     style="position-anchor: --{{anchorName}};"
@@ -33,6 +34,7 @@
       <label>Uses:</label><span>{{system.uses}}/{{system.usesMax}}</span>
     {{/if}}
   </div>
+  {{/if}}
 
   {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-controls.hbs" view=true show=true trash=true isGM=isGM id=_id }}
   {{/let}}

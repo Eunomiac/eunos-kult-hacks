@@ -2,6 +2,6 @@
   {
     "key": "ctrl+shift+d",
     "command": "workbench.action.tasks.runTask",
-    "args": "Start Development Environment (1x)"
+    "args": "Start Development Environment (2x)"
   }
 ]

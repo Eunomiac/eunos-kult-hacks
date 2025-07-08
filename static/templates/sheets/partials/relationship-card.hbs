@@ -10,6 +10,7 @@
     <div class="item-charge-indicator"></div>
   </div>
 
+{{#if system.description}}
   <div id="{{popoverID}}"
     class="relationship-tooltip"
     style="position-anchor: --{{anchorName}};"
@@ -21,6 +22,7 @@
       <label>Strength:</label> <span>{{#if (eq system.strength 0)}}Neutral{{else if (eq system.strength 1)}}Meaningful{{else if (eq system.strength 2)}}Vital{{/if}}</span>
     </div>
   </div>
+{{/if}}
 
   {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-controls.hbs" view=true show=true isGM=isGM id=_id }}
   {{/let}}

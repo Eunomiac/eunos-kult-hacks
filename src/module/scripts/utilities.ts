@@ -45,7 +45,7 @@ const _noCapWords = "a|above|after|an|and|at|below|but|by|down|for|for|from|in|n
 // _capWords -- Patterns matching words that should ALWAYS be capitalized when converting to SENTENCE case.
 const _capWords = [
   "I", /[^a-z]{3,}|[.0-9]/gu
-].map((word) => (Object.prototype.toString.call(word).includes('RegExp') ? word : new RegExp(`\\b${String(word)}\\b`, "gui"))) as RegExp[];
+].map((word) => (Object.prototype.toString.call(word).includes("RegExp") ? word : new RegExp(`\\b${String(word)}\\b`, "gui"))) as RegExp[];
 
 // _loremIpsumText -- Boilerplate lorem ipsum
 const _loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ultricies
@@ -193,7 +193,7 @@ const isArray = <T>(ref: T): ref is T & Array<ValOf<T>> => Array.isArray(ref);
 const isSimpleObj = <T>(ref: T): ref is T & Record<Key, ValOf<T>> => ref === Object(ref) && !isArray(ref);
 const isNumber = <T>(ref: T): ref is T & number => typeof ref === "number" && !isNaN(ref);
 const isInt = <T>(ref: T): ref is T & number => isNumber(ref) && ref % 1 === 0;
-const isFloat = <T>(ref: T): ref is T & Float => isNumber(ref) && String(ref).includes('.');
+const isFloat = <T>(ref: T): ref is T & Float => isNumber(ref) && String(ref).includes(".");
 const isPosInt = <T>(ref: T): ref is T & number => isInt(ref) && ref >= 0;
 const isPosFloat = <T>(ref: T): ref is T & PosFloat => isFloat(ref) && ref >= 0;
 
@@ -395,7 +395,7 @@ const castToScalar = (val: unknown): SystemScalar => {
     }
   }
   return String(val) as SystemScalar;
-}
+};
 
 
 const radToDeg = (rad: number, isConstrained = true): number => {
@@ -1737,9 +1737,9 @@ function objForEach(
   func: (value: ObjectValue, key: ObjectKey) => void
 ): void {
   if (Array.isArray(obj)) {
-    obj.forEach((value, index) => { func(value, index) });
+    obj.forEach((value, index) => { func(value, index); });
   } else {
-    Object.entries(obj).forEach(([key, value]) => { func(value, key) });
+    Object.entries(obj).forEach(([key, value]) => { func(value, key); });
   }
 }
 
@@ -2309,14 +2309,14 @@ function encodeSVGforCSS(viewBox: string, pathD: string, options?: {
 
   // Encode the SVG - keep double quotes and encode them
   const encoded = svgString
-      .replace(/%/g, '%25')   // Encode % first to avoid double-encoding
-      .replace(/"/g, '%22')   // Encode " to %22 instead of converting to single quotes
-      .replace(/#/g, '%23')   // Encode #
-      .replace(/\{/g, '%7B')  // Encode {
-      .replace(/\}/g, '%7D')  // Encode }
-      .replace(/</g, '%3C')   // Encode <
-      .replace(/>/g, '%3E')   // Encode >
-      .replace(/\s/g, '%20'); // Encode spaces
+      .replace(/%/g, "%25")   // Encode % first to avoid double-encoding
+      .replace(/"/g, "%22")   // Encode " to %22 instead of converting to single quotes
+      .replace(/#/g, "%23")   // Encode #
+      .replace(/\{/g, "%7B")  // Encode {
+      .replace(/\}/g, "%7D")  // Encode }
+      .replace(/</g, "%3C")   // Encode <
+      .replace(/>/g, "%3E")   // Encode >
+      .replace(/\s/g, "%20"); // Encode spaces
 
     // Return as data URI
     return `data:image/svg+xml,${encoded}`;
@@ -2554,6 +2554,9 @@ function get(target: gsap.TweenTarget, property: keyof gsap.CSSProperties & stri
     }
     throw new Error(`Unable to extract property '${String(property)}' in '${String(unit)}' units from ${String(target as Exclude<typeof target, object>)}`);
   }
+  if (target instanceof $ && (target as JQuery)[0]) {
+    target = (target as JQuery)[0]!;
+  }
   return gsap.getProperty(target, property);
 }
 
@@ -2790,7 +2793,7 @@ function getTimeStamp() {
   // Return closure that calculates elapsed time in seconds
   return function() {
     return (Date.now() - timeRefs[id]!) / 1000;
-  }
+  };
 }
 
 // #endregion ▄▄▄▄▄ ASYNC ▄▄▄▄▄
@@ -2903,7 +2906,7 @@ const getSetting = <T = unknown>(setting: string, submenu?: string): Maybe<T> =>
   return undefined;
 };
 
-function getTemplatePath(subFolder: string, fileName: string): string
+function getTemplatePath(subFolder: string, fileName: string): string;
 function getTemplatePath(subFolder: string, fileName: string[]): string[]
 function getTemplatePath(subFolder: string, fileName: string | string[]) {
   if (typeof fileName === "string") {
@@ -3076,8 +3079,21 @@ function countdownUntil(): CountdownTime {
     totalSeconds
   };
 }
-
 // #endregion ▄▄▄▄▄ FOUNDRY ▄▄▄▄▄
+
+// #region EVENT HANDLERS
+function stripEventHandlers(html: JQuery, ...exclusions: string[]): JQuery {
+  const ALL_EVENTS = [
+    "click", "dblclick", "contextmenu", "mousedown", "touchstart", "mouseup", "touchend", "mouseleave", "touchcancel"
+  ];
+  return html.off(
+    ALL_EVENTS
+      .filter((event) => !exclusions.includes(event))
+      .join(" ")
+  );
+}
+// #endregion EVENT HANDLERS
+
 
 /**
  * Converts a date between Toronto timezone and UTC
@@ -3162,16 +3178,16 @@ function formatDateAsISO(input?: Date | string | number): string {
     return constructed;
   })();
 
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
-    timeZone: 'America/Toronto',
-  }).replace(',', '');
+    timeZone: "America/Toronto"
+  }).replace(",", "");
 }
 
 /**
@@ -3344,6 +3360,7 @@ export {
   countdownUntil,
 
   // EVENT HANDLERS
+  stripEventHandlers,
   // EventHandlers,
 
   // ■■■■■■■ SYSTEM: System-Specific Functions (Requires Configuration of System ID in constants.js) ■■■■■■■

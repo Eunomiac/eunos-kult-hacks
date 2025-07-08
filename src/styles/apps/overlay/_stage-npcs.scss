@@ -8,7 +8,7 @@
   transform-style: preserve-3d;
   perspective-origin: center center;
   perspective: 1000px;
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 1;
 
   .npc-portrait {
@@ -288,6 +288,8 @@
 }
 
 #NPCS {
+  pointer-events: none;
+
   .npc-portrait {
     height: auto;
     width: 150px;

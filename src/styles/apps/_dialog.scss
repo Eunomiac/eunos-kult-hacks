@@ -78,51 +78,106 @@
 
     &.assign-dramatic-hook-dialog {
       border: none;
-      width: 800px !important;
+      width: 80vw !important;
+      height: 130px !important;
+      transform: translate(-50%, -50%);
+      top: 50% !important;
+      left: 50% !important;
       .window-content {
         .dialog-content {
           margin: 0;
           .form-group {
+            // width: 100;
             // margin-bottom: 40px;
+
+            .hook-for, .hook-target {
+              font-size: 48px;
+              // height: 80px;
+              line-height: 40px;
+              font-family: var(--font-heading-1);
+              display: block;
+              text-align: center;
+              width: 100%;
+
+              &.hook-for {
+                color: var(--K4-dRED);
+                font-size: 18px;
+              }
+
+              &.hook-target {
+                color: var(--K4-bRED);
+                line-height: 10px;
+              line-height: 80px;
+              // overflow: visible;
+              // position: absolute;
+              // top: 20px;
+              margin-top: -20px;
+              margin-bottom: -20px;
+              pointer-events: none;
+              }
+
+            }
+
+            > label {
+              color: var(--K4-RED);
+              overflow: hidden;
+            }
             .hook-container {
               display: flex;
               gap: 5px;
-              padding-right: 70px;
-              .hook-prefix {
-                white-space: nowrap;
-                font-size: 16px;
-                padding: 0 10px;
-                line-height: 26px;
-                height: 26px;
-                filter: brightness(1.5);
-                font-family: var(--font-primary);
-                font-weight: 1000;
-                color: var(--K4-bbGOLD);
-                text-align: right;
-                padding-right: 5px;
-                background: #1b1b1b;
-                filter: brightness(1.5);
+              // padding-right: 70px;
+              // outline: 12px dotted red;
+              height: 50px;
+              justify-content: stretch;
+
+              > * {
+                display: inline-flex;
+                flex-direction: column;
+                justify-content: center;
+                height: 100%;
               }
 
-              textarea {
-                // width: 100%;
-                font-size: 16px;
-                border: none;
+              .hook-prefix {
+                white-space: nowrap;
+                  font-size: 24px;
+                padding: 0 10px;
                 font-family: var(--font-primary);
                 font-weight: 1000;
-                color: var(--K4-bbGOLD);
-                max-height: 26px;
-                height: 26px;
-                line-height: 26px;
-                padding: 0 10px;
-                padding-left: 0;
-                min-height: unset;
-                background: #1b1b1b;
-                resize: none;
-                overflow-x: auto;
-                overflow-y: hidden;
-                white-space: nowrap;
-                box-shadow: none;
+                color: var(--K4-bGOLD);
+                text-align: right;
+                padding-right: 5px;
+                font-style: italic;
+                flex: 0;
+              }
+
+              .hook-entry {
+                flex: 1;
+                  border: 2px inset var(--K4-dGOLD);
+                  background: var(--K4-dBLACK);
+
+                textarea {
+                  // width: 100%;
+                  font-size: 24px;
+                  border: none;
+                  font-family: var(--font-primary);
+                  font-weight: 1000;
+                  color: var(--K4-bbGOLD);
+                  max-height: 26px;
+                  // height: 26px;
+                  line-height: 26px;
+                  padding: 0 10px;
+                  padding-left: 0;
+                  min-height: unset;
+                  width: 100%;
+                  flex-grow: 1;
+                  resize: none;
+                  overflow-x: auto;
+                  overflow-y: hidden;
+                  white-space: nowrap;
+                  box-shadow: none;
+                  text-indent: 5px;
+                  flex: 1;
+                }
               }
             }
           }

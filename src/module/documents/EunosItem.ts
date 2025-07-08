@@ -8,6 +8,8 @@ import type ItemDataGear from "../data-model/ItemDataGear";
 import type ItemDataDarkSecret from "../data-model/ItemDataDarkSecret";
 import type ItemDataRelationship from "../data-model/ItemDataRelationship";
 import type {CounterResetOn} from "../scripts/enums";
+import EunosChatMessage, {type ResultRolledContext} from "../apps/EunosChatMessage";
+import {getTemplatePath} from "../scripts/utilities";
 
 export default class EunosItem extends Item {
 
@@ -262,34 +264,76 @@ export default class EunosItem extends Item {
     return htmlStrings.join("");
   }
 
-  async showInChat() {
-    kLog.log("Show Item => ", this);
-    const htmlStrings: string[] = [
-      `<div class='item-block item-block-${this.type}'>`,
-      "<div class='item-header'>",
-      `<img src='${this.img}' alt='${this.name}' />`,
-      `<div class='item-name'>${this.name}</div>`,
-      "</div>",
-      "<div class='item-body'>"
-    ];
-    // htmlStrings.push(
-    // );
-
-    // let effect;
-    // if (item.type === "disadvantage" || item.type === "advantage" || item.type === "ability" || item.type === "limitation") {
-    //   effect = item.system.effect;
-    // } else if (item.type === "move") {
-    //   effect = item.system.trigger;
-    // } else if (item.type === "weapon") {
-    //   effect = item.system.special;
-    // } else if (item.type === "gear" || item.type === "darksecret") {
-    //   effect = item.system.description;
-    // }
-    // const content = `<div class='move-name'>${item.name}</div><div>${effect}</div>`;
-    // @ts-expect-error ChatMessage.create is not typed
-    await ChatMessage.create({ content: htmlStrings.join(""), speaker: ChatMessage.getSpeaker({ alias: this.name }) });
+  async showInChat(li?: JQuery) {
+    if (this.parent && this.isWeapon()) {
+      if (!li?.length) {
+        kLog.error("Unable to derive attack chat message -- no list element provided.");
+      } else {
+        const attackIndex = li.attr("data-attack-index");
+        if (attackIndex !== undefined) {
+          const attack = this.system.attacks[Number(attackIndex)];
+          if (attack) {
+            // @ts-expect-error Not sure why this is throwing an error.
+            void ChatMessage.create({
+              content: this.getAttackChatMessage(Number(attackIndex)),
+              speaker: ChatMessage.getSpeaker({ alias: this.parent.name })
+            });
+            return;
+          }
+        }
+      }
+    }
+    // @ts-expect-error Not sure why this is throwing an error.
+    void ChatMessage.create({
+      content: this.chatMessage,
+      speaker: ChatMessage.getSpeaker({ alias: this.parent?.name ?? "" })
+    });
   }
 
+  async moveTrigger() {
+
+    const owner = this.parent as Maybe<EunosActor>;
+    kLog.log("OWNER FOUND:", {owner});
+    if (!owner) {
+      kLog.error(`No parent found for triggered item '${this.name}'`);
+      return;
+    }
+    const isWideDropCap = owner.name.startsWith("M") || owner.name.startsWith("W");
+    if (!this.isMechanicalItem()) {
+      return "";
+    }
+    const templateData = {
+      cssClass: `chat-trigger-result k4-theme-gold roll-result-completeSuccess ${isWideDropCap ? "wide-drop-cap" : ""}`,
+      rollerName: owner.name.split(" ")[0] as string,
+      isWideDropCap,
+      sourceName: this.name,
+      sourceImg: this.img as string,
+      resultText: this.system.effect as string
+    };
+    const content = await renderTemplate(
+      getTemplatePath("sidebar", "result-triggered.hbs"),
+      templateData
+    );
+
+    const chatData = {
+      speaker: EunosChatMessage.getSpeaker({ alias: this.name }),
+      content,
+      flags: {
+        "eunos-kult-hacks": {
+          cssClasses: [templateData.cssClass],
+          isSummary: false,
+          isAnimated: true,
+          isRoll: false,
+          isTrigger: true,
+          isEdge: false
+        }
+      }
+    };
+
+    kLog.log("chatData => ", chatData);
+    // @ts-expect-error ChatMessage.create is not typed
+    await EunosChatMessage.create(chatData);
+  }
 }
 
 Hooks.on("init", () => {

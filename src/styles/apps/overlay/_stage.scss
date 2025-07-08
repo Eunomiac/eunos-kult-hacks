@@ -32,6 +32,9 @@
     z-index: 1;
     // visibility: hidden;
   }
+}
+
+
 
   #SECTION-3D {
     display: block;
@@ -98,12 +101,11 @@
         }
 
         &.lit {
-          background: white url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit.webp");
-          // background: white url("./assets/images/stage/stage-map-bg-lit.webp"); // For Production
+          background: white url("modules/eunos-kult-hacks/assets/images/stage/stage-map-bg-lit-lowres.webp");
+          // background: white url("./assets/images/stage/stage-map-bg-lit-lowres.webp"); // For Production
           background-position: 0px 0px;
           background-repeat: no-repeat;
         }
       }
     }
   }
-}

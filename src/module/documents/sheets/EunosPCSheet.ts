@@ -14,7 +14,7 @@ export default function overridePCSheet() {
 
   class EunosPCSheet extends pcSheet {
     override get template() {
-      return `modules/eunos-kult-hacks/templates/sheets/pc-sheet.hbs`;
+      return "modules/eunos-kult-hacks/templates/sheets/pc-sheet.hbs";
     }
 
     override getData() {
@@ -22,7 +22,7 @@ export default function overridePCSheet() {
         system: ActorDataPC;
       };
       Object.assign(data, {
-        isGM: getUser().isGM,
+        isGM: getUser().isGM
       });
       return data;
     }
@@ -44,7 +44,7 @@ export default function overridePCSheet() {
         textarea.style.height = "0";
         const newHeight = Math.max(
           textarea.scrollHeight, // Content height
-          24, // Minimum height
+          24 // Minimum height
         );
         textarea.style.height = `${newHeight}px`;
         textarea.scrollTop = scrollPos;
@@ -86,27 +86,24 @@ export default function overridePCSheet() {
           kLog.log("Delete Item => ", {
             currentTarget: event.currentTarget,
             li,
-            itemId,
+            itemId
           });
           if (itemId) {
             void actor.deleteEmbeddedDocuments("Item", [itemId]);
           }
         });
 
-      html
-        .find(".item-edit")
-        .off("click")
-        .on("click", (event) => {
-          const li = $(event.currentTarget).closest("[data-item-id]");
-          const itemId = li.attr("data-item-id");
-          if (itemId) {
-            const item = actor.items.get(itemId);
-            if (item) {
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
-              item.sheet?.render(true);
-            }
-          }
-        });
+      // html
+      //   .find(".item-edit")
+      //   .off("click")
+      //   .on("click", (event) => {
+      //     const li = $(event.currentTarget).closest("[data-item-id]");
+      //     const itemId = li.attr("data-item-id");
+      //     if (itemId) {
+      //       const item = actor.items.get(itemId);
+      //       item?.render(true);
+      //     }
+      //   });
 
       html
         .find(".item-show")
@@ -118,27 +115,7 @@ export default function overridePCSheet() {
           if (itemId) {
             const item = actor.items.get(itemId);
             kLog.log("Show Item => ", item);
-            if (item) {
-              if (item.isWeapon()) {
-                const attackIndex = li.attr("data-attack-index");
-                if (attackIndex !== undefined) {
-                  const attack = item.system.attacks[Number(attackIndex)];
-                  if (attack) {
-                    // @ts-expect-error Not sure why this is throwing an error.
-                    void ChatMessage.create({
-                      content: item.getAttackChatMessage(Number(attackIndex)),
-                      speaker: ChatMessage.getSpeaker({ alias: actor.name }),
-                    });
-                    return;
-                  }
-                }
-              }
-              // @ts-expect-error Not sure why this is throwing an error.
-              void ChatMessage.create({
-                content: item.chatMessage,
-                speaker: ChatMessage.getSpeaker({ alias: actor.name }),
-              });
-            }
+            void item?.showInChat(li);
           }
         });
 
@@ -183,12 +160,12 @@ export default function overridePCSheet() {
                   header: `${actor.name} Loses Stability!`,
                   body: `${actor.name} is now ${actor.stabilityState}.`,
                   target: UserTargetRef.all,
-                  soundName: "alert-hit-stability-down",
+                  soundName: "alert-hit-stability-down"
                 });
               },
-              (error: unknown) => {
+              () => {
                 getNotifier().warn("Unable to send alert to all users.");
-              },
+              }
             );
         });
 
@@ -204,7 +181,7 @@ export default function overridePCSheet() {
           const stabilityTier_from = actor.stabilityState;
           const stability_new = Math.min(
             actor.system.stability.max ?? 10,
-            stability_from + 1,
+            stability_from + 1
           );
           if (stability_new === stability_from) {
             return;
@@ -223,12 +200,12 @@ export default function overridePCSheet() {
                   header: `${actor.name} Gains Stability!`,
                   body: `${actor.name} is now ${actor.stabilityState}.`,
                   target: UserTargetRef.all,
-                  soundName: "alert-hit-stability-up",
+                  soundName: "alert-hit-stability-up"
                 });
               },
-              (error: unknown) => {
+              () => {
                 getNotifier().warn("Unable to send alert to all users.");
-              },
+              }
             );
         });
 
@@ -253,8 +230,8 @@ export default function overridePCSheet() {
 
           void item.update({
             system: {
-              isEquipped: !(item.system as { isEquipped: boolean }).isEquipped,
-            },
+              isEquipped: !(item.system as { isEquipped: boolean }).isEquipped
+            }
           });
         });
 
@@ -284,15 +261,15 @@ export default function overridePCSheet() {
           }
           void item.update({
             system: {
-              ammo: { value: item.system.ammo.max },
-            },
+              ammo: { value: item.system.ammo.max }
+            }
           });
           void EunosAlerts.Alert({
             type: AlertType.simple,
             header: `${actor.name} Reloads!`,
             body: `${actor.name} reloads their ${item.name}.`,
             target: UserTargetRef.all,
-            soundName: "alert-hit-stability-up",
+            soundName: "alert-hit-stability-up"
           });
         });
 
@@ -308,12 +285,12 @@ export default function overridePCSheet() {
           if (!itemId || !actorId) {
             kLog.error("No itemId or actorId found for addHold", {
               itemId,
-              actorId,
+              actorId
             });
             return;
           }
           const item = fromUuidSync(
-            `Actor.${actorId}.Item.${itemId}`,
+            `Actor.${actorId}.Item.${itemId}`
           ) as EunosItem;
           if (!item) {
             kLog.error("No item found for itemId", { itemId });
@@ -328,13 +305,13 @@ export default function overridePCSheet() {
           }
           void item
             .update({
-              system: { counterCount: (itemData.counterCount ?? 0) + 1 },
+              system: { counterCount: (itemData.counterCount ?? 0) + 1 }
             })
             .then(() => {
               this.render();
               void EunosSockets.getInstance().call(
                 "refreshPCs",
-                UserTargetRef.gm,
+                UserTargetRef.gm
               );
               void EunosOverlay.instance.render({ parts: ["pcs", "pcsGM"] });
             });
@@ -350,12 +327,12 @@ export default function overridePCSheet() {
           if (!itemId || !actorId) {
             kLog.error("No itemId or actorId found for spendCounter", {
               itemId,
-              actorId,
+              actorId
             });
             return;
           }
           const item = fromUuidSync(
-            `Actor.${actorId}.Item.${itemId}`,
+            `Actor.${actorId}.Item.${itemId}`
           ) as EunosItem;
           if (!item) {
             kLog.error("No item found for itemId", { itemId });
@@ -373,13 +350,13 @@ export default function overridePCSheet() {
           }
           void item
             .update({
-              system: { counterCount: (itemData.counterCount ?? 0) - 1 },
+              system: { counterCount: (itemData.counterCount ?? 0) - 1 }
             })
             .then(() => {
               this.render();
               void EunosSockets.getInstance().call(
                 "refreshPCs",
-                UserTargetRef.gm,
+                UserTargetRef.gm
               );
             });
         });
@@ -391,14 +368,13 @@ export default function overridePCSheet() {
     private _setupMoveCardInteractions(html: JQuery): void {
       // First, remove any existing handlers to prevent duplicates
       kLog.log("Setting up item card interactions - removing old handlers");
-      html.find('.item-interaction-target').off('mousedown touchstart mouseup touchend mouseleave touchcancel');
+      html.find(".item-interaction-target").off("click dblclick contextmenu mousedown touchstart mouseup touchend mouseleave touchcancel");
 
-      html.find('.item-interaction-target').each((_, element) => {
+      html.find(".item-interaction-target").each((_, element) => {
         const $target = $(element);
-        const itemId = $target.data('item-id') as string;
-        const actorId = $target.data('actor-id') as string;
-        const itemType = $target.data('item-type') as string;
-        const itemName = this.actor.items.get(itemId)?.name || 'Unknown';
+        const itemId = $target.data("item-id") as string;
+        const itemType = $target.data("item-type") as string;
+        const itemName = this.actor.items.get(itemId)?.name ?? "Unknown";
 
         kLog.log(`Setting up listeners for item: ${itemName} (${itemId}, type: ${itemType})`);
 
@@ -406,45 +382,45 @@ export default function overridePCSheet() {
         let isMouseDown = false;
 
         // Handle mousedown - start the charge animation
-        $target.on('mousedown', (event) => {
-          kLog.log(`MOUSEDOWN on ${itemName} (button: ${event.button})`);
+        $target.on("mousedown", (event) => {
+          // kLog.log(`MOUSEDOWN on ${itemName} (button: ${event.button})`);
 
           // Only process left mouse button (button 0)
           if (event.button !== 0) {
-            kLog.log(`Ignoring mousedown - not left button`);
+            // kLog.log("Ignoring mousedown - not left button");
             return;
           }
 
           event.preventDefault();
           isMouseDown = true;
-          kLog.log(`Starting charge animation for ${itemName}`);
+          // kLog.log(`Starting charge animation for ${itemName}`);
 
           // Create a new timeline for each interaction
-          const tl = (gsap.effects['itemCardChargeUp'] as GSAPEffectFunction)($target);
-          $target.data('charge-timeline', tl);
+          const tl = (gsap.effects["itemCardChargeUp"] as GSAPEffectFunction)($target);
+          $target.data("charge-timeline", tl);
           tl.play();
         });
 
         // Handle touchstart separately
-        $target.on('touchstart', (event) => {
-          kLog.log(`TOUCHSTART on ${itemName}`);
+        $target.on("touchstart", (event) => {
+          // kLog.log(`TOUCHSTART on ${itemName}`);
           event.preventDefault();
           isMouseDown = true;
-          kLog.log(`Starting charge animation for ${itemName} (touch)`);
+          // kLog.log(`Starting charge animation for ${itemName} (touch)`);
 
           // Create a new timeline for each interaction
-          const tl = (gsap.effects['itemCardChargeUp'] as GSAPEffectFunction)($target);
-          $target.data('charge-timeline', tl);
+          const tl = (gsap.effects["itemCardChargeUp"] as GSAPEffectFunction)($target);
+          $target.data("charge-timeline", tl);
           tl.play();
         });
 
         // Handle mouseup - either view or activate based on progress
-        $target.on('mouseup', (event) => {
-          kLog.log(`MOUSEUP on ${itemName} (button: ${event.button}, isMouseDown: ${isMouseDown})`);
+        $target.on("mouseup", (event) => {
+          // kLog.log(`MOUSEUP on ${itemName} (button: ${event.button}, isMouseDown: ${isMouseDown})`);
 
           // Only process left mouse button (button 0)
           if (event.button !== 0) {
-            kLog.log(`Ignoring mouseup - not left button`);
+            // kLog.log("Ignoring mouseup - not left button");
             return;
           }
 
@@ -452,70 +428,72 @@ export default function overridePCSheet() {
 
           // Only process if we were in a mousedown state
           if (!isMouseDown) {
-            kLog.log(`Ignoring mouseup - wasn't in mousedown state`);
+            // kLog.log("Ignoring mouseup - wasn't in mousedown state");
             return;
           }
 
           isMouseDown = false;
 
-          const timeline = $target.data('charge-timeline') as Maybe<gsap.core.Timeline>;
+          const timeline = $target.data("charge-timeline") as Maybe<gsap.core.Timeline>;
           if (!timeline) {
             kLog.log(`No timeline found for ${itemName}`);
             return;
           }
 
           const progress = timeline.progress();
-          kLog.log(`Charge progress for ${itemName}: ${progress.toFixed(2)}`);
+          // kLog.log(`Charge progress for ${itemName}: ${progress.toFixed(2)}`);
           timeline.pause();
 
-          if (progress >= 1) {
+          if (progress > 0.98) {
             kLog.log(`Fully charged - activating ${itemName} (${itemType})`);
             // Fully charged - activate the item
             this._activateItem(itemId);
-          } else {
-            kLog.log(`Not fully charged - viewing ${itemName}`);
+          } else if (progress < 0.15) {
+            kLog.log(`Barely charged, assume click - viewing ${itemName}`);
             // Not fully charged - view the item
             const item = this.actor.items.get(itemId);
             if (item) {
               // @ts-expect-error Don't know why the types won't recognize this syntax.
-              item.sheet?.render({ force: true });
+              item.sheet?.render({force: true});
             }
 
             // Reverse the animation
-            kLog.log(`Reversing animation for ${itemName}`);
+            // kLog.log(`Reversing animation for ${itemName}`);
+            timeline.timeScale(3).reverse();
+          } else {
             timeline.timeScale(3).reverse();
           }
         });
 
         // Handle touchend separately
-        $target.on('touchend', (event) => {
-          kLog.log(`TOUCHEND on ${itemName} (isMouseDown: ${isMouseDown})`);
+        $target.on("touchend", (event) => {
+          // kLog.log(`TOUCHEND on ${itemName} (isMouseDown: ${isMouseDown})`);
           event.preventDefault();
 
           // Only process if we were in a touchstart state
           if (!isMouseDown) {
-            kLog.log(`Ignoring touchend - wasn't in touchstart state`);
+            // kLog.log("Ignoring touchend - wasn't in touchstart state");
             return;
           }
 
           isMouseDown = false;
 
-          const timeline = $target.data('charge-timeline') as Maybe<gsap.core.Timeline>;
+          const timeline = $target.data("charge-timeline") as Maybe<gsap.core.Timeline>;
           if (!timeline) {
             kLog.log(`No timeline found for ${itemName} (touch)`);
             return;
           }
 
           const progress = timeline.progress();
-          kLog.log(`Charge progress for ${itemName}: ${progress.toFixed(2)} (touch)`);
+          // kLog.log(`Charge progress for ${itemName}: ${progress.toFixed(2)} (touch)`);
           timeline.pause();
 
-          if (progress >= 1) {
+          if (progress > 0.98) {
             kLog.log(`Fully charged - activating ${itemName} (${itemType}) (touch)`);
             // Fully charged - activate the item
             this._activateItem(itemId);
-          } else {
-            kLog.log(`Not fully charged - viewing ${itemName} (touch)`);
+          } else if (progress < 0.15) {
+            kLog.log(`Barely charged, assume click - viewing ${itemName}`);
             // Not fully charged - view the item
             const item = this.actor.items.get(itemId);
             if (item) {
@@ -524,25 +502,27 @@ export default function overridePCSheet() {
             }
 
             // Reverse the animation
-            kLog.log(`Reversing animation for ${itemName} (touch)`);
+            // kLog.log(`Reversing animation for ${itemName} (touch)`);
+            timeline.timeScale(3).reverse();
+          } else {
             timeline.timeScale(3).reverse();
           }
         });
 
         // Handle mouseleave/touchcancel - cancel the interaction
-        $target.on('mouseleave', (event) => {
-          kLog.log(`MOUSELEAVE on ${itemName} (isMouseDown: ${isMouseDown})`);
+        $target.on("mouseleave", (event) => {
+          // kLog.log(`MOUSELEAVE on ${itemName} (isMouseDown: ${isMouseDown})`);
           event.preventDefault();
 
           // Only process if we were in a mousedown state
           if (!isMouseDown) {
-            kLog.log(`Ignoring mouseleave - wasn't in mousedown state`);
+            // kLog.log("Ignoring mouseleave - wasn't in mousedown state");
             return;
           }
 
           isMouseDown = false;
 
-          const timeline = $target.data('charge-timeline') as Maybe<gsap.core.Timeline>;
+          const timeline = $target.data("charge-timeline") as Maybe<gsap.core.Timeline>;
           if (!timeline) {
             kLog.log(`No timeline found for ${itemName} on mouseleave`);
             return;
@@ -553,19 +533,19 @@ export default function overridePCSheet() {
           timeline.timeScale(3).reverse();
         });
 
-        $target.on('touchcancel', (event) => {
+        $target.on("touchcancel", (event) => {
           kLog.log(`TOUCHCANCEL on ${itemName} (isMouseDown: ${isMouseDown})`);
           event.preventDefault();
 
           // Only process if we were in a touchstart state
           if (!isMouseDown) {
-            kLog.log(`Ignoring touchcancel - wasn't in touchstart state`);
+            kLog.log("Ignoring touchcancel - wasn't in touchstart state");
             return;
           }
 
           isMouseDown = false;
 
-          const timeline = $target.data('charge-timeline') as Maybe<gsap.core.Timeline>;
+          const timeline = $target.data("charge-timeline") as Maybe<gsap.core.Timeline>;
           if (!timeline) {
             kLog.log(`No timeline found for ${itemName} on touchcancel`);
             return;
@@ -590,8 +570,10 @@ export default function overridePCSheet() {
       // Handle different item types
       if (item.isMechanicalItem()) {
         // For moves, advantages, disadvantages, abilities, limitations
-        if (item.system.type === 'active') {
+        if (item.system.type === "active") {
           void this.actor.moveroll(itemId);
+        } else if (item.system.type === "triggered") {
+          void item.moveTrigger();
         } else {
           void item.showInChat();
         }
@@ -601,7 +583,7 @@ export default function overridePCSheet() {
           void item.spendUse();
           kLog.log(`Spent use on consumable item: ${item.name}`);
         } else {
-          void item.showInChat();
+          void item.moveTrigger();
         }
       } else {
         // For all other item types (weapons, dark secrets, relationships, etc.)
@@ -613,6 +595,6 @@ export default function overridePCSheet() {
   Actors.unregisterSheet("k4lt", pcSheet);
   Actors.registerSheet("k4lt", EunosPCSheet, {
     types: ["pc"],
-    makeDefault: true,
+    makeDefault: true
   });
 }

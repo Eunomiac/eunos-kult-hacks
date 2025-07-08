@@ -109,21 +109,6 @@ export default function registerSettings() {
     type: Boolean,
     default: false
   });
-  getSettings().register("eunos-kult-hacks", "isOutdoors", {
-    name: "Is Outdoors",
-    hint: "Whether the current scene is set outdoors of the currentLocation.",
-    scope: "world",
-    config: false,
-    type: Boolean,
-    default: true,
-    onChange: (value) => {
-      if (value) { // NOSONAR
-        void EunosOverlay.instance.goOutdoors();
-      } else {
-        void EunosOverlay.instance.goIndoors();
-      }
-    }
-  });
   getSettings().register("eunos-kult-hacks", "weatherAudio", {
     name: "Weather Audio",
     hint: "A record of the currently-playing weather tracks and their outdoor volume.",
@@ -140,11 +125,11 @@ export default function registerSettings() {
     hint: "The name of the current location.",
     scope: "world",
     choices: Object.fromEntries(
-      Object.keys(LOCATIONS).map(key => [key, key])
+      Object.entries(LOCATIONS).map(entry => [entry[0], entry[1].name])
     ) as { [K in keyof typeof LOCATIONS]?: string },
     config: true,
     type: String,
-    default: "Willow's Wending" as keyof typeof LOCATIONS,
+    default: "nowhere" as keyof typeof LOCATIONS,
     onChange: (value) => {
       // Get the previous location
       const prevLocation = EunosOverlay.currentLocationLog ?? null;
@@ -153,6 +138,21 @@ export default function registerSettings() {
         value
       );
       EunosOverlay.currentLocationLog = value;
+    }
+  });
+  getSettings().register("eunos-kult-hacks", "isOutdoors", {
+    name: "Is Outdoors",
+    hint: "Whether the current scene is set outdoors of the currentLocation.",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: (value) => {
+      if (value) { // NOSONAR
+        void EunosOverlay.instance.goOutdoors();
+      } else {
+        void EunosOverlay.instance.goIndoors();
+      }
     }
   });
   getSettings().register("eunos-kult-hacks", "locationData", {
@@ -210,29 +210,20 @@ export default function registerSettings() {
     type: Object,
     default: {}
   });
-  getSettings().register("eunos-kult-hacks", "sessionScribeDeck", {
-    name: "Session Scribe",
-    hint: "The deck of remaining userIDs to be assigned session scribe this round.",
-    scope: "world",
-    config: false,
-    type: Array,
-    default: []
-  });
-  getSettings().register("eunos-kult-hacks", "sessionScribe", {
-    name: "Session Scribe",
-    hint: "The userID of the current session scribe.",
-    scope: "world",
-    config: false,
-    type: String,
-    default: ""
-  });
-  getSettings().register("eunos-kult-hacks", "dramaticHookAssignments", {
-    name: "Dramatic Hook Assignments",
-    hint: "The assignments of dramatic hooks to players.",
-    scope: "world",
-    config: false,
-    type: Object,
-    default: {}
+  Hooks.once("ready", () => {
+    getSettings().register("eunos-kult-hacks", "sessionScribe", {
+      name: "Session Scribe",
+      hint: "The userID of the current session scribe.",
+      scope: "world",
+      choices: Object.fromEntries(getUsers().filter((user) => !user.isGM)
+        .map((user) => [user.id!, user.name])),
+      config: true,
+      onChange: (value: string) => {
+        void EunosOverlay.instance.updatePCUI();
+      },
+      type: String,
+      default: ""
+    });
   });
   getSettings().register("eunos-kult-hacks", "introVideoFilename", {
     name: "Intro Video Filename",
@@ -261,7 +252,30 @@ export default function registerSettings() {
         void EunosOverlay.instance.transitionToEndPhaseQuestion(value);
       }
     }
-
+  });
+  getSettings().register("eunos-kult-hacks", "dramaticHookAssignments", {
+    name: "Dramatic Hook Assignments",
+    hint: "The assignments of dramatic hooks to players.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {}
+  });
+  getSettings().register("eunos-kult-hacks", "sessionScribeDeck", {
+    name: "Session Scribe",
+    hint: "The deck of remaining userIDs to be assigned session scribe this round.",
+    scope: "world",
+    config: true,
+    type: Array,
+    default: []
+  });
+  getSettings().register("eunos-kult-hacks", "inLimbo", {
+    name: "In Limbo",
+    hint: "Whether the game is currently in limbo.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false
   });
 }
 

@@ -557,6 +557,7 @@
         border-radius: 3px;
         padding: 3px;
         order: 1;
+        pointer-events: all;
         // opacity: 0.2;
 
         .dramatic-hook-content {
@@ -591,7 +592,7 @@
       scale: 1.25;
       transform-origin: 50% 100%;
       z-index: 1;
-
+      pointer-events: all;
 
       span.pc-name {
           color: white;

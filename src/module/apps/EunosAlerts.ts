@@ -74,6 +74,12 @@ declare namespace EunosAlerts {
       header: string;
       body: string;
     }
+
+    export interface DramaticHookAssigned extends Base {
+      type: AlertType.dramaticHookAssigned,
+      header: string;
+      body: string;
+    }
     export interface AdvancementReward extends Base {
       type: AlertType.advancementReward,
       header: string,
@@ -88,7 +94,7 @@ declare namespace EunosAlerts {
     : T extends AlertType.stability ? Context.Stability
     : T extends AlertType.shatterIllusion ? Context.ShatterIllusion
     : T extends AlertType.dramaticHookReward ? Context.DramaticHookReward
-    : T extends AlertType.advancementReward ? Context.AdvancementReward
+    : T extends AlertType.dramaticHookAssigned ? Context.DramaticHookAssigned
     : never;
 
   /**
@@ -122,6 +128,9 @@ declare namespace EunosAlerts {
     export interface DramaticHookReward extends Context.DramaticHookReward, Base {
       type: AlertType.dramaticHookReward;
     }
+    export interface DramaticHookAssigned extends Context.DramaticHookAssigned, Base {
+      type: AlertType.dramaticHookAssigned;
+    }
     export interface AdvancementReward extends Context.AdvancementReward, Base {
       type: AlertType.advancementReward;
     }
@@ -134,9 +143,10 @@ declare namespace EunosAlerts {
     : T extends AlertType.stability ? Data.Stability
     : T extends AlertType.shatterIllusion ? Data.ShatterIllusion
     : T extends AlertType.dramaticHookReward ? Data.DramaticHookReward
+    : T extends AlertType.dramaticHookAssigned ? Data.DramaticHookAssigned
     : T extends AlertType.advancementReward ? Data.AdvancementReward
     : never;
-  export type Data = Data.Simple | Data.Central | Data.GMNotice | Data.CriticalWound | Data.SeriousWound | Data.Stability | Data.ShatterIllusion | Data.DramaticHookReward | Data.AdvancementReward;
+  export type Data = Data.Simple | Data.Central | Data.GMNotice | Data.CriticalWound | Data.SeriousWound | Data.Stability | Data.ShatterIllusion | Data.DramaticHookReward | Data.DramaticHookAssigned | Data.AdvancementReward;
 }
 // #endregion
 // #endregion
@@ -285,7 +295,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, 0.5)
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -309,7 +319,7 @@ const ALERTANIMATIONS: Record<AlertType, {
         ease: "power3.out"
       },
       extendTimeline: true
-    },
+    }
   },
   [AlertType.dramaticHookReward]: {
     in: {
@@ -331,7 +341,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -344,6 +354,52 @@ const ALERTANIMATIONS: Record<AlertType, {
     },
     out: {
       name: "dramaticHookRewardAlertOut",
+      effect: (target, config) => {
+        const {duration, stagger, ease} = config;
+        return gsap.timeline()
+          .fromTo(target, {opacity: 1}, {opacity: 0, duration, stagger, ease});
+      },
+      defaults: {
+        duration: 0.5,
+        stagger: 0.25,
+        ease: "power3.out"
+      },
+      extendTimeline: true
+    }
+  },
+  [AlertType.dramaticHookAssigned]: {
+    in: {
+      name: "simpleAlertIn",
+      effect: (target, config) => {
+        const {duration,  ease} = config;
+        const target$ = $(target as HTMLElement);
+        const container$ = target$.find(".alert-frame-body");
+        const containerHeight = container$.height() ?? 0;
+        const imgLogo$ = target$.find("img.k4-alert-logo");
+        const heading$ = target$.find("h2");
+        const hr$ = target$.find("hr");
+        const body$ = target$.find("p");
+
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+        const tl = gsap.timeline()
+          ["fadeShrinkIn"](target$, {duration, ease: "power2.inOut"})
+          ["fadeIn"](imgLogo$, {duration: 1}, "<50%")
+          ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
+          ["fadeIn"](heading$, {duration: 0.5}, "<50%")
+          ["spreadOut"](hr$, {endWidth: 500})
+          ["fadeIn"](body$, {}, "<50%");
+        return tl as gsap.core.Timeline;
+        /* eslint-enable */
+      },
+      defaults: {
+        duration: 1,
+        stagger: 0.25,
+        ease: "power3.in"
+      },
+      extendTimeline: true
+    },
+    out: {
+      name: "simpleAlertOut",
       effect: (target, config) => {
         const {duration, stagger, ease} = config;
         return gsap.timeline()
@@ -377,7 +433,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -423,7 +479,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -469,7 +525,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -515,7 +571,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -561,7 +617,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -611,7 +667,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -661,7 +717,7 @@ const ALERTANIMATIONS: Record<AlertType, {
           ["slideDown"](container$, {duration: 0.5, height: containerHeight, ease}, "<50%")
           ["fadeIn"](heading$, {duration: 0.5}, "<50%")
           ["spreadOut"](hr$, {endWidth: 500})
-          ["fadeIn"](body$, {}, "<50%")
+          ["fadeIn"](body$, {}, "<50%");
         return tl as gsap.core.Timeline;
         /* eslint-enable */
       },
@@ -820,7 +876,7 @@ class EunosAlerts {
       EunosAlerts.AlertQueue.add(thisAlert);
       EunosAlerts.RunQueue();
     }
-  }
+  };
 
   /**
   * Pre-Initialization of the EunosAlerts class. This method should be run during the "init" hook.
@@ -895,6 +951,9 @@ class EunosAlerts {
         // falls through
       case AlertType.dramaticHookReward:
         defaultSoundName ??= "alert-hit-dramatic-hook";
+        // falls through
+      case AlertType.dramaticHookAssigned:
+        defaultSoundName ??="alert-hit-dramatic-hook-assigned";
         // falls through
       case AlertType.advancementReward:
         defaultSoundName ??= "alert-hit-advancement";

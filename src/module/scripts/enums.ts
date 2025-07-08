@@ -97,6 +97,7 @@ export enum AlertType {
   test = "test",
   central = "central",
   dramaticHookReward = "dramaticHookReward",
+  dramaticHookAssigned = "dramaticHookAssigned",
   advancementReward = "advancementReward"
 }
 

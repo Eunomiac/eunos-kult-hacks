@@ -29,6 +29,7 @@
         data-item-id="{{_id}}" data-actor-id="{{pcID}}"><i class="far fa-minus-square"></i></a>
     </span>
     {{/if}}
+    
   </div>
 
   {{#if tooltip}}
@@ -36,6 +37,7 @@
     {{{tooltip}}}
   </div>
   {{/if}}
+
   {{> "modules/eunos-kult-hacks/templates/sheets/partials/item-controls.hbs" view=true show=true isGM=isGM id=_id }}
   {{/let}}
 </div>

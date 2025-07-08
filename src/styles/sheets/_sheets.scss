@@ -6,6 +6,10 @@
   .app {
     z-index: 100000 !important;
   }
+
+  .lock-sheet-button {
+    display: block !important;
+  }
 }
 
 .app {
@@ -17,6 +21,10 @@
       --lock-color: var(--K4-GREY);
 
       .item-delete {
+        display: none !important;
+      }
+
+      .passive-card .item-controls {
         display: none !important;
       }
     }
@@ -31,6 +39,7 @@
 
       .sheet-header {
         .lock-sheet-button {
+          display: none;
           position: absolute;
           left: 0px;
           top: 30px;

@@ -6,13 +6,22 @@
 
   .window-content {
     overflow-y: scroll;
+    padding: 0;
     .kult-sheet {
-      padding-bottom: 0;
+      padding: 0;
+
+      .hooks .section-label { font-weight: normal; }
 
       .section-label {
-        margin-bottom: 5px;
-        &:not(:first-of-type) {
-          margin-top: 10px;
+        font-family: var(--font-primary-smallcaps);
+        text-transform: lowercase;
+        margin: 5px 0 0px 0;
+        border: none;
+        font-weight: bold;
+
+
+        &:first-of-type {
+          margin-top:  0px;
         }
       }
       .item-list {
@@ -22,10 +31,6 @@
         }
         gap: 3px;
         padding: 0;
-        // display: flex;
-        // flex-direction: column;
-        // gap: 3px;
-        // padding: 0;
 
         .move-card {
           position: relative;
@@ -34,17 +39,29 @@
           margin: 0;
           order: 1;
           height: 30px;
+          transition: 0.1s;
 
-          &:not(.weapon-card):not(.gear-card) {
-            overflow: hidden;
-          }
+          // &:not(.weapon-card):not(.gear-card) {
+          //   overflow: hidden;
+          // }
 
           &:not(.passive-card) {
             filter: drop-shadow(2px 2px 4px black);
           }
 
+          .move-text {
+            color: var(--K4-GOLD);
+            font-weight: bold;
+            transition: 0.1s;
+          }
+
           &:hover {
-            .item-controls {
+          // scale: 1.03 !important;
+            .move-text {
+              filter: brightness(1.5);
+
+            }
+            .item-controls:not(.no-show) {
               transform: translateY(0);
               height: 24px;
               opacity: 1;
@@ -116,6 +133,16 @@
             }
           }
 
+          .item-controls .item-show {
+            font-size: 24px !important;
+            font-family: var(--font-primary-smallcaps);
+          }
+          &.passive-card {
+            margin-top: 5px;
+
+            .item-controls .item-show { display: none; }
+          }
+
           img {
             transform-origin: center center;
             scale: 1.5;
@@ -145,39 +172,60 @@
             transition: height 0.2s ease-out;
 
             .item-control {
-              color: var(--color-text-light-highlight);
+              color: var(--item-control-color, var(--K4-GREY));
               cursor: pointer;
+              transition: 0.15s;
+              line-height: 24px;
+              font-weight: 1000;
 
               &:hover {
-                color: var(--color-text-highlight);
+                color: var(--color-text-highlight, var(--K4-bbGOLD));
+                scale: 1.15;
+
+                &.item-delete {
+                  text-shadow: 0px 0px 2px red;
+                }
               }
+
+              i {
+                  font-size: 20px;
+                  line-height: 24px;
+              }
+
             }
 
             .item-delete {
+              --color-text-highlight: var(--K4-bbRED);
               opacity: 1;
+              margin-right: -4px;
+              margin-left: 15px;
+
+              i {
+                color: var(--K4-bRED);
+              }
             }
           }
 
           .item-charge-indicator {
-            height: 6px;
+            height: 100%;
             position: absolute;
             background: var(--fg-color);
             top: 0px;
             left: 0;
             max-width: 100%;
             width: 0;
-            filter: brightness(2) saturate(1.5) drop-shadow(0 0 3px var(--fg-color));
+            filter: brightness(1) saturate(1.5) drop-shadow(0 0 3px var(--fg-color));
             pointer-events: none;
           }
 
           &.weapon-card,
           &.gear-card {
-            --charge-indent: 0px;
-            left: 15px;
-            width: calc(100% - 15px);
+            --charge-indent: 20px;
+            left: var(--charge-indent);
+            width: calc(100% - var(--charge-indent));
             .is-equipped-container {
               .item-toggle-equipped {
-                color: var(--color-text-light-highlight);
+                color: var(--K4-dBLACK);
                 cursor: pointer;
 
                 &:hover {
@@ -197,15 +245,15 @@
               transform: translate(0%, -50%);
 
               a {
-                text-shadow:
-                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
-                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
-                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
-                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
-                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
-                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
-                  0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
-                  0 0 1px var(--icon-shadow, var(--K4-dBLACK));
+                // text-shadow:
+                //   0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                //   0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                //   0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                //   0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                //   0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                //   0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                //   0 0 1px var(--icon-shadow, var(--K4-dBLACK)),
+                //   0 0 1px var(--icon-shadow, var(--K4-dBLACK));
                 transition: transform 0.3s ease;
 
                 &:hover {
@@ -214,9 +262,32 @@
               }
 
               &.is-equipped-container {
-                --icon-shadow: var(--K4-ddGOLD);
-                color: var(--K4-GOLD);
-                left: -21px;
+                left: -24px;
+                font-size: 16px;
+                width: 19px;
+                text-align: center;
+
+                .far.fa-hand::before {
+                  font-weight: normal;
+                  opacity: 0.5;
+                }
+                .fas.fa-hand-rock::before {
+                  font-weight: 1000;
+                }
+
+
+                .fa-duotone.fa-hand-fist {
+                  --fa-primary-color: #000000;
+                  --fa-secondary-color: #000000;
+                  --fa-secondary-opacity: 0.5;
+                }
+
+                .fa-duotone.fa-hand {
+                  --fa-primary-color: #ffc085;
+                  --fa-primary-opacity: 0.25;
+                  --fa-secondary-color: #ffc085;
+                  --fa-secondary-opacity: 0.5;
+                }
               }
 
               &.reload-container {
@@ -284,6 +355,7 @@
             border: none;
             padding: 0 5px;
             order: 2;
+            filter: brightness(0.75);
 
             .item-name,
             .item-name * {
@@ -291,13 +363,12 @@
               font-style: italic;
               // pointer-events: none;
               box-shadow: none !important;
-              text-shadow: none !important;
+              // text-shadow: none !important;
               cursor: default !important;
             }
 
             img {
               filter: drop-shadow(0 0 0px black);
-              scale: 1;
             }
           }
         }
@@ -570,8 +641,9 @@
           .gear-card {
             padding: 2px 5px;
 
+
             .is-equipped-container {
-              scale: 0.8;
+              // scale: 0.8;
               transform-origin: center top;
               // top: 0;
               left: -18px;
@@ -584,10 +656,14 @@
         .top-section {
           .character-name {
             input {
-              margin: 0 0 -12px 0;
+              margin: -10px 0 -12px 0;
               height: 60px;
               width: 96%;
               font-size: 50px;
+              padding: 0;
+              font-family: var(--font-primary-smallcaps);
+              text-transform: lowercase;
+              letter-spacing: -2px;
             }
           }
         }
@@ -653,7 +729,7 @@
                 transform-origin: center center;
                 margin-left: -10px;
                 margin-right: -15px;
-                font-family: Sokol;
+                font-family: var(--font-decorative);
                 font-size: 40px;
               }
               .hook-list {
@@ -812,13 +888,18 @@
           .middle-section {
             display: flex;
             gap: 10px;
+            justify-content: flex-start;
 
             .attribute-column {
-              transform-origin: top right;
+              transform-origin: top left;
               scale: 90%;
               flex: 0 0 auto;
+              padding: 0;
+              max-width: 180px;
 
               .attribute-box {
+                background: transparent;
+
                 select,
                 select option {
                   font-family: var(--font-primary);
@@ -840,6 +921,7 @@
             .advantage-box {
               flex: 1;
               min-width: 0;
+              padding: 0;
             }
           }
         }

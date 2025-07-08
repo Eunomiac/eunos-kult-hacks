@@ -1,7 +1,9 @@
 [id*="-Item-"] {
 
   .window-content {
+    padding: 0;
     form {
+
       header.sheet-header {
         img {
           padding: 0;
@@ -11,11 +13,17 @@
         }
         h1 input {
           margin: 0;
-          height: 32px;
+          height: 38px;
           border: none;
+          margin-top: 12px;
+          display: block;
+          font-size: 32px;
         }
       }
       .kult-item-sheet {
+
+        font-size: 16px;
+        padding: 0px 5px;
 
 
         .flex-row {
@@ -65,58 +73,143 @@
           }
         }
 
+        .roll-results-block {
 
-        .attack-row {
-          // margin-bottom: 10px;
+          .results-input {
+            display: inline-flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 15px;
+            width: 100%;
 
-          .flex-row {
-            align-items: baseline;
-            gap: 5px;
-            max-height: 20px;
+            .editor-row {
+              display: flex;
+              flex-direction: row;
+              justify-content: flex-start;
+              width: 100%;
+              min-width: 100%;
+              gap: 10px;
 
-            label {
-              white-space: nowrap;
-              font-size: 12px;
-            }
+              > label {
+                color: var(--K4-RED);
+              }
 
-            .harm-input {
-              font-weight: 1000;
-              color: var(--K4-BLUE);
-              font-size: 18px;
-              height: 18px;
-            }
+              > div {
+                flex: 1;
+              }
 
-            .ammo-input {
-              font-weight: 1000;
-              color: var(--K4-bRED);
-              font-size: 18px;
-              height: 18px;
+              &.uneditable {
+                margin: 0;
 
+                label {
+                  display: inline-block;
+                  margin-top: 2px;
+                  color: var(--K4-RED);
+                }
+
+                .editor {
+                  margin: 0;
+
+                  .editor-content,
+                  .editor-content * {
+                    margin: 0;
+                  }
+                }
+              }
             }
           }
 
+        }
+
+        .weapon-attacks {
+          margin: 10px 15px 0px 15px;
+          // outline: 1px solid black;
+          padding: 0;
+          // margin-bottom: 0 !important;
+
+
+          .attack-row {
+            padding: 3px 5px;
+              // margin: 5px 0px;
+
+            &:nth-of-type(2n) {
+              background: rgba(0, 0, 0, 0.1);
+            }
+            &:last-child {
+              padding-bottom: 0;
+            }
+
+            .flex-row {
+              align-items: baseline;
+              gap: 5px;
+              // max-height: 20px;
+
+              &:nth-child(2) {
+                font-size: 12px;
+                margin-top: 0px;
+                margin-left: 20px;
+                // text-indent: 20px;
+              }
+
+              .name-input {
+                padding: 0;
+
+                &.uneditable {
+                  height: auto;
+                }
+              }
+
+              label {
+                white-space: nowrap;
+                font-size: 12px;
+              }
+
+              .harm-input {
+                font-weight: 1000;
+                color: var(--K4-BLUE);
+                font-size: 18px;
+                height: 18px;
+              }
+
+              .ammo-input {
+                font-weight: 1000;
+                color: var(--K4-bRED);
+                font-size: 18px;
+                height: 18px;
+
+              }
+            }
 
             .flex-row:first-of-type input[type="text"]:first-of-type {
+              font-weight: 600;
+            }
+            &:first-of-type .flex-row:first-of-type input[type="text"]:first-of-type {
               font-weight: 1000;
+              font-family: var(--font-primary-smallcaps);
+              text-transform: lowercase;
+              font-size: 20px;
             }
-            .flex-row:nth-of-type(2) {
-              position: relative;
+              .flex-row:nth-of-type(2) {
+                position: relative;
 
-              &::before {
-                content: "↳";
-                font-size: 12px;
-                position: absolute;
-                left: 5px;
-                top: -2px;
-                color: black;
+                &::before {
+                  content: "↳";
+                  font-size: 12px;
+                  position: absolute;
+                  left: 5px;
+                  top: -2px;
+                  color: black;
+                }
+
+                input[type="text"] {
+                margin-top: -5px;
+                text-indent: 10px;
+                }
               }
 
-              input[type="text"] {
-              margin-top: -5px;
-              text-indent: 10px;
-              }
-            }
-
+          }
         }
 
         .editor {
@@ -128,6 +221,31 @@
 
         }
 
+      }
+
+      &.weapon-sheet,
+      &.gear-sheet {
+
+        input:disabled {
+          color: initial;
+        }
+        header.sheet-header {
+          img {
+            display: none;
+          }
+          h1 {
+            display: block;
+            width: 100%;
+
+            input {
+              display: block;
+              width: 100%;
+              text-align: center;
+              margin: 5px 0 0 0;
+
+            }
+          }
+        }
       }
 
       &.uneditable {

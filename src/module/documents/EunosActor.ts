@@ -6,7 +6,7 @@ import type ActorDataPC from "../data-model/ActorDataPC";
 import { getTemplatePath, getOwnerOfDoc } from "../scripts/utilities";
 import EunosAlerts, { AlertType } from "../apps/EunosAlerts";
 import EunosChatMessage, {
-  type ResultRolledContext,
+  type ResultRolledContext
 } from "../apps/EunosChatMessage";
 import { EunosRollResult, CounterResetOn } from "../scripts/enums";
 
@@ -93,7 +93,7 @@ export default function registerEunosActor(): void {
         "modules/eunos-kult-hacks/assets/images/npcs/young-woman-2.webp",
         "modules/eunos-kult-hacks/assets/images/npcs/young-woman-3.webp",
         "modules/eunos-kult-hacks/assets/images/npcs/young-woman-4.webp",
-        "modules/eunos-kult-hacks/assets/images/npcs/young-woman-5.webp",
+        "modules/eunos-kult-hacks/assets/images/npcs/young-woman-5.webp"
       ];
 
       /**
@@ -104,14 +104,14 @@ export default function registerEunosActor(): void {
 
       // Find or create the "Generic NPCs" folder
       let folder = game.folders?.find(
-        (f) => f.name === "Generic NPCs" && f.type === "Actor",
+        (f) => f.name === "Generic NPCs" && f.type === "Actor"
       );
       if (!folder) {
         // @ts-expect-error Folder.create is not typed
         folder = await Folder.create({
           name: "Generic NPCs",
           type: "Actor",
-          parent: null,
+          parent: null
         });
       }
 
@@ -128,7 +128,7 @@ export default function registerEunosActor(): void {
 
         // Check if actor already exists in the folder
         const existingActor = getActors().find(
-          (a) => a.name === actorName && a.folder?.id === folder!.id,
+          (a) => a.name === actorName && a.folder?.id === folder!.id
         );
 
         // Only create if it doesn't exist
@@ -140,7 +140,7 @@ export default function registerEunosActor(): void {
             img: imagePath,
             folder: folder!.id,
             sort: 0,
-            system: {}, // Add any default system data needed for NPCs
+            system: {} // Add any default system data needed for NPCs
           });
         }
       }
@@ -168,11 +168,11 @@ export default function registerEunosActor(): void {
       }
       // First, remove any existing basic moves
       const basicMoves = this.items.contents.filter(
-        (item) => item.type === "move",
+        (item) => item.type === "move"
       );
       await this.deleteEmbeddedDocuments(
         "Item",
-        basicMoves.map((move) => move._id ?? ""),
+        basicMoves.map((move) => move._id ?? "")
       );
 
       const pack = getPacks().get("eunos-kult-hacks.moves");
@@ -181,13 +181,13 @@ export default function registerEunosActor(): void {
       }
       const index = pack.indexed ? pack.index : await pack.getIndex();
       const moves = index.map((move) =>
-        pack.getDocument(move._id).then((item) => item?.toObject()),
+        pack.getDocument(move._id).then((item) => item?.toObject())
       );
       await Promise.all(moves).then(async (objects) => {
         if (objects) {
           await this.createEmbeddedDocuments(
             "Item",
-            objects.filter(Boolean) as foundry.documents.BaseItem.CreateData[],
+            objects.filter(Boolean) as foundry.documents.BaseItem.CreateData[]
           );
         }
       });
@@ -201,7 +201,7 @@ export default function registerEunosActor(): void {
         this.system.majorwound1,
         this.system.majorwound2,
         this.system.majorwound3,
-        this.system.majorwound4,
+        this.system.majorwound4
       ].filter((wound) => wound.state === "unstabilized").length;
     }
 
@@ -318,7 +318,7 @@ export default function registerEunosActor(): void {
         GuiltRidden: this.system.conditionGuiltRidden,
         Obsessed: this.system.conditionObsessed,
         Distracted: this.system.conditionDistracted,
-        Haunted: this.system.conditionHaunted,
+        Haunted: this.system.conditionHaunted
       };
       const conditionPenaltyMap = {
         Angry: -1,
@@ -327,10 +327,10 @@ export default function registerEunosActor(): void {
         GuiltRidden: -1,
         Obsessed: -1,
         Distracted: -2,
-        Haunted: -1,
+        Haunted: -1
       };
       function formatConditionRow(
-        conditions: Array<keyof typeof conditionMap>,
+        conditions: Array<keyof typeof conditionMap>
       ) {
         return `<div class="condition-buttons">
           ${conditions
@@ -341,7 +341,7 @@ export default function registerEunosActor(): void {
               <span class="inactive-icon">❌</span>
               <span class="condition-label">${condition.replace("GuiltRidden", "Guilt-Ridden")}</span>
             </button>
-          `,
+          `
             )
             .join("")}
         </div>`;
@@ -349,7 +349,7 @@ export default function registerEunosActor(): void {
       const activeConditions = Object.keys(conditionMap).filter(
         (condition): condition is keyof typeof conditionMap =>
           conditionMap[condition as keyof typeof conditionMap].state ===
-          "checked",
+          "checked"
       );
       if (activeConditions.length === 0) {
         return [];
@@ -376,18 +376,18 @@ export default function registerEunosActor(): void {
                       condition,
                       $(html)
                         .find(`button[data-condition="${condition}"]`)
-                        .hasClass("active"),
-                    ]),
-                  ) as Record<keyof typeof conditionMap, boolean>,
+                        .hasClass("active")
+                    ])
+                  ) as Record<keyof typeof conditionMap, boolean>
                 );
-              },
+              }
             },
             cancel: {
               label: "❌",
               callback: () => {
                 resolve(null);
-              },
-            },
+              }
+            }
           },
           render: (html: HTMLElement | JQuery) => {
             $(html)
@@ -399,7 +399,7 @@ export default function registerEunosActor(): void {
                 event.preventDefault();
                 $(event.currentTarget).toggleClass("active");
               });
-          },
+          }
         }).render(true);
       });
       if (hinderingConditions === null) {
@@ -409,21 +409,21 @@ export default function registerEunosActor(): void {
       kLog.log(
         "Hindering Conditions total => ",
         -1 * Object.values(hinderingConditions).filter(Boolean).length -
-          (hinderingConditions.Distracted ? 1 : 0),
+          (hinderingConditions.Distracted ? 1 : 0)
       );
       return Object.entries(hinderingConditions)
         .filter(([_, value]) => value)
         .map(([key]) => ({
           value: conditionPenaltyMap[key as keyof typeof conditionPenaltyMap],
           name: key,
-          cssClasses: "modifier-negative",
+          cssClasses: "modifier-negative"
         }));
     }
 
     get armor(): number {
       const gearItems = this.items.filter(
         (item) =>
-          item.type === "gear" && (item.system as ItemDataGear).isEquipped,
+          item.type === "gear" && (item.system as ItemDataGear).isEquipped
       ) as Array<EunosItem & { system: ItemDataGear }>;
       return gearItems.reduce((acc, gear) => acc + (gear.system.armor ?? 0), 0);
     }
@@ -433,7 +433,7 @@ export default function registerEunosActor(): void {
         (item) =>
           item.isWeapon() &&
           item.system.isEquipped &&
-          item.system.availableAttacks.length > 0,
+          item.system.availableAttacks.length > 0
       );
     }
 
@@ -489,9 +489,9 @@ export default function registerEunosActor(): void {
             "advancementExp2",
             "advancementExp3",
             "advancementExp4",
-            "advancementExp5",
+            "advancementExp5"
           ] as const
-        ).findIndex((xp) => this.system[xp].state === "none"),
+        ).findIndex((xp) => this.system[xp].state === "none")
       );
       return `advancementExp${curXP + 1}` as
         | "advancementExp1"
@@ -530,7 +530,7 @@ export default function registerEunosActor(): void {
           type: AlertType.advancementReward,
           header: "You've Gained an Advancement!",
           body: "Between sessions, navigate to the 'Advancement' tab on your sheet and choose one of the available options.",
-          target: getOwnerOfDoc(this)?.id ?? undefined,
+          target: getOwnerOfDoc(this)?.id ?? undefined
         });
       }
     }
@@ -570,7 +570,7 @@ export default function registerEunosActor(): void {
       if (!this.isPC() && /-\d+\.webp$/.test(this.img as string)) {
         return (this.img as string).replace(
           /-(\d+)\.webp$/,
-          "-$1-goggles.webp",
+          "-$1-goggles.webp"
         );
       }
       return this.img as string;
@@ -583,7 +583,7 @@ export default function registerEunosActor(): void {
       source,
       resultText,
       optionsText,
-      rollMode,
+      rollMode
     }: {
       roll: Roll;
       attribute: string;
@@ -597,7 +597,7 @@ export default function registerEunosActor(): void {
       optionsText: string;
       rollMode: string;
     },
-      auxChatContent$?: JQuery,
+      auxChatContent$?: JQuery
     ) {
       if (!this.isPC()) {
         return;
@@ -611,7 +611,7 @@ export default function registerEunosActor(): void {
       if (dieVals.length !== 2) {
         kLog.error(`Kult rolls require two dice, found ${dieVals.length} dice: ${dieVals.join(", ")}`, {roll, dice: roll.dice, dieVals});
         throw new Error(
-          `Kult rolls require two dice, found ${dieVals.length} dice: ${dieVals.join(", ")}`,
+          `Kult rolls require two dice, found ${dieVals.length} dice: ${dieVals.join(", ")}`
         );
       }
 
@@ -647,7 +647,7 @@ export default function registerEunosActor(): void {
         isWideDropCap,
         attribute,
         attrType: ["fortitude", "willpower", "reflexes"].includes(
-          attribute.toLowerCase(),
+          attribute.toLowerCase()
         )
           ? "passive"
           : "active",
@@ -663,14 +663,14 @@ export default function registerEunosActor(): void {
         total,
         outcome,
         resultText,
-        optionsText,
+        optionsText
       };
 
       const contents: string[] = [
         await renderTemplate(
           getTemplatePath("sidebar", "result-rolled.hbs"),
-          templateData,
-        ),
+          templateData
+        )
       ];
 
       if (auxChatContent$) {
@@ -683,7 +683,7 @@ export default function registerEunosActor(): void {
         // Clear the contents array.
         contents.length = 0;
         // Push the new chat content with outer HTML.
-        contents.push((chatContent$.prop('outerHTML') as Maybe<string>) ?? "");
+        contents.push((chatContent$.prop("outerHTML") as Maybe<string>) ?? "");
       }
 
       const chatData = {
@@ -724,7 +724,7 @@ export default function registerEunosActor(): void {
         "Coolness",
         "Violence",
         "Charisma",
-        "Soul",
+        "Soul"
       ];
 
       function formatAttributeButtons(attributes: string[]) {
@@ -735,7 +735,7 @@ export default function registerEunosActor(): void {
             <button class="attribute-button" data-attribute="${attribute.toLowerCase()}">
               <span class="attribute-label">${getLocalizer().localize(`k4lt.${attribute}`)}</span>
             </button>
-          `,
+          `
             )
             .join("")}
         </div>`;
@@ -757,8 +757,8 @@ export default function registerEunosActor(): void {
               label: "❌",
               callback: () => {
                 resolve(null);
-              },
-            },
+              }
+            }
           },
           render: (html: HTMLElement | JQuery) => {
             $(html)
@@ -768,7 +768,7 @@ export default function registerEunosActor(): void {
               .find(".attribute-button")
               .on("click", function (event) {
                 const value = $(event.currentTarget).data(
-                  "attribute",
+                  "attribute"
                 ) as string;
                 resolve(value);
                 $(event.currentTarget)
@@ -777,7 +777,7 @@ export default function registerEunosActor(): void {
                   .trigger("click");
               });
           },
-          default: "cancel",
+          default: "cancel"
         }).render(true);
       });
 
@@ -819,14 +819,14 @@ export default function registerEunosActor(): void {
             showOptionsFor,
             failure,
             partialsuccess,
-            specialflag,
+            specialflag
           } = move.system;
 
           const simpleOptionsCheck = {
             [EunosRollResult.completeSuccess]: showOptionsFor.success,
             [EunosRollResult.partialSuccess]: showOptionsFor.partial,
-            [EunosRollResult.failure]: showOptionsFor.failure,
-          }
+            [EunosRollResult.failure]: showOptionsFor.failure
+          };
 
           let auxChatContent$: Maybe<JQuery> = undefined;
 
@@ -841,7 +841,7 @@ export default function registerEunosActor(): void {
             modifiers.push({
               value: woundPenalty,
               name: "Wounds",
-              cssClasses: "modifier-negative",
+              cssClasses: "modifier-negative"
             });
           }
 
@@ -850,7 +850,7 @@ export default function registerEunosActor(): void {
             modifiers.push({
               value: stabilityPenalty,
               name: "Stability",
-              cssClasses: "modifier-negative",
+              cssClasses: "modifier-negative"
             });
           }
 
@@ -861,16 +861,16 @@ export default function registerEunosActor(): void {
             modifiers.push({
               value: this.system.forward,
               name: "One-Time Modifier",
-              cssClasses: this.system.forward > 0 ? "modifier-positive" : "modifier-negative",
-            })
+              cssClasses: this.system.forward > 0 ? "modifier-positive" : "modifier-negative"
+            });
           }
 
           if (this.system.ongoing) {
             modifiers.push({
               value: this.system.ongoing,
               name: "Ongoing Modifier",
-              cssClasses: this.system.ongoing > 0 ? "modifier-positive" : "modifier-negative",
-            })
+              cssClasses: this.system.ongoing > 0 ? "modifier-positive" : "modifier-negative"
+            });
           }
 
           if (specialflag === 3) { // Endure Injury
@@ -885,7 +885,7 @@ export default function registerEunosActor(): void {
                         ${[1, 2, 3, 4, 5, 6]
                           .map(
                             (num) =>
-                              `<button class="harm-button" data-value="${num}">${num}</button>`,
+                              `<button class="harm-button" data-value="${num}">${num}</button>`
                           )
                           .join("")}
                       </div>
@@ -895,8 +895,8 @@ export default function registerEunosActor(): void {
                       label: "❌",
                       callback: () => {
                         resolve({ harm_value: null });
-                      },
-                    },
+                      }
+                    }
                   },
                   render: function (html: HTMLElement | JQuery) {
                     $(html)
@@ -906,7 +906,7 @@ export default function registerEunosActor(): void {
                       .find(".harm-button")
                       .on("click", function (event) {
                         const value = Number(
-                          event.currentTarget.dataset["value"],
+                          event.currentTarget.dataset["value"]
                         );
                         resolve({ harm_value: value });
                         $(event.currentTarget)
@@ -915,9 +915,9 @@ export default function registerEunosActor(): void {
                           .trigger("click");
                       });
                   },
-                  default: "cancel",
+                  default: "cancel"
                 }).render(true);
-              },
+              }
             );
 
             if (boxoutput.harm_value === null) {
@@ -927,20 +927,20 @@ export default function registerEunosActor(): void {
             modifiers.push({
               value: -1 * boxoutput.harm_value,
               name: "Harm",
-              cssClasses: "modifier-negative",
+              cssClasses: "modifier-negative"
             });
 
             if (this.armor > 0) {
               modifiers.push({
                 value: this.armor,
                 name: "Armor",
-                cssClasses: "modifier-positive",
+                cssClasses: "modifier-positive"
               });
             }
           } else if (specialflag === 4) { // Engage In Combat
             const content = await renderTemplate(
               getTemplatePath("dialog", "dialog-engage-in-combat.hbs"),
-              this,
+              this
             );
             const dialogOutput = await new Promise<Maybe<{
               weapon: EunosItem;
@@ -951,17 +951,17 @@ export default function registerEunosActor(): void {
                 content,
                 buttons: {
                   submit: {
-                    icon: '<i class="fas fa-check"></i>',
+                    icon: "<i class=\"fas fa-check\"></i>",
                     label: "Ok",
                     callback: (html) => {
                       const selectedAttack = $(html).find(
-                        ".weapon-attack-block[data-is-selected='true']",
+                        ".weapon-attack-block[data-is-selected='true']"
                       );
                       const weaponID = selectedAttack.data(
-                        "item-id",
+                        "item-id"
                       ) as Maybe<string>;
                       const attackIndex = selectedAttack.data(
-                        "attack-index",
+                        "attack-index"
                       ) as Maybe<string>;
                       if (!weaponID || attackIndex === undefined) {
                         getNotifier().warn("Weapon or attack index not found");
@@ -984,29 +984,29 @@ export default function registerEunosActor(): void {
                           {
                             _id: weapon._id,
                             "system.ammo.value":
-                              weapon.system.ammo.value - attack.ammoCost,
-                          },
+                              weapon.system.ammo.value - attack.ammoCost
+                          }
                         ]);
                       }
                       resolve({
                         weapon,
-                        index: Number(attackIndex),
+                        index: Number(attackIndex)
                       });
-                    },
+                    }
                   },
                   cancel: {
                     label: "❌",
                     callback: () => {
                       resolve(null);
-                    },
-                  },
+                    }
+                  }
                 },
                 render: (html) => {
                   // Add click handlers for each weapon attack block, which will update the data-is-selected attribute to true
                   // and set all other data-is-selected attributes to false
                   const html$ = $(html);
                   const weaponAttackBlocks$ = html$.find(
-                    ".weapon-attack-block",
+                    ".weapon-attack-block"
                   );
                   weaponAttackBlocks$.on({
                     click: (event) => {
@@ -1015,13 +1015,13 @@ export default function registerEunosActor(): void {
                       html$
                         .find(".dialog-button.submit")
                         .prop("disabled", false);
-                    },
+                    }
                   });
 
                   // If there is only one weapon being displayed, and if one of its attacks 'isDefault', select it by default
                   if (html$.find(".weapon-card-container").length === 1) {
                     const defaultAttackBlock$ = html$.find(
-                      ".weapon-attack-block[data-attack-index='0']",
+                      ".weapon-attack-block[data-attack-index='0']"
                     );
                     if (defaultAttackBlock$.length > 0) {
                       $(defaultAttackBlock$).attr("data-is-selected", "true");
@@ -1030,7 +1030,7 @@ export default function registerEunosActor(): void {
 
                   // If there are no selected attacks, disable the submit button
                   const selectedAttackBlocks$ = html$.find(
-                    ".weapon-attack-block[data-is-selected='true']",
+                    ".weapon-attack-block[data-is-selected='true']"
                   );
                   if (selectedAttackBlocks$.length === 0) {
                     html$.find(".dialog-button.submit").prop("disabled", true);
@@ -1038,7 +1038,7 @@ export default function registerEunosActor(): void {
                     html$.find(".dialog-button.submit").prop("disabled", false);
                   }
                 },
-                default: "submit",
+                default: "submit"
               }).render(true);
             });
             if (dialogOutput === null) {
@@ -1048,6 +1048,14 @@ export default function registerEunosActor(): void {
               auxChatContent$ =
                 $(dialogOutput.weapon.getAttackChatMessage(dialogOutput.index));
             }
+          } else if (specialflag === 5) { // Dreamweave
+            if (this.items.some((item) => item.name === "Dreamer")) {
+              modifiers.push({
+                value: 1,
+                name: "Dreamer",
+                cssClasses: "modifier-positive"
+              });
+            }
           }
 
           kLog.log("Modifiers => ", modifiers);
@@ -1056,7 +1064,7 @@ export default function registerEunosActor(): void {
           const modTotal = modifiers.reduce((acc, mod) => acc + mod.value, 0);
 
           const r = new Roll(
-            `2d10 + ${attrVal} + ${modTotal}`,
+            `2d10 + ${attrVal} + ${modTotal}`
           );
           await r.evaluate();
 
@@ -1074,7 +1082,7 @@ export default function registerEunosActor(): void {
           const resultText = {
             [EunosRollResult.completeSuccess]: completesuccess ?? "",
             [EunosRollResult.partialSuccess]: partialsuccess ?? "",
-            [EunosRollResult.failure]: failure ?? "",
+            [EunosRollResult.failure]: failure ?? ""
           }[outcome] ?? "";
 
           await this.update({ system: { forward: 0 } });
@@ -1088,10 +1096,10 @@ export default function registerEunosActor(): void {
             source: move,
             resultText,
             optionsText: simpleOptionsCheck[outcome] ? (options ?? "") : "",
-            rollMode: rollMode ?? "",
+            rollMode: rollMode ?? ""
           }, auxChatContent$);
         } else {
-          await move.showInChat();
+          await move.moveTrigger();
         }
       }
     }
@@ -1108,7 +1116,7 @@ export default function registerEunosActor(): void {
       if (EunosOverlay.instance.isAssigningDramaticHooks) {
         EunosOverlay.instance.updateDramaticHookAssignmentPopUp(
           getOwnerOfDoc(this)?.id ?? "",
-          this.system.dramatichooks.assignedHook ?? "",
+          this.system.dramatichooks.assignedHook ?? ""
         );
       }
     }

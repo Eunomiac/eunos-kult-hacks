@@ -7,6 +7,7 @@
 @use "overlay/location-plotting-panel";
 @use "overlay/max-zindex-bars";
 @use "overlay/stage-end-phase";
+@use "overlay/limbo_stage";
 
 html {
 	position: static;
@@ -172,8 +173,8 @@ html {
 
 
       .app.dialog.blurred-bg-dialog.assign-dramatic-hook-dialog {
-        scale: 2;
-        transform-origin: center center;
+        // scale: 2;
+        // transform-origin: center center;
       }
     }
   }

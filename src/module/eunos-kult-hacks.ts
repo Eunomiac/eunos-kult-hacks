@@ -85,8 +85,10 @@ const templatePaths = [
   "modules/eunos-kult-hacks/templates/sheets/partials/darksecret-card.hbs",
   "modules/eunos-kult-hacks/templates/sheets/partials/gear-card.hbs",
   "modules/eunos-kult-hacks/templates/alerts/alert-simple.hbs",
+  "modules/eunos-kult-hacks/templates/alerts/alert-dramaticHookAssigned.hbs",
   "modules/eunos-kult-hacks/templates/apps/chat/roll-card.hbs",
   "modules/eunos-kult-hacks/templates/sidebar/result-rolled.hbs",
+  "modules/eunos-kult-hacks/templates/sidebar/result-triggered.hbs",
   "modules/eunos-kult-hacks/templates/sidebar/chat-message.hbs",
   "modules/eunos-kult-hacks/templates/dialog/dialog-engage-in-combat.hbs",
   "modules/eunos-kult-hacks/templates/dialog/volume-control.hbs",
@@ -109,7 +111,7 @@ async function preloadHandlebarTemplates() {
  */
 function removeK4ltHook(hookName: string, pattern: RegExp): boolean {
   // Check if the hook exists
-  if (!Hooks.events.includes(hookName)) {
+  if (!(hookName in Hooks.events)) {
     kLog.error(`Hook '${hookName}' not found in Hooks.events`);
     return false;
   }

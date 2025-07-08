@@ -38,7 +38,7 @@ gsap.registerEffect({
       );
   },
   defaults: { duration: 0.25 },
-  extendTimeline: true,
+  extendTimeline: true
 });
 
 // Add a hide effect as well for consistency
@@ -55,7 +55,7 @@ gsap.registerEffect({
       }
     }),
   defaults: { duration: 0.25 },
-  extendTimeline: true,
+  extendTimeline: true
 });
 
 /**
@@ -78,7 +78,6 @@ function showPopover(event: JQuery.MouseEnterEvent) {
   const popoverTrigger$ = $(event.currentTarget as HTMLElement);
   const popover = popoverTrigger$.nextAll("[popover]").first()[0] as Maybe<HTMLElement>;
   if (!popover) {
-    console.error(`Popover element not found for: ${popoverTrigger$.attr('class')}`);
     return undefined;
   }
 
@@ -99,7 +98,6 @@ function hidePopover(event: JQuery.MouseLeaveEvent) {
   const popoverTrigger$ = $(event.currentTarget as HTMLElement);
   const popover = popoverTrigger$.nextAll("[popover]").first()[0] as Maybe<HTMLElement>;
   if (!popover) {
-    console.error(`Popover element not found for: ${popoverTrigger$.attr('class')}`);
     return undefined;
   }
 

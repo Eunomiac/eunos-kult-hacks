@@ -42,7 +42,7 @@ export function initializeGSAP(): void {
             scale: 1.5,
             duration: 0.2,
             ease: "back.out",
-            onComplete: () => { gsap.set(target, { scale: 1 }) }
+            onComplete: () => { gsap.set(target, { scale: 1 }); }
           });
         }
       });
@@ -75,7 +75,7 @@ export function initializeGSAP(): void {
       const timeToStaggerTargets = duration / targets$.length;
       return gsap.timeline({delay})
         .fromTo(textContainer$, {
-          autoAlpha: 0,
+          autoAlpha: 0
         }, {
           autoAlpha: 1,
           duration: 0.1,
@@ -93,7 +93,7 @@ export function initializeGSAP(): void {
           xPercent: -50,
           yPercent: -50,
           rotate: -30,
-          scale: 1,
+          scale: 1
         }, {
           xPercent: -50,
           yPercent: -50,
@@ -123,7 +123,7 @@ export function initializeGSAP(): void {
               from: "start"
             }
           },
-          0.1)
+          0.1);
     }
   });
   gsap.registerEffect({
@@ -182,7 +182,7 @@ export function initializeGSAP(): void {
         .add(treeTimeline, 0)
         .add(textTimeline, 0);
     }
-  })
+  });
   // Register custom effects
   gsap.registerEffect({
     name: "displayOverlayItem",
@@ -327,34 +327,67 @@ export function initializeGSAP(): void {
     name: "itemCardChargeUp",
     effect: (targets: gsap.TweenTarget, config = {}) => {
       const target$ = $(targets as HTMLElement);
-      const indicator$ = target$.find('.item-charge-indicator');
+      const indicator$ = target$.find(".item-charge-indicator");
+      const card$ = target$.closest(".move-card");
+      const itemControls$ = card$.find(".item-controls");
 
       // Set initial state
       gsap.set(indicator$, {
-        width: '0%',
+        width: "0%",
         opacity: 0.7
       });
 
       // Create the charge-up timeline
       const tl = gsap.timeline({
         paused: true,
+        onStart: () => {
+          itemControls$.addClass("no-show");
+        },
+        onReverseComplete: () => {
+          itemControls$.removeClass("no-show");
+        },
         onComplete: () => {
           // Flash effect when complete
-          gsap.to(target$, {
-            backgroundColor: 'rgba(255, 200, 0, 0.2)',
+          gsap.fromTo(card$, {
+            filter: "brightness(1)",
+            scale: 1,
+            zIndex: 0
+          }, {
+            filter: "brightness(2)",
+            scale: 1.15,
+            zIndex: 1,
             duration: 0.2,
-            ease: "back.out",
+            repeat: 1,
+            yoyo: true,
+            ease: "power.inOut",
             onComplete: () => {
-              gsap.set(target$, { backgroundColor: '' });
-              gsap.set(indicator$, { width: '0%', opacity: 0 });
+              gsap.set(card$, { filter: "brightness(1)", scale: 1 });
+              gsap.set(indicator$, { width: "0%", opacity: 0 });
+              itemControls$.removeClass("no-show");
             }
+          });
+          gsap.to(card$.find(".move-text"), {
+            color: "#000000",
+            duration: 0.2,
+            repeat: 1,
+            yoyo: true,
+            ease: "power.inOut"
           });
         }
       });
 
+      // Elevate the card to a higher z-Index
+      tl.fromTo(card$, {
+        zIndex: 0
+      }, {
+        zIndex: 1,
+        duration: 0,
+        ease: "none"
+      }, 0);
+
       // Animate the indicator
       tl.to(indicator$, {
-        width: '100%',
+        width: "100%",
         duration: 1,
         ease: "power1.in"
       });

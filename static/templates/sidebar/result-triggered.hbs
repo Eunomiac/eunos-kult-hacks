@@ -1,0 +1,34 @@
+{{!-- {{log "{CHAT} result-rolled.hbs" this}} --}}
+
+<div class="eunos-chat {{cssClass}}">
+
+  <div class="roll-intro-header">
+    <img class="drop-cap {{~#if isWideDropCap}} wide-drop-cap{{/if}}" src="{{getDropCap rollerName}}" />
+    <span class="roll-char-name">{{getRestCaps rollerName}}</span>
+    <span class="roll-intro-line">
+      activates
+    </span>
+    <div class="icon-container icon-completeSuccess">
+      {{#if (test ".svg" in sourceImg)}}
+      <div class="chat-icon"
+        style="mask: url({{sourceImg}}) no-repeat center; -webkit-mask: url({{sourceImg}}) no-repeat center;"></div>
+      <svg class="non-chat-icon svg-container" title="{{sourceName}}">
+        <use href="{{sourceImg}}#icon"></use>
+      </svg>
+      {{else}}
+      <img src="{{sourceImg}}" />
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="roll-source-header">
+    <span class="roll-source-name">
+      <span class="roll-source-text">{{sourceName}}</span>
+    </span>
+  </div>
+
+  <div class="result-entry conditional-center">
+    {{{resultText}}}
+  </div>
+
+</div>

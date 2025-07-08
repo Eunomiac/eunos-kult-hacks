@@ -11,10 +11,21 @@ body:not(.gm-user) #notifications {
   }
 }
 
-#macro-list {
-  .macro-key {
-    display: none;
+#hotbar {
+
+  .bar-controls {
+    color: var(--K4-bbGOLD);
   }
+
+  #macro-list {
+    .macro-key {
+      display: none;
+    }
+  }
+}
+
+#context-menu {
+  color: var(--K4-bGOLD);
 }
 
 #quench-results {

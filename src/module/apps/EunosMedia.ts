@@ -1,6 +1,6 @@
 import { EunosMediaCategories, EunosMediaTypes, MediaLoadStatus, UserTargetRef } from "../scripts/enums";
 import { Sounds, PRE_SESSION, type EunosMediaData } from "../scripts/constants";
-import { isEmpty, objDeepFlatten } from "../scripts/utilities";
+import { isEmpty, objDeepFlatten, roundNum } from "../scripts/utilities";
 import EunosSockets from "./EunosSockets";
 import { EunosVolumeDialog } from "./EunosVolumeDialog";
 // #region === SOUND FUNCTIONS AND VALUES ===
@@ -83,15 +83,20 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
 
   static async SetSoundscape(soundData: Record<string, number | null>, fadeDuration = 2) {
     const currentSounds = EunosMedia.GetPlayingSounds();
-    currentSounds
-      .filter((sound) => !soundData[sound.name])
-      .forEach((sound) => {
-        void sound.kill(fadeDuration);
-      });
-    for (const [soundName, volume] of Object.entries(soundData)) {
-      const sound = EunosMedia.GetMedia(soundName);
-      void sound?.play(volume ? {volume, fadeInDuration: fadeDuration} : {fadeInDuration: fadeDuration});
-    }
+    await Promise.all([
+      Promise.all(
+        currentSounds
+          .filter((sound) => !soundData[sound.name])
+          .map((sound) => sound.kill(fadeDuration))
+      ),
+      Promise.all(
+        (Object.entries(soundData) as Array<[string, number]>)
+          .map(([soundName, volume]) => {
+            const sound = EunosMedia.GetMedia(soundName);
+            return sound?.play(volume ? {volume, fadeInDuration: fadeDuration} : {fadeInDuration: fadeDuration});
+          })
+      )
+    ]);
   }
 
   // #region === INITIALIZATION === ~
@@ -111,7 +116,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     );
 
     // Synchronize playing sounds with the GM
-    void EunosMedia.SyncPlayingSounds(true);
+    // void EunosMedia.SyncPlayingSounds(true);
   }
   // #endregion INITIALIZATION
 
@@ -133,6 +138,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
   mute: boolean;
   sync: boolean;
   #volume: number;
+  #fadeEase = "none";
   originalVolume: number;
   isDampened: boolean;
   dampeningFactor: number;
@@ -144,6 +150,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
   #canPlayPreloadPromise?: Promise<T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement>;
   reportPreloadStatus: boolean;
   #interactionHandlersSet = false;
+  #fadeInDuration: Maybe<number>;
 
   get canPlayPromise(): Promise<T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement> {
     if (this.#canPlayPreloadPromise) {
@@ -229,7 +236,11 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
 
   set volume(volume: number) {
     this.#volume = volume;
-    void gsap.to(this.element, { volume: this.#volume, duration: 1, ease: "none" });
+    if (this.playing) {
+      void gsap.to(this.element, { volume: this.#volume, duration: 1, ease: "none" });
+    } else {
+      this.element.volume = volume;
+    }
   }
 
   get category(): EunosMediaCategories {
@@ -268,7 +279,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
         const element = this.element;
 
         // Set up metadata loaded handler
-        element.addEventListener('loadedmetadata', () => {
+        element.addEventListener("loadedmetadata", () => {
           if (this.type === EunosMediaTypes.audio) {
             this.#metadata = {
               duration: element.duration
@@ -291,13 +302,13 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
         });
 
         // Set up error handler
-        element.addEventListener('error', () => {
+        element.addEventListener("error", () => {
           reject(new Error(`Failed to load metadata for ${this.type} element`));
         });
 
         // Ensure preload is set to at least "metadata"
-        if (element.preload === 'none') {
-          element.preload = 'metadata';
+        if (element.preload === "none") {
+          element.preload = "metadata";
         }
       });
     }
@@ -344,14 +355,24 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     }
   }
 
-  #fadeInDuration: Maybe<number>;
-
   public get fadeInDuration(): number {
     if (this.#fadeInDuration) {
       return this.#fadeInDuration;
     } else {
       return 0;
     }
+  }
+
+  public set fadeInDuration(value: number) {
+    this.#fadeInDuration = value;
+  }
+
+  public get fadeEase(): string {
+    return this.#fadeEase;
+  }
+
+  public set fadeEase(value: string) {
+    this.#fadeEase = value;
   }
 
   public get currentTime(): number {
@@ -502,7 +523,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     const data = {
       ...staticData,
       ...mediaData
-    }
+    };
 
     this.name = mediaName;
     this.delay = data.delay ?? 0;
@@ -613,23 +634,23 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
       await new Promise<void>((resolve, reject) => {
         // Set up all event listeners
         if (this.reportPreloadStatus) {
-          video.addEventListener('loadedmetadata', () => {
+          video.addEventListener("loadedmetadata", () => {
             this.reportPreloadStatusToGM();
           });
 
-          video.addEventListener('canplay', () => {
+          video.addEventListener("canplay", () => {
             this.reportPreloadStatusToGM();
             this.loadedMap.set(this.name, this);
           });
         }
 
-        video.addEventListener('canplaythrough', () => {
+        video.addEventListener("canplaythrough", () => {
           this.reportPreloadStatusToGM();
           this.loadedMap.set(this.name, this);
           resolve();
         }, { once: true });
 
-        video.addEventListener('error', () => {
+        video.addEventListener("error", () => {
           if (this.reportPreloadStatus) {
             this.reportPreloadStatusToGM();
           }
@@ -662,23 +683,23 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     return new Promise((resolve, reject) => {
       // Set up all event listeners
       if (this.reportPreloadStatus) {
-        audio.addEventListener('loadedmetadata', () => {
+        audio.addEventListener("loadedmetadata", () => {
           this.reportPreloadStatusToGM();
         });
 
-        audio.addEventListener('canplay', () => {
+        audio.addEventListener("canplay", () => {
           this.reportPreloadStatusToGM();
           this.loadedMap.set(this.name, this);
         });
       }
 
-      audio.addEventListener('canplaythrough', () => {
+      audio.addEventListener("canplaythrough", () => {
         this.reportPreloadStatusToGM();
         this.loadedMap.set(this.name, this);
         resolve();
       }, { once: true });
 
-      audio.addEventListener('error', () => {
+      audio.addEventListener("error", () => {
         this.reportPreloadStatusToGM();
         reject(new Error(`Failed to preload audio: ${audio.src}`));
       }, { once: true });
@@ -708,7 +729,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
 
     // Wait for the emptied event which fires when the media element has been reset
     await new Promise<void>(resolve => {
-      this.#element!.addEventListener('emptied', () => { resolve() }, { once: true });
+      this.#element!.addEventListener("emptied", () => { resolve(); }, { once: true });
     });
 
     // Restore the source and set preload to "metadata"
@@ -766,20 +787,23 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     loop?: boolean;
     sync?: boolean;
     fadeInDuration?: number;
+    ease?: string
   }, isSocketCalling = false): Promise<void> {
     if (!this.#element) {
       kLog.error("Cannot play media that has not been initialized", this);
       return;
     }
-    const { volume, loop, sync, fadeInDuration } = options ?? {};
-    const fromVolume = this.#element.volume;
+    const { volume, loop, sync, fadeInDuration, ease } = options ?? {};
 
     if (volume) {
       this.volume = volume;
     }
     this.loop = loop ?? this.loop;
     this.sync = sync ?? this.sync;
-    this.#fadeInDuration = fadeInDuration ?? this.#fadeInDuration;
+    this.fadeEase = ease ?? this.#fadeEase;
+    this.fadeInDuration = fadeInDuration ?? this.fadeInDuration ?? 0;
+
+    const fromVolume = this.fadeInDuration ? 0 : this.volume;
 
     if (getUser().isGM && isSocketCalling) {
       const mediaData = await this.getSettingsData();
@@ -789,22 +813,25 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     if (!this.loaded) {
       if (this.alwaysPreload) {
         console.warn(
-          `Media ${this.name} is not preloaded. It may play with a delay.`,
+          `Media ${this.name} is set 'alwaysPreload' but is not preloaded. It may play with a delay.`
         );
       }
       await this.preload();
     }
-    if (this.sync) {
+    if (this.sync && getUsers().some(u => u.isGM && u.active)) {
       const syncTime = await EunosSockets.getInstance().call<number>("requestMediaSync", UserTargetRef.gm, {mediaName: this.name}, true);
       kLog.log(`Syncing media ${this.name} to ${syncTime}`, this);
       if (Math.abs(syncTime - this.#element.currentTime) > 5) {
         this.#element.currentTime = syncTime;
       }
     }
+
     this.#element.loop = this.loop;
+
     try {
       await this.#element.play();
-      await gsap.fromTo(this.#element, { volume: fromVolume }, { volume: this.volume, duration: this.fadeInDuration ?? 2, ease: "none" });
+      kLog.log(`Fading in ${roundNum(await this.getDuration(), 2)}s Sound with ${roundNum(this.fadeInDuration)}s of fade in.  From ${fromVolume} to ${this.volume}. `);
+      await gsap.fromTo(this.#element, { volume: fromVolume }, { volume: this.volume, duration: this.fadeInDuration, ease: this.fadeEase });
       kLog.log(`Faded in media ${this.name} from ${fromVolume} to ${this.volume} = ${this.#element.volume}`);
     } catch (error) {
       if (error instanceof Error && error.name === "NotAllowedError") {

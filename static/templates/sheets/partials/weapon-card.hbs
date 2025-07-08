@@ -6,7 +6,11 @@
   <span class="is-equipped-container">
     <a class="item-toggle-equipped" data-item-id="{{_id}}"
       title="{{#if system.isEquipped}}Equipped{{else}}Not Equipped{{/if}}">
-      <i class="{{#if system.isEquipped}}fas fa-hand-rock{{else}}far fa-hand{{/if}}"></i>
+      {{#if system.isEquipped}}
+      <i class="fas fa-hand-rock"></i>
+      {{else}}
+      <i class="far fa-hand fa-flip-vertical"></i>
+      {{/if}}
     </a>
   </span>
   <div class="item-interaction-target" data-item-id="{{_id}}" data-actor-id="{{actorID}}" data-item-type="weapon" popovertarget="{{popoverID}}"

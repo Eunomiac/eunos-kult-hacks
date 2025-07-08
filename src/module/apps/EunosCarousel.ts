@@ -14,7 +14,7 @@ import {AlertType, UserTargetRef} from "../scripts/enums";
  * @extends {ApplicationV2}
  */
 export default class EunosCarousel extends HandlebarsApplicationMixin(
-  ApplicationV2,
+  ApplicationV2
 )<
   EmptyObject, // RenderContext
   EunosOverlayConfiguration, // Configuration
@@ -60,11 +60,11 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
   static override PARTS = {
     carousel: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-carousel/carousel.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-carousel/carousel.hbs"
     },
     controls: {
       template:
-        "modules/eunos-kult-hacks/templates/apps/eunos-carousel/controls.hbs",
+        "modules/eunos-kult-hacks/templates/apps/eunos-carousel/controls.hbs"
     }
   };
 
@@ -77,7 +77,7 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
     },
     hideStandingStones: () => {
       void EunosCarousel.instance.hideCarousel();
-    },
+    }
   };
 
   /**
@@ -86,14 +86,14 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
   static readonly ACTIONS: Record<string, ApplicationV2.ClickAction> = {
     prevStoneClick(event: PointerEvent, target: HTMLElement) {
       EunosCarousel.instance.rotateToIndex(
-        EunosCarousel.instance.currentIndex - 1,
+        EunosCarousel.instance.currentIndex - 1
       );
     },
     nextStoneClick(event: PointerEvent, target: HTMLElement) {
       EunosCarousel.instance.rotateToIndex(
-        EunosCarousel.instance.currentIndex + 1,
+        EunosCarousel.instance.currentIndex + 1
       );
-    },
+    }
   };
 
   // #region STATIC CONFIGURATION ~
@@ -105,20 +105,20 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
     classes: ["eunos-carousel"],
     position: {
       width: "auto" as const,
-      height: "auto" as const,
+      height: "auto" as const
     },
     window: {
       frame: false,
       positioned: false,
       contentTag: "div",
-      contentClasses: ["eunos-carousel-content"],
+      contentClasses: ["eunos-carousel-content"]
     },
     actions: Object.fromEntries(
       Object.entries(EunosCarousel.ACTIONS).map(([key, action]) => [
         key,
-        action.bind(EunosCarousel),
-      ]),
-    ),
+        action.bind(EunosCarousel)
+      ])
+    )
   };
 
   static MEMORIAL_TABLE_SCROLL_DURATION = 400;
@@ -180,36 +180,36 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
       .fromTo(
         wrapper1,
         {
-          y: 0,
+          y: 0
         },
         {
           y: -1 * wrapperHeight,
           ease: "none",
-          duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION / 2,
-        },
+          duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION / 2
+        }
       )
       .set(wrapper1, { y: wrapperHeight })
       .to(wrapper1, {
         y: 0,
         ease: "none",
-        duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION / 2,
+        duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION / 2
       })
       .fromTo(
         wrapper2,
         {
-          y: wrapperHeight,
+          y: wrapperHeight
         },
         {
           y: -1 * wrapperHeight,
           ease: "none",
-          duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION,
+          duration: EunosCarousel.MEMORIAL_TABLE_SCROLL_DURATION
         },
-        0,
+        0
       )
       .set(wrapper2, { y: wrapperHeight });
 
-    kLog.log(`Wrapper Timelines`, {
-      wrapperTl1: this.rangerScrollAnimation,
+    kLog.log("Wrapper Timelines", {
+      wrapperTl1: this.rangerScrollAnimation
     });
   }
 
@@ -261,8 +261,8 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
       const sidebarWidth =
         parseInt(
           getComputedStyle(document.documentElement).getPropertyValue(
-            "--sidebar-width",
-          ),
+            "--sidebar-width"
+          )
         ) || 300;
       const availableWidth = window.innerWidth - sidebarWidth;
       this.carouselRadius = availableWidth * 0.4; // 40% of available width
@@ -270,7 +270,7 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
       // Set the carousel z position and ensure preserve-3d
       gsap.set(carousel$, {
         z: -1 * this.carouselRadius,
-        transformStyle: "preserve-3d",
+        transformStyle: "preserve-3d"
       });
 
       // Position each stone in 3D space
@@ -294,14 +294,14 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
         gsap.set(item, {
           rotationX: 0 /* gsap.utils.random(0, 10 */,
           transformStyle: "preserve-3d",
-          transformOrigin: "bottom center",
+          transformOrigin: "bottom center"
         });
 
         // Apply transforms to position and rotate the item
         gsap.set(item, {
           x: x,
           z: z,
-          rotationY: rotationY,
+          rotationY: rotationY
         });
 
         if (index === 0) {
@@ -316,7 +316,7 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
 
       // Animate entry of carousel
       const stageBGMap$ = $(
-        "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        "#STAGE #SECTION-3D .canvas-layer.background-layer"
       );
       const PCContainer$ = $("#EUNOS_OVERLAY #PCS");
       const sessionScribeIndicator$ = PCContainer$.find(".session-scribe-indicator");
@@ -335,31 +335,31 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
           carouselBase$,
           { autoAlpha: 0 },
           { autoAlpha: 1, duration: 2, ease: "none" },
-          1,
+          1
         )
         .fromTo(
           carouselBase$,
           { y: -1500, scale: 0.75 },
           { y: -1600, scale: 1, duration: 1, ease: "none" },
-          2,
+          2
         )
         .fromTo(
           standingStones$,
           { autoAlpha: 0 },
           { autoAlpha: 1, duration: 0.25 },
-          3,
+          3
         )
         .fromTo(
           standingStones$,
           { y: 700 },
           { y: 0, ease: "none", duration: 10, stagger: 1.5 },
-          3,
+          3
         )
         .fromTo(
           carouselControls$,
           { autoAlpha: 0 },
           { autoAlpha: 1, duration: 0.25 },
-          ">",
+          ">"
         )
         .to(PCContainer$, { y: 150, duration: 5, ease: "back.out(1.5)"}, 7)
         .to(sessionScribeIndicator$, { y: -150, duration: 5, ease: "back.out(1.5)"}, 7)
@@ -374,9 +374,9 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
             y: 0,
             ease: "rough({ strength: 0.002, points: 1000, template: none, taper: none, randomize: true, clamp: true })",
             duration: 15,
-            stagger: 0.1,
+            stagger: 0.1
           },
-          3,
+          3
         );
       // .from(carouselVerticals$, {transformOrigin: "bottom center", scaleY: 0, duration: 5})
       // .from(carouselTop$, {autoAlpha: 0, duration: 1.5})
@@ -393,7 +393,7 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
   async hideCarousel() {
     if (this.isRevealed) {
       const stageBGMap$ = $(
-        "#STAGE #SECTION-3D .canvas-layer.background-layer",
+        "#STAGE #SECTION-3D .canvas-layer.background-layer"
       );
       const PCContainer$ = $("#EUNOS_OVERLAY #PCS");
       void gsap.timeline()
@@ -448,7 +448,7 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
       targetRotation = gsap.utils.snap(anglePerItem, targetRotation);
 
       kLog.log(
-        `Rotating carousel from ${this.currentIndex} (${currentRotation}deg) to ${wrappedIndex} (${targetRotation}deg)`,
+        `Rotating carousel from ${this.currentIndex} (${currentRotation}deg) to ${wrappedIndex} (${targetRotation}deg)`
       );
 
       // Update the current index AFTER calculating the rotation
@@ -464,10 +464,10 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
           // Dispatch event when rotation completes
           this.element.dispatchEvent(
             new CustomEvent("stoneSelected", {
-              detail: { index: wrappedIndex },
-            }),
+              detail: { index: wrappedIndex }
+            })
           );
-        },
+        }
       });
 
       // Store the timeline on the element for potential future reference
