@@ -1,0 +1,55 @@
+<div class="npc-portrait npc-limbo-portrait npc-portrait-name-{{nameState}}" data-actor-id="{{actor.id}}"
+  data-portrait-state="{{portraitState}}" data-name-state="{{nameState}}" data-goggles-state="noGoggles"
+  data-token-scale="{{actor.system.tokenScale}}" data-action="openNPCSheet">
+
+
+  <svg style="display: none;">
+    <filter id="dream-warp-{{actor.id}}">
+      <feTurbulence id="turbulence-{{actor.id}}" type="fractalNoise" baseFrequency="0.04" numOctaves="2"
+        result="warpNoise" />
+      <feDisplacementMap id="displace-{{actor.id}}" in="SourceGraphic" in2="warpNoise" scale="0" xChannelSelector="R"
+        yChannelSelector="G" />
+    </filter>
+  </svg>
+
+  {{!-- <svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
+    <filter id="dream-warp-{{actor.id}}" x="-20%" y="-20%" width="140%" height="140%"
+      color-interpolation-filters="sRGB">
+      <!-- Displacement map image -->
+      <feImage id="displacement-img-{{actor.id}}"
+        href="modules/eunos-kult-hacks/assets/images/stage/displacement_map.jpg" preserveAspectRatio="none"
+        result="DISPLACE_IMG" width="100%" height="100%" x="0" y="0" />
+
+      <!-- Displacement effect -->
+      <feDisplacementMap id="displace-{{actor.id}}" in="SourceGraphic" in2="DISPLACE_IMG" scale="0" xChannelSelector="R"
+        yChannelSelector="G" result="displaced" />
+
+      <!-- Soften the distortion -->
+      <feGaussianBlur id="gaussianblur-{{actor.id}}" in="displaced" stdDeviation="1.25" result="blurred" />
+
+      <!-- Edge highlight / glitchy rippling -->
+      <feConvolveMatrix id="convolvematrix-{{actor.id}}" in="blurred" order="3"
+        kernelMatrix="3.3 -3.3  3.3 -3.3 -.3 -3.3 3.3  -3.3  3.3" result="final" />
+
+      <!-- Output the final result -->
+      <feComposite in="final" in2="SourceGraphic" operator="over" />
+    </filter>
+  </svg> --}}
+
+  <div class="npc-portrait-container">
+    <div class="npc-portrait-frame">
+      <img class="npc-portrait-image npc-portrait-image-base" src="{{actor.img}}"
+  style="filter: url(#dream-warp-{{actor.id}});"/>
+    </div>
+  </div>
+  <div class="npc-portrait-name-container">
+    <div class="npc-portrait-name">
+      {{actor.name}}
+    </div>
+    {{#if (test actor.system.isShortDescVisible "&&" actor.system.shortDescription)}}
+    <div class="npc-portrait-short-description">
+      {{{actor.system.shortDescription}}}
+    </div>
+    {{/if}}
+  </div>
+</div>

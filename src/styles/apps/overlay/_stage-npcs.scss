@@ -61,8 +61,8 @@
       object-fit: cover;
       object-position: 0px 0px;
 
-      &-base {
-        margin-bottom: -100%;
+      &-base + .npc-portrait-image-goggles {
+        margin-top: -100%;
       }
     }
 

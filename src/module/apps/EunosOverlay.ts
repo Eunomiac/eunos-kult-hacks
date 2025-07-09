@@ -941,6 +941,18 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     if (!getSetting("isEntryVisible")) {
       $(".background-layer").addClass("entry-hidden");
     }
+
+    // Add dream-warp filter for limbo NPC and location image transitions
+    if ($("#dream-warp").length === 0) {
+      $("body").append(`
+        <svg style="display: none;">
+          <filter id="dream-warp">
+            <feTurbulence id="turbulence" type="fractalNoise" baseFrequency="0.02" numOctaves="1" result="warpNoise" />
+            <feDisplacementMap in="SourceGraphic" in2="warpNoise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </svg>
+      `);
+    }
     if (!getUser().isGM) {
       return;
     }
@@ -1405,6 +1417,14 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       throw new Error("NPCS not found");
     }
     return $(npcs);
+  }
+
+  get limbo$() {
+    const limbo = this.element.querySelector("#LIMBO") as Maybe<HTMLElement>;
+    if (!limbo) {
+      throw new Error("Limbo not found");
+    }
+    return $(limbo);
   }
 
   get changesLog$() {
@@ -4709,63 +4729,120 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
     const portraitShadow$ = npcContainer$.find(".npc-portrait-shadow");
 
-    return gsap
-      .timeline({ paused: true })
-      .fromTo(
-        portraitContainer$,
-        {
-          autoAlpha: 0,
-          y: "-=100",
-          // skewX: -30,
-          scale: hiddenScale,
-          filter: "brightness(5) blur(300px)"
-        },
-        {
-          autoAlpha: 1,
-          y: 0,
-          // skewX: 0,
-          scale: dimmedScale,
-          filter: "brightness(0.5) blur(0px)",
-          duration: 0.5,
-          ease: "none"
-        },
-        0
-      )
-      .fromTo(
-        portraitNameContainer$,
-        {
-          scale: getUser().isGM ? 1 : 0.5
-        },
-        {
-          scale: getUser().isGM ? 1 : 0.8,
-          duration: 0.5,
-          ease: "none"
-        },
-        0
-      )
-      .fromTo(
-        portraitShadow$,
-        {
-          scale: hiddenScale,
-          filter: "brightness(0) blur(100px)",
-          autoAlpha: 0
-        },
-        {
-          scale: dimmedScale,
-          filter: "brightness(0) blur(10px)",
-          autoAlpha: 0.5,
-          duration: 0.25,
-          ease: "none"
-        },
-        0.25
-      )
-      .call(() => {
-        npcContainer$.attr("data-portrait-state", NPCPortraitState.dimmed);
-        npcContainer$.removeClass(
-          "npc-portrait-invisible npc-portrait-base npc-portrait-spotlit"
+    const tl = gsap.timeline({paused: true});
+
+    if (getSetting("inLimbo")) {
+
+      const actorID = npcContainer$.attr("data-actor-id");
+      if (!actorID) {
+        kLog.error("No actorID found for NPC container", { npcContainer$ });
+        return gsap.timeline();
+      }
+      const dreamFilter$ = npcContainer$.find(`#displace-${actorID}`);
+      const turbulence$ = npcContainer$.find(`#turbulence-${actorID}`);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const ease: gsap.EaseFunction = CustomWiggle.create("myWiggle", {wiggles:3,type:"easeOut"});
+      tl
+        .fromTo(
+          dreamFilter$,
+          { attr: { "scale": 0 } },
+          { attr: { "scale": 150 }, duration: 3, ease },
+          0
+        )
+        .fromTo(npcContainer$,
+          {
+            opacity: 0,
+            filter: `brightness(1.5) sepia(2) hue-rotate(90deg) url("#dream-warp-${actorID}") blur(50px)`
+          },
+          {
+            opacity: 1,
+            filter: `brightness(1.5) sepia(2) hue-rotate(90deg) url("#dream-warp-${actorID}") blur(10px)`,
+            duration: 3,
+            ease: "power2.out"
+          },
+          0
+        )
+          .fromTo(npcContainer$, {
+              scaleX: 3,
+              scaleY: 2
+          }, {             scaleX: 1, scaleY: 1,
+              duration: 3,
+              ease: "power2.in"
+          }, 0)
+          .fromTo(npcContainer$, {
+            filter: `brightness(1) sepia(0) brightness(1) hue-rotate(0deg) url("#dream-warp-${actorID}") blur(0px)`
+          }, {
+            filter: `brightness(0.5) sepia(2) brightness(1.5) hue-rotate(180deg) url("#dream-warp-${actorID}") blur(10px)`,
+              duration: 3,
+              ease
+          }, 0)
+      .fromTo(turbulence$, {attr: { baseFrequency: "0.001 0.05"}}, {
+          attr: { baseFrequency: "0.04 0.04" },
+          duration: 3,
+          ease: "power2.in"
+        }, 0)      ;
+    } else {
+      tl
+        .fromTo(
+          portraitContainer$,
+          {
+            autoAlpha: 0,
+            y: "-=100",
+            // skewX: -30,
+            scale: hiddenScale,
+            filter: "brightness(5) blur(300px)"
+          },
+          {
+            autoAlpha: 1,
+            y: 0,
+            // skewX: 0,
+            scale: dimmedScale,
+            filter: "brightness(0.5) blur(0px)",
+            duration: 0.5,
+            ease: "none"
+          },
+          0
+        )
+        .fromTo(
+          portraitNameContainer$,
+          {
+            scale: getUser().isGM ? 1 : 0.5
+          },
+          {
+            scale: getUser().isGM ? 1 : 0.8,
+            duration: 0.5,
+            ease: "none"
+          },
+          0
+        )
+        .fromTo(
+          portraitShadow$,
+          {
+            scale: hiddenScale,
+            filter: "brightness(0) blur(100px)",
+            autoAlpha: 0
+          },
+          {
+            scale: dimmedScale,
+            filter: "brightness(0) blur(10px)",
+            autoAlpha: 0.5,
+            duration: 0.25,
+            ease: "none"
+          },
+          0.25
         );
-        npcContainer$.addClass("npc-portrait-dimmed");
-      });
+      }
+
+      tl
+        .call(() => {
+          npcContainer$.attr("data-portrait-state", NPCPortraitState.dimmed);
+          npcContainer$.removeClass(
+            "npc-portrait-invisible npc-portrait-base npc-portrait-spotlit"
+          );
+          npcContainer$.addClass("npc-portrait-dimmed");
+        });
+
+      return tl;
   }
 
   private buildNPCDimmedToBaseTimeline(
@@ -4779,8 +4856,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     );
     const portraitShadow$ = npcContainer$.find(".npc-portrait-shadow");
 
-    return gsap
-      .timeline({ paused: true })
+    const tl = gsap.timeline({paused: true})
       .to(portraitContainer$, {
         scale: baseScale,
         filter: "brightness(1) blur(0px)",
@@ -4795,25 +4871,32 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           ease: "none"
         },
         0
-      )
-      .to(
-        portraitShadow$,
-        {
-          scale: baseScale,
-          filter: "brightness(0) blur(5px)",
-          autoAlpha: 0.8,
-          duration: 1,
-          ease: "none"
-        },
-        0
-      )
-      .call(() => {
-        npcContainer$.attr("data-portrait-state", NPCPortraitState.base);
-        npcContainer$.removeClass(
-          "npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit"
+      );
+
+    if (!getSetting("inLimbo")) {
+        tl.to(
+          portraitShadow$,
+          {
+            scale: baseScale,
+            filter: "brightness(0) blur(5px)",
+            autoAlpha: 0.8,
+            duration: 1,
+            ease: "none"
+          },
+          0
         );
-        npcContainer$.addClass("npc-portrait-base");
-      });
+      }
+
+      tl
+        .call(() => {
+          npcContainer$.attr("data-portrait-state", NPCPortraitState.base);
+          npcContainer$.removeClass(
+            "npc-portrait-dimmed npc-portrait-invisible npc-portrait-spotlit"
+          );
+          npcContainer$.addClass("npc-portrait-base");
+        });
+
+      return tl;
   }
 
   private buildNPCBaseToSpotlitTimeline(
@@ -5152,33 +5235,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
           gogglesTimeline.tweenTo(gogglesState, { ease: "power2.inOut" }),
           0
         );
-      // Start smoke effect IF new portrait state is not invisible/removed
+      // Start smoke effect IF new portrait state is not invisible/removed (and not in limbo)
       if (
         portraitState !== NPCPortraitState.invisible &&
         portraitState !== NPCPortraitState.removed
       ) {
-        subTl
-          .call(
-            () => {
-              const videoElement = smokeEffect$[0] as HTMLVideoElement;
-              videoElement.currentTime = 0; // Reset to start
-              void videoElement.play();
-            },
-            [],
-            0
-          )
-          // Fade in smoke
-          .to(
-            smokeEffect$,
-            {
-              autoAlpha: 1,
-              duration: 0.1
-            },
-            0
-          )
+        if (!getSetting("inLimbo")) {
+          subTl
+            .call(
+              () => {
+                const videoElement = smokeEffect$[0] as HTMLVideoElement;
+                videoElement.currentTime = 0; // Reset to start
+                void videoElement.play();
+              },
+              [],
+              0
+            )
+            // Fade in smoke
+            .to(
+              smokeEffect$,
+              {
+                autoAlpha: 1,
+                duration: 0.1
+              },
+              0
+            );
+          }
 
           // After smoke is visible, start portrait transition
-          .add(
+          subTl.add(
             portraitTimeline.tweenFromTo(
               NPCPortraitState.invisible,
               portraitState,
@@ -5204,7 +5289,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // Create the master control timeline
       tl.to(subTl, {
         progress: 1,
-        duration: subTl.duration(),
+        duration: subTl.duration() * (getSetting("inLimbo") ? 2 : 1),
         ease: "none"
       });
 
@@ -5307,6 +5392,8 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     actor: EunosActor,
     position?: Point
   ): Promise<JQuery> {
+    const isInLimbo = getSetting("inLimbo");
+
     // First check whether there's an existing portrait, and return that if there is.
     const existingNPC$ = this.npcs$.find(
       `.npc-portrait[data-actor-id="${actor.id}"]`
@@ -5315,11 +5402,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       existingNPC: existingNPC$
     });
     if (existingNPC$.length) {
-      kLog.log(
-        "renderNPCPortrait: updating shadow and returning existing NPC",
-        { existingNPC: existingNPC$ }
-      );
-      this.updateShadowSkew(existingNPC$);
+      if (!isInLimbo) {
+        kLog.log(
+          "renderNPCPortrait: updating shadow and returning existing NPC",
+          { existingNPC: existingNPC$ }
+        );
+        this.updateShadowSkew(existingNPC$);
+      }
       return existingNPC$;
     }
 
@@ -5335,10 +5424,16 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     }
 
     // Render the template
+    let path: string;
+    if (getUser().isGM) {
+      path = "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait-gm.hbs";
+    } else if (isInLimbo) {
+      path = "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait-limbo.hbs";
+    } else {
+      path = "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait.hbs";
+    }
     const html = await renderTemplate(
-      getUser().isGM
-        ? "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait-gm.hbs"
-        : "modules/eunos-kult-hacks/templates/apps/eunos-overlay/partials/npc-portrait.hbs",
+      path,
       {
         actor,
         portraitState: NPCPortraitState.invisible,
@@ -5365,7 +5460,9 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     });
 
     // Use the dedicated method instead of direct gsap.set
-    this.updateShadowSkew(npcContainer$);
+    if (!isInLimbo) {
+      this.updateShadowSkew(npcContainer$);
+    }
 
     // Build timelines for the new NPC
     this.buildNPCPortraitTimeline(npcContainer$);
@@ -7307,6 +7404,13 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async displayLimbo() {
+    await this.goToLocation(null, "limbo", {
+      fadeOutBlackdrop: true,
+      delayPCs: true,
+      delayWeather: true
+    });
+
+    await gsap.fromTo(this.limbo$, {autoAlpha: 0}, {autoAlpha: 1, duration: 2, ease: "power2.in"});
 
     await Promise.all([
       this.fadeInPCs(),
@@ -7325,11 +7429,12 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async fadeInNPCs() {
-    return gsap.to(this.npcs$, {
+    await gsap.to(this.npcs$, {
       autoAlpha: 1,
-      duration: 5,
+      duration: 2,
       ease: "power3.out"
     });
+    return this.refreshNPCUI_All();
   }
 
   private async fadeInSidebar() {

@@ -5431,7 +5431,19 @@ export const LOCATIONS: Record<string, Location.StaticSettingsData> = {
     isBright: false,
     isIndoors: false,
     region: "",
-    mapTransforms: []
+    mapTransforms: [
+      [
+        {
+          selector: "body",
+          properties: {
+            background: "black",
+            boxShadow: "0 0 50vw black inset",
+            "--dramatic-hook-color": "white",
+            "--dramatic-hook-text-shadow-color": "black"
+          }
+        }
+      ]
+    ]
   }
 };
 

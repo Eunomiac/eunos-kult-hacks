@@ -1,6 +1,7 @@
 
 import "./fvtt-types-config";
 import "./general-types";
+import "./custom-wiggle";
 import "./k4lt/sheets/k4ltActor";
 import "./k4lt/sheets/k4ltitemsheet";
 import "./k4lt/sheets/k4ltNPCsheet";

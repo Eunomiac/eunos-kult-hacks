@@ -133,6 +133,12 @@ html {
       #STAGE-END-PHASE {
         visibility: hidden;
       }
+
+      #EUNOS_OVERLAY.limbo {
+        #STAGE {
+          display: none !important;
+        }
+      }
     }
 
     &.session-ending {

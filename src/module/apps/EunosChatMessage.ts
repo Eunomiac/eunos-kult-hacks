@@ -88,7 +88,7 @@ const MASTER_TIMELINES = {
 
     let endHeight = message$.height() ?? 0;
     if (endHeight > 800) {
-      messageContent$.css({"--chat-font-size-large": "12px", "--chat-line-height-large": "16px"})
+      messageContent$.css({"--chat-font-size-large": "12px", "--chat-line-height-large": "16px"});
       endHeight = message$.height() ?? 0;
     }
 
@@ -144,7 +144,7 @@ const MASTER_TIMELINES = {
       .add(CHILD_TIMELINES.animateToSuccess(message$), `<+=${staggers[7] ?? getLast(staggers)}`)
       .add(CHILD_TIMELINES.animateResults(message$, msg), `<+=${staggers[8] ?? getLast(staggers)}`)
       .addLabel("revealed");
-  },
+  }
 } as const;
 
 const CHILD_TIMELINES = {
@@ -170,7 +170,7 @@ const CHILD_TIMELINES = {
         filter: "blur(100px)",
         scale: 5,
         x: -200,
-        y: -100,
+        y: -100
       }, {
         autoAlpha: 1,
         filter: "blur(0px)",
@@ -272,7 +272,7 @@ const CHILD_TIMELINES = {
     const tl = gsap.timeline()
       .fromTo(sourceHeader$, {
           autoAlpha: 0,
-          borderColor: borderColorStart,
+          borderColor: borderColorStart
       }, {
           autoAlpha: 1,
           borderColor: borderColorEnd,
@@ -395,12 +395,12 @@ const CHILD_TIMELINES = {
       .call(() => {
         if (!d10VideoA) { return; }
         d10VideoA.currentTime = 0;
-        void d10VideoA.play()
+        void d10VideoA.play();
       }, undefined, 0.25)
       .call(() => {
         if (!d10VideoB) { return; }
         d10VideoB.currentTime = 0;
-        void d10VideoB.play()
+        void d10VideoB.play();
       }, undefined, 0.75)
       // Call a delayed slow-shrink of the dice within a callback so that it doesn't change the timeline's duration
       .call(() => {
@@ -491,7 +491,7 @@ const CHILD_TIMELINES = {
             repeatDelay:   1.6,
             ease:          "back.out(5)",
             repeat:        -1
-          })
+          });
         }
       })
 
@@ -640,7 +640,7 @@ const CHILD_TIMELINES = {
     const msgTextToRed = message$.find(".roll-source-source-name .roll-source-text, .roll-dice-results ~ * *");
     // const msgTextToBlack = message$.find(".roll-source-name .roll-source-text");
     return gsap.timeline({ease: "power3.in", clearProps: true})
-      .fromTo(msgIcon$, {filter: "sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1) drop-shadow(0px 0px 0px rgba(0, 0, 0, 0)"}, {filter: `sepia(5) brightness(0.65) saturate(5) hue-rotate(-45deg) contrast(2)`, duration: 1}, 0)
+      .fromTo(msgIcon$, {filter: "sepia(0) brightness(1) hue-rotate(0deg) saturate(1) contrast(1) drop-shadow(0px 0px 0px rgba(0, 0, 0, 0)"}, {filter: "sepia(5) brightness(0.65) saturate(5) hue-rotate(-45deg) contrast(2)", duration: 1}, 0)
       .to(msgCharName$, {color: Colors.RED8, duration: 1, ease: "power2.inOut"}, 0)
       .to(msgIntroLine$, {color: Colors.RED8, duration: 1, ease: "power2.inOut"}, 0)
       .to(msgAttrName$, {color: Colors.RED8, filter: "brightness(3) saturate(1.5)", duration: 1, ease: "power2.inOut"}, 0)
@@ -729,7 +729,7 @@ const CHILD_TIMELINES = {
         ease: "power2.out",
         duration: 1,
         stagger: 0.25
-      }, 0)
+      }, 0);
   }
 } as const;
 
@@ -851,7 +851,7 @@ class EunosChatMessage extends ChatMessage {
    */
   static GetDropCap(content: string): string {
     if (!content.length) {
-      return ""
+      return "";
     };
     return `modules/eunos-kult-hacks/assets/chat/dropcaps/${content.slice(0, 1).toUpperCase()}.png`;
   }
@@ -913,7 +913,7 @@ class EunosChatMessage extends ChatMessage {
       void this.timelinePromise.then(() => {
         const timeline = this.animationTimeline;
         if (!timeline) { return undefined; }
-        const labelTime = timeline.labels['revealed'];
+        const labelTime = timeline.labels["revealed"];
         const watchLabel = () => {
           if (timeline.time() >= (labelTime ?? 0)) {
             resolve();
