@@ -32,7 +32,7 @@ declare global {
         cssClasses?: string;
       }>
     >;
-    getPortraitImage(type: "bg" | "fg"): string;
+    getPortraitImage(type: "bg" | "fg", isLimbo?: boolean): string;
     getGogglesImageSrc(): string;
     askForAttribute(): Promise<string | null>;
     moveroll(moveID: string): Promise<void>;
@@ -535,12 +535,15 @@ export default function registerEunosActor(): void {
       }
     }
 
-    getPortraitImage(type: "bg" | "fg"): string {
+    getPortraitImage(type: "bg" | "fg", isLimbo = false): string {
       const img = this.img as string;
       if (type === "bg") {
         const imgParts = [img.replace(".webp", "")];
         // ["https://assets.forge-vtt.com/611b8f58cee1c3b8c7f83ba3/modules/eunos-kult-hacks/assets/images/pcs/jesus-de-costa-fg-color"]
         imgParts.push("-bg-color");
+        if (isLimbo) {
+          imgParts.push("-limbo");
+        }
         switch (this.stabilityState) {
           case "Broken": {
             return "";
@@ -563,7 +566,7 @@ export default function registerEunosActor(): void {
         return imgParts.join("");
       }
       // kLog.log(`Portrait Image ${type} (!== "bg") '${img}' => `, img.replace(".webp", "-fg-color.webp"));
-      return img.replace(".webp", "-fg-color.webp");
+      return img.replace(".webp", isLimbo ? "-fg-color-limbo.webp" : "-fg-color.webp");
     }
 
     getGogglesImageSrc(): string {

@@ -296,6 +296,7 @@
     opacity: 0;
     cursor: pointer;
 
+    .npc-portrait-name-shrouded,
     &[data-name-state="invisible"],
     &[data-name-state="shrouded"] {
       pointer-events: none !important;
@@ -531,6 +532,7 @@
 
   .npc-portrait {
     scale: 1 !important;
+    visibility: visible !important;
   }
 
   .npc-portrait-container {

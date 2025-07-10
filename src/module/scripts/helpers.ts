@@ -146,7 +146,7 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     const tooltipElem$ = $(tooltipString);
     // kLog.log("Tooltip", {tooltipLines, tooltipString, tooltipElem: tooltipElem$});
     if (item.hasOptions()) {
-      const triggerLabelElem$ = $(`<span class='tooltip-trigger-label'>Trigger:</span>`);
+      const triggerLabelElem$ = $("<span class='tooltip-trigger-label'>Trigger:</span>");
       const triggerWordsElem$ = tooltipElem$.find(".trigger-words");
       triggerWordsElem$.prepend(triggerLabelElem$);
     }
@@ -159,6 +159,10 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     // kLog.log(`getPortraitImage ${actor.name} ${type}`, actor.getPortraitImage(type));
     return actor.getPortraitImage(type.trim() as "bg"|"fg");
   },
+  "getPortraitLimboImage": (actor: EunosActor, type: "bg"|"fg"): string => {
+    // kLog.log(`getPortraitImage ${actor.name} ${type}`, actor.getPortraitImage(type));
+    return actor.getPortraitImage(type.trim() as "bg"|"fg", true);
+  },
   "getSpotlightImages": (slot: string|number): string => {
     const slotNum = Number(`${slot}`) - 1;
     if (slotNum < 0 || slotNum > 4) { return ""; }
@@ -169,12 +173,12 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
       ["left", "mid", "right"],
       ["left", "mid", "right"],
       ["left", "mid", "right"],
-      ["far-left", "left", "mid"],
+      ["far-left", "left", "mid"]
     ][slotNum]!;
     spotlightSlots.forEach((slot) => {
       htmlStrings.push(`<img class="pc-spotlight pc-spolight-${slot} pc-spotlight-on" src="modules/eunos-kult-hacks/assets/images/stage/spotlights/spotlight-${slot}-on.webp" />`);
       htmlStrings.push(`<img class="pc-spotlight pc-spolight-${slot} pc-spotlight-off" src="modules/eunos-kult-hacks/assets/images/stage/spotlights/spotlight-${slot}-off.webp" />`);
-    })
+    });
     return htmlStrings.join("");
   },
   "getNameplateImage": (actor: EunosActor): string => {
@@ -183,11 +187,17 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
     const asciiName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/g, "").toLowerCase();
     return `modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-nameplate-${asciiName}.webp`;
   },
+  "getNameplateLimboImage": (actor: EunosActor): string => {
+    // Retrieve first word of actor's name, and convert any accented or special characters to their ASCII equivalents, and convert to lowercase
+    const name = actor.name.split(" ")[0]!;
+    const asciiName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/g, "").toLowerCase();
+    return `modules/eunos-kult-hacks/assets/images/stage/pc-frame/frame-nameplate-limbo-${asciiName}.webp`;
+  },
   "getDotline": (current: number, max: number): string => {
     // Create array of styled bullet spans
-    const bullets = Array(max).fill(`<span class="dot empty"></span>`);
+    const bullets = Array(max).fill("<span class=\"dot empty\"></span>");
     for (let i = 0; i < current; i++) {
-      bullets[i] = `<span class="dot filled"></span>`;
+      bullets[i] = "<span class=\"dot filled\"></span>";
     }
     return `<div class="dotline">${bullets.join("")}</div>`;
   },
@@ -271,7 +281,7 @@ const handlebarHelpers: Record<string,Handlebars.HelperDelegate> = {
    */
   "round": (num: number, decimals: number = 0): number => {
     return roundNum(num, decimals);
-  },
+  }
 };
 
 export function registerHandlebarHelpers() {

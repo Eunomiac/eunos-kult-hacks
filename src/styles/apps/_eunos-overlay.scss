@@ -138,6 +138,27 @@ html {
         #STAGE {
           display: none !important;
         }
+        #PCS {
+          .pc-portrait-frame:not(.pc-portrait-frame-limbo),
+          .pc-portrait-nameplate:not(.pc-portrait-nameplate-limbo),
+          .pc-portrait-fg:not(.pc-portrait-fg-limbo),
+          .pc-portrait-bg:not(.pc-portrait-bg-limbo) {
+            display: none !important;
+          }
+          .pc-portrait-frame-limbo,
+          .pc-portrait-nameplate-limbo {
+            visibility: visible;
+            display: block !important;
+          }
+          .pc-portrait-fg-limbo {
+            visibility: visible;
+            filter: brightness(1.5) !important;
+          }
+          .pc-portrait-bg-limbo {
+            visibility: visible;
+          }
+
+        }
       }
     }
 

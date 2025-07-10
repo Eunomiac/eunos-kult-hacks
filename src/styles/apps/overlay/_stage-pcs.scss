@@ -246,6 +246,11 @@
             z-index: -1;
           }
 
+          .pc-portrait-bg-limbo,
+          .pc-portrait-fg-limbo {
+            visibility: hidden;
+          }
+
           .pc-portrait-bg[src*="critical-stress"] {
             // filter: brightness(0) !important;
             + .pc-portrait-red-lightning {
@@ -293,6 +298,10 @@
             width: 100%;
             // left: 20%;
             z-index: 1;
+
+            &.pc-portrait-nameplate-limbo {
+              visibility: hidden;
+            }
           }
         }
 
@@ -309,8 +318,8 @@
           z-index: 1;
           // visibility: hidden;
 
-          &.pc-portrait-frame-main {
-            // visibility: visible;
+          &.pc-portrait-frame-limbo {
+            visibility: hidden;
           }
         }
 

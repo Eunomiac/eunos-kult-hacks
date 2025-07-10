@@ -1,6 +1,6 @@
 // #region IMPORTS ~
 import {getSetting, formatDateAsISO} from "./utilities.ts";
-import {EunosMediaCategories, GamePhase, PCTargetRef, LocationImageModes} from "./enums.ts";
+import {EunosMediaCategories, GamePhase, PCTargetRef, LocationImageModes, NPCPortraitState} from "./enums.ts";
 import EunosOverlay from "../apps/EunosOverlay";
 import fields = foundry.data.fields;
 import {LOCATIONS, type Location} from "./constants.ts";
@@ -186,18 +186,44 @@ export default function registerSettings() {
       });
 
       const diff = foundry.utils.diffObject(oldValue, value) as DeepPartial<Record<string, Location.SettingsData>>;
+      const reverseDiff = foundry.utils.diffObject(value, oldValue) as DeepPartial<Record<string, Location.SettingsData>>;
 
       kLog.log("Location data DIFF", {
         "3) diff": JSON.parse(JSON.stringify(diff)) as DeepPartial<Record<string, Location.SettingsData>>,
-        "4) diff other direction": JSON.parse(JSON.stringify(foundry.utils.diffObject(value, oldValue))) as DeepPartial<Record<string, Location.SettingsData>>
+        "4) diff other direction": JSON.parse(JSON.stringify(reverseDiff)) as DeepPartial<Record<string, Location.SettingsData>>
       });
 
       // If the changed data includes data for the current location, update the current location
       const curLocation = game.settings?.get("eunos-kult-hacks", "currentLocation") as string;
       const diffData = diff[curLocation];
-      kLog.log("Current location & diffData", {curLocation, diffData});
-      if (diffData) {
-        void EunosOverlay.instance.refreshUI(diffData);
+      const reverseDiffData = reverseDiff[curLocation];
+
+      // Check if there are changes (additions/modifications) OR deletions for the current location
+      const hasChanges = diffData || reverseDiffData;
+
+      kLog.log("Current location & diffData", {curLocation, diffData, reverseDiffData, hasChanges});
+
+      if (hasChanges) {
+        // For deletions, we need to include information about what was removed
+        // Merge the diff data with deletion information
+        const combinedDiffData = {
+          ...diffData,
+          // If there are deletions in npcData, include them
+          ...(reverseDiffData?.npcData && {
+            npcData: {
+              ...diffData?.npcData,
+              // Mark deleted NPCs for removal
+              ...Object.fromEntries(
+                Object.keys(reverseDiffData.npcData).map(npcID => [
+                  npcID,
+                  { portraitState: NPCPortraitState.removed }
+                ])
+              )
+            }
+          })
+        };
+
+        void EunosOverlay.instance.refreshUI(combinedDiffData);
       }
       EunosOverlay.currentLocationDataLog = value;
     }
@@ -218,7 +244,7 @@ export default function registerSettings() {
       choices: Object.fromEntries(getUsers().filter((user) => !user.isGM)
         .map((user) => [user.id!, user.name])),
       config: true,
-      onChange: (value: string) => {
+      onChange: (_value: string) => {
         void EunosOverlay.instance.updatePCUI();
       },
       type: String,
@@ -232,7 +258,7 @@ export default function registerSettings() {
     config: true,
     type: String,
     default: "something-unholy-intro.webm",
-    onChange: (value) => {
+    onChange: (_value) => {
       // Reinitialize the intro video when the filename changes
       void EunosOverlay.instance.introVideo.reinitialize();
     }
