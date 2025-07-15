@@ -179,8 +179,8 @@ declare global {
     breakIf: (message: string, data?: unknown, condition?: boolean) => void;
 
     // Performance tracking methods
-    funcIn: (functionName: string, data?: unknown, shouldLog?: boolean) => void;
-    funcOut: (functionName: string, message?: string) => void;
+    funcIn: (message?: string, data?: unknown, shouldLog?: boolean) => void;
+    funcOut: (message?: string, data?: unknown) => void;
 
     // Flow tracking methods
     startFlow: (flowName: string) => void;

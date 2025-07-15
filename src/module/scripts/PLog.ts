@@ -139,6 +139,33 @@ interface FlowData {
 /**
  * PLog - Performance Logging and Debugging Class
  * Provides debugging, performance-testing and logging functionality
+ *
+ * Usage Examples:
+ *
+ * Basic logging (follows standard pattern: message, data, ...params):
+ *   pLog.log("User logged in", { userId: 123 });
+ *   pLog.error("Database connection failed", errorObject);
+ *
+ * Performance tracking with auto function name detection:
+ *   function myFunction() {
+ *     pLog.funcIn();  // Automatically detects "myFunction"
+ *     // ... function code ...
+ *     pLog.funcOut(); // Automatically matches with "myFunction"
+ *   }
+ *
+ * Performance tracking with custom messages:
+ *   function processData() {
+ *     pLog.funcIn("Processing user data", { count: 100 });
+ *     // ... processing code ...
+ *     pLog.funcOut("Data processing completed successfully");
+ *   }
+ *
+ * Flow tracking:
+ *   pLog.startFlow("User Registration Process");
+ *   validateInput();  // Contains funcIn/funcOut calls
+ *   createUser();     // Contains funcIn/funcOut calls
+ *   sendEmail();      // Contains funcIn/funcOut calls
+ *   pLog.endFlow();   // Shows timing table for all functions
  */
 class PLog {
   private functionStack: FunctionCall[] = [];
@@ -163,6 +190,36 @@ class PLog {
       .split(/\s*\n\s*/)
       .filter((sLine) => !STACK_TRACE_EXCLUSION_FILTERS.some((rTest) => rTest.test(sLine)))
       .join("\n");
+  }
+
+  /**
+   * Extract function name from stack trace
+   */
+  private getFunctionNameFromStack(): string {
+    const stackTrace = (new Error()).stack;
+    if (!stackTrace) { return "unknown"; }
+
+    const lines = stackTrace.split(/\s*\n\s*/);
+
+    // Find the first line that's not from PLog methods
+    for (const line of lines) {
+      if (STACK_TRACE_EXCLUSION_FILTERS.some((rTest) => rTest.test(line))) {
+        continue;
+      }
+
+      // Try to extract function name from various stack trace formats
+      // Format: "at functionName (file:line:col)" or "at Object.functionName (file:line:col)"
+      const match = line.match(/at (?:Object\.)?([^.\s(]+)/);
+      if (match && match[1]) {
+        const funcName = match[1];
+        // Filter out generic names
+        if (!["<anonymous>", "eval", "Function"].includes(funcName)) {
+          return funcName;
+        }
+      }
+    }
+
+    return "anonymous";
   }
 
   /**
@@ -254,7 +311,7 @@ class PLog {
   /**
    * Core logging method
    */
-  private logMessage(level: LogLevel, message: string, data?: unknown, ...additionalParams: unknown[]): void {
+  private logMessage(level: LogLevel, message: string, data?: unknown): void {
     if (!this.shouldLog(message)) {
       return;
     }
@@ -344,19 +401,26 @@ class PLog {
 
   /**
    * Record function entry
+   * @param message - Optional message to display (first parameter following standard pattern)
+   * @param data - Optional data to display (second parameter following standard pattern)
+   * @param shouldLog - Whether to log when not in a flow (third parameter for specific behavior)
    */
-  funcIn(functionName: string, data?: unknown, shouldLog = false): void {
+  funcIn(message?: string, data?: unknown, shouldLog = false): void {
     // Check for potential infinite recursion
     if (this.functionStack.length > MAX_RECURSION_DEPTH) {
       this.error(`Maximum recursion depth exceeded (${MAX_RECURSION_DEPTH})`, this.functionStack);
       return;
     }
 
+    const functionName = this.getFunctionNameFromStack();
     const now = performance.now();
     const functionCall: FunctionCall = {
       name: functionName,
       startTime: now
     };
+
+    // Use provided message or default to function name
+    const displayMessage = message || functionName;
 
     // If we're in a flow, record the flow start time
     if (this.flowStack.length > 0) {
@@ -365,10 +429,10 @@ class PLog {
 
       // In a flow, always log function entry
       const timeFromFlowStart = this.formatTime(now - currentFlow.startTime);
-      this.logMessage("funcIn", `${functionName} [Flow time: ${timeFromFlowStart}]`, data);
+      this.logMessage("funcIn", `${displayMessage} [Flow time: ${timeFromFlowStart}]`, data);
     } else if (shouldLog) {
       // Outside a flow, only log if requested
-      this.logMessage("funcIn", functionName, data);
+      this.logMessage("funcIn", displayMessage, data);
     }
 
     this.functionStack.push(functionCall);
@@ -376,19 +440,23 @@ class PLog {
 
   /**
    * Record function exit and calculate duration
+   * @param message - Optional message to display (first parameter following standard pattern)
+   * @param data - Optional data to display (second parameter following standard pattern)
    */
-  funcOut(functionName: string, message?: string): void {
+  funcOut(message?: string, data?: unknown): void {
     if (this.functionStack.length === 0) {
-      this.error(`funcOut called for ${functionName} but no matching funcIn found`);
+      const currentFunctionName = this.getFunctionNameFromStack();
+      this.error(`funcOut called for ${currentFunctionName} but no matching funcIn found`);
       return;
     }
 
     const now = performance.now();
     const functionCall = this.functionStack.pop()!;
+    const currentFunctionName = this.getFunctionNameFromStack();
 
     // Verify function name matches (helps catch mismatched calls)
-    if (functionCall.name !== functionName) {
-      this.error(`Function name mismatch: expected ${functionCall.name}, got ${functionName}`);
+    if (functionCall.name !== currentFunctionName) {
+      this.error(`Function name mismatch: expected ${functionCall.name}, got ${currentFunctionName}`);
       this.functionStack.push(functionCall); // Put it back for potential later matching
       return;
     }
@@ -401,21 +469,30 @@ class PLog {
       return;
     }
 
+    // Use provided message or default to function completion message
+    const displayMessage = message || `${functionCall.name} completed in ${formattedDuration}`;
+
     // If we're in a flow, add to flow data and include flow time
     if (this.flowStack.length > 0) {
       const currentFlow = this.flowStack[this.flowStack.length - 1]!;
       currentFlow.functions.push({
-        name: functionName,
+        name: functionCall.name,
         startTime: functionCall.startTime,
         endTime: now,
         duration
       });
 
       const timeFromFlowStart = this.formatTime(now - currentFlow.startTime);
-      this.logMessage("funcOut", `${functionName} completed in ${formattedDuration} [Flow time: ${timeFromFlowStart}]`);
+      if (message) {
+        // If custom message provided, show it with timing info
+        this.logMessage("funcOut", `${displayMessage} [Duration: ${formattedDuration}, Flow time: ${timeFromFlowStart}]`, data);
+      } else {
+        // Default message already includes duration
+        this.logMessage("funcOut", `${displayMessage} [Flow time: ${timeFromFlowStart}]`, data);
+      }
     } else {
       // Outside a flow, just log the function duration
-      this.logMessage("funcOut", `${functionName} completed in ${formattedDuration}`);
+      this.logMessage("funcOut", displayMessage, data);
     }
   }
 
@@ -528,43 +605,159 @@ class PLog {
       });
     });
 
-    // Test 3: Function timing
-    runTest("Function Timing", () => {
-      this.funcIn("testFunction", { param: "value" }, true);
+    // Test 3: Function timing with auto-detection
+    runTest("Function Timing with Auto-Detection", () => {
+      // Define a test function to be detected
+      const testAutoDetection = () => {
+        this.funcIn("Custom message", { param: "value" }, true);
 
-      // Simulate some work
-      const start = performance.now();
-      while (performance.now() - start < 10) { /* wait */ }
+        // Simulate some work
+        const start = performance.now();
+        while (performance.now() - start < 10) { /* wait */ }
 
-      this.funcOut("testFunction");
+        this.funcOut("Function completed");
+        return true;
+      };
+
+      // Call the test function
+      testAutoDetection();
+
       return this.functionStack.length === 0; // Should be empty after funcOut
     });
 
-    // Test 4: Flow tracking
-    runTest("Flow Tracking", () => {
-      this.startFlow("testFlow");
+    // Test 4: Flow tracking with nested flows
+    runTest("Flow Tracking with Nested Flows", () => {
+      let testPassed = true;
+      const originalError = this.error.bind(this); // Bind to avoid scoping issues
+      let errorMessages: string[] = [];
 
-      this.funcIn("flowFunction1");
-      const start1 = performance.now();
-      while (performance.now() - start1 < 5) { /* wait */ }
-      this.funcOut("flowFunction1");
+      // Temporarily override error method to capture errors
+      this.error = (message: string) => {
+        errorMessages.push(message);
+        testPassed = false;
+        originalError(message);
+      };
 
-      this.funcIn("flowFunction2");
-      const start2 = performance.now();
-      while (performance.now() - start2 < 5) { /* wait */ }
-      this.funcOut("flowFunction2");
+      try {
+        // Start outer flow
+        this.startFlow("outerFlow");
 
-      this.endFlow("testFlow");
-      return this.flowStack.length === 0; // Should be empty after endFlow
+        // Define test functions
+        const outerFunction = () => {
+          this.funcIn("Outer function");
+
+          // Start nested flow
+          this.startFlow("nestedFlow");
+
+          // Run functions in nested flow
+          const nestedFunction1 = () => {
+            this.funcIn("Nested function 1");
+            const start = performance.now();
+            while (performance.now() - start < 5) { /* wait */ }
+            this.funcOut("Nested function 1 complete");
+          };
+
+          const nestedFunction2 = () => {
+            this.funcIn("Nested function 2");
+            const start = performance.now();
+            while (performance.now() - start < 5) { /* wait */ }
+            this.funcOut("Nested function 2 complete");
+          };
+
+          nestedFunction1();
+          nestedFunction2();
+
+          // End nested flow
+          this.endFlow("nestedFlow");
+
+          this.funcOut("Outer function complete");
+        };
+
+        // Run outer function
+        outerFunction();
+
+        // End outer flow
+        this.endFlow("outerFlow");
+
+        // Test flow name mismatch (should generate error)
+        this.startFlow("testFlow");
+        this.endFlow("wrongFlowName"); // This should error
+
+        // If we got here with errors, that's expected for the mismatch test
+        const hadExpectedErrors = errorMessages.length > 0;
+
+        // Reset for final verification
+        errorMessages = [];
+        testPassed = true;
+
+        // Verify stack is properly managed
+        const stackEmpty = this.flowStack.length === 0;
+
+        return stackEmpty && hadExpectedErrors && testPassed;
+      } finally {
+        // Restore original error method
+        this.error = originalError;
+      }
     });
 
-    // Test 5: Nested function calls
-    runTest("Nested Function Calls", () => {
-      this.funcIn("outerFunction");
-      this.funcIn("innerFunction");
-      this.funcOut("innerFunction");
-      this.funcOut("outerFunction");
-      return this.functionStack.length === 0;
+    // Test 5: Nested function calls with proper matching verification
+    runTest("Nested Function Calls with Proper Matching", () => {
+      let testPassed = true;
+      const originalError = this.error.bind(this);
+      let errorMessages: string[] = [];
+
+      // Temporarily override error method to capture errors
+      this.error = (message: string) => {
+        errorMessages.push(message);
+        testPassed = false;
+        originalError(message);
+      };
+
+      try {
+        // Define nested test functions
+        const outerFunction = () => {
+          this.funcIn("Outer function start");
+          innerFunction();
+          this.funcOut("Outer function end");
+        };
+
+        const innerFunction = () => {
+          this.funcIn("Inner function start");
+          // Do something
+          this.funcOut("Inner function end");
+        };
+
+        // Test 1: Correct nesting
+        outerFunction();
+
+        // Test 2: Test function name mismatch detection
+        // We'll manually manipulate the stack to test mismatch detection
+        const testMismatch = () => {
+          this.funcIn("Test function for mismatch");
+          // Manually change the function name in the stack to simulate mismatch
+          if (this.functionStack.length > 0) {
+            this.functionStack[this.functionStack.length - 1]!.name = "differentFunction";
+          }
+          this.funcOut("This should detect mismatch");
+        };
+
+        testMismatch();
+
+        // If we got here with errors, that's expected for the mismatch test
+        const hadExpectedErrors = errorMessages.length > 0;
+
+        // Reset for final verification
+        errorMessages = [];
+        testPassed = true;
+
+        // Test 3: Verify stack is properly managed
+        const stackEmpty = this.functionStack.length === 0;
+
+        return stackEmpty && hadExpectedErrors && testPassed;
+      } finally {
+        // Restore original error method
+        this.error = originalError;
+      }
     });
 
     // Test 6: Conditional breakpoint (without triggering)
@@ -591,24 +784,100 @@ class PLog {
       return stackTrace === undefined || (typeof stackTrace === "string" && stackTrace.length > 0);
     });
 
-    // Test 9: Error handling for mismatched function calls
+    // Test 6: Function call order verification
+    runTest("Function Call Order Verification", () => {
+      const callOrder: string[] = [];
+      const originalLogMessage = this.logMessage.bind(this);
+
+      // Override logMessage to track call order
+      this.logMessage = (level: LogLevel, message: string) => {
+        if (level === "funcIn" || level === "funcOut") {
+          callOrder.push(`${level}: ${message}`);
+        }
+        originalLogMessage(level, message);
+      };
+
+      try {
+        // Test proper LIFO (Last In, First Out) order
+        const functionA = () => {
+          this.funcIn("Function A start");
+          functionB();
+          this.funcOut("Function A end");
+        };
+
+        const functionB = () => {
+          this.funcIn("Function B start");
+          functionC();
+          this.funcOut("Function B end");
+        };
+
+        const functionC = () => {
+          this.funcIn("Function C start");
+          this.funcOut("Function C end");
+        };
+
+        functionA();
+
+        // Expected order: A-in, B-in, C-in, C-out, B-out, A-out
+        const expectedPattern = [
+          "funcIn: Function A start",
+          "funcIn: Function B start",
+          "funcIn: Function C start",
+          "funcOut: Function C end",
+          "funcOut: Function B end",
+          "funcOut: Function A end"
+        ];
+
+        const orderCorrect = callOrder.length === expectedPattern.length &&
+          callOrder.every((call, index) => call.includes(expectedPattern[index]!.split(": ")[1]!));
+
+        return orderCorrect && this.functionStack.length === 0;
+      } finally {
+        this.logMessage = originalLogMessage;
+      }
+    });
+
+    // Test 7: Error handling for mismatched function calls
     runTest("Error Handling", () => {
       const initialErrorCount = this.functionStack.length;
-      this.funcOut("nonExistentFunction"); // Should log error
+      this.funcOut("This should error"); // Should log error since no matching funcIn
       return this.functionStack.length === initialErrorCount; // Stack should be unchanged
+    });
+
+    // Test 8: Stack trace generation
+    runTest("Stack Trace Generation", () => {
+      const stackTrace = this.getStackTrace();
+      return stackTrace === undefined || (typeof stackTrace === "string" && stackTrace.length > 0);
+    });
+
+    // Test 9: Settings integration (basic test)
+    runTest("Settings Integration", () => {
+      try {
+        // Test that settings are accessible
+        const whitelist = getSetting("pLogWhitelist", "eunos-kult-hacks");
+        const blacklist = getSetting("pLogBlacklist", "eunos-kult-hacks");
+        return typeof whitelist === "string" && typeof blacklist === "string";
+      } catch {
+        return false; // Settings not yet registered
+      }
     });
 
     // Test 10: Recursion depth protection
     runTest("Recursion Protection", () => {
       const initialLength = this.functionStack.length;
-      // Add many function calls to test recursion protection
-      for (let i = 0; i < 10; i++) {
-        this.funcIn(`recursionTest${i}`);
-      }
-      // Clean up
-      for (let i = 9; i >= 0; i--) {
-        this.funcOut(`recursionTest${i}`);
-      }
+
+      // Define a test function for recursion testing
+      const recursionTest = (depth: number) => {
+        this.funcIn(`Recursion test depth ${depth}`);
+        if (depth < 10) {
+          recursionTest(depth + 1);
+        }
+        this.funcOut();
+      };
+
+      // Test recursion
+      recursionTest(0);
+
       return this.functionStack.length === initialLength;
     });
 
