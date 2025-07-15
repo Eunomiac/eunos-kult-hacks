@@ -213,6 +213,8 @@ pLog.endTimestamp("Email sent", undefined, "email");
 - Use once per function (typically without parameters)
 - Auto-detects function names from stack trace
 - Tracks entire function execution time
+- **Always uses LIFO (Last-In-First-Out) matching**
+- Custom messages are for display only - don't affect pairing
 
 **`startTimestamp` / `endTimestamp`**: Operation-level tracking
 - Use for sub-operations within functions
@@ -249,6 +251,48 @@ function completeRegistration() {
 }
 ```
 
+## Understanding Method Pairing
+
+### `funcIn` / `funcOut` Pairing Behavior
+
+**Important**: `funcIn` and `funcOut` always use LIFO (Last-In-First-Out) matching, regardless of any custom messages you provide.
+
+```typescript
+function exampleFunction() {
+  pLog.funcIn("Starting data processing"); // Custom message for display
+
+  // Some nested calls...
+  pLog.funcIn("Validating input");         // Custom message for display
+  pLog.funcOut("Input validation done");   // Matches with "Validating input" (LIFO)
+
+  pLog.funcOut("Data processing complete"); // Matches with "Starting data processing" (LIFO)
+}
+```
+
+**Key Points**:
+- Custom messages are purely informational and displayed in the console
+- The actual pairing is always based on call order (LIFO), not message content
+- Function name auto-detection happens regardless of custom messages
+- Name mismatch warnings are informational - pairing still works correctly
+
+### `startTimestamp` / `endTimestamp` Pairing Behavior
+
+These methods support both LIFO and explicit label-based matching:
+
+```typescript
+// LIFO matching (like funcIn/funcOut)
+pLog.startTimestamp("Operation A");
+pLog.startTimestamp("Operation B");
+pLog.endTimestamp("B completed"); // Matches with "Operation B" (LIFO)
+pLog.endTimestamp("A completed"); // Matches with "Operation A" (LIFO)
+
+// Label-based matching (for complex scenarios)
+pLog.startTimestamp("Operation X", undefined, "labelX");
+pLog.startTimestamp("Operation Y", undefined, "labelY");
+pLog.endTimestamp("X done", undefined, "labelX"); // Explicit match with labelX
+pLog.endTimestamp("Y done", undefined, "labelY"); // Explicit match with labelY
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -257,9 +301,11 @@ function completeRegistration() {
    - Ensure every `funcOut` has a corresponding `funcIn`
    - Check for early returns that skip `funcOut` calls
 
-2. **Function name mismatches**
-   - The auto-detection might fail in complex scenarios
-   - Use custom messages: `pLog.funcIn("Custom description")`
+2. **Function name mismatch warnings**
+   - These are informational warnings only - the pairing still works correctly
+   - `funcIn`/`funcOut` always use LIFO (Last-In-First-Out) matching regardless of messages
+   - Custom messages are for display purposes only and don't affect pairing logic
+   - Warnings are normal for recursive functions or complex call patterns
 
 3. **Flow timing seems wrong**
    - Run `pLog.analyzeTimestamps()` to validate call matching

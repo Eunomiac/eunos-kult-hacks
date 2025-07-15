@@ -1,5 +1,7 @@
 // #region IMPORTS ~
 import * as C from "./constants.js";
+import * as fs from "fs";
+import * as path from "path";
 // #endregion
 
 // #region CONFIG ~
@@ -537,6 +539,9 @@ class PLog {
       // Outside a flow, just log the function duration
       this.logMessage("funcOut", displayMessage, data);
     }
+
+    // Check if analysis is complete and should be logged to file
+    this.checkAndLogAnalysis("funcOut");
   }
 
   /**
@@ -606,6 +611,9 @@ class PLog {
 
       console.groupEnd();
     }
+
+    // Check if analysis is complete and should be logged to file
+    this.checkAndLogAnalysis("endFlow");
   }
 
   /**
@@ -1383,6 +1391,9 @@ class PLog {
       console.log(data);
     }
     console.groupEnd();
+
+    // Check if analysis is complete and should be logged to file
+    this.checkAndLogAnalysis("endTimestamp");
   }
 
   /**
@@ -1490,6 +1501,119 @@ class PLog {
    */
   isKLogSilenced(): boolean {
     return this.kLogSilencingFlowCount > 0;
+  }
+
+  /**
+   * Get the log directory path for PLog analysis files
+   */
+  private getLogDirectory(): string {
+    try {
+      // In Foundry VTT, we can access the data path through process.cwd()
+      // since Foundry runs from the data directory, or through environment variables
+      let baseDataPath: string;
+
+      // Try environment variable first (if available)
+      if (typeof process !== "undefined" && process.env?.["FOUNDRY_VTT_DATA_PATH"]) {
+        baseDataPath = process.env["FOUNDRY_VTT_DATA_PATH"];
+      } else if (typeof process !== "undefined") {
+        // Foundry typically runs from the data directory
+        baseDataPath = process.cwd();
+      } else {
+        throw new Error("Unable to determine data path: process not available");
+      }
+
+      const logDir = path.join(baseDataPath, "logs", C.SYSTEM_ID, "plog-analysis");
+
+      // Log the path for debugging during development
+      if (__DEV__) {
+        console.log(`PLog: Using log directory: ${logDir}`);
+        console.log(`PLog: Base data path: ${baseDataPath}`);
+      }
+
+      return logDir;
+    } catch (error) {
+      console.error("PLog: Failed to determine log directory:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Log the current analysis history to a file and clear the history
+   */
+  private logHistoryToFile(trigger: string): void {
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = `plog-analysis-${timestamp}-${trigger}.json`;
+
+      const logDir = this.getLogDirectory();
+
+      // Ensure directory exists
+      if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+      }
+
+      const filePath = path.join(logDir, filename);
+
+      const analysisData = {
+        trigger,
+        timestamp: new Date().toISOString(),
+        systemId: C.SYSTEM_ID,
+        completedCalls: [...this.completedCalls],
+        analysis: this.analyzeTimestamps(),
+        metadata: {
+          totalCalls: this.completedCalls.length,
+          duration: this.completedCalls.length > 0 ?
+            Math.max(...this.completedCalls.map(c => c.endTime)) -
+            Math.min(...this.completedCalls.map(c => c.startTime)) : 0,
+          foundryDataPath: typeof process !== "undefined" ? process.cwd() : "unknown"
+        }
+      };
+
+      fs.writeFileSync(filePath, JSON.stringify(analysisData, null, 2));
+
+      if (__DEV__) {
+        console.log(`PLog: Analysis logged to ${filePath}`);
+      }
+
+      // Clear history after successful logging
+      this.clearHistory();
+
+    } catch (error) {
+      console.error("PLog: Failed to log analysis to file:", error);
+      // Don't clear history if logging failed
+    }
+  }
+
+  /**
+   * Check if analysis is complete and should be logged to file
+   */
+  private checkAndLogAnalysis(trigger: string): void {
+    let shouldLog = false;
+
+    switch (trigger) {
+      case "funcOut":
+        // funcOut: stack empty AND not in flow AND no pending timestamps
+        shouldLog = this.functionStack.length === 0 &&
+                   this.flowStack.length === 0 &&
+                   this.labeledTimestamps.size === 0;
+        break;
+
+      case "endTimestamp":
+        // endTimestamp: no pending timestamps AND no pending functions AND not in flow
+        shouldLog = this.labeledTimestamps.size === 0 &&
+                   this.functionStack.length === 0 &&
+                   this.flowStack.length === 0;
+        break;
+
+      case "endFlow":
+        // endFlow: no remaining flows (not nested)
+        shouldLog = this.flowStack.length === 0;
+        break;
+    }
+
+    if (shouldLog && this.completedCalls.length > 0) {
+      this.logHistoryToFile(trigger);
+    }
   }
 }
 
