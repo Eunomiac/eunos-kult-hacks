@@ -28,6 +28,7 @@ import { InitializerMethod } from "./scripts/enums.ts";
 import { registerHandlebarHelpers } from "./scripts/helpers.ts";
 import InitializePopovers from "./scripts/popovers.ts";
 import kLog from "./scripts/logger.ts";
+import PLog from "./scripts/PLog.ts";
 import registerSettings from "./scripts/settings.ts";
 import { initializeGSAP } from "./scripts/animations.ts";
 import "../styles/styles.scss";
@@ -213,6 +214,10 @@ async function RunInitializer(methodName: InitializerMethod) {
 // Initialize core systems
 Hooks.on("init", () => {
   kLog.display("Initializing 'Kult: Divinity Lost 4th Edition' for Foundry VTT", 0);
+
+  // Initialize PLog
+  PLog.Initialize();
+  pLog.display("PLog initialized and ready for performance logging");
 
   // Replace the original addBasicMovesToActor hook
   removeK4ltHook(

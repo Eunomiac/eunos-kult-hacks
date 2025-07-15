@@ -159,6 +159,36 @@ declare global {
     report: (name: string, ...content: [string, ...unknown[]]) => void;
     closeReport: (name: string) => void;
   };
+
+  /**
+   * The pLog object provides performance logging, debugging, and flow tracking functionality.
+   */
+  const pLog: {
+    // Basic logging methods
+    log: (message: string, data?: unknown) => void;
+    warn: (message: string, data?: unknown) => void;
+    info: (message: string, data?: unknown) => void;
+    debug: (message: string, data?: unknown) => void;
+    error: (message: string, data?: unknown) => void;
+    display: (message: string, data?: unknown) => void;
+    socketCall: (message: string, data?: unknown) => void;
+    socketResponse: (message: string, data?: unknown) => void;
+    socketReceived: (message: string, data?: unknown) => void;
+
+    // Debugging methods
+    breakIf: (message: string, data?: unknown, condition?: boolean) => void;
+
+    // Performance tracking methods
+    funcIn: (functionName: string, data?: unknown, shouldLog?: boolean) => void;
+    funcOut: (functionName: string, message?: string) => void;
+
+    // Flow tracking methods
+    startFlow: (flowName: string) => void;
+    endFlow: (flowName?: string) => void;
+
+    // Testing method
+    test: () => void;
+  };
   // #endregion
 
   // #region CORE JAVASCRIPT AUGMENTATIONS ~

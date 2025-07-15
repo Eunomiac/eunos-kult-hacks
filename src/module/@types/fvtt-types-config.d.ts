@@ -89,7 +89,10 @@ declare global {
     "eunos-kult-hacks.introVideoFilename": string;
     "eunos-kult-hacks.endPhaseQuestion": number;
     "eunos-kult-hacks.inLimbo": boolean;
+    "eunos-kult-hacks.pLogWhitelist": string;
+    "eunos-kult-hacks.pLogBlacklist": string;
   }
+
 
 
   // interface SettingConfig {

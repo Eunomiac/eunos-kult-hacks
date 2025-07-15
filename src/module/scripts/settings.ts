@@ -366,6 +366,25 @@ export default function registerSettings() {
     type: Boolean,
     default: false
   });
+
+  // PLog settings
+  getSettings().register("eunos-kult-hacks", "pLogWhitelist", {
+    name: "PLog Whitelist",
+    hint: "Comma-delimited list of text strings that will be matched to PLog messages via RegExp analysis. Only messages matching these patterns will be logged (if not empty).",
+    scope: "world",
+    config: true,
+    type: String,
+    default: ""
+  });
+
+  getSettings().register("eunos-kult-hacks", "pLogBlacklist", {
+    name: "PLog Blacklist",
+    hint: "Comma-delimited list of text strings that will be matched to PLog messages via RegExp analysis. Messages matching these patterns will NOT be logged.",
+    scope: "world",
+    config: true,
+    type: String,
+    default: ""
+  });
 }
 
 
