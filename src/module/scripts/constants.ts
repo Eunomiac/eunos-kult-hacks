@@ -913,6 +913,8 @@ export interface EunosMediaData {
   showInSoundMenu?: boolean;
 
 }
+
+
 /**
  * Map of sound names to their HTMLAudioElement instances
  */
@@ -985,17 +987,7 @@ export const Sounds = {
       duration: 178, // 2:58
       loop: false,
       sync: true,
-      volume: 0.35,
-      autoplay: false
-    },
-    "way-down-we-go": {
-      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
-      alwaysPreload: false,
-      delay: 0,
-      duration: 214,
-      loop: false,
-      sync: true,
-      volume: 0.75,
+      volume: 0.5,
       autoplay: false
     },
     home: {
@@ -1006,6 +998,16 @@ export const Sounds = {
       sync: true,
       duration: 229,
       volume: 0.5,
+      autoplay: false
+    },
+    "way-down-we-go": {
+      path: "modules/eunos-kult-hacks/assets/sounds/music/presession-song-way-down-we-go.ogg",
+      alwaysPreload: false,
+      delay: 0,
+      duration: 214,
+      loop: false,
+      sync: true,
+      volume: 0.75,
       autoplay: false
     },
     "world-on-fire": {
@@ -5975,11 +5977,11 @@ export const PRE_SESSION = {
   /** Time in seconds before session start when countdown disappears */
   COUNTDOWN_HIDE: 1,
   /** Time in seconds before the end of the video when the chapter title is displayed */
-  CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET: 5,
+  CHAPTER_TITLE_DISPLAY_VIDEO_OFFSET: 3,
   /** Time in seconds after the start of the video when the black bars are animated out */
   BLACK_BARS_ANIMATION_OUT_VIDEO_DELAY: 17,
   /** Time in seconds for the black bars to animate out */
-  BLACK_BARS_ANIMATION_OUT_DURATION: 21,
+  BLACK_BARS_ANIMATION_OUT_DURATION: 9,
   /** Default session day (5 = Friday) */
   DEFAULT_SESSION_DAY: 5,
   /** Default session hour in 24h format (19 = 7 PM) */
@@ -5987,6 +5989,10 @@ export const PRE_SESSION = {
   /** Default session minute */
   DEFAULT_SESSION_MINUTE: 30
 } as const;
+
+export const SESSION = {
+  MIN_AUDIO_VOLUME: 0.01 // The minimum value to which audio volume can be set manually.
+};
 
 export const POST_SESSION = {
   /** Duration of black bars animation */

@@ -297,17 +297,20 @@
               }
 
               tr:nth-child(1) {
-                --table-text-font-family: var(--stone-font-1);
+                --table-text-font-family: var(--stone-font-1); // CoffinStone
                 --table-text-font-size: 24px;
                 font-weight: normal;
               }
 
               tr:nth-child(2) {
-                --table-text-font-family: var(--stone-font-5);
+                --table-text-font-family: var(--stone-font-5); // JackyRocky
+                --table-text-font-size: 20px;
+                font-weight: bold;
+                letter-spacing: 0px;
               }
 
               tr:nth-child(3) {
-                --table-text-font-family: var(--stone-font-15);
+                --table-text-font-family: var(--stone-font-15); // SanguisNoctis
                 --table-text-font-size: 18px;
                 // font-size: 18px;
                 font-weight: bold;
@@ -315,35 +318,35 @@
               }
 
               tr:nth-child(4) {
-                --table-text-font-family: var(--stone-font-11);
+                --table-text-font-family: var(--stone-font-11); // Rockledge
                 --table-text-font-size: 20px;
                 // font-size: 18px;
                 font-weight: bold;
                 letter-spacing: 2px;
               }
               tr:nth-child(5) {
-                --table-text-font-family: var(--stone-font-5);
-                --table-text-font-size: 20px;
+                --table-text-font-family: var(--stone-font-17); // Brainfish
+                --table-text-font-size: 24px;
                 // font-size: 18px;
                 font-weight: bold;
-                letter-spacing: 0px;
+                letter-spacing: 2px;
               }
               tr:nth-child(6) {
-                --table-text-font-family: var(--stone-font-8);
+                --table-text-font-family: var(--stone-font-8); // ObeliskMXVV
                 font-weight: bold;
                 letter-spacing: 2px;
               }
 
 
               tr:nth-child(7) {
-                --table-text-font-family: var(--stone-font-12);
+                --table-text-font-family: var(--stone-font-12); // Tabias
                 --table-text-font-size: 18px;
                 // font-size: 18px;
                 font-weight: normal;
                 letter-spacing: 2px;
               }
               tr:nth-child(8) {
-                --table-text-font-family: var(--stone-font-9);
+                --table-text-font-family: var(--stone-font-9); // PrimaryStone
                 --table-text-font-size: 26px;
                 // font-size: 18px;
                 font-weight: bold;
@@ -352,17 +355,14 @@
 
 
               tr:nth-child(9) {
-                // --table-text-font-family: var(--stone-font-4);
-                --table-text-font-family: var(--stone-font-10);
-                // --table-text-font-family: var(--stone-font-14);
+                --table-text-font-family: var(--stone-font-10); // Raderon
                 --table-text-font-size: 20px;
-                // font-size: 18px;
                 font-weight: normal;
                 letter-spacing: 2px;
               }
 
               tr:nth-child(10) {
-                --table-text-font-family: var(--stone-font-16);
+                --table-text-font-family: var(--stone-font-16); // EngraversCondensed
                 font-weight: 1000;
                 --table-text-font-size: 20px;
                 letter-spacing: 0px;

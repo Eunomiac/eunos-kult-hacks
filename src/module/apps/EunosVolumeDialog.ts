@@ -37,7 +37,7 @@ export class EunosVolumeDialog extends Application {
 
     // Debounce both local and remote updates
     const debouncedLocalUpdate = foundry.utils.debounce((sound: EunosMedia, volume: number) => {
-      sound.volume = volume;
+      sound.setVolumeImmediate(volume);
     }, 50);  // More frequent for local updates
 
     const debouncedRemoteUpdate = foundry.utils.debounce(this.updateVolumes.bind(this), 100);

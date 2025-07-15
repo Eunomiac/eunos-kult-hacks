@@ -69,14 +69,14 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
   };
 
   public static readonly SocketFunctions: {
-    showStandingStones: SocketFunction<void, void>;
-    hideStandingStones: SocketFunction<void, void>;
+    showStandingStones: AsyncSocketFunction<void, void>;
+    hideStandingStones: AsyncSocketFunction<void, void>;
   } = {
-    showStandingStones: () => {
-      void EunosCarousel.instance.initializeCarousel();
+    showStandingStones: async () => {
+      await EunosCarousel.instance.initializeCarousel();
     },
-    hideStandingStones: () => {
-      void EunosCarousel.instance.hideCarousel();
+    hideStandingStones: async () => {
+      await EunosCarousel.instance.hideCarousel();
     }
   };
 
@@ -216,14 +216,14 @@ export default class EunosCarousel extends HandlebarsApplicationMixin(
   public revealTimeline: gsap.core.Timeline | null = null;
   public isRevealed: boolean = false;
 
-  public showStandingStones() {
+  public async showStandingStones() {
     if (!getUser().isGM) { return; }
-    void EunosSockets.getInstance().call("showStandingStones", UserTargetRef.all);
+    await EunosSockets.getInstance().call("showStandingStones", UserTargetRef.all);
   }
 
-  public hideStandingStones() {
+  public async hideStandingStones() {
     if (!getUser().isGM) { return; }
-    void EunosSockets.getInstance().call("hideStandingStones", UserTargetRef.all);
+    await EunosSockets.getInstance().call("hideStandingStones", UserTargetRef.all);
   }
 
   /**

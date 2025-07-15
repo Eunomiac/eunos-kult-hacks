@@ -314,6 +314,11 @@
   src: #{to-url("fonts/WolvesEngraven.woff2")} format("woff2");
 }
 
+@font-face {
+  font-family: "Brainfish";
+  src: #{to-url("fonts/Brainfish.woff2")} format("woff2");
+}
+
 
 
 
@@ -387,6 +392,7 @@ $font-weight-black: 900;
   --stone-font-14: "WolvesEngraven";
   --stone-font-15: "SanguisNoctis";
   --stone-font-16: "EngraversCondensed";
+  --stone-font-17: "Brainfish";
 
 
   .roll-mod {

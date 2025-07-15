@@ -1,5 +1,5 @@
 import { EunosMediaCategories, EunosMediaTypes, MediaLoadStatus, UserTargetRef } from "../scripts/enums";
-import { Sounds, PRE_SESSION, type EunosMediaData } from "../scripts/constants";
+import { Sounds, PRE_SESSION, SESSION, type EunosMediaData } from "../scripts/constants";
 import { isEmpty, objDeepFlatten, roundNum } from "../scripts/utilities";
 import EunosSockets from "./EunosSockets";
 import { EunosVolumeDialog } from "./EunosVolumeDialog";
@@ -81,19 +81,41 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     }
   }
 
-  static async SetSoundscape(soundData: Record<string, number | null>, fadeDuration = 2) {
+  static async SetSoundscape(soundData: Record<string, number | null>, fadeDuration?: number) {
     const currentSounds = EunosMedia.GetPlayingSounds();
+
+    // Calculate appropriate fade duration if not provided
+    const calculateFadeDuration = async (media: EunosMedia<EunosMediaTypes.audio | EunosMediaTypes.video>): Promise<number> => {
+      if (fadeDuration !== undefined) {
+        return fadeDuration;
+      }
+      try {
+        const duration = await media.getDuration();
+        // Use minimum of 2 seconds or 20% of duration for short sounds
+        return Math.max(2, Math.min(duration * 0.2, 2));
+      } catch {
+        return 2; // Default fallback
+      }
+    };
+
     await Promise.all([
       Promise.all(
         currentSounds
           .filter((sound) => !soundData[sound.name])
-          .map((sound) => sound.kill(fadeDuration))
+          .map(async (sound) => {
+            const killFadeDuration = await calculateFadeDuration(sound);
+            return sound.kill(killFadeDuration);
+          })
       ),
       Promise.all(
         (Object.entries(soundData) as Array<[string, number]>)
-          .map(([soundName, volume]) => {
+          .map(async ([soundName, _volume]) => {
             const sound = EunosMedia.GetMedia(soundName);
-            return sound?.play(volume ? {volume, fadeInDuration: fadeDuration} : {fadeInDuration: fadeDuration});
+            if (!sound) return;
+            const playFadeDuration = await calculateFadeDuration(sound);
+            // Only play the sound, don't change its fundamental volume
+            // SetSoundscape should control playback, not modify the media's base volume
+            return sound.play({fadeInDuration: playFadeDuration});
           })
       )
     ]);
@@ -127,6 +149,88 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     dialog.render(true);
   }
 
+  /**
+   * Debug method to print a table of all media volumes for troubleshooting
+   */
+  static DebugVolumes(): void {
+    const allMedia = [
+      ...Array.from(EunosMedia.Sounds.values()),
+      ...Array.from(EunosMedia.Videos.values())
+    ];
+
+    if (allMedia.length === 0) {
+      console.log("No media objects registered");
+      return;
+    }
+
+    const tableData = allMedia.map(media => {
+      const undampenedVolume = media.#volume;
+      const dampenedVolume = undampenedVolume * media.dampeningFactor;
+      const actualElementVolume = media.#element?.volume ?? "No Element";
+      const calculatedVolume = media.volume; // Uses getter
+
+      return {
+        "Media Name": media.name,
+        "Default Volume": media.defaultVolume,
+        "Current (#volume)": undampenedVolume,
+        "Dampening Factor": media.dampeningFactor,
+        "Dampened (calculated)": dampenedVolume,
+        "Is Dampened": media.isDampened,
+        "Volume Getter": calculatedVolume,
+        "Actual Element Volume": actualElementVolume,
+        "Playing": media.playing,
+        "Loaded": media.loaded
+      };
+    });
+
+    console.table(tableData);
+
+    // Also log playing sounds separately for easier reading
+    const playingSounds = allMedia.filter(media => media.playing);
+    if (playingSounds.length > 0) {
+      console.log("\n=== PLAYING SOUNDS ONLY ===");
+      const playingData = playingSounds.map(media => ({
+        "Name": media.name,
+        "Default": media.defaultVolume,
+        "Current": media.#volume,
+        "Is Dampened": media.isDampened,
+        "Calculated": media.volume,
+        "Element": media.#element?.volume ?? "No Element"
+      }));
+      console.table(playingData);
+    }
+  }
+
+  /**
+   * Static method to play media by name. This is the only method that should be used to play media.
+   */
+  static Play(mediaName: string, options?: {
+    volume?: number;
+    loop?: boolean;
+    sync?: boolean;
+    fadeInDuration?: number;
+    ease?: string
+  }): Promise<void> {
+    const media = EunosMedia.GetMedia(mediaName);
+    if (!media) {
+      kLog.error(`Media "${mediaName}" not found`);
+      return Promise.resolve();
+    }
+    return media.play(options);
+  }
+
+  /**
+   * Static method to kill media by name. This is the only method that should be used to stop/kill media.
+   */
+  static Kill(mediaName: string, fadeDuration?: number): Promise<void> {
+    const media = EunosMedia.GetMedia(mediaName);
+    if (!media) {
+      kLog.log(`Media "${mediaName}" not found for killing`);
+      return Promise.resolve();
+    }
+    return media.kill(fadeDuration);
+  }
+
   #type: T;
   #element: Maybe<T extends EunosMediaTypes.audio ? HTMLAudioElement : HTMLVideoElement>;
   #category: EunosMediaCategories = EunosMediaCategories.Video;
@@ -140,6 +244,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
   #volume: number;
   #fadeEase = "none";
   originalVolume: number;
+  readonly defaultVolume: number; // Immutable fallback volume, never changes
   isDampened: boolean;
   dampeningFactor: number;
   autoplay: boolean;
@@ -235,11 +340,44 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
   }
 
   set volume(volume: number) {
-    this.#volume = volume;
-    if (this.playing) {
-      void gsap.to(this.element, { volume: this.#volume, duration: 1, ease: "none" });
+    // Volume corruption protection at the setter level
+    if (volume <= SESSION.MIN_AUDIO_VOLUME && volume <= this.defaultVolume) {
+      kLog.error(
+        `Volume corruption blocked for media "${this.name}": ` +
+        `attempted to set volume to ${volume} which is suspiciously low and at/below default (${this.defaultVolume}). ` +
+        "Using default volume instead.",
+        this
+      );
+      this.#volume = this.defaultVolume;
     } else {
-      this.element.volume = volume;
+      this.#volume = volume;
+    }
+    // Don't directly manipulate element volume - let GSAP handle all volume changes
+    // The element volume will be set correctly by play() method and GSAP animations
+  }
+
+  /**
+   * Immediately set the element volume without animation. Use sparingly - prefer play() method.
+   * This is for cases like real-time volume controls where immediate feedback is needed.
+   */
+  setVolumeImmediate(volume: number): void {
+    // Volume corruption protection at the immediate setter level
+    if (volume <= SESSION.MIN_AUDIO_VOLUME && volume <= this.defaultVolume) {
+      kLog.error(
+        `Volume corruption blocked for media "${this.name}": ` +
+        `attempted to set immediate volume to ${volume} which is suspiciously low and at/below default (${this.defaultVolume}). ` +
+        "Using default volume instead.",
+        this
+      );
+      this.#volume = this.defaultVolume;
+    } else {
+      this.#volume = volume;
+    }
+
+    if (this.#element) {
+      // Calculate actual element volume dynamically based on dampening state
+      const elementVolume = this.isDampened ? this.#volume * this.dampeningFactor : this.#volume;
+      this.#element.volume = elementVolume;
     }
   }
 
@@ -466,6 +604,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
         this.#element.id = this.name;
         this.#element.src = this.path;
         this.#element.preload = this.preloadValue;
+        this.#element.volume = 0; // Always initialize to silent
         $(this.#element).appendTo(this.parentSelector);
         return this.#element;
       }
@@ -483,6 +622,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
         this.#element.src = this.path;
         this.#element.controls = false;
         this.#element.preload = this.preloadValue;
+        this.#element.volume = 0; // Always initialize to silent
         $(this.#element).appendTo(this.parentSelector);
         return this.#element;
       }
@@ -565,6 +705,7 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     this.sync = data.sync ?? false;
     this.#volume = data.volume ?? 1;
     this.originalVolume = this.#volume;
+    this.defaultVolume = this.#volume; // Store immutable fallback volume
     this.isDampened = false;
     this.dampeningFactor = data.dampeningFactor ?? 0.1;
     this.autoplay = data.autoplay ?? false;
@@ -769,8 +910,10 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
       return;
     }
     this.isDampened = true;
-    const targetVolume = this.originalVolume * audioFactor;
-    gsap.to(this.#element, { volume: targetVolume, duration: 1, ease: "none" });
+    this.dampeningFactor = audioFactor;
+    // Calculate dampened volume manually to avoid double-dampening from getter
+    const dampenedVolume = this.#volume * this.dampeningFactor;
+    gsap.to(this.#element, { volume: dampenedVolume, duration: 1, ease: "none" });
   }
 
   unDampenAudio(): void {
@@ -779,7 +922,8 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
       return;
     }
     this.isDampened = false;
-    gsap.to(this.#element, { volume: this.originalVolume, duration: 1, ease: "none" });
+    // Use the undampened #volume directly
+    gsap.to(this.#element, { volume: this.#volume, duration: 1, ease: "none" });
   }
 
   async play(options?: {
@@ -798,12 +942,38 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     if (volume) {
       this.volume = volume;
     }
+
+    // Volume corruption detection and recovery
+    if (this.#volume <= SESSION.MIN_AUDIO_VOLUME && this.#volume <= this.defaultVolume) {
+      kLog.error(
+        `Volume corruption detected for media "${this.name}": ` +
+        `current volume (${this.#volume}) is suspiciously low and at/below default (${this.defaultVolume}). ` +
+        "Reverting to default volume.",
+        this
+      );
+      this.#volume = this.defaultVolume;
+    }
+
     this.loop = loop ?? this.loop;
     this.sync = sync ?? this.sync;
     this.fadeEase = ease ?? this.#fadeEase;
-    this.fadeInDuration = fadeInDuration ?? this.fadeInDuration ?? 0;
 
-    const fromVolume = this.fadeInDuration ? 0 : this.volume;
+    // Calculate appropriate fade duration if not provided
+    let actualFadeInDuration = fadeInDuration ?? this.fadeInDuration;
+    if (actualFadeInDuration === undefined || actualFadeInDuration === 0) {
+      try {
+        const duration = await this.getDuration();
+        // Use minimum of 2 seconds or 20% of duration for short sounds
+        actualFadeInDuration = Math.max(2, Math.min(duration * 0.2, 2));
+      } catch {
+        actualFadeInDuration = 2; // Default fallback
+      }
+    }
+    this.fadeInDuration = actualFadeInDuration;
+
+    // Calculate target volume dynamically based on dampening state
+    const targetVolume = this.isDampened ? this.#volume * this.dampeningFactor : this.#volume;
+    const fromVolume = this.fadeInDuration ? 0 : targetVolume;
 
     if (getUser().isGM && isSocketCalling) {
       const mediaData = await this.getSettingsData();
@@ -830,9 +1000,9 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
 
     try {
       await this.#element.play();
-      kLog.log(`Fading in ${roundNum(await this.getDuration(), 2)}s Sound with ${roundNum(this.fadeInDuration)}s of fade in.  From ${fromVolume} to ${this.volume}. `);
-      await gsap.fromTo(this.#element, { volume: fromVolume }, { volume: this.volume, duration: this.fadeInDuration, ease: this.fadeEase });
-      kLog.log(`Faded in media ${this.name} from ${fromVolume} to ${this.volume} = ${this.#element.volume}`);
+      kLog.log(`Fading in ${roundNum(await this.getDuration(), 2)}s Sound with ${roundNum(this.fadeInDuration)}s of fade in.  From ${fromVolume} to ${targetVolume}. `);
+      await gsap.fromTo(this.#element, { volume: fromVolume }, { volume: targetVolume, duration: this.fadeInDuration, ease: this.fadeEase });
+      kLog.log(`Faded in media ${this.name} from ${fromVolume} to ${targetVolume} = ${this.#element.volume}`);
     } catch (error) {
       if (error instanceof Error && error.name === "NotAllowedError") {
         kLog.error("Playback prevented, setting up interaction handlers", error);
@@ -845,9 +1015,10 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
   }
 
   /**
-   * Kills the media element, fading it out over 0.5s if it is playing, then unloads it.
+   * Kills the media element, fading it out over the specified duration or an appropriate default.
+   * Uses minimum of 2 seconds or 20% of media duration for short sounds, unless explicitly forced to 0.
    */
-  async kill(fadeDuration = 2, isSocketCalling = false): Promise<void> {
+  async kill(fadeDuration?: number, isSocketCalling = false): Promise<void> {
     if (getUser().isGM && isSocketCalling) {
       void EunosSockets.getInstance().call("killMedia", UserTargetRef.all, {mediaName: this.name});
       return;
@@ -855,12 +1026,25 @@ export default class EunosMedia<T extends EunosMediaTypes = EunosMediaTypes> {
     if (!this.#element) {
       return;
     }
-    kLog.log(`Found media "${this.name}", killing it ...`);
-    await gsap.to(this.#element, { volume: 0, duration: fadeDuration, onComplete: () => {
-      kLog.log(`... Awaited fade of "${this.name}", pausing & restoring volume.`);
+
+    // Calculate appropriate fade duration if not provided
+    let actualFadeDuration = fadeDuration;
+    if (actualFadeDuration === undefined) {
+      try {
+        const duration = await this.getDuration();
+        // Use minimum of 2 seconds or 20% of duration for short sounds
+        actualFadeDuration = Math.max(2, Math.min(duration * 0.2, 2));
+      } catch {
+        actualFadeDuration = 2; // Default fallback
+      }
+    }
+
+    kLog.log(`Found media "${this.name}", killing it with ${actualFadeDuration}s fade...`);
+    await gsap.to(this.#element, { volume: 0, duration: actualFadeDuration, onComplete: () => {
+      kLog.log(`... Awaited fade of "${this.name}", pausing.`);
       if (!this.#element) { return; }
       this.#element.pause();
-      this.#element.volume = this.volume;
+      // Note: We don't restore element volume here - it will be set correctly when play() is called
     }, ease: "none" });
   }
 

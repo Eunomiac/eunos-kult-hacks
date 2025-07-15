@@ -1,9 +1,9 @@
 // #region IMPORTS ~
-import {getSetting, formatDateAsISO} from "./utilities.ts";
+import {formatDateAsISO} from "./utilities.ts";
 import {EunosMediaCategories, GamePhase, PCTargetRef, LocationImageModes, NPCPortraitState} from "./enums.ts";
 import EunosOverlay from "../apps/EunosOverlay";
 import fields = foundry.data.fields;
-import {LOCATIONS, type Location} from "./constants.ts";
+import {LOCATIONS, SESSION, type Location} from "./constants.ts";
 import EunosMedia from "../apps/EunosMedia.ts";
 import type {DeepPartial} from "fvtt-types/utils";
 // #endregion
@@ -116,7 +116,34 @@ export default function registerSettings() {
     config: false,
     type: Object,
     default: {},
-    onChange: (value) => {
+    onChange: (value: Record<string, number>) => {
+      // Validate and clamp volume values to prevent corruption
+      const validatedValue: Record<string, number> = {};
+      let hasCorruption = false;
+
+      Object.entries(value).forEach(([soundName, volume]) => {
+        const media = EunosMedia.GetMedia(soundName);
+        const defaultVolume = media?.defaultVolume ?? SESSION.MIN_AUDIO_VOLUME;
+        const minVolume = Math.max(SESSION.MIN_AUDIO_VOLUME, defaultVolume);
+
+        if (volume < minVolume) {
+          kLog.error(
+            `Volume corruption detected in weatherAudio setting for "${soundName}": ` +
+            `attempted volume ${volume} is below minimum ${minVolume}. Clamping to minimum.`
+          );
+          validatedValue[soundName] = minVolume;
+          hasCorruption = true;
+        } else {
+          validatedValue[soundName] = volume;
+        }
+      });
+
+      // If we found corruption, update the setting with corrected values
+      if (hasCorruption) {
+        void setSetting("weatherAudio", validatedValue);
+        return; // Don't trigger updateWeatherAudio twice
+      }
+
       void EunosOverlay.instance.updateWeatherAudio();
     }
   });
@@ -234,7 +261,43 @@ export default function registerSettings() {
     scope: "world",
     config: false,
     type: Object,
-    default: {}
+    default: {},
+    onChange: (value: Record<string, unknown>) => {
+      // Validate and clamp volume override values to prevent corruption
+      const flattenedValue = foundry.utils.flattenObject(value) as Record<string, number>;
+      const validatedValue: Record<string, number | Record<string, number | Record<string, number>>> = {};
+      let hasCorruption = false;
+
+      Object.entries(flattenedValue).forEach(([dotKey, volume]) => {
+        if (typeof volume === "number") {
+          // Extract media name from dot key (first part before any dots)
+          const mediaName = dotKey.split(".")[0];
+          if (!mediaName) return; // Skip if no media name found
+          const media = EunosMedia.GetMedia(mediaName);
+          const defaultVolume = media?.defaultVolume ?? SESSION.MIN_AUDIO_VOLUME;
+          const minVolume = Math.min(SESSION.MIN_AUDIO_VOLUME, defaultVolume);
+
+          if (volume < minVolume) {
+            kLog.error(
+              `Volume corruption detected in volumeOverrides setting for "${dotKey}": ` +
+              `attempted volume ${volume} is below minimum ${minVolume}. Clamping to minimum.`
+            );
+            foundry.utils.setProperty(validatedValue, dotKey, minVolume);
+            hasCorruption = true;
+          } else {
+            foundry.utils.setProperty(validatedValue, dotKey, volume);
+          }
+        } else {
+          // Preserve non-number values as-is
+          foundry.utils.setProperty(validatedValue, dotKey, volume);
+        }
+      });
+
+      // If we found corruption, update the setting with corrected values
+      if (hasCorruption) {
+        void setSetting("volumeOverrides", validatedValue);
+      }
+    }
   });
   Hooks.once("ready", () => {
     getSettings().register("eunos-kult-hacks", "sessionScribe", {

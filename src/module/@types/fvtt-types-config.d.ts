@@ -66,6 +66,8 @@ declare global {
 
 
 
+  type VolumeOverride = Record<string, number | Record<string, number | Record<string, number>>>;
+
   interface SettingConfig {
     "core.rollMods": string;
     "eunos-kult-hacks.gamePhase": GamePhase;
@@ -79,7 +81,7 @@ declare global {
     "eunos-kult-hacks.isOutdoors": boolean;
     "eunos-kult-hacks.weatherAudio": Record<string, number>;
     "eunos-kult-hacks.locationData": Record<string, Location.SettingsData>;
-    "eunos-kult-hacks.volumeOverrides": Record<string, number>;
+    "eunos-kult-hacks.volumeOverrides": VolumeOverride;
     "eunos-kult-hacks.nextGameSession": string; // ISO date string in Toronto timezone
     "eunos-kult-hacks.sessionScribeDeck": string[];
     "eunos-kult-hacks.sessionScribe": string;
