@@ -663,22 +663,42 @@ class PLog {
       });
     });
 
-    // Test 3: Function timing with auto-detection
+    // Test 3: Function timing with auto-detection (standard usage)
     runTest("Function Timing with Auto-Detection", () => {
       // Define a test function to be detected
       const testAutoDetection = () => {
-        this.funcIn("Custom message", { param: "value" }, true);
+        this.funcIn(); // Auto-detect function name (standard usage)
 
         // Simulate some work
         const start = performance.now();
         while (performance.now() - start < 10) { /* wait */ }
 
-        this.funcOut("Function completed");
+        this.funcOut(); // Auto-match with funcIn (standard usage)
         return true;
       };
 
       // Call the test function
       testAutoDetection();
+
+      return this.functionStack.length === 0; // Should be empty after funcOut
+    });
+
+    // Test 3b: Function timing with custom messages
+    runTest("Function Timing with Custom Messages", () => {
+      // Test custom message functionality
+      const testCustomMessages = () => {
+        this.funcIn("Custom start message", { param: "value" });
+
+        // Simulate some work
+        const start = performance.now();
+        while (performance.now() - start < 10) { /* wait */ }
+
+        this.funcOut("Custom completion message");
+        return true;
+      };
+
+      // Call the test function
+      testCustomMessages();
 
       return this.functionStack.length === 0; // Should be empty after funcOut
     });
@@ -1097,7 +1117,35 @@ class PLog {
       return errorCaught;
     });
 
-    // Test 17: Timestamp with flow integration
+    // Test 17: Proper method usage patterns
+    runTest("Proper Method Usage Patterns", () => {
+      this.clearHistory();
+
+      // Test the correct usage pattern: funcIn/funcOut for functions, startTimestamp/endTimestamp for sub-operations
+      const testFunction = () => {
+        this.funcIn(); // Function-level tracking (auto-detect)
+
+        // Sub-operations within the function
+        this.startTimestamp("Sub-operation 1");
+        const start1 = performance.now();
+        while (performance.now() - start1 < 2) { /* wait */ }
+        this.endTimestamp("Sub-operation 1 completed");
+
+        this.startTimestamp("Sub-operation 2");
+        const start2 = performance.now();
+        while (performance.now() - start2 < 2) { /* wait */ }
+        this.endTimestamp("Sub-operation 2 completed");
+
+        this.funcOut(); // Function-level tracking (auto-match)
+      };
+
+      testFunction();
+
+      const analysis = this.analyzeTimestamps();
+      return analysis.isValid && this.functionStack.length === 0;
+    });
+
+    // Test 18: Timestamp with flow integration
     runTest("Timestamp with Flow Integration", () => {
       this.clearHistory();
 
@@ -1117,7 +1165,7 @@ class PLog {
       return analysis.isValid && this.flowStack.length === 0 && this.functionStack.length === 0;
     });
 
-    // Test 18: kLog silencing functionality
+    // Test 19: kLog silencing functionality
     runTest("kLog Silencing", () => {
       // Test that kLog silencing state is properly managed
       const initialSilenced = this.isKLogSilenced();
@@ -1151,7 +1199,7 @@ class PLog {
       );
     });
 
-    // Test 19: Mixed silencing and non-silencing flows
+    // Test 20: Mixed silencing and non-silencing flows
     runTest("Mixed Flow Silencing", () => {
       this.clearHistory();
 
@@ -1179,7 +1227,7 @@ class PLog {
       );
     });
 
-    // Test 20: Recursion depth protection
+    // Test 21: Recursion depth protection
     runTest("Recursion Protection", () => {
       const initialLength = this.functionStack.length;
 

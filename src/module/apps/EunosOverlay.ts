@@ -2545,7 +2545,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region PHASE LIFECYCLE METHODS ~
 
   async initializePhase(gamePhase?: GamePhase) {
-    pLog.funcIn("Initializing phase", { gamePhase });
+    pLog.funcIn(); // Auto-detect "initializePhase"
     gamePhase = gamePhase ?? getSetting("gamePhase");
     kLog.log(`Initializing phase: ${gamePhase}`);
     setTimeout(() => {
@@ -2573,7 +2573,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         break;
       }
     }
-    pLog.funcOut(`Phase initialization completed: ${gamePhase}`);
+    pLog.funcOut(); // Match with funcIn above
   }
 
   async syncPhase() {
@@ -2609,7 +2609,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   async cleanupPhase(gamePhase?: GamePhase) {
-    pLog.funcIn("Cleaning up phase", { gamePhase });
+    pLog.funcIn(); // Auto-detect "cleanupPhase"
     gamePhase = gamePhase ?? getSetting("gamePhase");
     kLog.log(`Cleaning up phase: ${gamePhase}`);
     switch (gamePhase) {
@@ -2634,7 +2634,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         break;
       }
     }
-    pLog.funcOut(`Phase cleanup completed: ${gamePhase}`);
+    pLog.funcOut(); // Match with funcIn above
   }
 
   // #region SessionClosed Methods
@@ -2755,11 +2755,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async cleanup_SessionStarting(): Promise<void> {
-    pLog.funcIn("Cleaning up SessionStarting phase");
+    pLog.funcIn(); // Auto-detect "cleanup_SessionStarting"
     await this.killIntroVideo();
     this.unfreezeOverlay();
     removeClassFromDOM("session-starting");
-    pLog.funcOut("SessionStarting cleanup completed");
+    pLog.funcOut(); // Match with funcIn above
   }
   // #endregion SessionStarting Methods
 
@@ -2781,23 +2781,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region SessionRunning Methods
   private async initialize_SessionRunning(): Promise<void> {
-    pLog.funcIn("Initializing SessionRunning phase");
+    pLog.funcIn(); // Auto-detect "initialize_SessionRunning"
 
     kLog.display("=== Killing Soundscape ===");
-    pLog.funcIn("Killing soundscape");
+    pLog.startTimestamp("Killing soundscape");
     await EunosMedia.SetSoundscape({});
-    pLog.funcOut("Soundscape killed");
+    pLog.endTimestamp("Soundscape killed");
 
     // Kill countdown if it's running
     kLog.display("=== Killing Countdown ===");
-    pLog.funcIn("Killing countdown");
+    pLog.startTimestamp("Killing countdown");
     await this.killCountdown(true, true);
-    pLog.funcOut("Countdown killed");
+    pLog.endTimestamp("Countdown killed");
 
     kLog.display("=== Building Portrait Timelines ===");
-    pLog.funcIn("Building PC portrait timelines");
+    pLog.startTimestamp("Building PC portrait timelines");
     await this.buildPCPortraitTimelines();
-    pLog.funcOut("PC portrait timelines built");
+    pLog.endTimestamp("PC portrait timelines built");
 
     kLog.display("=== Adding Class to DOM ===");
     addClassToDOM("session-running");
@@ -2809,7 +2809,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     void this.alertSessionScribe();
 
     kLog.display("=== Going to Location ===");
-    pLog.funcIn("Going to location");
+    pLog.startTimestamp("Going to location");
     if (getSetting("inLimbo")) {
       await this.enterLimbo();
     } else {
@@ -2819,7 +2819,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         delayWeather: true
       });
     }
-    pLog.funcOut("Location transition completed");
+    pLog.endTimestamp("Location transition completed");
 
     // kLog.display("=== Updating PCUI ===");
     // await this.updatePCUI();
@@ -2827,11 +2827,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     // await this.updateWeatherAudio();
     // this.render({parts: ["pcs"]});
     if (!getUser().isGM) {
-      pLog.funcOut("SessionRunning initialization completed (non-GM)");
+      pLog.funcOut(); // Match with funcIn above
       return;
     }
     // Send an Alert to the session scribe
-    pLog.funcOut("SessionRunning initialization completed (GM)");
+    pLog.funcOut(); // Match with funcIn above
   }
 
   public async alertSessionScribe() {
@@ -3384,7 +3384,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async killIntroVideo(): Promise<void> {
-    pLog.funcIn("Killing intro video");
+    pLog.funcIn(); // Auto-detect "killIntroVideo"
     if (this.#animateOutBlackBarsTimeout) {
       clearTimeout(this.#animateOutBlackBarsTimeout);
       this.#animateOutBlackBarsTimeout = undefined;
@@ -3402,7 +3402,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
     );
     await EunosMedia.Kill(this.introVideo.name);
-    pLog.funcOut("Intro video killed");
+    pLog.funcOut(); // Match with funcIn above
   }
   // #endregion INTRO VIDEO ~
 
