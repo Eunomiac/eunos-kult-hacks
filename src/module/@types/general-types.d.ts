@@ -183,13 +183,20 @@ declare global {
     funcOut: (message?: string, data?: unknown) => void;
 
     // Flow tracking methods
-    startFlow: (flowName: string) => void;
+    startFlow: (flowName: string, silenceKLog?: boolean) => void;
     endFlow: (flowName?: string) => void;
+
+    // Timestamp tracking methods (flexible, cross-function timing)
+    startTimestamp: (message: string, data?: unknown, label?: string) => void;
+    endTimestamp: (message?: string, data?: unknown, label?: string) => void;
 
     // Testing and analysis methods
     test: () => void;
     analyzeTimestamps: () => { isValid: boolean; issues: string[]; summary: string };
     clearHistory: () => void;
+
+    // kLog integration
+    isKLogSilenced: () => boolean;
   };
   // #endregion
 

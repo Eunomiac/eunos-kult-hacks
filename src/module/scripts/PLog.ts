@@ -124,9 +124,14 @@ interface FunctionCall {
   flowStartTime?: number;
 }
 
+interface TimestampCall extends FunctionCall {
+  label?: string; // Optional label for explicit matching
+}
+
 interface FlowData {
   name: string;
   startTime: number;
+  silenceKLog: boolean;
   functions: Array<{
     name: string;
     startTime: number;
@@ -170,6 +175,7 @@ interface FlowData {
 class PLog {
   private functionStack: FunctionCall[] = [];
   private flowStack: FlowData[] = [];
+  private labeledTimestamps: Map<string, TimestampCall> = new Map();
   private completedCalls: Array<{
     name: string;
     startTime: number;
@@ -177,6 +183,7 @@ class PLog {
     duration: number;
     depth: number;
   }> = [];
+  private kLogSilencingFlowCount: number = 0;
 
   /**
    * Static method to initialize PLog and assign it to global scope
@@ -290,6 +297,16 @@ class PLog {
 
     const inBlacklist = blacklistRegexes.some(regex => regex.test(message));
     return !inBlacklist;
+  }
+
+  /**
+   * Get style string for a log level
+   */
+  private getStyleString(level: LogLevel): string {
+    return Object.entries({
+      ...STYLES.base,
+      ...STYLES[level]
+    }).map(([prop, val]) => `${prop}: ${val};`).join(" ");
   }
 
   /**
@@ -524,15 +541,22 @@ class PLog {
 
   /**
    * Start a performance flow
+   * @param flowName - Name of the flow
+   * @param silenceKLog - If true, silences all kLog calls (except kLog.error) for the duration of this flow
    */
-  startFlow(flowName: string): void {
+  startFlow(flowName: string, silenceKLog = false): void {
     const now = performance.now();
 
-    this.logMessage("startFlow", `⏱️ FLOW START: ${flowName}`);
+    if (silenceKLog) {
+      this.kLogSilencingFlowCount++;
+    }
+
+    this.logMessage("startFlow", `⏱️ FLOW START: ${flowName}${silenceKLog ? " (kLog silenced)" : ""}`);
 
     this.flowStack.push({
       name: flowName,
       startTime: now,
+      silenceKLog,
       functions: []
     });
   }
@@ -556,10 +580,18 @@ class PLog {
       return;
     }
 
+    // Handle kLog silencing counter
+    if (flow.silenceKLog) {
+      this.kLogSilencingFlowCount--;
+      if (this.kLogSilencingFlowCount < 0) {
+        this.kLogSilencingFlowCount = 0; // Safety check
+      }
+    }
+
     const duration = now - flow.startTime;
     const formattedDuration = this.formatTime(duration);
 
-    this.logMessage("endFlow", `⏱️ FLOW END: ${flow.name} - Total time: ${formattedDuration}`);
+    this.logMessage("endFlow", `⏱️ FLOW END: ${flow.name} - Total time: ${formattedDuration}${flow.silenceKLog ? " (kLog un-silenced)" : ""}`);
 
     // Display function timing table
     if (flow.functions.length > 0) {
@@ -977,7 +1009,177 @@ class PLog {
       return analysis.isValid && this.functionStack.length === 0;
     });
 
-    // Test 13: Recursion depth protection
+    // Test 13: Basic timestamp functionality (LIFO)
+    runTest("Basic Timestamp Functionality", () => {
+      this.clearHistory();
+
+      this.startTimestamp("Operation A", { test: "data" });
+
+      // Add delay for measurable timing
+      const start = performance.now();
+      while (performance.now() - start < 2) { /* wait */ }
+
+      this.endTimestamp("Operation A completed");
+
+      const analysis = this.analyzeTimestamps();
+      return analysis.isValid && this.functionStack.length === 0;
+    });
+
+    // Test 14: Labeled timestamp functionality
+    runTest("Labeled Timestamp Functionality", () => {
+      this.clearHistory();
+
+      // Test basic labeled timestamps
+      this.startTimestamp("Operation X", undefined, "labelX");
+      this.startTimestamp("Operation Y", undefined, "labelY");
+
+      // Add delays
+      const start1 = performance.now();
+      while (performance.now() - start1 < 2) { /* wait */ }
+
+      // End in reverse order (would fail with LIFO, but works with labels)
+      this.endTimestamp("Operation X done", undefined, "labelX");
+
+      const start2 = performance.now();
+      while (performance.now() - start2 < 2) { /* wait */ }
+
+      this.endTimestamp("Operation Y done", undefined, "labelY");
+
+      const analysis = this.analyzeTimestamps();
+      return analysis.isValid && this.labeledTimestamps.size === 0;
+    });
+
+    // Test 15: Mixed timestamp functionality (LIFO + labeled)
+    runTest("Mixed Timestamp Functionality", () => {
+      this.clearHistory();
+
+      this.startTimestamp("Outer operation"); // LIFO
+      this.startTimestamp("Labeled operation", undefined, "special"); // Labeled
+      this.startTimestamp("Inner operation"); // LIFO
+
+      // Add delays
+      const start = performance.now();
+      while (performance.now() - start < 2) { /* wait */ }
+
+      this.endTimestamp("Inner done"); // LIFO - matches "Inner operation"
+      this.endTimestamp("Special done", undefined, "special"); // Labeled - matches "Labeled operation"
+      this.endTimestamp("Outer done"); // LIFO - matches "Outer operation"
+
+      const analysis = this.analyzeTimestamps();
+      return analysis.isValid && this.functionStack.length === 0 && this.labeledTimestamps.size === 0;
+    });
+
+    // Test 16: Timestamp error handling
+    runTest("Timestamp Error Handling", () => {
+      this.clearHistory();
+      let errorCaught = false;
+
+      try {
+        // Test duplicate label error
+        this.startTimestamp("Op 1", undefined, "duplicate");
+        this.startTimestamp("Op 2", undefined, "duplicate"); // Should throw
+      } catch (error) {
+        errorCaught = true;
+      }
+
+      this.clearHistory(); // Clean up
+
+      if (!errorCaught) return false;
+
+      errorCaught = false;
+      try {
+        // Test missing label error
+        this.endTimestamp("Missing", undefined, "nonexistent"); // Should throw
+      } catch (error) {
+        errorCaught = true;
+      }
+
+      return errorCaught;
+    });
+
+    // Test 17: Timestamp with flow integration
+    runTest("Timestamp with Flow Integration", () => {
+      this.clearHistory();
+
+      this.startFlow("Test Flow");
+      this.startTimestamp("Flow operation A");
+      this.startTimestamp("Flow operation B", undefined, "flowB");
+
+      // Add delays
+      const start = performance.now();
+      while (performance.now() - start < 2) { /* wait */ }
+
+      this.endTimestamp("Flow A done");
+      this.endTimestamp("Flow B done", undefined, "flowB");
+      this.endFlow("Test Flow");
+
+      const analysis = this.analyzeTimestamps();
+      return analysis.isValid && this.flowStack.length === 0 && this.functionStack.length === 0;
+    });
+
+    // Test 18: kLog silencing functionality
+    runTest("kLog Silencing", () => {
+      // Test that kLog silencing state is properly managed
+      const initialSilenced = this.isKLogSilenced();
+
+      // Start a silencing flow
+      this.startFlow("Silencing Test", true);
+      const silencedDuringFlow = this.isKLogSilenced();
+
+      // End the silencing flow
+      this.endFlow("Silencing Test");
+      const silencedAfterFlow = this.isKLogSilenced();
+
+      // Test nested silencing flows
+      this.startFlow("Outer Flow", true);
+      this.startFlow("Inner Flow", true);
+      const nestedSilenced = this.isKLogSilenced();
+
+      this.endFlow("Inner Flow");
+      const afterInnerEnd = this.isKLogSilenced();
+
+      this.endFlow("Outer Flow");
+      const afterOuterEnd = this.isKLogSilenced();
+
+      return (
+        !initialSilenced &&
+        silencedDuringFlow &&
+        !silencedAfterFlow &&
+        nestedSilenced &&
+        afterInnerEnd && // Should still be silenced after inner ends
+        !afterOuterEnd   // Should not be silenced after outer ends
+      );
+    });
+
+    // Test 19: Mixed silencing and non-silencing flows
+    runTest("Mixed Flow Silencing", () => {
+      this.clearHistory();
+
+      // Start non-silencing flow
+      this.startFlow("Normal Flow", false);
+      const normalFlowSilenced = this.isKLogSilenced();
+
+      // Start silencing flow within normal flow
+      this.startFlow("Silent Flow", true);
+      const silentFlowSilenced = this.isKLogSilenced();
+
+      // End silent flow
+      this.endFlow("Silent Flow");
+      const afterSilentEnd = this.isKLogSilenced();
+
+      // End normal flow
+      this.endFlow("Normal Flow");
+      const afterNormalEnd = this.isKLogSilenced();
+
+      return (
+        !normalFlowSilenced &&
+        silentFlowSilenced &&
+        !afterSilentEnd &&
+        !afterNormalEnd
+      );
+    });
+
+    // Test 20: Recursion depth protection
     runTest("Recursion Protection", () => {
       const initialLength = this.functionStack.length;
 
@@ -1016,6 +1218,122 @@ class PLog {
       console.log("%c⚠️ Some tests failed. Check the results above for details.", "color: red; font-weight: bold; font-size: 16px;");
     }
 
+    console.groupEnd();
+  }
+
+  /**
+   * Start a timestamp for any operation (not tied to specific functions)
+   * @param message - Description of what's being timed (first parameter following standard pattern)
+   * @param data - Optional data to display (second parameter following standard pattern)
+   * @param label - Optional label for explicit matching (third parameter for specific behavior)
+   */
+  startTimestamp(message: string, data?: unknown, label?: string): void {
+    const now = performance.now();
+    const timestampCall: TimestampCall = {
+      name: message,
+      startTime: now,
+      label
+    };
+
+    // Add flow start time if we're in a flow
+    if (this.flowStack.length > 0) {
+      const currentFlow = this.flowStack[this.flowStack.length - 1]!;
+      timestampCall.flowStartTime = currentFlow.startTime;
+    }
+
+    if (label) {
+      // Labeled timestamp - store for explicit matching
+      if (this.labeledTimestamps.has(label)) {
+        throw new Error(`Timestamp label "${label}" already in use. Each label must be unique until its matching endTimestamp is called.`);
+      }
+      this.labeledTimestamps.set(label, timestampCall);
+    } else {
+      // Unlabeled timestamp - use LIFO stack
+      this.functionStack.push(timestampCall);
+    }
+
+    // Log the start message
+    if (this.flowStack.length > 0) {
+      const currentFlow = this.flowStack[this.flowStack.length - 1]!;
+      const timeFromFlowStart = this.formatTime(now - currentFlow.startTime);
+      this.logMessage("funcIn", `${message} [Flow time: ${timeFromFlowStart}]`, data);
+    } else {
+      this.logMessage("funcIn", message, data);
+    }
+  }
+
+  /**
+   * End a timestamp (LIFO matching for unlabeled, explicit matching for labeled)
+   * @param message - Optional message to display (first parameter following standard pattern)
+   * @param data - Optional data to display (second parameter following standard pattern)
+   * @param label - Optional label for explicit matching (third parameter for specific behavior)
+   */
+  endTimestamp(message?: string, data?: unknown, label?: string): void {
+    const now = performance.now();
+    let timestampCall: TimestampCall;
+
+    if (label) {
+      // Labeled timestamp - find explicit match
+      const labeledCall = this.labeledTimestamps.get(label);
+      if (!labeledCall) {
+        throw new Error(`No matching startTimestamp found for label "${label}". Make sure you called startTimestamp with the same label.`);
+      }
+      timestampCall = labeledCall;
+      this.labeledTimestamps.delete(label);
+    } else {
+      // Unlabeled timestamp - use LIFO
+      if (this.functionStack.length === 0) {
+        this.error("endTimestamp called but no matching startTimestamp found");
+        return;
+      }
+      timestampCall = this.functionStack.pop()!;
+    }
+
+    const duration = now - timestampCall.startTime;
+    const formattedDuration = this.formatTime(duration);
+    const displayMessage = message || `${timestampCall.name} completed in ${formattedDuration}`;
+
+    // Check if we should log based on message (if provided)
+    if (message && !this.shouldLog(message)) {
+      return;
+    }
+
+    // Record completed call for timestamp analysis
+    this.completedCalls.push({
+      name: timestampCall.name,
+      startTime: timestampCall.startTime,
+      endTime: now,
+      duration,
+      depth: this.functionStack.length
+    });
+
+    // Show collapsed message with matched start message for verification
+    const styleString = this.getStyleString("funcOut");
+
+    if (this.flowStack.length > 0) {
+      const currentFlow = this.flowStack[this.flowStack.length - 1]!;
+      currentFlow.functions.push({
+        name: timestampCall.name,
+        startTime: timestampCall.startTime,
+        endTime: now,
+        duration
+      });
+
+      const timeFromFlowStart = this.formatTime(now - currentFlow.startTime);
+      if (message) {
+        console.groupCollapsed(`%c${displayMessage} [Duration: ${formattedDuration}, Flow time: ${timeFromFlowStart}]`, styleString);
+      } else {
+        console.groupCollapsed(`%c${displayMessage} [Flow time: ${timeFromFlowStart}]`, styleString);
+      }
+    } else {
+      console.groupCollapsed(`%c${displayMessage}`, styleString);
+    }
+
+    // Show the matched start message for verification
+    console.log(`%cMatched with: "${timestampCall.name}"`, "color: #888; font-style: italic; font-size: 11px;");
+    if (data !== undefined) {
+      console.log(data);
+    }
     console.groupEnd();
   }
 
@@ -1112,10 +1430,18 @@ class PLog {
   }
 
   /**
-   * Clear completed calls history (useful for testing)
+   * Clear completed calls history and labeled timestamps (useful for testing)
    */
   clearHistory(): void {
     this.completedCalls = [];
+    this.labeledTimestamps.clear();
+  }
+
+  /**
+   * Check if kLog calls should be silenced (used by kLog internally)
+   */
+  isKLogSilenced(): boolean {
+    return this.kLogSilencingFlowCount > 0;
   }
 }
 

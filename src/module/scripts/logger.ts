@@ -195,25 +195,49 @@ const k4Logger = (type: KeyOf<typeof STYLES> = "base", ...content: [string, ...u
 
 const kLog = {
   display: (...content: [string, ...unknown[]]) => {
+    // Check if pLog is silencing kLog calls (but allow if pLog doesn't exist yet)
+    if (typeof (globalThis as any).pLog !== "undefined" && (globalThis as any).pLog.isKLogSilenced()) {
+      return;
+    }
     k4Logger("display", ...content);
   },
   log: (...content: [string, ...unknown[]]) => {
+    // Check if pLog is silencing kLog calls (but allow if pLog doesn't exist yet)
+    if (typeof (globalThis as any).pLog !== "undefined" && (globalThis as any).pLog.isKLogSilenced()) {
+      return;
+    }
     if (__DEV__) k4Logger("base", ...content);
   },
   socketCall: (...content: [string, ...unknown[]]) => {
+    // Check if pLog is silencing kLog calls (but allow if pLog doesn't exist yet)
+    if (typeof (globalThis as any).pLog !== "undefined" && (globalThis as any).pLog.isKLogSilenced()) {
+      return;
+    }
     if (__DEV__) k4Logger("socketCall", ...content);
   },
   socketReceived: (...content: [string, ...unknown[]]) => {
+    // Check if pLog is silencing kLog calls (but allow if pLog doesn't exist yet)
+    if (typeof (globalThis as any).pLog !== "undefined" && (globalThis as any).pLog.isKLogSilenced()) {
+      return;
+    }
     if (__DEV__) k4Logger("socketReceived", ...content);
   },
   socketResponse: (...content: [string, ...unknown[]]) => {
+    // Check if pLog is silencing kLog calls (but allow if pLog doesn't exist yet)
+    if (typeof (globalThis as any).pLog !== "undefined" && (globalThis as any).pLog.isKLogSilenced()) {
+      return;
+    }
     if (__DEV__) k4Logger("socketResponse", ...content);
   },
   error: (...content: [string, ...unknown[]]) => {
-    // You might want to keep error logging even in production
+    // IMPORTANT: error logging is NEVER silenced, even during pLog flows
     k4Logger("error", ...content);
   },
   hbsLog: (...content: [string, ...unknown[]]) => {
+    // Check if pLog is silencing kLog calls (but allow if pLog doesn't exist yet)
+    if (typeof (globalThis as any).pLog !== "undefined" && (globalThis as any).pLog.isKLogSilenced()) {
+      return;
+    }
     if (__DEV__) k4Logger("handlebars", ...content);
   }
 };
