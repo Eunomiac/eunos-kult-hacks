@@ -177,6 +177,7 @@ declare global {
 
     // Debugging methods
     breakIf: (message: string, data?: unknown, condition?: boolean) => void;
+    stampNow: (message?: string, data?: unknown) => void;
 
     // Performance tracking methods
     funcIn: (message?: string, data?: unknown, shouldLog?: boolean) => void;
@@ -192,7 +193,7 @@ declare global {
 
     // Testing and analysis methods
     test: () => void;
-    analyzeTimestamps: () => { isValid: boolean; issues: string[]; summary: string };
+    analyzeTimestamps: (useLatestFile?: boolean) => { isValid: boolean; issues: string[]; summary: string };
     clearHistory: () => void;
 
     // kLog integration

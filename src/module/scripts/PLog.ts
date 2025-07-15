@@ -175,6 +175,18 @@ interface FlowData {
  *   pLog.endFlow();   // Shows timing table for all functions
  */
 class PLog {
+  private static _instance: Maybe<PLog> = undefined;
+
+  /**
+   * Get the singleton instance of PLog, creating it if necessary
+   */
+  static get instance(): PLog {
+    if (!PLog._instance) {
+      PLog._instance = new PLog();
+    }
+    return PLog._instance;
+  }
+
   private functionStack: FunctionCall[] = [];
   private flowStack: FlowData[] = [];
   private labeledTimestamps: Map<string, TimestampCall> = new Map();
@@ -191,8 +203,11 @@ class PLog {
    * Static method to initialize PLog and assign it to global scope
    */
   static Initialize(): void {
-    const instance = new PLog();
-    Object.assign(globalThis, { pLog: instance });
+    Object.defineProperty(globalThis, "pLog", {
+      get: () => PLog.instance,
+      configurable: false,
+      enumerable: true
+    });
   }
 
   /**
@@ -265,18 +280,38 @@ class PLog {
   }
 
   /**
+   * Safely get a PLog setting with fallback if settings aren't registered yet
+   * @param key - The setting key to retrieve
+   * @returns The setting value, or empty string if settings aren't registered yet
+   *
+   * Fallback behavior: Returns empty string, which means:
+   * - Empty whitelist = no whitelist filtering (all messages pass)
+   * - Empty blacklist = no blacklist filtering (no messages blocked)
+   * This ensures PLog works before settings are initialized
+   */
+  private getSafePLogSetting(key: "pLogWhitelist" | "pLogBlacklist"): string {
+    try {
+      const value = getSetting(key, "eunos-kult-hacks");
+      return typeof value === "string" ? value : "";
+    } catch {
+      // Settings not yet registered, return empty string (no filtering)
+      return "";
+    }
+  }
+
+  /**
    * Check if message should be logged based on whitelist/blacklist settings
    */
   private shouldLog(message: string): boolean {
-    const whitelist = getSetting("pLogWhitelist", "eunos-kult-hacks");
-    const blacklist = getSetting("pLogBlacklist", "eunos-kult-hacks");
+    const whitelist = this.getSafePLogSetting("pLogWhitelist");
+    const blacklist = this.getSafePLogSetting("pLogBlacklist");
 
-    const whitelistTerms = whitelist ? whitelist.split(",").map(term => term.trim()).filter(term => term) : [];
-    const blacklistTerms = blacklist ? blacklist.split(",").map(term => term.trim()).filter(term => term) : [];
+    const whitelistTerms = whitelist ? whitelist.split(",").map((term: string) => term.trim()).filter((term: string) => term) : [];
+    const blacklistTerms = blacklist ? blacklist.split(",").map((term: string) => term.trim()).filter((term: string) => term) : [];
 
     // Convert terms to RegExp patterns
-    const whitelistRegexes = whitelistTerms.map(term => new RegExp(term, "i"));
-    const blacklistRegexes = blacklistTerms.map(term => new RegExp(term, "i"));
+    const whitelistRegexes = whitelistTerms.map((term: string) => new RegExp(term, "i"));
+    const blacklistRegexes = blacklistTerms.map((term: string) => new RegExp(term, "i"));
 
     // Apply filtering logic
     if (whitelistRegexes.length === 0 && blacklistRegexes.length === 0) {
@@ -400,6 +435,62 @@ class PLog {
 
   display(message: string, data?: unknown): void {
     this.logMessage("display", message, data);
+  }
+
+  /**
+   * Immediately log a timestamped message relative to the most recent funcIn or startFlow
+   * @param message - Optional message to display
+   * @param data - Optional data to include
+   */
+  stampNow(message?: string, data?: unknown): void {
+    const now = performance.now();
+    const displayMessage = message || "Timestamp";
+
+    // Find the most recent reference point (funcIn or startFlow)
+    const mostRecentFunction = this.functionStack.length > 0 ? this.functionStack[this.functionStack.length - 1] : null;
+    const mostRecentFlow = this.flowStack.length > 0 ? this.flowStack[this.flowStack.length - 1] : null;
+
+    let referenceTime: number;
+    let referenceType: string;
+    let referenceName: string;
+
+    // Determine which is more recent
+    if (!mostRecentFunction && !mostRecentFlow) {
+      // No reference points, use absolute time
+      referenceTime = 0;
+      referenceType = "absolute";
+      referenceName = "start";
+    } else if (!mostRecentFunction) {
+      // Only flow available
+      referenceTime = mostRecentFlow!.startTime;
+      referenceType = "flow";
+      referenceName = mostRecentFlow!.name;
+    } else if (!mostRecentFlow) {
+      // Only function available
+      referenceTime = mostRecentFunction.startTime;
+      referenceType = "function";
+      referenceName = mostRecentFunction.name;
+    } else {
+      // Both available, use the more recent one
+      if (mostRecentFunction.startTime >= mostRecentFlow.startTime) {
+        referenceTime = mostRecentFunction.startTime;
+        referenceType = "function";
+        referenceName = mostRecentFunction.name;
+      } else {
+        referenceTime = mostRecentFlow.startTime;
+        referenceType = "flow";
+        referenceName = mostRecentFlow.name;
+      }
+    }
+
+    const relativeTime = referenceTime > 0 ? now - referenceTime : now;
+    const timeDisplay = referenceTime > 0
+      ? `+${relativeTime.toFixed(4)}ms from ${referenceType} "${referenceName}"`
+      : `${now.toFixed(4)}ms`;
+
+    if (!this.shouldLog(displayMessage)) return;
+
+    this.logMessage("info", `⏱️ STAMP: ${displayMessage} (${timeDisplay})`, data);
   }
 
   socketCall(message: string, data?: unknown): void {
@@ -653,6 +744,8 @@ class PLog {
       this.socketCall("Test socket call");
       this.socketResponse("Test socket response");
       this.socketReceived("Test socket received");
+      this.stampNow("Test timestamp");
+      this.stampNow(); // Test with no message
       return true; // Visual inspection required
     });
 
@@ -854,14 +947,10 @@ class PLog {
 
     // Test 7: Settings filtering (basic test)
     runTest("Settings Integration", () => {
-      try {
-        // Test that settings are accessible
-        const whitelist = getSetting("pLogWhitelist", "eunos-kult-hacks");
-        const blacklist = getSetting("pLogBlacklist", "eunos-kult-hacks");
-        return typeof whitelist === "string" && typeof blacklist === "string";
-      } catch {
-        return false; // Settings not yet registered
-      }
+      // Test that settings are accessible (should always work with fallbacks)
+      const whitelist = this.getSafePLogSetting("pLogWhitelist");
+      const blacklist = this.getSafePLogSetting("pLogBlacklist");
+      return typeof whitelist === "string" && typeof blacklist === "string";
     });
 
     // Test 8: Stack trace generation
@@ -938,14 +1027,10 @@ class PLog {
 
     // Test 9: Settings integration (basic test)
     runTest("Settings Integration", () => {
-      try {
-        // Test that settings are accessible
-        const whitelist = getSetting("pLogWhitelist", "eunos-kult-hacks");
-        const blacklist = getSetting("pLogBlacklist", "eunos-kult-hacks");
-        return typeof whitelist === "string" && typeof blacklist === "string";
-      } catch {
-        return false; // Settings not yet registered
-      }
+      // Test that settings are accessible (should always work with fallbacks)
+      const whitelist = this.getSafePLogSetting("pLogWhitelist");
+      const blacklist = this.getSafePLogSetting("pLogBlacklist");
+      return typeof whitelist === "string" && typeof blacklist === "string";
     });
 
     // Test 10: Timestamp analysis for recursive calls
@@ -1397,10 +1482,47 @@ class PLog {
   }
 
   /**
+   * Get the most recent analysis log file
+   */
+  private getLatestAnalysisFile(): Maybe<{ validation: { isValid: boolean; issues: string[]; summary: string } }> {
+    try {
+      const logDir = this.getLogDirectory();
+      if (!fs.existsSync(logDir)) {
+        return undefined;
+      }
+
+      const files = fs.readdirSync(logDir)
+        .filter(file => file.startsWith("plog-analysis-") && file.endsWith(".json"))
+        .sort()
+        .reverse(); // Most recent first
+
+      if (files.length === 0) {
+        return undefined;
+      }
+
+      const latestFile = path.join(logDir, files[0]!);
+      const content = fs.readFileSync(latestFile, "utf8");
+      return JSON.parse(content) as { validation: { isValid: boolean; issues: string[]; summary: string } };
+
+    } catch (error) {
+      console.error("PLog: Failed to read latest analysis file:", error);
+      return undefined;
+    }
+  }
+
+  /**
    * Analyze timestamps of completed function calls to validate proper pairing
    * This helps detect if funcIn/funcOut calls are being matched correctly
+   * @param useLatestFile - If true, analyzes the most recent log file instead of current history
    */
-  analyzeTimestamps(): { isValid: boolean; issues: string[]; summary: string } {
+  analyzeTimestamps(useLatestFile = false): { isValid: boolean; issues: string[]; summary: string } {
+    if (useLatestFile) {
+      const latestFile = this.getLatestAnalysisFile();
+      if (latestFile?.validation) {
+        return latestFile.validation;
+      }
+      // Fall back to current history if no file found
+    }
     const issues: string[] = [];
     const calls = [...this.completedCalls].sort((a, b) => a.startTime - b.startTime);
 
@@ -1542,6 +1664,16 @@ class PLog {
    */
   private logHistoryToFile(trigger: string): void {
     try {
+      // Automatically validate the analysis before logging
+      const validation = this.analyzeTimestamps();
+
+      if (!validation.isValid) {
+        console.warn(`PLog: Analysis validation failed (${trigger}):`, validation.issues);
+        console.warn("PLog: Logging anyway for debugging purposes");
+      } else if (__DEV__) {
+        console.log(`PLog: Analysis validation passed (${trigger})`);
+      }
+
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const filename = `plog-analysis-${timestamp}-${trigger}.json`;
 
@@ -1559,7 +1691,7 @@ class PLog {
         timestamp: new Date().toISOString(),
         systemId: C.SYSTEM_ID,
         completedCalls: [...this.completedCalls],
-        analysis: this.analyzeTimestamps(),
+        validation, // Include validation results automatically
         metadata: {
           totalCalls: this.completedCalls.length,
           duration: this.completedCalls.length > 0 ?

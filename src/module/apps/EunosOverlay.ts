@@ -1013,7 +1013,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     leaveLimbo: SocketFunction<void, void>;
   } = {
     changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
-      pLog.startFlow(`Phase Transition: ${data.prevPhase} → ${data.newPhase}`);
+      pLog.startFlow(`Phase Transition: ${data.prevPhase} → ${data.newPhase}`, true);
       pLog.funcIn("Socket changePhase handler", data);
 
       void EunosOverlay.instance

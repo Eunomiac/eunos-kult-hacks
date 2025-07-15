@@ -2,6 +2,8 @@
 
 This guide covers how to use the PLog performance logging system for testing, debugging, and flow-of-execution analysis.
 
+PLog uses a singleton pattern - the global `pLog` automatically creates and returns the same instance whenever accessed.
+
 ## Table of Contents
 
 1. [Running PLog Tests](#running-plog-tests)
@@ -69,13 +71,14 @@ changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
 
 ### 2. Add Flow Tracking
 
-Wrap the entire operation in a flow:
+Begin the flow analysis with `pLog.startFlow` (you may optionally pass a message for display to the console), and end it with `pLog.endFlow`.  These calls do not have to be located in the same function, or any other shared scope. However, analysis is only possible if all `pLog.startFlow` calls are properly matched with enough `pLog.endFlow` calls to cover end points for all possible paths through the flow.
+
+**IMPORTANT:** Every path through the flow must end with `pLog.endFlow`. This includes error handling and asynchronous paths. Put another way, whenever `pLot.startFlow` is called, it must always encounter a `pLog.endFlow` at some point.
 
 ```typescript
 changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
   // Start the flow with descriptive name
   pLog.startFlow(`Phase Transition: ${data.prevPhase} → ${data.newPhase}`);
-  pLog.funcIn("Socket changePhase handler", data);
 
   void EunosOverlay.instance
     .cleanupPhase(data.prevPhase)
@@ -83,21 +86,21 @@ changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
       return EunosOverlay.instance.initializePhase(data.newPhase);
     })
     .then(() => {
-      pLog.funcOut("Phase transition completed successfully");
-      pLog.endFlow(); // End the flow on success
+      // Our phase transition sequence ends in success, so we end the flow.
+      pLog.endFlow();
     })
     .catch((error: unknown) => {
       kLog.error("Error initializing phase:", error);
       pLog.error("Phase transition failed", error);
-      pLog.funcOut("Phase transition failed with error");
-      pLog.endFlow(); // End the flow on error too
+      // But we must also account for this possible path through the code, so we end the flow here, too.
+      pLog.endFlow();
     });
 },
 ```
 
 ### 3. Add Function-Level Tracking
 
-Add `funcIn`/`funcOut` calls to key methods (typically without parameters for auto-detection):
+Add `funcIn`/`funcOut` calls to any methods or functions you would like to track. As long as every path through the code following a `funcIn` ends with a `funcOut`, you can nest them, even recusively. They will automatically detect and display the name of the function they are tracking, and can be used without providing parameters.
 
 ```typescript
 async cleanupPhase(gamePhase?: GamePhase) {
@@ -115,33 +118,67 @@ async initializePhase(gamePhase?: GamePhase) {
 }
 ```
 
-**Note**: You can optionally provide custom messages if needed:
+**Note**: You can optionally provide custom messages and data (of any type) if needed:
 ```typescript
 pLog.funcIn("Custom description", { gamePhase });
 pLog.funcOut("Custom completion message");
 ```
 
-### 4. Add Sub-Operation Tracking
+### 5. Add Instant Timestamps
 
-For detailed analysis of operations within functions, use `startTimestamp`/`endTimestamp`:
+For quick debugging or marking specific points in time, use `stampNow()`. This immediately logs a timestamp relative to the most recent `funcIn` or `startFlow`:
+
+```typescript
+async processData() {
+  pLog.funcIn(); // Auto-detects "processData"
+
+  // Some initial work...
+  pLog.stampNow("Starting validation"); // Shows time from funcIn
+
+  await validateInput();
+  pLog.stampNow("Validation complete"); // Shows time from funcIn
+
+  await processResults();
+  pLog.stampNow(); // Uses default "Timestamp" message
+
+  pLog.funcOut();
+}
+```
+
+**Output example:**
+```
+⏱️ STAMP: Starting validation (+45.2341ms from function "processData")
+⏱️ STAMP: Validation complete (+123.7892ms from function "processData")
+⏱️ STAMP: Timestamp (+234.5678ms from function "processData")
+```
+
+### 6. Add Sub-Operation Tracking
+
+For detailed analysis of operations within functions, use `startTimestamp`/`endTimestamp`. These methods support optional labels that allow you to explicitly pair start/end calls, which is useful for operations that don't follow strict nesting or when tracking overlapping processes.
 
 ```typescript
 private async initialize_SessionRunning(): Promise<void> {
   pLog.funcIn(); // Track the entire function
 
+  pLog.startTimestamp("Killing sound & clock", undefined, "kill-sound-clock"); // Labeled for explicit pairing
   pLog.startTimestamp("Killing soundscape");
   await EunosMedia.SetSoundscape({});
-  pLog.endTimestamp("Soundscape killed");
+  pLog.endTimestamp("Soundscape killed"); // Uses default LIFO matching
 
+  pLog.startTimestamp("Killing countdown & portrait timeline", undefined, "kill-countdown-portrait"); // Labeled for explicit pairing
   pLog.startTimestamp("Killing countdown");
   await this.killCountdown(true, true);
   pLog.endTimestamp("Countdown killed");
+
+  pLog.endTimestamp("Sound & clock killed.", undefined, "kill-sound-clock"); // Matches by label (without labels, would incorrectly match "Killing countdown & portrait timeline"; technically optional here since labeled starts only accept labeled ends, but improves clarity)
 
   pLog.startTimestamp("Building PC portrait timelines");
   await this.buildPCPortraitTimelines();
   pLog.endTimestamp("PC portrait timelines built");
 
-  pLog.funcOut(); // Track the entire function
+  pLog.endTimestamp("Countdown & portrait timelines killed.", undefined, "kill-countdown-portrait"); // Label required since startTimestamp was labeled
+
+  pLog.funcOut(); // Complete function tracking
 }
 ```
 
@@ -149,11 +186,9 @@ private async initialize_SessionRunning(): Promise<void> {
 
 ### 1. Trigger the Operation
 
-Perform the action that triggers your flow analysis:
+After entering in the various in- and out-points for the above tracking, perform the action that triggers the first call of `pLog.startFlow` in your flow analysis:
 
-**Example**: Change game phase from SessionStarting to SessionRunning
-- Use the GM interface to change the game phase
-- Or manually trigger: `setSetting("gamePhase", GamePhase.SessionRunning)`
+**Example**: The flow analysis in the above example is triggered by calling the `changePhase` socket function. To trigger this, set the `"gamePhase"` setting to `GamePhase.SessionRunning`.
 
 ### 2. Monitor Console Output
 
@@ -164,6 +199,8 @@ The flow analysis will display:
 3. **Flow End Message**: `⏱️ FLOW END: Phase Transition: SessionStarting → SessionRunning - Total time: X.XXXX s`
 4. **Function Timing Summary**: A table showing all function calls with start times, end times, and durations
 
+The information will also be written to a log file. A new log file is created automatically for each flow analysis.
+
 ### 3. Analyze Results
 
 Look for:
@@ -172,15 +209,20 @@ Look for:
 - **Missing calls**: Expected functions that aren't being tracked
 - **Timing relationships**: How nested calls relate to their parents
 
-### 4. Validate with Timestamp Analysis
+### 7. Automatic Validation and File Logging
 
-After the flow completes, run timestamp analysis:
+The PLog system automatically validates all timing relationships when an analysis completes and logs the results to file. You'll see validation messages in the console:
+
+- ✅ **"Analysis validation passed"** - All timing relationships are correct
+- ⚠️ **"Analysis validation failed"** - Issues detected (but still logged for debugging)
+
+The complete analysis (including validation results) is automatically saved to a timestamped JSON file in the `plog-logs` directory.
+
+If you need to manually check the most recent analysis, you can run:
 
 ```javascript
-pLog.analyzeTimestamps()
+pLog.analyzeTimestamps(true) // Reads validation from the most recent log file
 ```
-
-This will validate that all `funcIn`/`funcOut` calls were properly matched and report any timing inconsistencies.
 
 ## Advanced Features
 
@@ -308,7 +350,8 @@ pLog.endTimestamp("Y done", undefined, "labelY"); // Explicit match with labelY
    - Warnings are normal for recursive functions or complex call patterns
 
 3. **Flow timing seems wrong**
-   - Run `pLog.analyzeTimestamps()` to validate call matching
+   - Check console for automatic validation warnings during flow completion
+   - Run `pLog.analyzeTimestamps(true)` to check the most recent analysis validation
    - Check for missing or extra `funcIn`/`funcOut` calls
 
 4. **Tests failing**
