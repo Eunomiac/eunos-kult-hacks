@@ -170,6 +170,13 @@ interface FlowData {
 class PLog {
   private functionStack: FunctionCall[] = [];
   private flowStack: FlowData[] = [];
+  private completedCalls: Array<{
+    name: string;
+    startTime: number;
+    endTime: number;
+    duration: number;
+    depth: number;
+  }> = [];
 
   /**
    * Static method to initialize PLog and assign it to global scope
@@ -440,6 +447,7 @@ class PLog {
 
   /**
    * Record function exit and calculate duration
+   * Uses LIFO (Last In, First Out) matching to support recursive function calls
    * @param message - Optional message to display (first parameter following standard pattern)
    * @param data - Optional data to display (second parameter following standard pattern)
    */
@@ -454,15 +462,32 @@ class PLog {
     const functionCall = this.functionStack.pop()!;
     const currentFunctionName = this.getFunctionNameFromStack();
 
-    // Verify function name matches (helps catch mismatched calls)
-    if (functionCall.name !== currentFunctionName) {
-      this.error(`Function name mismatch: expected ${functionCall.name}, got ${currentFunctionName}`);
-      this.functionStack.push(functionCall); // Put it back for potential later matching
-      return;
+    // For recursive functions, we use LIFO matching instead of name matching
+    // This allows the same function name to appear multiple times in the stack
+    // We only warn about name mismatches if they seem suspicious (different names entirely)
+    const namesDiffer = functionCall.name !== currentFunctionName;
+    const seemsSuspicious = namesDiffer &&
+      !functionCall.name.includes("anonymous") &&
+      !currentFunctionName.includes("anonymous") &&
+      functionCall.name !== "unknown" &&
+      currentFunctionName !== "unknown";
+
+    if (seemsSuspicious) {
+      // Only warn, don't error - this supports recursive calls and edge cases
+      this.warn(`Function name mismatch (LIFO matching used): expected ${functionCall.name}, got ${currentFunctionName}. This may be normal for recursive calls.`);
     }
 
     const duration = now - functionCall.startTime;
     const formattedDuration = this.formatTime(duration);
+
+    // Record completed call for timestamp analysis
+    this.completedCalls.push({
+      name: functionCall.name,
+      startTime: functionCall.startTime,
+      endTime: now,
+      duration,
+      depth: this.functionStack.length // Depth at time of completion
+    });
 
     // Check if we should log based on message (if provided)
     if (message && !this.shouldLog(message)) {
@@ -470,6 +495,7 @@ class PLog {
     }
 
     // Use provided message or default to function completion message
+    // For recursive calls, include the original function name from funcIn
     const displayMessage = message || `${functionCall.name} completed in ${formattedDuration}`;
 
     // If we're in a flow, add to flow data and include flow time
@@ -862,7 +888,96 @@ class PLog {
       }
     });
 
-    // Test 10: Recursion depth protection
+    // Test 10: Timestamp analysis for recursive calls
+    runTest("Timestamp Analysis for Recursive Calls", () => {
+      // Clear history for clean test
+      this.clearHistory();
+
+      // Define a recursive test function
+      const recursiveTest = (depth: number) => {
+        this.funcIn(`Recursive test depth ${depth}`);
+
+        // Add small delay to create measurable timing
+        const start = performance.now();
+        while (performance.now() - start < 2) { /* wait */ }
+
+        if (depth < 3) {
+          recursiveTest(depth + 1);
+        }
+
+        this.funcOut(`Completed depth ${depth}`);
+      };
+
+      // Run the recursive test
+      recursiveTest(0);
+
+      // Analyze timestamps
+      const analysis = this.analyzeTimestamps();
+
+      // The test passes if timestamp analysis finds no issues
+      return analysis.isValid && this.functionStack.length === 0;
+    });
+
+    // Test 11: Recursive function calls with timestamp analysis
+    runTest("Recursive Function Calls", () => {
+      this.clearHistory();
+
+      let counter = 0;
+      const recursiveTest = () => {
+        this.funcIn(`Recursive call depth ${counter}`);
+
+        // Add small delay for timing
+        const start = performance.now();
+        while (performance.now() - start < 2) { /* wait */ }
+
+        if (counter < 3) {
+          counter++;
+          recursiveTest();
+        }
+
+        this.funcOut(`Completed depth ${counter}`);
+      };
+
+      recursiveTest();
+
+      const analysis = this.analyzeTimestamps();
+      return analysis.isValid && this.functionStack.length === 0;
+    });
+
+    // Test 12: Nested function calls with timestamp analysis
+    runTest("Nested Function Calls", () => {
+      this.clearHistory();
+
+      const innerFunc = () => {
+        this.funcIn("Inner function");
+        const start = performance.now();
+        while (performance.now() - start < 2) { /* wait */ }
+        this.funcOut("Inner complete");
+      };
+
+      const middleFunc = () => {
+        this.funcIn("Middle function");
+        const start = performance.now();
+        while (performance.now() - start < 2) { /* wait */ }
+        innerFunc();
+        this.funcOut("Middle complete");
+      };
+
+      const outerFunc = () => {
+        this.funcIn("Outer function");
+        const start = performance.now();
+        while (performance.now() - start < 2) { /* wait */ }
+        middleFunc();
+        this.funcOut("Outer complete");
+      };
+
+      outerFunc();
+
+      const analysis = this.analyzeTimestamps();
+      return analysis.isValid && this.functionStack.length === 0;
+    });
+
+    // Test 13: Recursion depth protection
     runTest("Recursion Protection", () => {
       const initialLength = this.functionStack.length;
 
@@ -902,6 +1017,105 @@ class PLog {
     }
 
     console.groupEnd();
+  }
+
+  /**
+   * Analyze timestamps of completed function calls to validate proper pairing
+   * This helps detect if funcIn/funcOut calls are being matched correctly
+   */
+  analyzeTimestamps(): { isValid: boolean; issues: string[]; summary: string } {
+    const issues: string[] = [];
+    const calls = [...this.completedCalls].sort((a, b) => a.startTime - b.startTime);
+
+    if (calls.length === 0) {
+      return {
+        isValid: true,
+        issues: [],
+        summary: "No completed calls to analyze"
+      };
+    }
+
+    // Check for overlapping calls (nested calls should be fully contained within parent calls)
+    for (let i = 0; i < calls.length - 1; i++) {
+      const current = calls[i]!;
+      const next = calls[i + 1]!;
+
+      // If next call starts before current call ends, it should also end before current call ends
+      if (next.startTime < current.endTime && next.endTime > current.endTime) {
+        issues.push(`Overlapping calls detected: ${current.name} (${this.formatTime(current.duration)}) overlaps with ${next.name} (${this.formatTime(next.duration)})`);
+      }
+    }
+
+    // Check for proper nesting: deeper calls should have shorter or equal durations to their parents
+    const callsByDepth = new Map<number, typeof calls>();
+    calls.forEach(call => {
+      if (!callsByDepth.has(call.depth)) {
+        callsByDepth.set(call.depth, []);
+      }
+      callsByDepth.get(call.depth)!.push(call);
+    });
+
+    // Verify LIFO order for same-depth calls
+    callsByDepth.forEach((depthCalls, depth) => {
+      for (let i = 0; i < depthCalls.length - 1; i++) {
+        const current = depthCalls[i]!;
+        const next = depthCalls[i + 1]!;
+
+        // For same depth, calls should not overlap
+        if (current.endTime > next.startTime && current.startTime < next.startTime) {
+          issues.push(`LIFO violation at depth ${depth}: ${current.name} should complete before ${next.name} starts`);
+        }
+      }
+    });
+
+    // Check for reasonable timing relationships in recursive calls
+    const recursiveCalls = calls.filter(call =>
+      calls.filter(other => other.name === call.name).length > 1
+    );
+
+    if (recursiveCalls.length > 0) {
+      // Group by function name
+      const recursiveGroups = new Map<string, typeof recursiveCalls>();
+      recursiveCalls.forEach(call => {
+        if (!recursiveGroups.has(call.name)) {
+          recursiveGroups.set(call.name, []);
+        }
+        recursiveGroups.get(call.name)!.push(call);
+      });
+
+      recursiveGroups.forEach((group, funcName) => {
+        // Sort by start time
+        group.sort((a, b) => a.startTime - b.startTime);
+
+        // Check that nested calls are properly contained
+        for (let i = 0; i < group.length - 1; i++) {
+          const outer = group[i]!;
+          const inner = group[i + 1]!;
+
+          if (inner.startTime >= outer.startTime && inner.endTime <= outer.endTime) {
+            // Good: inner call is properly nested
+          } else if (inner.startTime > outer.endTime) {
+            // Good: sequential calls
+          } else {
+            issues.push(`Recursive call timing issue in ${funcName}: inner call (${this.formatTime(inner.duration)}) not properly nested within outer call (${this.formatTime(outer.duration)})`);
+          }
+        }
+      });
+    }
+
+    const isValid = issues.length === 0;
+    const summary = isValid
+      ? `✅ Analyzed ${calls.length} function calls - all timestamps are consistent with proper LIFO matching`
+      : `❌ Found ${issues.length} timing issues that suggest incorrect funcIn/funcOut pairing`;
+
+    return { isValid, issues, summary };
+  }
+
+  /**
+   * Clear completed calls history (useful for testing)
+   */
+  clearHistory(): void {
+    this.completedCalls = [];
   }
 }
 

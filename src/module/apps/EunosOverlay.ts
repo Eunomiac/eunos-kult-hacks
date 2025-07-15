@@ -1013,13 +1013,23 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
     leaveLimbo: SocketFunction<void, void>;
   } = {
     changePhase: (data: { prevPhase: GamePhase; newPhase: GamePhase }) => {
+      pLog.startFlow(`Phase Transition: ${data.prevPhase} → ${data.newPhase}`);
+      pLog.funcIn("Socket changePhase handler", data);
+
       void EunosOverlay.instance
         .cleanupPhase(data.prevPhase)
         .then(() => {
           return EunosOverlay.instance.initializePhase(data.newPhase);
         })
+        .then(() => {
+          pLog.funcOut("Phase transition completed successfully");
+          pLog.endFlow();
+        })
         .catch((error: unknown) => {
           kLog.error("Error initializing phase:", error);
+          pLog.error("Phase transition failed", error);
+          pLog.funcOut("Phase transition failed with error");
+          pLog.endFlow();
         });
     },
     preloadPreSessionSong: () => {
@@ -2535,6 +2545,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   // #region PHASE LIFECYCLE METHODS ~
 
   async initializePhase(gamePhase?: GamePhase) {
+    pLog.funcIn("Initializing phase", { gamePhase });
     gamePhase = gamePhase ?? getSetting("gamePhase");
     kLog.log(`Initializing phase: ${gamePhase}`);
     setTimeout(() => {
@@ -2562,6 +2573,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         break;
       }
     }
+    pLog.funcOut(`Phase initialization completed: ${gamePhase}`);
   }
 
   async syncPhase() {
@@ -2597,6 +2609,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   async cleanupPhase(gamePhase?: GamePhase) {
+    pLog.funcIn("Cleaning up phase", { gamePhase });
     gamePhase = gamePhase ?? getSetting("gamePhase");
     kLog.log(`Cleaning up phase: ${gamePhase}`);
     switch (gamePhase) {
@@ -2621,6 +2634,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         break;
       }
     }
+    pLog.funcOut(`Phase cleanup completed: ${gamePhase}`);
   }
 
   // #region SessionClosed Methods
@@ -2741,9 +2755,11 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async cleanup_SessionStarting(): Promise<void> {
+    pLog.funcIn("Cleaning up SessionStarting phase");
     await this.killIntroVideo();
     this.unfreezeOverlay();
     removeClassFromDOM("session-starting");
+    pLog.funcOut("SessionStarting cleanup completed");
   }
   // #endregion SessionStarting Methods
 
@@ -2765,20 +2781,35 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
 
   // #region SessionRunning Methods
   private async initialize_SessionRunning(): Promise<void> {
+    pLog.funcIn("Initializing SessionRunning phase");
+
     kLog.display("=== Killing Soundscape ===");
+    pLog.funcIn("Killing soundscape");
     await EunosMedia.SetSoundscape({});
+    pLog.funcOut("Soundscape killed");
+
     // Kill countdown if it's running
     kLog.display("=== Killing Countdown ===");
+    pLog.funcIn("Killing countdown");
     await this.killCountdown(true, true);
+    pLog.funcOut("Countdown killed");
+
     kLog.display("=== Building Portrait Timelines ===");
+    pLog.funcIn("Building PC portrait timelines");
     await this.buildPCPortraitTimelines();
+    pLog.funcOut("PC portrait timelines built");
+
     kLog.display("=== Adding Class to DOM ===");
     addClassToDOM("session-running");
+
     kLog.display("=== Revealing Stage ===");
     gsap.set(this.stage$, { autoAlpha: 1 });
+
     kLog.display("=== Alerting Session Scribe ===");
     void this.alertSessionScribe();
+
     kLog.display("=== Going to Location ===");
+    pLog.funcIn("Going to location");
     if (getSetting("inLimbo")) {
       await this.enterLimbo();
     } else {
@@ -2788,15 +2819,19 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
         delayWeather: true
       });
     }
+    pLog.funcOut("Location transition completed");
+
     // kLog.display("=== Updating PCUI ===");
     // await this.updatePCUI();
     // kLog.display("=== Updating Weather Audio ===");
     // await this.updateWeatherAudio();
     // this.render({parts: ["pcs"]});
     if (!getUser().isGM) {
+      pLog.funcOut("SessionRunning initialization completed (non-GM)");
       return;
     }
     // Send an Alert to the session scribe
+    pLog.funcOut("SessionRunning initialization completed (GM)");
   }
 
   public async alertSessionScribe() {
@@ -3349,6 +3384,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
   }
 
   private async killIntroVideo(): Promise<void> {
+    pLog.funcIn("Killing intro video");
     if (this.#animateOutBlackBarsTimeout) {
       clearTimeout(this.#animateOutBlackBarsTimeout);
       this.#animateOutBlackBarsTimeout = undefined;
@@ -3366,6 +3402,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       }
     );
     await EunosMedia.Kill(this.introVideo.name);
+    pLog.funcOut("Intro video killed");
   }
   // #endregion INTRO VIDEO ~
 

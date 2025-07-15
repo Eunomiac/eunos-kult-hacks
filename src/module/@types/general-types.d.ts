@@ -186,8 +186,10 @@ declare global {
     startFlow: (flowName: string) => void;
     endFlow: (flowName?: string) => void;
 
-    // Testing method
+    // Testing and analysis methods
     test: () => void;
+    analyzeTimestamps: () => { isValid: boolean; issues: string[]; summary: string };
+    clearHistory: () => void;
   };
   // #endregion
 
