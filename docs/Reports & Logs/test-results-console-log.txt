@@ -1,0 +1,486 @@
+PLog.ts:793 Console was cleared
+PLog.ts:795 🧪 PLog Test Suite
+PLog.ts:489 Test log message
+PLog.ts:489 Test warning message
+PLog.ts:489 Test info message
+PLog.ts:489 Test debug message
+PLog.ts:489 Test error message
+PLog.ts:489 Test display message
+PLog.ts:489 Test socket call
+PLog.ts:489 Test socket response
+PLog.ts:489 Test socket received
+PLog.ts:489 ⏱️ STAMP: Test timestamp (83654.6000ms)
+PLog.ts:489 ⏱️ STAMP: Timestamp (83655.5000ms)
+PLog.ts:489 testAutoDetection completed in 10 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 1
+PLog.ts:1715 First few calls: testAutoDetection(10.10ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1902 PLog: Analysis validation passed (funcOut)
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-254Z-funcOut.json
+PLog.ts:489 Custom completion message
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 1
+PLog.ts:1715 First few calls: testCustomMessages(10.00ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1902 PLog: Analysis validation passed (funcOut)
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-267Z-funcOut.json
+PLog.ts:489 ⏱️ FLOW START: outerFlow
+PLog.ts:489 Outer function [Flow time: 0.70 ms]
+PLog.ts:489 ⏱️ FLOW START: nestedFlow
+PLog.ts:489 Nested function 1 [Flow time: 0.90 ms]
+PLog.ts:489 Nested function 1 complete [Duration: 5.80 ms, Flow time: 6.70 ms]
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+PLog.ts:489 Nested function 2 [Flow time: 7.80 ms]
+PLog.ts:489 Nested function 2 complete [Duration: 5.60 ms, Flow time: 13 ms]
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+PLog.ts:489 ⏱️ FLOW END: nestedFlow - Total time: 15 ms
+PLog.ts:771 Function Timing Summary
+PLog.ts:773 (index)FunctionStart TimeEnd TimeDuration(index)FunctionStart TimeEnd TimeDuration0'nestedFunction1''0.90 ms''6.70 ms''5.80 ms'1'nestedFunction2''7.80 ms''13 ms''5.60 ms'Array(2)
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+PLog.ts:489 Outer function complete [Duration: 17 ms, Flow time: 17 ms]
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=3
+PLog.ts:489 ⏱️ FLOW END: outerFlow - Total time: 18 ms
+PLog.ts:771 Function Timing Summary
+PLog.ts:773 (index)FunctionStart TimeEnd TimeDuration(index)FunctionStart TimeEnd TimeDuration0'outerFunction''0.70 ms''17 ms''17 ms'Array(1)
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 3
+PLog.ts:1715 First few calls: outerFunction(16.50ms), nestedFunction1(5.80ms), nestedFunction2(5.60ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1902 PLog: Analysis validation passed (endFlow)
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-287Z-endFlow.json
+PLog.ts:489 ⏱️ FLOW START: testFlow
+PLog.ts:489 Flow name mismatch: expected testFlow, got wrongFlowName
+PLog.ts:489 ⏱️ FLOW END: testFlow - Total time: 1.80 ms
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=true, completedCalls.length=0
+PLog.ts:489 Inner function end
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+PLog.ts:489 Outer function end
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 2
+PLog.ts:1715 First few calls: innerFunction(0.00ms), outerFunction(0.90ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1902 PLog: Analysis validation passed (funcOut)
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-291Z-funcOut.json
+PLog.ts:489 Function name mismatch (LIFO matching used): expected differentFunction, got testMismatch. This may be normal for recursive calls.
+PLog.ts:489 This should detect mismatch
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 1
+PLog.ts:1715 First few calls: differentFunction(0.00ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1902 PLog: Analysis validation passed (funcOut)
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-293Z-funcOut.json
+PLog.ts:489 Function C end
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+PLog.ts:489 Function B end
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+PLog.ts:489 Function A end
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 3
+PLog.ts:1715 First few calls: functionB(0.90ms), functionA(1.70ms), functionC(0.00ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=false, issues.length=1, issues=[Overlapping calls detected: functionB (0.90 ms) overlaps with functionA (1.70 ms)]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1899 PLog: Analysis validation failed (funcOut): ['Overlapping calls detected: functionB (0.90 ms) overlaps with functionA (1.70 ms)']
+logHistoryToFile @ PLog.ts:1899
+checkAndLogAnalysis @ PLog.ts:1975
+funcOut @ PLog.ts:712
+functionA @ PLog.ts:1120
+(anonymous) @ PLog.ts:1134
+runTest @ PLog.ts:809
+test @ PLog.ts:1103
+(anonymous) @ VM43213:1
+PLog.ts:1900 PLog: Logging anyway for debugging purposes
+logHistoryToFile @ PLog.ts:1900
+checkAndLogAnalysis @ PLog.ts:1975
+funcOut @ PLog.ts:712
+functionA @ PLog.ts:1120
+(anonymous) @ PLog.ts:1134
+runTest @ PLog.ts:809
+test @ PLog.ts:1103
+(anonymous) @ VM43213:1
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-296Z-funcOut.json
+PLog.ts:489 funcOut called for http://localhost:30001/modules/eunos-kult-hacks/src/module/scripts/PLog but no matching funcIn found
+PLog.ts:489 Completed depth 3
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+ Completed depth 2
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+ Completed depth 1
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=3
+ Completed depth 0
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+ logHistoryToFile START: labeledTimestamps.size = 0
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 4
+ First few calls: recursiveTest(10.50ms), recursiveTest(7.80ms), recursiveTest(4.90ms)
+ analyzeTimestamps END: labeledTimestamps.size = 0
+ analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+ logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+ PLog: Analysis validation passed (funcOut)
+ PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-309Z-funcOut.json
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 0
+ Completed depth 3
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+ Completed depth 3
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+ Completed depth 3
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=3
+ Completed depth 3
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+ logHistoryToFile START: labeledTimestamps.size = 0
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 4
+ First few calls: recursiveTest(10.60ms), recursiveTest(7.70ms), recursiveTest(4.90ms)
+ analyzeTimestamps END: labeledTimestamps.size = 0
+ analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+ logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+ PLog: Analysis validation passed (funcOut)
+ PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-321Z-funcOut.json
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 0
+ Inner complete
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+ Middle complete
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+ Outer complete
+ checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+ logHistoryToFile START: labeledTimestamps.size = 0
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 3
+ First few calls: outerFunc(8.50ms), middleFunc(5.00ms), innerFunc(2.00ms)
+ analyzeTimestamps END: labeledTimestamps.size = 0
+ analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+ logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+ PLog: Analysis validation passed (funcOut)
+ PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-333Z-funcOut.json
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 0
+ Operation A
+ Operation A completed
+ checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+ logHistoryToFile START: labeledTimestamps.size = 0
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 1
+ First few calls: Operation A(3.40ms)
+ analyzeTimestamps END: labeledTimestamps.size = 0
+ analyzeTimestamps RETURN: isValid=true, issues.length=0, issues=[]
+ logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+ PLog: Analysis validation passed (endTimestamp)
+ PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-338Z-endTimestamp.json
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 0
+ Operation X
+ Operation Y
+ Before endTimestamp labelX: labeledTimestamps.size = 2
+ Operation X done
+ checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 1
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+ After endTimestamp labelX: labeledTimestamps.size = 1
+ Before endTimestamp labelY: labeledTimestamps.size = 1
+ Operation Y done
+ checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+ logHistoryToFile START: labeledTimestamps.size = 0
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 2
+ First few calls: Operation X(3.00ms), Operation Y(5.00ms)
+ analyzeTimestamps END: labeledTimestamps.size = 0
+ analyzeTimestamps RETURN: isValid=false, issues.length=2, issues=[Overlapping calls detected: Operation X (3.00 ms) overlaps with Operation Y (5.00 ms) | LIFO violation at depth 0: Operation X should complete before Operation Y starts]
+ logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+ PLog: Analysis validation failed (endTimestamp): (2) ['Overlapping calls detected: Operation X (3.00 ms) overlaps with Operation Y (5.00 ms)', 'LIFO violation at depth 0: Operation X should complete before Operation Y starts']
+logHistoryToFile @ PLog.ts:1321
+checkAndLogAnalysis @ PLog.ts:1369
+endTimestamp @ PLog.ts:1168
+(anonymous) @ PLog.ts:922
+runTest @ PLog.ts:566
+test @ PLog.ts:908
+(anonymous) @ unknown
+ PLog: Logging anyway for debugging purposes
+logHistoryToFile @ PLog.ts:1322
+checkAndLogAnalysis @ PLog.ts:1369
+endTimestamp @ PLog.ts:1168
+(anonymous) @ PLog.ts:922
+runTest @ PLog.ts:566
+test @ PLog.ts:908
+(anonymous) @ unknown
+ PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-344Z-endTimestamp.json
+ After endTimestamp labelY: labeledTimestamps.size = 0
+ Before analyzeTimestamps: labeledTimestamps.size = 0
+ analyzeTimestamps START: labeledTimestamps.size = 0
+ analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 0
+ After analyzeTimestamps: labeledTimestamps.size = 0
+ Final result: true, labeledTimestamps.size: 0
+ Outer operation
+ Labeled operation
+ Inner operation
+ Inner done
+ checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 1
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+ Special done
+ checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+ Outer done
+ checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 0
+ checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 3
+PLog.ts:1715 First few calls: Outer operation(4.10ms), Labeled operation(3.50ms), Inner operation(2.50ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=false, issues.length=1, issues=[LIFO violation at depth 1: Labeled operation should complete before Inner operation starts]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1899 PLog: Analysis validation failed (endTimestamp): ['LIFO violation at depth 1: Labeled operation should complete before Inner operation starts']
+logHistoryToFile @ PLog.ts:1899
+checkAndLogAnalysis @ PLog.ts:1975
+endTimestamp @ PLog.ts:1678
+(anonymous) @ PLog.ts:1349
+runTest @ PLog.ts:809
+test @ PLog.ts:1336
+(anonymous) @ VM43213:1
+PLog.ts:1900 PLog: Logging anyway for debugging purposes
+logHistoryToFile @ PLog.ts:1900
+checkAndLogAnalysis @ PLog.ts:1975
+endTimestamp @ PLog.ts:1678
+(anonymous) @ PLog.ts:1349
+runTest @ PLog.ts:809
+test @ PLog.ts:1336
+(anonymous) @ VM43213:1
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-349Z-endTimestamp.json
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 0
+PLog.ts:489 Op 1
+PLog.ts:489 Sub-operation 1
+PLog.ts:1667 Sub-operation 1 completed
+PLog.ts:1947 checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+PLog.ts:489 Sub-operation 2
+PLog.ts:1667 Sub-operation 2 completed
+PLog.ts:1947 checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+PLog.ts:489 testFunction completed in 6.00 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 3
+PLog.ts:1715 First few calls: Sub-operation 1(2.50ms), testFunction(6.00ms), Sub-operation 2(2.70ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=false, issues.length=1, issues=[Overlapping calls detected: Sub-operation 1 (2.50 ms) overlaps with testFunction (6.00 ms)]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1899 PLog: Analysis validation failed (funcOut): ['Overlapping calls detected: Sub-operation 1 (2.50 ms) overlaps with testFunction (6.00 ms)']
+logHistoryToFile @ PLog.ts:1899
+checkAndLogAnalysis @ PLog.ts:1975
+funcOut @ PLog.ts:712
+testFunction @ PLog.ts:1411
+(anonymous) @ PLog.ts:1414
+runTest @ PLog.ts:809
+test @ PLog.ts:1393
+(anonymous) @ VM43213:1
+PLog.ts:1900 PLog: Logging anyway for debugging purposes
+logHistoryToFile @ PLog.ts:1900
+checkAndLogAnalysis @ PLog.ts:1975
+funcOut @ PLog.ts:712
+testFunction @ PLog.ts:1411
+(anonymous) @ PLog.ts:1414
+runTest @ PLog.ts:809
+test @ PLog.ts:1393
+(anonymous) @ VM43213:1
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-357Z-funcOut.json
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 0
+PLog.ts:489 ⏱️ FLOW START: Test Flow
+PLog.ts:489 Flow operation A [Flow time: 0.50 ms]
+PLog.ts:489 Flow operation B [Flow time: 1.20 ms]
+PLog.ts:1662 Flow A done [Duration: 3.20 ms, Flow time: 3.70 ms]
+PLog.ts:1947 checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 1
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+PLog.ts:1662 Flow B done [Duration: 2.90 ms, Flow time: 4.10 ms]
+PLog.ts:1947 checkAndLogAnalysis(endTimestamp): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+PLog.ts:489 ⏱️ FLOW END: Test Flow - Total time: 4.40 ms
+PLog.ts:771 Function Timing Summary
+PLog.ts:773 (index)FunctionStart TimeEnd TimeDuration(index)FunctionStart TimeEnd TimeDuration0'Flow operation A''0.50 ms''3.70 ms''3.20 ms'1'Flow operation B''1.20 ms''4.10 ms''2.90 ms'Array(2)
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 2
+PLog.ts:1715 First few calls: Flow operation A(3.20ms), Flow operation B(2.90ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=false, issues.length=2, issues=[Overlapping calls detected: Flow operation A (3.20 ms) overlaps with Flow operation B (2.90 ms) | LIFO violation at depth 0: Flow operation A should complete before Flow operation B starts]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1899 PLog: Analysis validation failed (endFlow): (2) ['Overlapping calls detected: Flow operation A (3.20 ms) overlaps with Flow operation B (2.90 ms)', 'LIFO violation at depth 0: Flow operation A should complete before Flow operation B starts']
+logHistoryToFile @ PLog.ts:1899
+checkAndLogAnalysis @ PLog.ts:1975
+endFlow @ PLog.ts:784
+(anonymous) @ PLog.ts:1439
+runTest @ PLog.ts:809
+test @ PLog.ts:1426
+(anonymous) @ VM43213:1
+PLog.ts:1900 PLog: Logging anyway for debugging purposes
+logHistoryToFile @ PLog.ts:1900
+checkAndLogAnalysis @ PLog.ts:1975
+endFlow @ PLog.ts:784
+(anonymous) @ PLog.ts:1439
+runTest @ PLog.ts:809
+test @ PLog.ts:1426
+(anonymous) @ VM43213:1
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-363Z-endFlow.json
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 0
+PLog.ts:489 ⏱️ FLOW START: Silencing Test (kLog silenced)
+PLog.ts:489 ⏱️ FLOW END: Silencing Test - Total time: 0.50 ms (kLog un-silenced)
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=true, completedCalls.length=0
+PLog.ts:489 ⏱️ FLOW START: Outer Flow (kLog silenced)
+PLog.ts:489 ⏱️ FLOW START: Inner Flow (kLog silenced)
+PLog.ts:489 ⏱️ FLOW END: Inner Flow - Total time: 0.40 ms (kLog un-silenced)
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=0
+PLog.ts:489 ⏱️ FLOW END: Outer Flow - Total time: 1.30 ms (kLog un-silenced)
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=true, completedCalls.length=0
+PLog.ts:489 ⏱️ FLOW START: Normal Flow
+PLog.ts:489 ⏱️ FLOW START: Silent Flow (kLog silenced)
+PLog.ts:489 ⏱️ FLOW END: Silent Flow - Total time: 0.50 ms (kLog un-silenced)
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=0
+PLog.ts:489 ⏱️ FLOW END: Normal Flow - Total time: 1.50 ms
+PLog.ts:1947 checkAndLogAnalysis(endFlow): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=true, completedCalls.length=0
+PLog.ts:489 recursionTest completed in 0.00e+0 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=1
+PLog.ts:489 recursionTest completed in 1.70 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=2
+PLog.ts:489 recursionTest completed in 3.10 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=3
+PLog.ts:489 recursionTest completed in 4.10 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=4
+PLog.ts:489 recursionTest completed in 5.30 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=5
+PLog.ts:489 recursionTest completed in 6.40 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=6
+PLog.ts:489 recursionTest completed in 7.70 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=7
+PLog.ts:489 recursionTest completed in 8.70 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=8
+PLog.ts:489 recursionTest completed in 10 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=9
+PLog.ts:489 recursionTest completed in 12 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1977 checkAndLogAnalysis: shouldLog=false, completedCalls.length=10
+PLog.ts:489 recursionTest completed in 13 ms
+PLog.ts:1947 checkAndLogAnalysis(funcOut): labeledTimestamps.size = 0
+PLog.ts:1972 checkAndLogAnalysis: shouldLog=true, calling logHistoryToFile
+PLog.ts:1881 logHistoryToFile START: labeledTimestamps.size = 0
+PLog.ts:1702 analyzeTimestamps START: labeledTimestamps.size = 0
+PLog.ts:1714 analyzeTimestamps MIDDLE: labeledTimestamps.size = 0, completedCalls: 11
+PLog.ts:1715 First few calls: recursionTest(6.40ms), recursionTest(7.70ms), recursionTest(8.70ms)
+PLog.ts:1798 analyzeTimestamps END: labeledTimestamps.size = 0
+PLog.ts:1799 analyzeTimestamps RETURN: isValid=false, issues.length=14, issues=[Overlapping calls detected: recursionTest (6.40 ms) overlaps with recursionTest (7.70 ms) | Overlapping calls detected: recursionTest (7.70 ms) overlaps with recursionTest (8.70 ms) | Overlapping calls detected: recursionTest (8.70 ms) overlaps with recursionTest (10 ms) | Overlapping calls detected: recursionTest (10 ms) overlaps with recursionTest (12 ms) | Overlapping calls detected: recursionTest (12 ms) overlaps with recursionTest (13 ms) | Overlapping calls detected: recursionTest (3.10 ms) overlaps with recursionTest (4.10 ms) | Overlapping calls detected: recursionTest (4.10 ms) overlaps with recursionTest (5.30 ms) | Recursive call timing issue in recursionTest: inner call (7.70 ms) not properly nested within outer call (6.40 ms) | Recursive call timing issue in recursionTest: inner call (8.70 ms) not properly nested within outer call (7.70 ms) | Recursive call timing issue in recursionTest: inner call (10 ms) not properly nested within outer call (8.70 ms) | Recursive call timing issue in recursionTest: inner call (12 ms) not properly nested within outer call (10 ms) | Recursive call timing issue in recursionTest: inner call (13 ms) not properly nested within outer call (12 ms) | Recursive call timing issue in recursionTest: inner call (4.10 ms) not properly nested within outer call (3.10 ms) | Recursive call timing issue in recursionTest: inner call (5.30 ms) not properly nested within outer call (4.10 ms)]
+PLog.ts:1896 logHistoryToFile after analyzeTimestamps: labeledTimestamps.size = 0
+PLog.ts:1899 PLog: Analysis validation failed (funcOut): (14) ['Overlapping calls detected: recursionTest (6.40 ms) overlaps with recursionTest (7.70 ms)', 'Overlapping calls detected: recursionTest (7.70 ms) overlaps with recursionTest (8.70 ms)', 'Overlapping calls detected: recursionTest (8.70 ms) overlaps with recursionTest (10 ms)', 'Overlapping calls detected: recursionTest (10 ms) overlaps with recursionTest (12 ms)', 'Overlapping calls detected: recursionTest (12 ms) overlaps with recursionTest (13 ms)', 'Overlapping calls detected: recursionTest (3.10 ms) overlaps with recursionTest (4.10 ms)', 'Overlapping calls detected: recursionTest (4.10 ms) overlaps with recursionTest (5.30 ms)', 'Recursive call timing issue in recursionTest: inne…) not properly nested within outer call (6.40 ms)', 'Recursive call timing issue in recursionTest: inne…) not properly nested within outer call (7.70 ms)', 'Recursive call timing issue in recursionTest: inne…) not properly nested within outer call (8.70 ms)', 'Recursive call timing issue in recursionTest: inne…ms) not properly nested within outer call (10 ms)', 'Recursive call timing issue in recursionTest: inne…ms) not properly nested within outer call (12 ms)', 'Recursive call timing issue in recursionTest: inne…) not properly nested within outer call (3.10 ms)', 'Recursive call timing issue in recursionTest: inne…) not properly nested within outer call (4.10 ms)']
+logHistoryToFile @ PLog.ts:1899
+checkAndLogAnalysis @ PLog.ts:1975
+funcOut @ PLog.ts:712
+recursionTest @ PLog.ts:1527
+(anonymous) @ PLog.ts:1531
+runTest @ PLog.ts:809
+test @ PLog.ts:1518
+(anonymous) @ VM43213:1
+PLog.ts:1900 PLog: Logging anyway for debugging purposes
+logHistoryToFile @ PLog.ts:1900
+checkAndLogAnalysis @ PLog.ts:1975
+funcOut @ PLog.ts:712
+recursionTest @ PLog.ts:1527
+(anonymous) @ PLog.ts:1531
+runTest @ PLog.ts:809
+test @ PLog.ts:1518
+(anonymous) @ VM43213:1
+PLog.ts:1929 PLog: Analysis queued for logging: plog-analysis-2025-07-15T21-13-13-383Z-funcOut.json
+PLog.ts:1537 Test Results
+PLog.ts:1539 {name: 'Basic Logging Methods', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Time Formatting', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Function Timing with Auto-Detection', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Function Timing with Custom Messages', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Flow Tracking with Nested Flows', status: 'PASS', details: 'stackEmpty: true, hadExpectedErrors: true, testPassed: true, flowStack.length: 0'}
+PLog.ts:1539 {name: 'Nested Function Calls with Proper Matching', status: 'PASS', details: 'stackEmpty: true, hadExpectedErrors: true, testPassed: true, functionStack.length: 0'}
+PLog.ts:1539 {name: 'Conditional Breakpoint (false)', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Settings Integration', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Stack Trace Generation', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Function Call Order Verification', status: 'FAIL', details: 'orderCorrect: false, stackEmpty: true, callOrder.l…tion A start" vs actual="funcOut: Function C end"'}
+PLog.ts:1539 {name: 'Error Handling', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Stack Trace Generation', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Settings Integration', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Timestamp Analysis for Recursive Calls', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Recursive Function Calls', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Nested Function Calls', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Basic Timestamp Functionality', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Labeled Timestamp Functionality', status: 'PASS', details: 'analysis.isValid: true, labeledTimestamps.size: 0, issues: []'}
+PLog.ts:1539 {name: 'Mixed Timestamp Functionality', status: 'PASS', details: 'analysis.isValid: true, functionStack.length: 0, labeledTimestamps.size: 0, issues: []'}
+PLog.ts:1539 {name: 'Timestamp Error Handling', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Proper Method Usage Patterns', status: 'PASS', details: 'analysis.isValid: true, functionStack.length: 0, completedCalls: 0, issues: []'}
+PLog.ts:1539 {name: 'Timestamp with Flow Integration', status: 'PASS', details: 'analysis.isValid: true, flowStack.length: 0, funct….length: 0, labeledTimestamps.size: 0, issues: []'}
+PLog.ts:1539 {name: 'kLog Silencing', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Mixed Flow Silencing', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1539 {name: 'Recursion Protection', status: 'PASS', details: 'Test completed successfully'}
+PLog.ts:1548 📊 Test Summary: 24/25 tests passed (96.0%)
+PLog.ts:1556 ⚠️ Some tests failed. Check the results above for details.

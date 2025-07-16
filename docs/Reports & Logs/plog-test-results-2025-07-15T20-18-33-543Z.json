@@ -1,0 +1,271 @@
+{
+  "timestamp": "2025-07-15T20:18:33.543Z",
+  "systemId": "eunos-kult-hacks",
+  "summary": {
+    "testsPassed": 20,
+    "testsTotal": 25,
+    "passRate": "80.0%",
+    "success": false
+  },
+  "results": [
+    {
+      "name": "Basic Logging Methods",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Time Formatting",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Function Timing with Auto-Detection",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Function Timing with Custom Messages",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Flow Tracking with Nested Flows",
+      "status": "PASS",
+      "details": "stackEmpty: true, hadExpectedErrors: true, testPassed: true, flowStack.length: 0"
+    },
+    {
+      "name": "Nested Function Calls with Proper Matching",
+      "status": "PASS",
+      "details": "stackEmpty: true, hadExpectedErrors: true, testPassed: true, functionStack.length: 0"
+    },
+    {
+      "name": "Conditional Breakpoint (false)",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Settings Integration",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Stack Trace Generation",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Function Call Order Verification",
+      "status": "FAIL",
+      "details": "Test returned false - check implementation"
+    },
+    {
+      "name": "Error Handling",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Stack Trace Generation",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Settings Integration",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Timestamp Analysis for Recursive Calls",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Recursive Function Calls",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Nested Function Calls",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Basic Timestamp Functionality",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Labeled Timestamp Functionality",
+      "status": "FAIL",
+      "details": "analysis.isValid: false, labeledTimestamps.size: 0, remaining labels: []"
+    },
+    {
+      "name": "Mixed Timestamp Functionality",
+      "status": "FAIL",
+      "details": "analysis.isValid: false, functionStack.length: 0, labeledTimestamps.size: 0, remaining labels: []"
+    },
+    {
+      "name": "Timestamp Error Handling",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Proper Method Usage Patterns",
+      "status": "FAIL",
+      "details": "analysis.isValid: false, functionStack.length: 0, analysis.issues: [Overlapping calls detected: Sub-operation 1 (2.60 ms) overlaps with testFunction (6.40 ms)], completedCalls: 3"
+    },
+    {
+      "name": "Timestamp with Flow Integration",
+      "status": "FAIL",
+      "details": "analysis.isValid: false, flowStack.length: 0, functionStack.length: 0, labeledTimestamps.size: 0"
+    },
+    {
+      "name": "kLog Silencing",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Mixed Flow Silencing",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Recursion Protection",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    }
+  ],
+  "failedTests": [
+    {
+      "name": "Function Call Order Verification",
+      "status": "FAIL",
+      "details": "Test returned false - check implementation"
+    },
+    {
+      "name": "Labeled Timestamp Functionality",
+      "status": "FAIL",
+      "details": "analysis.isValid: false, labeledTimestamps.size: 0, remaining labels: []"
+    },
+    {
+      "name": "Mixed Timestamp Functionality",
+      "status": "FAIL",
+      "details": "analysis.isValid: false, functionStack.length: 0, labeledTimestamps.size: 0, remaining labels: []"
+    },
+    {
+      "name": "Proper Method Usage Patterns",
+      "status": "FAIL",
+      "details": "analysis.isValid: false, functionStack.length: 0, analysis.issues: [Overlapping calls detected: Sub-operation 1 (2.60 ms) overlaps with testFunction (6.40 ms)], completedCalls: 3"
+    },
+    {
+      "name": "Timestamp with Flow Integration",
+      "status": "FAIL",
+      "details": "analysis.isValid: false, flowStack.length: 0, functionStack.length: 0, labeledTimestamps.size: 0"
+    }
+  ],
+  "passedTests": [
+    {
+      "name": "Basic Logging Methods",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Time Formatting",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Function Timing with Auto-Detection",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Function Timing with Custom Messages",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Flow Tracking with Nested Flows",
+      "status": "PASS",
+      "details": "stackEmpty: true, hadExpectedErrors: true, testPassed: true, flowStack.length: 0"
+    },
+    {
+      "name": "Nested Function Calls with Proper Matching",
+      "status": "PASS",
+      "details": "stackEmpty: true, hadExpectedErrors: true, testPassed: true, functionStack.length: 0"
+    },
+    {
+      "name": "Conditional Breakpoint (false)",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Settings Integration",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Stack Trace Generation",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Error Handling",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Stack Trace Generation",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Settings Integration",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Timestamp Analysis for Recursive Calls",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Recursive Function Calls",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Nested Function Calls",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Basic Timestamp Functionality",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Timestamp Error Handling",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "kLog Silencing",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Mixed Flow Silencing",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    },
+    {
+      "name": "Recursion Protection",
+      "status": "PASS",
+      "details": "Test completed successfully"
+    }
+  ],
+  "metadata": {
+    "foundryVersion": "12.331",
+    "systemVersion": "4.0.0.1",
+    "moduleVersion": "dev"
+  }
+}
