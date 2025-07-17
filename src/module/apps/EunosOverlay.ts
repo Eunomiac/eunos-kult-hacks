@@ -5451,7 +5451,7 @@ export default class EunosOverlay extends HandlebarsApplicationMixin(
       // Create the master control timeline
       tl.to(subTl, {
         progress: 1,
-        duration: subTl.duration() * (getSetting("inLimbo") ? 2 : 1),
+        duration: subTl.duration(),
         ease: "none"
       });
 
@@ -8646,7 +8646,10 @@ I should
     Object.assign(context, {
       sessionScribeID: getSetting("sessionScribe"),
       chainBG: AlertPaths["LINK"]!.cssCode,
-      userActorID: getActor()?.id ?? ""
+      userActorID: getActor()?.id ?? "",
+      // Performance settings for template conditional rendering
+      disable3DMapGraphics: getSetting("disable3DMapGraphics"),
+      disableVideoBackgroundInLimbo: getSetting("disableVideoBackgroundInLimbo")
     });
     if (!getUser().isGM) {
       const dramaticHookAssignment = getSetting("dramaticHookAssignments")[

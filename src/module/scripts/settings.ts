@@ -326,6 +326,27 @@ export default function registerSettings() {
       void EunosOverlay.instance.introVideo.reinitialize();
     }
   });
+
+  // Performance Settings
+  getSettings().register("eunos-kult-hacks", "disable3DMapGraphics", {
+    name: "Disable 3D Map Graphics in Emma's Rise",
+    hint: "Replaces the costly 3D rendering of the stage with a simple background image to improve performance.",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: false,
+    requiresReload: true
+  });
+
+  getSettings().register("eunos-kult-hacks", "disableVideoBackgroundInLimbo", {
+    name: "Disable Video Background in Limbo",
+    hint: "Replaces the animated video background in Limbo with a still image to improve performance.",
+    scope: "client",
+    config: true,
+    type: Boolean,
+    default: false,
+    requiresReload: true
+  });
   getSettings().register("eunos-kult-hacks", "endPhaseQuestion", {
     name: "End Phase Question",
     hint: "Which question we are on during the ending phase of a game session.",

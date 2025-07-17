@@ -109,3 +109,23 @@
       }
     }
   }
+
+  #SIMPLE-MAP {
+    position: fixed;
+    top: 50%;
+    left: calc(50% - 0.5*var(--sidebar-width));
+    transform: translate(-50%, -50%);
+    height: 100vh;
+    width: calc(100vw + var(--sidebar-width));
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      position: absolute;
+      transform-origin: top center;
+      transform: scale(0.8);
+      top: -50px;
+    }
+  }

@@ -1,7 +1,13 @@
 <div id="LIMBO" class="eunos-overlay-limbo">
   <div class="background-video-layer">
-    <video class="background-video" autoplay loop muted>
-      <source src="modules/eunos-kult-hacks/assets/video/limbo_glass_lake.webm" type="video/webm">
-    </video>
+    {{#if disableVideoBackgroundInLimbo}}
+      {{!-- Static image for performance --}}
+      <img class="background-video" src="modules/eunos-kult-hacks/assets/video/limbo_simplified_background.webp" alt="Limbo Background">
+    {{else}}
+      {{!-- Animated video background --}}
+      <video class="background-video" autoplay loop muted>
+        <source src="modules/eunos-kult-hacks/assets/video/limbo_glass_lake.webm" type="video/webm">
+      </video>
+    {{/if}}
   </div>
 </div>

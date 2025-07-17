@@ -84,6 +84,8 @@ declare global {
     "eunos-kult-hacks.volumeOverrides": VolumeOverride;
     "eunos-kult-hacks.nextGameSession": string; // ISO date string in Toronto timezone
     "eunos-kult-hacks.sessionScribeDeck": string[];
+    "eunos-kult-hacks.disable3DMapGraphics": boolean;
+    "eunos-kult-hacks.disableVideoBackgroundInLimbo": boolean;
     "eunos-kult-hacks.sessionScribe": string;
     "eunos-kult-hacks.dramaticHookAssignments": Record<string, string>;
     "eunos-kult-hacks.introVideoFilename": string;

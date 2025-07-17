@@ -1,45 +1,32 @@
 <div class="npc-portrait npc-limbo-portrait npc-portrait-name-{{nameState}}" data-actor-id="{{actor.id}}"
   data-portrait-state="{{portraitState}}" data-name-state="{{nameState}}" data-goggles-state="noGoggles"
-  data-token-scale="{{actor.system.tokenScale}}" data-action="openNPCSheet">
+  data-token-scale="{{actor.system.tokenScale}}" data-action="openNPCSheet" style="url(#dream-warp-{{actor.id}});">
 
-
-  <svg style="display: none;">
+  <svg>
     <filter id="dream-warp-{{actor.id}}">
-      <feTurbulence id="turbulence-{{actor.id}}" type="fractalNoise" baseFrequency="0.04" numOctaves="2"
-        result="warpNoise" />
-      <feDisplacementMap id="displace-{{actor.id}}" in="SourceGraphic" in2="warpNoise" scale="0" xChannelSelector="R"
-        yChannelSelector="G" />
+      <feTurbulence
+        id="turbulence-{{actor.id}}"  {{!-- A unique ID to link this filter to this particular NPC; allows multiple NPCs to animate in simultaneously --}}
+        type="fractalNoise" {{!-- This parameter controls the type of noise generated. "fractalNoise" creates a more organic, natural look. Other options include: "turbulence" for a more chaotic look --}}
+        baseFrequency="0.02 0.03" {{!-- This parameter controls the frequency of the noise. Lower values create larger, slower-moving distortions, while higher values create smaller, faster-moving distortions --}}
+        numOctaves="1" {{!-- This parameter controls the number of octaves used in the noise generation. More octaves create a more detailed, complex noise pattern --}}
+        result="NOISE" {{!-- his parameter defines the name of the output from this filter, which can be used as input for other filters --}}
+        {{!-- Other parameters include seed (for randomization) and stitchTiles (for tiling) --}}
+      />
+      <feDisplacementMap
+        id="displace-{{actor.id}}" {{!-- A unique ID to link this filter to this particular NPC; allows multiple NPCs to animate in simultaneously --}}
+        in="SourceGraphic" {{!-- This parameter defines the input for the filter. "SourceGraphic" uses the original image as input --}}
+        in2="NOISE" {{!-- This parameter defines the input for the displacement. "NOISE" uses the output from the feTurbulence filter as input --}}
+        scale="200" {{!-- This parameter controls the amount of displacement. Higher values create more distortion --}}
+        xChannelSelector="R" {{!-- This parameter defines which color channel to use for the x-axis displacement. "R" uses the red channel --}}
+        yChannelSelector="G" {{!-- This parameter defines which color channel to use for the y-axis displacement. "G" uses the green channel --}}
+        {{!-- Other parameters include color-interpolation-filters (for color management) --}}
+      />
     </filter>
   </svg>
 
-  {{!-- <svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
-    <filter id="dream-warp-{{actor.id}}" x="-20%" y="-20%" width="140%" height="140%"
-      color-interpolation-filters="sRGB">
-      <!-- Displacement map image -->
-      <feImage id="displacement-img-{{actor.id}}"
-        href="modules/eunos-kult-hacks/assets/images/stage/displacement_map.jpg" preserveAspectRatio="none"
-        result="DISPLACE_IMG" width="100%" height="100%" x="0" y="0" />
-
-      <!-- Displacement effect -->
-      <feDisplacementMap id="displace-{{actor.id}}" in="SourceGraphic" in2="DISPLACE_IMG" scale="0" xChannelSelector="R"
-        yChannelSelector="G" result="displaced" />
-
-      <!-- Soften the distortion -->
-      <feGaussianBlur id="gaussianblur-{{actor.id}}" in="displaced" stdDeviation="1.25" result="blurred" />
-
-      <!-- Edge highlight / glitchy rippling -->
-      <feConvolveMatrix id="convolvematrix-{{actor.id}}" in="blurred" order="3"
-        kernelMatrix="3.3 -3.3  3.3 -3.3 -.3 -3.3 3.3  -3.3  3.3" result="final" />
-
-      <!-- Output the final result -->
-      <feComposite in="final" in2="SourceGraphic" operator="over" />
-    </filter>
-  </svg> --}}
-
   <div class="npc-portrait-container">
     <div class="npc-portrait-frame">
-      <img class="npc-portrait-image npc-portrait-image-base" src="{{actor.img}}"
-  style="filter: url(#dream-warp-{{actor.id}});"/>
+      <img class="npc-portrait-image npc-portrait-image-base" src="{{actor.img}}"/>
     </div>
   </div>
   <div class="npc-portrait-name-container">

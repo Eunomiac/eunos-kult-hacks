@@ -1,9 +1,17 @@
 <div id="STAGE" class="eunos-overlay-stage">
   <div id="BLACKOUT-LAYER"></div>
-  <section id="SECTION-3D" class="master-layer">
-    <section class="canvas-layer background-layer">
-      {{!-- <section class="canvas-layer distant-overlay-layer"></section> --}}
+  {{#if disable3DMapGraphics}}
+    {{!-- Simplified stage for performance --}}
+    <div id="SIMPLE-MAP">
+      <img src="modules/eunos-kult-hacks/assets/images/stage/stage-map-simplified.webp" alt="Stage Map">
+    </div>
+  {{else}}
+    {{!-- Full 3D stage --}}
+    <section id="SECTION-3D" class="master-layer">
+      <section class="canvas-layer background-layer">
+        {{!-- <section class="canvas-layer distant-overlay-layer"></section> --}}
+      </section>
+      <section class="canvas-layer under-layer"></section>
     </section>
-    <section class="canvas-layer under-layer"></section>
-  </section>
+  {{/if}}
 </div>
